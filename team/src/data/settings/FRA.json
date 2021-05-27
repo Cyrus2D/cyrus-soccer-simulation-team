@@ -1,0 +1,25 @@
+{
+	"Strategy":	{
+				"Formation":	{
+							"Win":"HeliosFra",
+							"Lost":"HeliosFra",
+							"Draw":"HeliosFra"
+						},
+				"Is5ForwardWin":true,
+				"Is5ForwardLost":true,
+				"Is5ForwardDraw":true,
+				"TeamTactic":"Normal",
+				"IsGoalForward":false
+			},
+	"ChainAction":	{
+				"ChainNodeNumber":750,
+				"ChainDeph":3,
+				"UseShootSafe":true
+			},
+	"OffensiveMove":{
+				"Is9BrokeOffside":false
+			},
+	"DeffenseMove": {
+				"PassBlock":false
+			}
+}

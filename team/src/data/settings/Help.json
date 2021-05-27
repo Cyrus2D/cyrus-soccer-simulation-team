@@ -1,0 +1,23 @@
+{
+	"Strategy":	{
+				"Formation":	{
+							"Win":"433 or sh or HeliosFra or 0343 or 550",
+							"Lost":"433 or sh or HeliosFra or 0343 or 550",
+							"Draw":"433 or sh or HeliosFra or 0343 or 550"
+						},
+				"Is5Forward":true,
+				"TeamTactic":"Normal or AllDef or AllOff",
+				"IsGoalForward":false
+			},
+	"ChainAction":	{
+				"ChainNodeNumber":2000,
+				"ChainDeph":3,
+				"UseShootSafe":false
+			},
+	"OffensiveMove":{
+				"Is9BrokeOffside":false
+			},
+	"DeffenseMove": {
+				"PassBlock":false
+			}
+}
