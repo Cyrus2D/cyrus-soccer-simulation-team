@@ -69,13 +69,15 @@ Dribble::Dribble( const int dribbler,
                   const int turn_count,
                   const int dash_count,
                   const char * description,
-                  const int min_opp_dif)
+                  const int min_opp_dif,
+                  const bool safe_with_pos_count)
     : CooperativeAction( CooperativeAction::Dribble,
                          dribbler,
                          target_point,
                          kick_count + turn_count + dash_count,
                          description,
-                         min_opp_dif)
+                         min_opp_dif,
+                         safe_with_pos_count)
 {
     setTargetPlayerUnum( dribbler );
     setFirstBallSpeed( ball_speed );
@@ -115,13 +117,15 @@ Dribble::Dribble( const int dribbler,
                   const int dash_count,
                   const char * description,
                   const double body_angle,
-                  const int min_opp_dif)
+                  const int min_opp_dif,
+                  const bool safe_with_pos_count)
     : CooperativeAction( CooperativeAction::Dribble,
                          dribbler,
                          target_point,
                          kick_count + turn_count + dash_count,
                          description,
-                         min_opp_dif)
+                         min_opp_dif,
+                         safe_with_pos_count)
 {
     setTargetPlayerUnum( dribbler );
     setFirstBallSpeed( ball_speed );
