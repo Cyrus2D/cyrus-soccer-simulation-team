@@ -110,7 +110,8 @@ CooperativeAction::CooperativeAction( const ActionCategory & category,
                                       const int duration_step,
                                       const char * description,
                                       const int opp_min_dif,
-                                      const bool safe_with_pos_count
+                                      const bool safe_with_pos_count,
+                                      const int danger
                                       )
     : M_category( category ),
       M_index( -1 ),
@@ -131,7 +132,8 @@ CooperativeAction::CooperativeAction( const ActionCategory & category,
       M_first_kick_target(Vector2D::INVALIDATED),
       M_player_target_point(Vector2D::INVALIDATED),
       M_opp_min_dif_cycle(opp_min_dif),
-      M_safe_with_noise(safe_with_pos_count)
+      M_safe_with_noise(safe_with_pos_count),
+      M_danger(danger)
 
 {
 

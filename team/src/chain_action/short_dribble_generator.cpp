@@ -448,6 +448,8 @@ ShortDribbleGenerator::simulateKickTurnBackDashes(  const WorldModel & wm,
         bool safe_with_pos_count = true;
         if( !can_opp_reach(wm,M_first_ball_pos,first_vel,ball_trap_pos,1 + n_turn + n_dash,opp_min_dif, safe_with_pos_count))
         {
+            safe_with_pos_count = false;
+            int danger = 1;
             CooperativeAction::Ptr ptr( new Dribble( wm.self().unum(),
                                                      ball_trap_pos,
                                                      first_vel.r(),
@@ -456,7 +458,8 @@ ShortDribbleGenerator::simulateKickTurnBackDashes(  const WorldModel & wm,
                                                      n_dash,
                                                      "shortBackDribble",
                                                      opp_min_dif,
-                                                     safe_with_pos_count) );
+                                                     safe_with_pos_count,
+                                                     danger) );
             ptr->setIndex( M_total_count );
             M_courses.push_back( ptr );
 
@@ -637,6 +640,8 @@ ShortDribbleGenerator::simulateKickTurnsDashesAdvance( const WorldModel & wm,
             bool safe_with_pos_count = true;
             if( !can_opp_reach(wm,M_first_ball_pos,first_vel,ball_trap_pos,1 + n_turn + n_dash,opp_min_dif, safe_with_pos_count))
             {
+                safe_with_pos_count = false;
+                int danger = 1;
                 CooperativeAction::Ptr ptr( new Dribble( wm.self().unum(),
                                                          ball_trap_pos,
                                                          self_cache[n_turn + n_dash],
@@ -647,7 +652,8 @@ ShortDribbleGenerator::simulateKickTurnsDashesAdvance( const WorldModel & wm,
                                             "shortDribbleAdvance",
                                             dash_angle.degree(),
                                             opp_min_dif,
-                                            safe_with_pos_count) );
+                                            safe_with_pos_count,
+                                            danger) );
                 ptr->setIndex( M_total_count );
                 M_courses.push_back( ptr );
 

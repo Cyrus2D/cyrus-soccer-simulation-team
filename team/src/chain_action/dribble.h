@@ -63,7 +63,8 @@ public:
              const int dash_count,
              const char * description,
              const int min_opp_dif,
-             const bool safe_with_pos_count);//back
+             const bool safe_with_pos_count,
+             const int danger);//back
     Dribble( const int dribbler,
              const rcsc::Vector2D & target_point,
              const double & ball_speed,
@@ -82,7 +83,8 @@ public:
              const char * description,
              const double body_angle,
              const int min_opp_dif,
-             const bool safe_with_pos_count);//using in advance
+             const bool safe_with_pos_count,
+             const int danger);//using in advance
 };
 
 }
