@@ -48,7 +48,7 @@
 #include <rcsc/player/player_agent.h>
 #include <algorithm>
 #include <limits>
-
+#include "setting.h"
 #include <cmath>
 
 //#define DEBUG_PROFILE
@@ -829,45 +829,34 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
         opp_pos += Vector2D::polar2vector(ptype->playerSpeedMax() * (opp_vel.r() / 0.4),opp_vel.th());
         dlog.addText(Logger::DRIBBLE,"--opp%d p(%.1f,%.1f),pp(%.1f,%.1f),v(%.1f,%.1f)",(*o)->unum(),(*o)->pos().x,(*o)->pos().y,opp_pos.x,opp_pos.y,opp_vel.x,opp_vel.y);
         int bonus_step = 0;
-        int high_bonus_step = 0;
-        int low_bonus_step = 0;
         if ( ball_trap_pos.x < 30.0 )
         {
             bonus_step += 1;
-            high_bonus_step += 1;
-            low_bonus_step += 1;
         }
 
         if ( ball_trap_pos.x < 0.0 )
         {
             bonus_step += 1;
-            high_bonus_step += 1;
-            low_bonus_step += 1;
         }
 
         if ( (*o)->isTackling() )
         {
             bonus_step = -5;
-            high_bonus_step = -5;
-            low_bonus_step = -5;
         }
 
+        int max_pos_count_effect_front = Setting::i()->mChainAction->mDribblePosCountMaxFrontOpp;
+        int max_pos_count_effect_behind = Setting::i()->mChainAction->mDribblePosCountMaxBehindOpp;
+        double pos_count_effect_factor = Setting::i()->mChainAction->mDribblePosCountZ;
         if ( ball_to_opp_rel.x > 0.5 )
         {
-            bonus_step += bound( 0, (*o)->posCount(), 8 );
-            high_bonus_step += bound( 0, (*o)->posCount(), 8 );
-            low_bonus_step += bound( 0, static_cast<int>((*o)->posCount() * 0.8), 5 );
+            bonus_step += bound( 0, static_cast<int>((*o)->posCount() * pos_count_effect_factor), max_pos_count_effect_front );
         }
         else
         {
             if(wm.ball().pos().x > 15 && wm.ball().pos().x < 45 && wm.ball().pos().x > wm.theirOffenseLineX() - 10){
-                bonus_step += bound( 0, (*o)->posCount(), 2 );
-                high_bonus_step += bound( 0, (*o)->posCount(), 2 );
-                low_bonus_step += bound( 0, static_cast<int>((*o)->posCount() * 0.8), 1 );
+                bonus_step += bound( 0, static_cast<int>((*o)->posCount() * pos_count_effect_factor), max_pos_count_effect_behind / 2 );
             }else{
-                bonus_step += bound( 0, (*o)->posCount(), 4 );
-                high_bonus_step += bound( 0, (*o)->posCount(), 4 );
-                low_bonus_step += bound( 0, static_cast<int>((*o)->posCount() * 0.8), 2 );
+                bonus_step += bound( 0, static_cast<int>((*o)->posCount() * pos_count_effect_factor), max_pos_count_effect_behind );
             }
 
         }
@@ -893,13 +882,9 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
                   || FieldAnalyzer::isKN2C(wm) ){
 //                opp_cycle = opp_turn_cycle + opp_dash_cycle;
             }
-            int opp_reach_cycle_high = opp_cycle - low_bonus_step;
-            int opp_reach_cycle_low = opp_cycle - high_bonus_step;
-            if (opp_reach_cycle_high <= c){
+            int opp_reach_cycle = opp_cycle - bonus_step;
+            if (opp_reach_cycle <= c){
                 return true;
-            }
-            if (opp_reach_cycle_low <= c){
-                safe_with_pos_count = false;
             }
             opp_min_dif = std::min(opp_min_dif, opp_cycle - bonus_step - c);
             ball_pos += ball_vel;
