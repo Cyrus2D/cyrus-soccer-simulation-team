@@ -92,7 +92,7 @@ private:
     const char * M_description; //!< description message for debugging purpose
     double M_body_target_angle;
     rcsc::Vector2D M_first_kick_target;
-    int M_danger;
+    int M_danger = 0;
 
     // not used
     CooperativeAction();
@@ -132,7 +132,9 @@ protected:
                        const rcsc::Vector2D & target_point,
                        const int duration_step,
                        const char * description,
-                       const int opp_min_dif); // drible[advanse,back]
+                       const int opp_min_dif,
+                       const bool safe_with_pos_count,
+                       const int danger); // drible[advanse,back]
 
     void setCategory( const ActionCategory & category );
     void setPlayerUnum( const int unum );

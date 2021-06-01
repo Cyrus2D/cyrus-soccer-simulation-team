@@ -48,7 +48,7 @@
 #include <rcsc/player/player_agent.h>
 #include <algorithm>
 #include <limits>
-
+#include "setting.h"
 #include <cmath>
 
 //#define DEBUG_PROFILE
@@ -445,8 +445,11 @@ ShortDribbleGenerator::simulateKickTurnBackDashes(  const WorldModel & wm,
         }
 
         int opp_min_dif = 3;
-        if( !can_opp_reach(wm,M_first_ball_pos,first_vel,ball_trap_pos,1 + n_turn + n_dash,opp_min_dif))
+        bool safe_with_pos_count = true;
+        if( !can_opp_reach(wm,M_first_ball_pos,first_vel,ball_trap_pos,1 + n_turn + n_dash,opp_min_dif, safe_with_pos_count))
         {
+            safe_with_pos_count = false;
+            int danger = 1;
             CooperativeAction::Ptr ptr( new Dribble( wm.self().unum(),
                                                      ball_trap_pos,
                                                      first_vel.r(),
@@ -454,20 +457,36 @@ ShortDribbleGenerator::simulateKickTurnBackDashes(  const WorldModel & wm,
                                                      n_turn,
                                                      n_dash,
                                                      "shortBackDribble",
-                                                     opp_min_dif) );
+                                                     opp_min_dif,
+                                                     safe_with_pos_count,
+                                                     danger) );
             ptr->setIndex( M_total_count );
             M_courses.push_back( ptr );
 
 #ifdef DEBUG_PRINT_SUCCESS_COURSE
-            dlog.addText( Logger::DRIBBLE,
-                          "%d: ok trap_pos=(%.2f %.2f) first_vel=(%.1f %.1f, r=%.2f) n_turn=%d n_dash=%d",
-                          M_total_count,
-                          ball_trap_pos.x, ball_trap_pos.y,
-                          first_vel.x, first_vel.y, first_vel.r(),
-                          n_turn, n_dash );
-            dlog.addCircle( Logger::DRIBBLE,
-                            ball_trap_pos.x, ball_trap_pos.y, 0.1,
-                            "#00ff00" );
+            if (safe_with_pos_count){
+                dlog.addCircle( Logger::DRIBBLE,
+                                ball_trap_pos.x, ball_trap_pos.y, 0.1,
+                                "#00ff00" );
+                dlog.addText( Logger::DRIBBLE,
+                              "%d: ok safe trap_pos=(%.2f %.2f) first_vel=(%.1f %.1f, r=%.2f) n_turn=%d n_dash=%d",
+                              M_total_count,
+                              ball_trap_pos.x, ball_trap_pos.y,
+                              first_vel.x, first_vel.y, first_vel.r(),
+                              n_turn, n_dash );
+            }
+            else{
+                dlog.addText( Logger::DRIBBLE,
+                              "%d: ok notsafe trap_pos=(%.2f %.2f) first_vel=(%.1f %.1f, r=%.2f) n_turn=%d n_dash=%d",
+                              M_total_count,
+                              ball_trap_pos.x, ball_trap_pos.y,
+                              first_vel.x, first_vel.y, first_vel.r(),
+                              n_turn, n_dash );
+                dlog.addCircle( Logger::DRIBBLE,
+                                ball_trap_pos.x, ball_trap_pos.y, 0.1,
+                                "#41A2F4" );
+            }
+
             char num[8]; snprintf( num, 8, "%d", M_total_count );
             dlog.addMessage( Logger::DRIBBLE,
                              ball_trap_pos, num );
@@ -618,8 +637,11 @@ ShortDribbleGenerator::simulateKickTurnsDashesAdvance( const WorldModel & wm,
             }
 
             int opp_min_dif = 3;
-            if( !can_opp_reach(wm,M_first_ball_pos,first_vel,ball_trap_pos,1 + n_turn + n_dash,opp_min_dif))
+            bool safe_with_pos_count = true;
+            if( !can_opp_reach(wm,M_first_ball_pos,first_vel,ball_trap_pos,1 + n_turn + n_dash,opp_min_dif, safe_with_pos_count))
             {
+                safe_with_pos_count = false;
+                int danger = 1;
                 CooperativeAction::Ptr ptr( new Dribble( wm.self().unum(),
                                                          ball_trap_pos,
                                                          self_cache[n_turn + n_dash],
@@ -629,20 +651,36 @@ ShortDribbleGenerator::simulateKickTurnsDashesAdvance( const WorldModel & wm,
                                             n_dash,
                                             "shortDribbleAdvance",
                                             dash_angle.degree(),
-                                            opp_min_dif) );
+                                            opp_min_dif,
+                                            safe_with_pos_count,
+                                            danger) );
                 ptr->setIndex( M_total_count );
                 M_courses.push_back( ptr );
 
 #ifdef DEBUG_PRINT_SUCCESS_COURSE
-                dlog.addText( Logger::DRIBBLE,
-                              "%d: ok trap_pos=(%.2f %.2f) first_vel=(%.1f %.1f, r=%.2f) n_turn=%d n_dash=%d",
-                              M_total_count,
-                              ball_trap_pos.x, ball_trap_pos.y,
-                              first_vel.x, first_vel.y, first_vel.r(),
-                              n_turn, n_dash );
-                dlog.addCircle( Logger::DRIBBLE,
-                                ball_trap_pos.x, ball_trap_pos.y, 0.1,
-                                "#00ff00" );
+                if (safe_with_pos_count){
+                    dlog.addCircle( Logger::DRIBBLE,
+                                    ball_trap_pos.x, ball_trap_pos.y, 0.1,
+                                    "#00ff00" );
+                    dlog.addText( Logger::DRIBBLE,
+                                  "%d: ok safe trap_pos=(%.2f %.2f) first_vel=(%.1f %.1f, r=%.2f) n_turn=%d n_dash=%d",
+                                  M_total_count,
+                                  ball_trap_pos.x, ball_trap_pos.y,
+                                  first_vel.x, first_vel.y, first_vel.r(),
+                                  n_turn, n_dash );
+                }
+                else{
+                    dlog.addText( Logger::DRIBBLE,
+                                  "%d: ok nosafe trap_pos=(%.2f %.2f) first_vel=(%.1f %.1f, r=%.2f) n_turn=%d n_dash=%d",
+                                  M_total_count,
+                                  ball_trap_pos.x, ball_trap_pos.y,
+                                  first_vel.x, first_vel.y, first_vel.r(),
+                                  n_turn, n_dash );
+                    dlog.addCircle( Logger::DRIBBLE,
+                                    ball_trap_pos.x, ball_trap_pos.y, 0.1,
+                                    "#41A2F4" );
+                }
+
                 char num[8]; snprintf( num, 8, "%d", M_total_count );
                 dlog.addMessage( Logger::DRIBBLE,
                                  ball_trap_pos, num );
@@ -758,7 +796,7 @@ ShortDribbleGenerator::createSelfBackCache( const WorldModel & wm,
 
 }
 
-bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D start_ball, const Vector2D kick_vel, const Vector2D ball_trap_pos, const int action_cycle, int & opp_min_dif){
+bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D start_ball, const Vector2D kick_vel, const Vector2D ball_trap_pos, const int action_cycle, int & opp_min_dif, bool & safe_with_pos_count){
     dlog.addText(Logger::DRIBBLE,"--canopp reach b(%.1f,%.1f)-(%.1f,%.1f)->(%.1f,%.1f),c:%d",start_ball.x,start_ball.y,kick_vel.x,kick_vel.y,ball_trap_pos.x,ball_trap_pos.y,action_cycle);
     const ServerParam & sp = ServerParam::i();
     const rcsc::AngleDeg ball_move_angle = ( ball_trap_pos - M_first_ball_pos ).th();
@@ -791,7 +829,6 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
         opp_pos += Vector2D::polar2vector(ptype->playerSpeedMax() * (opp_vel.r() / 0.4),opp_vel.th());
         dlog.addText(Logger::DRIBBLE,"--opp%d p(%.1f,%.1f),pp(%.1f,%.1f),v(%.1f,%.1f)",(*o)->unum(),(*o)->pos().x,(*o)->pos().y,opp_pos.x,opp_pos.y,opp_vel.x,opp_vel.y);
         int bonus_step = 0;
-
         if ( ball_trap_pos.x < 30.0 )
         {
             bonus_step += 1;
@@ -807,16 +844,19 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
             bonus_step = -5;
         }
 
+        int max_pos_count_effect_front = Setting::i()->mChainAction->mDribblePosCountMaxFrontOpp;
+        int max_pos_count_effect_behind = Setting::i()->mChainAction->mDribblePosCountMaxBehindOpp;
+        double pos_count_effect_factor = Setting::i()->mChainAction->mDribblePosCountZ;
         if ( ball_to_opp_rel.x > 0.5 )
         {
-            bonus_step += bound( 0, (*o)->posCount(), 8 );
+            bonus_step += bound( 0, static_cast<int>((*o)->posCount() * pos_count_effect_factor), max_pos_count_effect_front );
         }
         else
         {
             if(wm.ball().pos().x > 15 && wm.ball().pos().x < 45 && wm.ball().pos().x > wm.theirOffenseLineX() - 10){
-                bonus_step += bound( 0, (*o)->posCount(), 2 );
+                bonus_step += bound( 0, static_cast<int>((*o)->posCount() * pos_count_effect_factor), max_pos_count_effect_behind / 2 );
             }else{
-                bonus_step += bound( 0, (*o)->posCount(), 4 );
+                bonus_step += bound( 0, static_cast<int>((*o)->posCount() * pos_count_effect_factor), max_pos_count_effect_behind );
             }
 
         }
@@ -842,8 +882,8 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
                   || FieldAnalyzer::isKN2C(wm) ){
 //                opp_cycle = opp_turn_cycle + opp_dash_cycle;
             }
-            if ( opp_cycle - bonus_step <= c )
-            {
+            int opp_reach_cycle = opp_cycle - bonus_step;
+            if (opp_reach_cycle <= c){
                 return true;
             }
             opp_min_dif = std::min(opp_min_dif, opp_cycle - bonus_step - c);

@@ -16,6 +16,18 @@ ChainActionSetting::ChainActionSetting(Value & value){
     {
         mUseShootSafe = value["UseShootSafe"].GetBool();
     }
+    if(value.HasMember("DribblePosCountZ"))
+    {
+        mDribblePosCountZ = value["DribblePosCountZ"].GetFloat();
+    }
+    if(value.HasMember("DribblePosCountMaxFrontOpp"))
+    {
+        mDribblePosCountMaxFrontOpp = value["DribblePosCountMaxFrontOpp"].GetInt();
+    }
+    if(value.HasMember("DribblePosCountMaxBehindOpp"))
+    {
+        mDribblePosCountMaxBehindOpp = value["DribblePosCountMaxBehindOpp"].GetInt();
+    }
 }
 
 StrategySetting::StrategySetting(Value & value){

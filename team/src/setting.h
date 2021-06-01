@@ -17,6 +17,9 @@ public:
     int mChainDeph = 2;
     int mChainNodeNumber = 2000;
     bool mUseShootSafe = false;
+    double mDribblePosCountZ = 0.8;
+    int mDribblePosCountMaxFrontOpp = 8;
+    int mDribblePosCountMaxBehindOpp = 4;
 };
 
 class StrategySetting{

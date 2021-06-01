@@ -62,7 +62,9 @@ public:
              const int turn_count,
              const int dash_count,
              const char * description,
-             const int min_opp_dif);//back
+             const int min_opp_dif,
+             const bool safe_with_pos_count,
+             const int danger);//back
     Dribble( const int dribbler,
              const rcsc::Vector2D & target_point,
              const double & ball_speed,
@@ -80,7 +82,9 @@ public:
              const int dash_count,
              const char * description,
              const double body_angle,
-             const int min_opp_dif);//using in advance
+             const int min_opp_dif,
+             const bool safe_with_pos_count,
+             const int danger);//using in advance
 };
 
 }

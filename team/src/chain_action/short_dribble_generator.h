@@ -108,7 +108,7 @@ private:
                                 const int n_dash,
                                 std::vector< rcsc::Vector2D > & self_cache );
 
-    bool can_opp_reach(const rcsc::WorldModel & wm, const rcsc::Vector2D start_ball, const rcsc::Vector2D kick_vel,const rcsc::Vector2D ball_trap_pos, const int action_cycle,int & opp_min_dif);
+    bool can_opp_reach(const rcsc::WorldModel & wm, const rcsc::Vector2D start_ball, const rcsc::Vector2D kick_vel,const rcsc::Vector2D ball_trap_pos, const int action_cycle,int & opp_min_dif, bool & safe_with_pos_count);
 };
 
 #endif
