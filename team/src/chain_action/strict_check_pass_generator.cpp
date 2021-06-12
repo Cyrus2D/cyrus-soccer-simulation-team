@@ -1929,33 +1929,7 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
             return cycle;
         }else{
             if(wm.self().isKickable()){
-                auto predictpos = OppPredictGenerator(wm, opponent.player_->unum(), receive_point);
-                int minsc = 1000;
-                for(auto&p : predictpos){
-
-                    int dc,tc,vc;
-                    int sc =opponent.player_->cycles_to_cut_ball_with_safe_thr_dist(wm,
-                                                                                    ball_pos,
-                                                                                    cycle,
-                                                                                    false,
-                                                                                    dc,
-                                                                                    tc,
-                                                                                    vc,
-                                                                                    p.pos,
-                                                                                    p.vel,
-                                                                                    0);
-                    dc -= c_pos_count_effect;
-                    tc -= c_body_count_effect;
-//                    if(FieldAnalyzer::isFRA(wm) || FieldAnalyzer::isMT(wm) || FieldAnalyzer::isHFUT(wm)|| FieldAnalyzer::isYushan(wm) || FieldAnalyzer::isHelius(wm) || FieldAnalyzer::isCYRUS(wm)
-//                            ||Strategy::i().my_team_tactic == Strategy::TeamTactic::AllDef || FieldAnalyzer::isOxsy(wm) || FieldAnalyzer::isIT(wm) || our_score < opp_score
-//                            || FieldAnalyzer::isKN2C(wm))
-                    vc = 0;
-                    sc = dc + tc + vc;
-                    if(minsc > sc)
-                        minsc = sc;
-                }
                 opp_dif_cycle = std::min(opp_dif_cycle,n_step - cycle);
-                opp_dif_cycle = std::min(opp_dif_cycle,minsc - cycle);
 
             }
 
