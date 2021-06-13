@@ -36,7 +36,9 @@
 #include "field_analyzer.h"
 #include "predict_state.h"
 #include "pass_checker.h"
+#include "strategy.h"
 
+#include <rcsc/player/intercept_table.h>
 #include <rcsc/action/kick_table.h>
 #include <rcsc/player/world_model.h>
 #include <rcsc/player/player_predicate.h>
@@ -1221,7 +1223,7 @@ FieldAnalyzer::update( const WorldModel & wm )
     {
         return;
     }
-
+    updateAntiOffenseState(wm);
 #ifdef DEBUG_PRINT
     Timer timer;
 #endif
@@ -1237,6 +1239,66 @@ FieldAnalyzer::update( const WorldModel & wm )
 
 }
 
+void
+FieldAnalyzer::updateAntiOffenseState(const rcsc::WorldModel &wm)
+{
+    dlog.addText( Logger::TEAM, "FieldAnalyzer::updateAntiOffenseState() started");
+    M_is_anti_offense_state = false;
+    int self_min = wm.interceptTable()->selfReachCycle();
+    int tm_min = wm.interceptTable()->teammateReachCycle();
+    tm_min = std::min(tm_min, self_min);
+    int opp_min = wm.interceptTable()->opponentReachCycle();
+    if ( opp_min <= tm_min ){
+        dlog.addText( Logger::TEAM, "FieldAnalyzer::updateAntiOffenseState() return, oppmin < tmmin");
+        return;
+    }
+
+    double sum_position_x = 0;
+    double sum_formation_x = 0;
+    double player_count = 0;
+    for (int t = 1; t <= 11; t++){
+        const rcsc::AbstractPlayerObject * tm = wm.ourPlayer(t);
+        if (tm == nullptr || tm->unum() < 1)
+            continue;
+        if (Strategy::i().tm_Line(t) == Strategy::PostLine::golie
+            || Strategy::i().tm_Line(t) == Strategy::PostLine::back)
+            continue;
+        sum_position_x += tm->pos().x;
+        sum_formation_x += Strategy::i().getPosition(t).x;
+        player_count += 1.0;
+    }
+    Vector2D ball_pos = wm.ball().inertiaPoint(tm_min);
+    int opp_after_ball = 0;
+    for (int o = 1; o <= 11; o++){
+        const rcsc::AbstractPlayerObject * opp = wm.theirPlayer(o);
+        if (opp == nullptr || opp->unum() < 1)
+            continue;
+        if ( ball_pos.x < opp->pos().x )
+            opp_after_ball += 1;
+    }
+    if (player_count <= 0){
+        dlog.addText( Logger::TEAM, "FieldAnalyzer::updateAntiOffenseState() player_count=0");
+        return;
+    }
+
+    sum_position_x /= player_count;
+    sum_formation_x /= player_count;
+    if (sum_position_x + 15.0 < sum_formation_x
+        && opp_after_ball <= 6)
+        M_is_anti_offense_state = true;
+    dlog.addText( Logger::TEAM, "AntiOffenseState: %s posx %.1f forx %.1f opp %d",
+                  M_is_anti_offense_state ? "true" : "false",
+                  sum_position_x,
+                  sum_formation_x,
+                  opp_after_ball);
+    if ( M_is_anti_offense_state ){
+        dlog.addCircle(Logger::TEAM, 0.0, 35.0, 2.0, 0, 0, 255);
+    }
+}
+
+bool FieldAnalyzer::isAntiOffenseState(){
+    return M_is_anti_offense_state;
+}
 /*-------------------------------------------------------------------*/
 /*!
 

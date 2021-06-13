@@ -55,7 +55,7 @@ private:
     rcsc::VoronoiDiagram M_all_players_voronoi_diagram;
     rcsc::VoronoiDiagram M_teammates_voronoi_diagram;
     rcsc::VoronoiDiagram M_pass_voronoi_diagram;
-
+    bool M_is_anti_offense_state;
     FieldAnalyzer();
 public:
 
@@ -84,7 +84,8 @@ public:
       }
 
     void update( const rcsc::WorldModel & wm );
-
+    void updateAntiOffenseState( const rcsc::WorldModel & wm );
+    bool isAntiOffenseState();
 
 private:
 
