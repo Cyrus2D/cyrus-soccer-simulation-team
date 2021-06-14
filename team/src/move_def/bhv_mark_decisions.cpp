@@ -7,7 +7,8 @@
 #include "../bhv_basic_move.h"
 #include <rcsc/geom.h>
 #include "../setting.h"
-
+#include <rcsc/math_util.h>
+#include <rcsc/common/server_param.h>
 
 #define DEBUG_PRINT
 
@@ -1027,6 +1028,50 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
     }
 }
 
+bool BhvMarkDecisionGreedy::needProjectMark(PlayerAgent *agent, int opp_unum, int tm_unum){
+    const WorldModel & wm = agent->world();
+    const AbstractPlayerObject * opp = wm.theirPlayer(opp_unum);
+    int opp_min = wm.interceptTable()->opponentReachCycle();
+    Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min);
+    double first_pass_speed = calc_first_term_geom_series_last( 1.5,
+                                                                ball_inertia.dist(opp->pos()),
+                                                                ServerParam::i().ballDecay() );
+    if (first_pass_speed > 3.0)
+        first_pass_speed = calc_first_term_geom_series_last( 1.0,
+                                                             ball_inertia.dist(opp->pos()),
+                                                             ServerParam::i().ballDecay() );
+    if (first_pass_speed > 3.0)
+        first_pass_speed = calc_first_term_geom_series_last( 0.5,
+                                                             ball_inertia.dist(opp->pos()),
+                                                             ServerParam::i().ballDecay() );
+    if (first_pass_speed > 3.0)
+        first_pass_speed = calc_first_term_geom_series_last( 0.0,
+                                                             ball_inertia.dist(opp->pos()),
+                                                             ServerParam::i().ballDecay() );
+    if (first_pass_speed > 3.0)
+        return false;
+
+    int pass_cycle = calc_length_geom_series(first_pass_speed,
+                                             ball_inertia.dist(opp->pos()),
+                                             ServerParam::i().ballDecay());
+    Vector2D ball_pos = ball_inertia;
+    Vector2D ball_vel = Vector2D::polar2vector(first_pass_speed, (opp->pos() - ball_inertia).th());
+    for (int c = 1; c < pass_cycle; c++){
+        ball_pos += ball_vel;
+        for (int t = 2; t <= 11; t++){
+            if (t == tm_unum)
+                continue;
+            const AbstractPlayerObject * tm = wm.ourPlayer(t);
+            if (tm == nullptr || tm->unum() != t)
+                continue;
+            int reach_cycle = tm->playerTypePtr()->cyclesToReachDistance(ball_pos.dist(tm->pos()));
+            if (reach_cycle < c)
+                return false;
+        }
+        ball_vel *= ServerParam::i().ballDecay();
+    }
+    return true;
+}
 
 void BhvMarkDecisionGreedy::goalMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked) {
     const WorldModel &wm = agent->world();
