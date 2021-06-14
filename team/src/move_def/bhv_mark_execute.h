@@ -48,8 +48,7 @@ public:
                              const AbstractPlayerObject * opp,
                              MarkType mark_type,
                              Target & target,
-                             double & dist_thr,
-                             string & mark_type_str);
+                             double & dist_thr);
 
     bool do_move_mark(PlayerAgent *agent, Target target, double dist_thr, MarkType mark_type, int opp_unum);
 

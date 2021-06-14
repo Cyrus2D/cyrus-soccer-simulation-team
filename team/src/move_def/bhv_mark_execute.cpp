@@ -207,7 +207,7 @@ bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType mark
     double dist_thr = 1.0;
     string mark_type_str;
     target.pos = Strategy::i().getPosition(wm.self().unum());
-    set_mark_target_thr(wm, opp, marktype, target, dist_thr, mark_type_str);
+    set_mark_target_thr(wm, opp, marktype, target, dist_thr);
 
     if (marktype == MarkType::Block) {
         want_block = true;
@@ -222,7 +222,7 @@ bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType mark
     dlog.addCircle(Logger::MARK, target.pos, 1.0, 100, 0, 100);
     agent->debugClient().addCircle(target.pos, 1.0);
     agent->debugClient().addMessage("mark %d %s %d", mark_unum,
-                                    mark_type_str.c_str());
+                                    markTypeString(marktype).c_str());
     if (back_to_def_flag
         && Strategy::i().self_Line() == Strategy::PostLine::back
         && marktype != MarkType::ThMark) {
@@ -254,8 +254,7 @@ void bhv_mark_execute::set_mark_target_thr(const WorldModel & wm,
                                            const AbstractPlayerObject * opp,
                                            MarkType mark_type,
                                            Target & target,
-                                           double & dist_thr,
-                                           string & mark_type_str){
+                                           double & dist_thr){
     int self_unum = wm.self().unum();
     int opp_cycle = wm.interceptTable()->opponentReachCycle();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_cycle);
@@ -263,7 +262,6 @@ void bhv_mark_execute::set_mark_target_thr(const WorldModel & wm,
         case (MarkType::LeadProjectionMark): {
             target = MarkPositionFinder::getLeadProjectionMarkTarget(self_unum,
                                                                      opp->unum(), wm);
-            mark_type_str = "LeadProj";
             double z_thr = std::max(1.0, ball_inertia.dist(target.pos) * 0.1);
             dist_thr = 1.5 * z_thr;
             dlog.addText(Logger::MARK, ">>>> LeadProj, target:(0.1f, 0.1f) distthr=%.1f", target.pos.x, target.pos.y,
@@ -273,7 +271,6 @@ void bhv_mark_execute::set_mark_target_thr(const WorldModel & wm,
         case MarkType::LeadNearMark: {
             target = MarkPositionFinder::getLeadNearMarkTarget(self_unum,
                                                                opp->unum(), wm);
-            mark_type_str = "LeadNear";
             double z_thr = std::max(1.0, ball_inertia.dist(target.pos) * 0.1);
             dist_thr = 0.5 * z_thr;
             dlog.addText(Logger::MARK, ">>>> LeadNear, target:(0.1f, 0.1f) distthr=%.1f", target.pos.x, target.pos.y,
@@ -287,7 +284,6 @@ void bhv_mark_execute::set_mark_target_thr(const WorldModel & wm,
             dist_thr = 0.5 * z_thr;
             if (ball_inertia.x > 25 && dist_thr < 2.0)
                 dist_thr = 2.0;
-            mark_type_str = "Th";
             dlog.addText(Logger::MARK, ">>>> ThMark, target:(0.1f, 0.1f) distthr=%.1f", target.pos.x, target.pos.y,
                          dist_thr);
             break;
@@ -299,7 +295,6 @@ void bhv_mark_execute::set_mark_target_thr(const WorldModel & wm,
             if (wm.gameMode().type() != GameMode::PlayOn){
                 dist_thr *= 1.5;
             }
-            mark_type_str = "Danger";
             dlog.addText(Logger::MARK, ">>>> DangerMark, target:(0.1f, 0.1f) distthr=%.1f", target.pos.x, target.pos.y,
                          dist_thr);
             break;
