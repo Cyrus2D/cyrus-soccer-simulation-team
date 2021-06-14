@@ -44,7 +44,26 @@ public:
 
     bool run_mark(PlayerAgent *agent, int mark_unum, MarkType markType);
 
+    void set_mark_target_thr(const WorldModel & wm,
+                             const AbstractPlayerObject * opp,
+                             MarkType mark_type,
+                             Target & target,
+                             double & dist_thr,
+                             string & mark_type_str);
+
     bool do_move_mark(PlayerAgent *agent, Target target, double dist_thr, MarkType mark_type, int opp_unum);
+
+    double th_mark_power(PlayerAgent * agent, Vector2D opp_pos, Vector2D target_pos);
+
+    void th_mark_move(PlayerAgent * agent, Target targ, double dash_power, double dist_thr);
+
+    double lead_mark_power(PlayerAgent * agent, Vector2D opp_pos, Vector2D target_pos);
+
+    void lead_mark_move(PlayerAgent * agent, Target targ, double dash_power, double dist_thr, MarkType mark_type, Vector2D opp_pos);
+
+    double other_mark_power(PlayerAgent * agent, Vector2D opp_pos, Vector2D target_pos);
+
+    void other_mark_move(PlayerAgent * agent, Target targ, double dash_power, double dist_thr);
 
     bool do_tackle(PlayerAgent * agent);
 

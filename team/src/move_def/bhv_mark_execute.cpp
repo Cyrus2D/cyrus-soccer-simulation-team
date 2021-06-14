@@ -34,11 +34,6 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
         dlog.addText(Logger::MARK, "Cant Mark fastest opp not found");
         return false;
     }
-//    time_t t = time(NULL);
-//    tm* timePtr = localtime(&t);
-//    if (timePtr->tm_year + 1900 > 2020 || timePtr->tm_mon + 1 > 11){
-//
-//    }
 
     int mark_unum = 0;
     bool blocked = false;
@@ -193,24 +188,78 @@ bool bhv_mark_execute::do_tackle(PlayerAgent *agent) {
 }
 
 bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType marktype) {
-    dlog.addText(Logger::MARK, ">>>>run_mark %d", mark_unum);
-    Target target;
+    dlog.addText(Logger::MARK, ">>>>run_mark for opp %d", mark_unum);
     const WorldModel &wm = agent->world();
-    int self_unum = wm.self().unum();
+    const AbstractPlayerObject *opp = wm.theirPlayer(mark_unum);
+    Target target;
     int opp_cycle = wm.interceptTable()->opponentReachCycle();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_cycle);
-    target.pos = Strategy::i().getPosition(wm.self().unum());
-    if (wm.theirPlayer(mark_unum) == NULL || wm.theirPlayer(mark_unum)->unum() < 1)
+
+    if (wm.theirPlayer(mark_unum) == NULL || wm.theirPlayer(mark_unum)->unum() < 1){
+        dlog.addText(Logger::MARK, ">>>>cancel mark, fastest opp is null", mark_unum);
         return false;
+    }
 
-    const AbstractPlayerObject *opp = wm.theirPlayer(mark_unum);
-
-    double dist_thr = 1.0;
-    string mark_type_str;
     int blocker = bhv_block::who_is_blocker(wm);
     bool want_block = false;
     bool back_to_def_flag = back_to_def(agent);
-    switch (marktype) {
+
+    double dist_thr = 1.0;
+    string mark_type_str;
+    target.pos = Strategy::i().getPosition(wm.self().unum());
+    set_mark_target_thr(wm, opp, marktype, target, dist_thr, mark_type_str);
+
+    if (marktype == MarkType::Block) {
+        want_block = true;
+        dlog.addText(Logger::MARK, ">>>> Block execute");
+        if (bhv_block().execute(agent)) {
+            agent->debugClient().addMessage("block in mark");
+            return true;
+        }
+        agent->debugClient().addMessage("cant block in mark");
+    }
+
+    dlog.addCircle(Logger::MARK, target.pos, 1.0, 100, 0, 100);
+    agent->debugClient().addCircle(target.pos, 1.0);
+    agent->debugClient().addMessage("mark %d %s %d", mark_unum,
+                                    mark_type_str.c_str());
+    if (back_to_def_flag
+        && Strategy::i().self_Line() == Strategy::PostLine::back
+        && marktype != MarkType::ThMark) {
+        Vector2D blockTarget;
+        int blockCycle;
+        bhv_block::block_cycle(wm, blocker, blockCycle, blockTarget, true);
+        target.pos.x = std::min(blockTarget.x, target.pos.x);
+        dlog.addText(Logger::MARK, ">>>> Change target because of back_to_def, target:(0.1f, 0.1f)", target.pos.x,
+                     target.pos.y);
+    }
+    if (want_block) {
+        dlog.addText(Logger::MARK, ">>>> Want Block but cant!!");
+        return false;
+    }
+
+    agent->debugClient().addLine(wm.self().pos(), target.pos);
+    dlog.addText(Logger::MARK, "mark target (%.2f,%.2f)", target.pos.x, target.pos.y);
+    if(wm.gameMode().type() != GameMode::PlayOn){
+        target.pos = change_position_set_play(wm, target.pos);
+    }
+
+    do_move_mark(agent, target, dist_thr, marktype, mark_unum);
+    agent->debugClient().addMessage("domove(%.1f,%.1f)", target.pos.x, target.pos.y);
+    Bhv_BasicMove::set_def_neck_with_ball(agent, target.pos, wm.theirPlayer(mark_unum), blocker);
+    return true;
+}
+
+void bhv_mark_execute::set_mark_target_thr(const WorldModel & wm,
+                                           const AbstractPlayerObject * opp,
+                                           MarkType mark_type,
+                                           Target & target,
+                                           double & dist_thr,
+                                           string & mark_type_str){
+    int self_unum = wm.self().unum();
+    int opp_cycle = wm.interceptTable()->opponentReachCycle();
+    Vector2D ball_inertia = wm.ball().inertiaPoint(opp_cycle);
+    switch (mark_type) {
         case (MarkType::LeadProjectionMark): {
             target = MarkPositionFinder::getLeadProjectionMarkTarget(self_unum,
                                                                      opp->unum(), wm);
@@ -255,17 +304,6 @@ bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType mark
                          dist_thr);
             break;
         }
-        case MarkType::Block: {
-            want_block = true;
-            dlog.addText(Logger::MARK, ">>>> Block execute");
-            if (bhv_block().execute(agent)) {
-                mark_type_str = "Block";
-                agent->debugClient().addMessage("block in mark");
-                return true;
-            }
-            agent->debugClient().addMessage("cant block in mark");
-            break;
-        }
         case MarkType::Goal_keep: {
             dlog.addText(Logger::MARK, "keep goal in mark");
             break;
@@ -276,98 +314,13 @@ bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType mark
     if (wm.gameMode().type() != GameMode::PlayOn){
         dist_thr = max(1.5, dist_thr);
     }
-    dlog.addCircle(Logger::MARK, target.pos, 1.0, 100, 0, 100);
-    agent->debugClient().addCircle(target.pos, 1.0);
-    agent->debugClient().addMessage("mark %d %s %d", mark_unum,
-                                    mark_type_str.c_str());
-    if (back_to_def_flag
-        && Strategy::i().self_Line() == Strategy::PostLine::back
-        && marktype != MarkType::ThMark) {
-        Vector2D blockTarget;
-        int blockCycle;
-        bhv_block::block_cycle(wm, blocker, blockCycle, blockTarget, true);
-        target.pos.x = std::min(blockTarget.x, target.pos.x);
-        dlog.addText(Logger::MARK, ">>>> Change target because of back_to_def, target:(0.1f, 0.1f)", target.pos.x,
-                     target.pos.y);
-    }
-    if (want_block) {
-        dlog.addText(Logger::MARK, ">>>> Want Block but cant!!");
-        return false;
-    }
-
-    agent->debugClient().addLine(wm.self().pos(), target.pos);
-    dlog.addText(Logger::MARK, "mark target (%.2f,%.2f)", target.pos.x, target.pos.y);
-    if(wm.gameMode().type() != GameMode::PlayOn){
-        target.pos = change_position_set_play(wm, target.pos);
-    }
-    if (do_move_mark(agent, target, dist_thr, marktype, mark_unum)) {
-        agent->debugClient().addMessage("domove(%.1f,%.1f)", target.pos.x, target.pos.y);
-    }
-    else {
-        dlog.addText(Logger::MARK, ">>>>DoMoveMark does not executed!");
-        Vector2D proj;
-        switch (marktype) {
-            case MarkType::LeadProjectionMark:
-                proj = Line2D(opp->pos(), ball_inertia).projection(target.pos);
-                agent->debugClient().addMessage("mark:bodyturnto(%.1f,%.1f)", proj.x, proj.y);
-                Body_TurnToPoint(proj).execute(agent);
-                break;
-            case MarkType::LeadNearMark:
-                proj = Line2D(opp->pos(), ball_inertia).projection(target.pos);
-                agent->debugClient().addMessage("mark:bodyturnto(%.1f,%.1f)", proj.x, proj.y);
-                Body_TurnToPoint(proj).execute(agent);
-                break;
-            case MarkType::ThMark:
-                if (opp->pos().x < target.pos.x) {
-                    double t = (((opp->pos() - target.pos).th().degree()) + (ball_inertia - target.pos).th().degree()) /
-                               2.0;
-                    Body_TurnToAngle(t).execute(agent);
-                    agent->debugClient().addMessage("mark:bodyturnto(%.1f)", t);
-                }
-                else {
-                    if (ball_inertia.y > target.pos.y) {
-                        Body_TurnToAngle(-90.0).execute(agent);
-                        agent->debugClient().addMessage("mark:bodyturnto(%.1f)", -90.0);
-                    }
-                    else {
-                        Body_TurnToAngle(+90.0).execute(agent);
-                        agent->debugClient().addMessage("mark:bodyturnto(%.1f)", 90.0);
-                    }
-                }
-                break;
-            case MarkType::DangerMark:
-                const AbstractPlayerObject *opp = wm.theirPlayer(mark_unum);
-                target.pos = opp->pos() + opp->vel() - Vector2D(0.5, 0);
-                int opp_cycle = wm.interceptTable()->opponentReachCycle();
-                Vector2D ball_inertia = wm.ball().inertiaPoint(opp_cycle);
-                if ((ball_inertia - target.pos).th().abs() > 70) {
-                    target.pos = opp->pos() + Vector2D::polar2vector(0.2, (ball_inertia - opp->pos()).th());
-                    target.pos += opp->vel();
-                    double t = ((ball_inertia - opp->pos()).th() + 90).degree();
-                    agent->debugClient().addMessage("mark:bodyturnto(%.1f)", 90.0);
-                    Body_TurnToAngle(t).execute(agent);
-                }
-                else {
-                    Body_TurnToPoint(opp->pos()).execute(agent);
-                    agent->debugClient().addMessage("mark:bodyturnto(%.1f,%.1f)", opp->pos().x, opp->pos().y);
-                }
-                break;
-        }
-    }
-    Bhv_BasicMove::set_def_neck_with_ball(agent, target.pos, wm.theirPlayer(mark_unum), blocker);
-    return true;
 }
-
 bool bhv_mark_execute::do_move_mark(PlayerAgent *agent, Target targ, double dist_thr, MarkType marktype, int opp_unum) {
     dlog.addText(Logger::MARK, ">>>>do_move_mark");
     const WorldModel &wm = agent->world();
     Vector2D target_pos = targ.pos;
     Vector2D self_pos = wm.self().pos();
-    int opp_min_cycle = wm.interceptTable()->opponentReachCycle();
     Vector2D opp_pos = wm.theirPlayer(opp_unum)->pos();
-    Vector2D ball_inertia = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
-    double def_line_x = wm.ourDefenseLineX();
-    double def_line_hx = Strategy::i().getPosition(2).x;
 
     if (self_pos.dist(target_pos) < dist_thr && targ.th.degree() != 1000) {
         if (Body_TurnToAngle(targ.th).execute(agent)) {
@@ -378,176 +331,226 @@ bool bhv_mark_execute::do_move_mark(PlayerAgent *agent, Target targ, double dist
         }
     }
 
-    double body_dif = (targ.th - wm.self().body()).abs();
-    bool move_executed = false;
     if (marktype == MarkType::ThMark) {
         dlog.addText(Logger::MARK, ">>>>ThMark");
-        double dash_power = Strategy::get_normal_dash_power(wm);
-        double mark_dist = target_pos.dist(self_pos);
-        double z = 1.0;
-        if (wm.self().stamina() < 3500) {
-            z = 0.5;
-        }
-        if (wm.self().stamina() < 4500) {
-            z = 0.7;
-        }
-        if (abs(target_pos.x - self_pos.x) > 5 * z){
-            dash_power = 100;
-            agent->debugClient().addMessage("SA");
-        }
-        if (abs(target_pos.y - self_pos.y) > 5 * z){
-            dash_power = 100;
-            agent->debugClient().addMessage("SB");
-        }
-        if(ball_inertia.dist(opp_pos) < 20 * z && target_pos.dist(self_pos) > 2 && opp_pos.x - target_pos.x < 5 && target_pos.x < opp_pos.x){
-            dash_power = 100;
-            agent->debugClient().addMessage("SC");
-        }
-        if(opp_pos.x < target_pos.x && self_pos.x < target_pos.x - 2){
-            dash_power = 100;
-            agent->debugClient().addMessage("SD");
-        }
-        if(ball_inertia.dist(opp_pos) < 20 * z && opp_min_cycle <=2 && target_pos.x < opp_pos.x && opp_pos.x < target_pos.x + 7 * z){
-            dash_power = 100;
-            agent->debugClient().addMessage("SE");
-        }
-        if (wm.self().stamina() < 3000) {
-            dash_power = Strategy::get_normal_dash_power(wm);
-            agent->debugClient().addMessage("SF");
-        }
-        if (self_pos.dist(targ.pos) < 1) {
-            if (body_dif < 20 && self_pos.dist(targ.pos) < dist_thr / 2.0) {
-                dlog.addText(Logger::MARK, ">>>>do Dash A");
-                agent->debugClient().addMessage("mark:move:Adash (%.1f,%.1f) %.1f", targ.pos.x, targ.pos.y, dash_power);
-                agent->doDash(dash_power, (targ.pos - (wm.self().pos() + wm.self().vel())).th() - wm.self().body());
-                move_executed = true;
-            }
-        }
-        else if (self_pos.dist(targ.pos) < dist_thr + 2 && opp_min_cycle > 3) {
-            dlog.addText(Logger::MARK, ">>>>do Dash B");
-            if (body_dif < 20) {
-                agent->debugClient().addMessage("mark:move:Bdash (%.1f,%.1f) %.1f", targ.pos.x, targ.pos.y, dash_power);
-                agent->doDash(dash_power, (targ.pos - (wm.self().pos() + wm.self().vel())).th() - wm.self().body());
-                move_executed = true;
-            }
-        }
-        if (!move_executed) {
-            dlog.addText(Logger::MARK, "Body Go To Point to (%.1f,%.1f) thr:%.1f power %.1f", targ.pos.x, targ.pos.y, dist_thr, dash_power);
-            agent->debugClient().addMessage("mark:move:BGD (%.1f,%.1f) %.1f", targ.pos.x, targ.pos.y, dash_power);
-            if(Body_GoToPoint2010(targ.pos, dist_thr, dash_power, 1.3, 1, false, 15).execute(agent)){
-                dlog.addText(Logger::MARK, "ran go to point");
-            }else{
-                dlog.addText(Logger::MARK, "did not run go to point");
-            }
-        }
+        double dash_power = th_mark_power(agent, opp_pos, target_pos);
+        th_mark_move(agent, targ, dash_power, dist_thr);
     }
     else if (marktype == MarkType::LeadProjectionMark || marktype == MarkType::LeadNearMark) {
         dlog.addText(Logger::MARK, ">>>>is LeadProj or LeadNear mark");
-        if ((self_pos.dist(Vector2D(-52.0, 0.0)) < 25.0 ||
-             (self_pos.dist(target_pos) < 2 && ball_inertia.x < -30)
-             || (abs(target_pos.x - wm.ourDefenseLineX()) < 5 && target_pos.x < -35)) && wm.self().stamina() > 3000) {
-            AngleDeg dir = (target_pos - self_pos).th() - wm.self().body();
-            if ((target_pos.dist(wm.self().pos()) < 1 || (abs(dir.degree()) < 10 && abs(dir.degree()) > 170)) &&
-                agent->doDash(100, dir)) {
-                dlog.addText(Logger::MARK, "Do Dash A");
-                agent->debugClient().addMessage("mark:move:dash (%.1f,%.1f) %.1f", targ.pos.x, targ.pos.y, 100.0);
-                return true;
-            }
-        }
-        double dash_power = Strategy::get_normal_dash_power(wm);
-        if (opp_min_cycle < 3 && !(ball_inertia.dist(targ.pos) > 15 && ball_inertia.x > -25
-                                   && Strategy::i().self_Line() != Strategy::PostLine::back))
-            dash_power = 100;
-        if (ball_inertia.x < wm.ourDefenseLineX() - 10) {
-            dash_power = 100;
-        }
-        if (target_pos.dist(Vector2D(-52, 0)) < 25)
-            if ((Strategy::i().self_Line() == Strategy::PostLine::back || target_pos.dist(ball_inertia) < 20))
-                dash_power = 100;
-        if (wm.interceptTable()->fastestOpponent())
-            if (wm.interceptTable()->fastestOpponent()->pos().dist(target_pos) < 5)
-                dash_power = 100;
-        if (target_pos.x < -35)
-            dash_power = 100;
-        if (opp_pos.dist(ball_inertia) > 40 && self_pos.dist(target_pos) < 10)
-            dash_power = Strategy::get_normal_dash_power(wm);
-        if (opp_pos.dist(ball_inertia) > 30 && self_pos.dist(target_pos) < 5)
-            dash_power = Strategy::get_normal_dash_power(wm);
-        if (opp_pos.dist(ball_inertia) > 20 && self_pos.dist(target_pos) < 3)
-            dash_power = Strategy::get_normal_dash_power(wm);
-        if (wm.self().stamina() < 4500)
-            dash_power = Strategy::get_normal_dash_power(wm);
-        if (wm.self().stamina() < 5500 && Strategy::i().self_Line() == Strategy::PostLine::forward)
-            dash_power = Strategy::get_normal_dash_power(wm);
-        dlog.addText(Logger::MARK, "Mark:Body Go To Point to (%.1f,%.1f) thr:%.1f power %.1f", target_pos.x, target_pos.y, dist_thr, dash_power);
-        if(marktype == MarkType::LeadNearMark){
-            bool am_i_near = false;
-            Line2D ball_opp_line = Line2D(ball_inertia, opp_pos);
-            for(int i = 0; i < wm.teammatesFromBall().size() && i < 2; i++){
-                if (wm.teammatesFromBall().at(i) == NULL)
-                    break;
-                if (wm.teammatesFromBall().at(i)->unum() < 1)
-                    break;
-                if (wm.teammatesFromBall().at(i)->unum() == wm.self().unum()){
-                    am_i_near = true;
-                    break;
-                }
-            }
-            if(am_i_near){
-
-                if(ball_opp_line.dist(self_pos) < 5){
-                    target_pos = ball_inertia;
-                    dlog.addText(Logger::MARK, "##target pos change to ball!!!");
-                }
-            }
-            if(ball_opp_line.dist(self_pos) > 5 && Segment2D(ball_inertia, target_pos).projection(self_pos).isValid()){
-                target_pos = Segment2D(ball_inertia, target_pos).projection(self_pos);
-                dlog.addText(Logger::MARK, "##target pos change to proj!!!");
-            }
-        }
-        if(Body_GoToPoint2010(target_pos, dist_thr, dash_power).execute(agent)){
-            agent->debugClient().addMessage("mark:move:BGD (%.1f,%.1f) %.1f", targ.pos.x, targ.pos.y, dash_power);
-            dlog.addText(Logger::MARK, "ran go to point");
-        }else{
-            dlog.addText(Logger::MARK, "did not run go to point");
-        }
+        double dash_power = lead_mark_power(agent, opp_pos, target_pos);
+        lead_mark_move(agent, targ, dash_power, dist_thr, marktype, opp_pos);
     }
     else {
         dlog.addText(Logger::MARK, ">>>>is other mark");
-        if ((self_pos.dist(Vector2D(-52.0, 0.0)) < 25.0 ||
-             (self_pos.dist(target_pos) < 2 && ball_inertia.x < -30)
-             || (abs(target_pos.x - wm.ourDefenseLineX()) < 5 && target_pos.x < -35)) && wm.self().stamina() > 3000) {
-            AngleDeg dir = (target_pos - self_pos).th() - wm.self().body();
-            if ((target_pos.dist(wm.self().pos()) < 1 || (abs(dir.degree()) < 10 && abs(dir.degree()) > 170)) &&
-                agent->doDash(100, dir)) {
-                dlog.addText(Logger::MARK, "Do Dash A");
-                return true;
-            }
-        }
-        double dash_power = Strategy::get_normal_dash_power(wm);
-        if (opp_min_cycle < 5 && !(ball_inertia.dist(targ.pos) > 15 && ball_inertia.x > -25
-                                   && Strategy::i().self_Line() != Strategy::PostLine::back))
-            dash_power = 100;
-        if (ball_inertia.x < wm.ourDefenseLineX() - 10) {
-            dash_power = 100;
-        }
-        if (target_pos.dist(Vector2D(-52, 0)) < 25)
-            if ((Strategy::i().self_Line() == Strategy::PostLine::back || target_pos.dist(ball_inertia) < 20))
-                dash_power = 100;
-        if (wm.interceptTable()->fastestOpponent()->pos().dist(target_pos) < 5)
-            dash_power = 100;
-        if (target_pos.x < -35)
-            dash_power = 100;
-        if (opp_min_cycle <= 2)
-            dash_power = 100;
-        dlog.addText(Logger::MARK, "Body Go To Point to (%.1f,%.1f) thr:%.1f power %.1f", target_pos.x, target_pos.y, dist_thr, dash_power);
-        if(Body_GoToPoint2010(target_pos, dist_thr, dash_power).execute(agent)){
-            dlog.addText(Logger::MARK, "ran go to point");
-        }else{
-            dlog.addText(Logger::MARK, "did not run go to point");
-        }
+        double dash_power = other_mark_power(agent, opp_pos, target_pos);
+        other_mark_move(agent, targ, dash_power, dist_thr);
     }
     return true;
+}
+
+double bhv_mark_execute::th_mark_power(PlayerAgent * agent, Vector2D opp_pos, Vector2D target_pos){
+    const WorldModel & wm = agent->world();
+    int opp_min_cycle = wm.interceptTable()->opponentReachCycle();
+    Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min_cycle);
+    Vector2D self_pos = wm.self().pos();
+    double dash_power = Strategy::get_normal_dash_power(wm);
+    double z = 1.0;
+    if (wm.self().stamina() < 3500) {
+        z = 0.5;
+    }
+    if (wm.self().stamina() < 4500) {
+        z = 0.7;
+    }
+    if (abs(target_pos.x - self_pos.x) > 5 * z){
+        dash_power = 100;
+        agent->debugClient().addMessage("SA");
+    }
+    if (abs(target_pos.y - self_pos.y) > 5 * z){
+        dash_power = 100;
+        agent->debugClient().addMessage("SB");
+    }
+    if(ball_inertia.dist(opp_pos) < 20 * z && target_pos.dist(self_pos) > 2 && opp_pos.x - target_pos.x < 5 && target_pos.x < opp_pos.x){
+        dash_power = 100;
+        agent->debugClient().addMessage("SC");
+    }
+    if(opp_pos.x < target_pos.x && self_pos.x < target_pos.x - 2){
+        dash_power = 100;
+        agent->debugClient().addMessage("SD");
+    }
+    if(ball_inertia.dist(opp_pos) < 20 * z && opp_min_cycle <=2 && target_pos.x < opp_pos.x && opp_pos.x < target_pos.x + 7 * z){
+        dash_power = 100;
+        agent->debugClient().addMessage("SE");
+    }
+    if (wm.self().stamina() < 3000) {
+        dash_power = Strategy::get_normal_dash_power(wm);
+        agent->debugClient().addMessage("SF");
+    }
+    return dash_power;
+}
+
+void bhv_mark_execute::th_mark_move(PlayerAgent * agent, Target targ, double dash_power, double dist_thr){
+    const WorldModel & wm = agent->world();
+    Vector2D self_pos = wm.self().pos();
+    Vector2D target_pos = targ.pos;
+    double body_dif = (targ.th - wm.self().body()).abs();
+    int opp_min_cycle = wm.interceptTable()->opponentReachCycle();
+    if (self_pos.dist(target_pos) < 1) {
+        if (body_dif < 20 && self_pos.dist(target_pos) < dist_thr / 2.0) {
+            dlog.addText(Logger::MARK, ">>>>do Dash A");
+            agent->debugClient().addMessage("mark:move:Adash (%.1f,%.1f) %.1f", target_pos.x, target_pos.y, dash_power);
+            agent->doDash(dash_power, (target_pos - (wm.self().pos() + wm.self().vel())).th() - wm.self().body());
+            return;
+        }
+    }
+    else if (self_pos.dist(target_pos) < dist_thr + 2 && opp_min_cycle > 3) {
+        dlog.addText(Logger::MARK, ">>>>do Dash B");
+        if (body_dif < 20) {
+            agent->debugClient().addMessage("mark:move:Bdash (%.1f,%.1f) %.1f", target_pos.x, target_pos.y, dash_power);
+            agent->doDash(dash_power, (target_pos - (wm.self().pos() + wm.self().vel())).th() - wm.self().body());
+            return;
+        }
+    }
+    dlog.addText(Logger::MARK, "Body Go To Point to (%.1f,%.1f) thr:%.1f power %.1f", target_pos.x, target_pos.y, dist_thr, dash_power);
+    agent->debugClient().addMessage("mark:move:BGD (%.1f,%.1f) %.1f", target_pos.x, target_pos.y, dash_power);
+    if(Body_GoToPoint2010(target_pos, dist_thr, dash_power, 1.3, 1, false, 15).execute(agent)){
+        dlog.addText(Logger::MARK, "ran go to point");
+    }else{
+        dlog.addText(Logger::MARK, "did not run go to point");
+    }
+}
+
+double bhv_mark_execute::lead_mark_power(PlayerAgent * agent, Vector2D opp_pos, Vector2D target_pos){
+    const WorldModel & wm = agent->world();
+    Vector2D self_pos = wm.self().pos();
+    int opp_min_cycle = wm.interceptTable()->opponentReachCycle();
+    Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min_cycle);
+    double dash_power = Strategy::get_normal_dash_power(wm);
+    if (opp_min_cycle < 3 && !(ball_inertia.dist(target_pos) > 15 && ball_inertia.x > -25
+                               && Strategy::i().self_Line() != Strategy::PostLine::back))
+        dash_power = 100;
+    if (ball_inertia.x < wm.ourDefenseLineX() - 10) {
+        dash_power = 100;
+    }
+    if (target_pos.dist(Vector2D(-52, 0)) < 25)
+        if ((Strategy::i().self_Line() == Strategy::PostLine::back || target_pos.dist(ball_inertia) < 20))
+            dash_power = 100;
+    if (wm.interceptTable()->fastestOpponent())
+        if (wm.interceptTable()->fastestOpponent()->pos().dist(target_pos) < 5)
+            dash_power = 100;
+    if (target_pos.x < -35)
+        dash_power = 100;
+    if (opp_pos.dist(ball_inertia) > 40 && self_pos.dist(target_pos) < 10)
+        dash_power = Strategy::get_normal_dash_power(wm);
+    if (opp_pos.dist(ball_inertia) > 30 && self_pos.dist(target_pos) < 5)
+        dash_power = Strategy::get_normal_dash_power(wm);
+    if (opp_pos.dist(ball_inertia) > 20 && self_pos.dist(target_pos) < 3)
+        dash_power = Strategy::get_normal_dash_power(wm);
+    if (wm.self().stamina() < 4500)
+        dash_power = Strategy::get_normal_dash_power(wm);
+    if (wm.self().stamina() < 5500 && Strategy::i().self_Line() == Strategy::PostLine::forward)
+        dash_power = Strategy::get_normal_dash_power(wm);
+    return dash_power;
+}
+
+void bhv_mark_execute::lead_mark_move(PlayerAgent * agent, Target targ, double dash_power, double dist_thr, MarkType mark_type, Vector2D opp_pos){
+    const WorldModel & wm = agent->world();
+    int opp_min_cycle = wm.interceptTable()->opponentReachCycle();
+    Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min_cycle);
+    Vector2D self_pos = wm.self().pos();
+    Vector2D target_pos = targ.pos;
+    if ((self_pos.dist(Vector2D(-52.0, 0.0)) < 25.0 ||
+         (self_pos.dist(target_pos) < 2 && ball_inertia.x < -30)
+         || (abs(target_pos.x - wm.ourDefenseLineX()) < 5 && target_pos.x < -35)) && wm.self().stamina() > 3000) {
+        AngleDeg dir = (target_pos - self_pos).th() - wm.self().body();
+        if ((target_pos.dist(wm.self().pos()) < 1 || (abs(dir.degree()) < 10 && abs(dir.degree()) > 170)) &&
+            agent->doDash(100, dir)) {
+            dlog.addText(Logger::MARK, "Do Dash A");
+            agent->debugClient().addMessage("mark:move:dash (%.1f,%.1f) %.1f", targ.pos.x, targ.pos.y, 100.0);
+            return;
+        }
+    }
+
+    dlog.addText(Logger::MARK, "Mark:Body Go To Point to (%.1f,%.1f) thr:%.1f power %.1f", target_pos.x, target_pos.y, dist_thr, dash_power);
+    if(mark_type == MarkType::LeadNearMark){
+        bool am_i_near = false;
+        Line2D ball_opp_line = Line2D(ball_inertia, opp_pos);
+        for(int i = 0; i < wm.teammatesFromBall().size() && i < 2; i++){
+            if (wm.teammatesFromBall().at(i) == NULL)
+                break;
+            if (wm.teammatesFromBall().at(i)->unum() < 1)
+                break;
+            if (wm.teammatesFromBall().at(i)->unum() == wm.self().unum()){
+                am_i_near = true;
+                break;
+            }
+        }
+        if(am_i_near){
+
+            if(ball_opp_line.dist(self_pos) < 5){
+                target_pos = ball_inertia;
+                dlog.addText(Logger::MARK, "##target pos change to ball!!!");
+            }
+        }
+        if(ball_opp_line.dist(self_pos) > 5 && Segment2D(ball_inertia, target_pos).projection(self_pos).isValid()){
+            target_pos = Segment2D(ball_inertia, target_pos).projection(self_pos);
+            dlog.addText(Logger::MARK, "##target pos change to proj!!!");
+        }
+    }
+    if(Body_GoToPoint2010(target_pos, dist_thr, dash_power).execute(agent)){
+        agent->debugClient().addMessage("mark:move:BGD (%.1f,%.1f) %.1f", targ.pos.x, targ.pos.y, dash_power);
+        dlog.addText(Logger::MARK, "ran go to point");
+    }else{
+        dlog.addText(Logger::MARK, "did not run go to point");
+    }
+}
+
+double bhv_mark_execute::other_mark_power(PlayerAgent * agent, Vector2D opp_pos, Vector2D target_pos){
+    const WorldModel & wm = agent->world();
+    int opp_min_cycle = wm.interceptTable()->opponentReachCycle();
+    Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min_cycle);
+    double dash_power = Strategy::get_normal_dash_power(wm);
+    if (opp_min_cycle < 5 && !(ball_inertia.dist(target_pos) > 15 && ball_inertia.x > -25
+                               && Strategy::i().self_Line() != Strategy::PostLine::back))
+        dash_power = 100;
+    if (ball_inertia.x < wm.ourDefenseLineX() - 10) {
+        dash_power = 100;
+    }
+    if (target_pos.dist(Vector2D(-52, 0)) < 25)
+        if ((Strategy::i().self_Line() == Strategy::PostLine::back || target_pos.dist(ball_inertia) < 20))
+            dash_power = 100;
+    if (wm.interceptTable()->fastestOpponent()->pos().dist(target_pos) < 5)
+        dash_power = 100;
+    if (target_pos.x < -35)
+        dash_power = 100;
+    if (opp_min_cycle <= 2)
+        dash_power = 100;
+    return dash_power;
+}
+
+void bhv_mark_execute::other_mark_move(PlayerAgent * agent, Target targ, double dash_power, double dist_thr){
+    const WorldModel & wm = agent->world();
+    int opp_min_cycle = wm.interceptTable()->opponentReachCycle();
+    Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min_cycle);
+    Vector2D self_pos = wm.self().pos();
+    Vector2D target_pos = targ.pos;
+    if ((self_pos.dist(Vector2D(-52.0, 0.0)) < 25.0 ||
+         (self_pos.dist(target_pos) < 2 && ball_inertia.x < -30)
+         || (abs(target_pos.x - wm.ourDefenseLineX()) < 5 && target_pos.x < -35)) && wm.self().stamina() > 3000) {
+        AngleDeg dir = (target_pos - self_pos).th() - wm.self().body();
+        if ((target_pos.dist(wm.self().pos()) < 1 || (abs(dir.degree()) < 10 && abs(dir.degree()) > 170)) &&
+            agent->doDash(100, dir)) {
+            dlog.addText(Logger::MARK, "Do Dash A");
+            return;
+        }
+    }
+
+    dlog.addText(Logger::MARK, "Body Go To Point to (%.1f,%.1f) thr:%.1f power %.1f", target_pos.x, target_pos.y, dist_thr, dash_power);
+    if(Body_GoToPoint2010(target_pos, dist_thr, dash_power).execute(agent)){
+        dlog.addText(Logger::MARK, "ran go to point");
+    }else{
+        dlog.addText(Logger::MARK, "did not run go to point");
+    }
 }
 
 bool bhv_mark_execute::back_to_def(PlayerAgent *agent) {
