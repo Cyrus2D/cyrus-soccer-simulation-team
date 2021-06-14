@@ -1055,6 +1055,7 @@ bool BhvMarkDecisionGreedy::needProjectMark(const WorldModel & wm, int opp_unum,
                                              ServerParam::i().ballDecay());
     Vector2D ball_pos = ball_inertia;
     Vector2D ball_vel = Vector2D::polar2vector(first_pass_speed, (opp->pos() - ball_inertia).th());
+    Segment2D pass_segment(ball_inertia, opp->pos());
     for (int c = 1; c < pass_cycle; c++){
         ball_pos += ball_vel;
         for (int t = 2; t <= 11; t++){
@@ -1062,6 +1063,8 @@ bool BhvMarkDecisionGreedy::needProjectMark(const WorldModel & wm, int opp_unum,
                 continue;
             const AbstractPlayerObject * tm = wm.ourPlayer(t);
             if (tm == nullptr || tm->unum() != t)
+                continue;
+            if (!pass_segment.projection(tm->pos()).isValid())
                 continue;
             int reach_cycle = tm->playerTypePtr()->cyclesToReachDistance(ball_pos.dist(tm->pos()));
             if (reach_cycle < c)
