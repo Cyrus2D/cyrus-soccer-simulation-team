@@ -1028,8 +1028,7 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
     }
 }
 
-bool BhvMarkDecisionGreedy::needProjectMark(PlayerAgent *agent, int opp_unum, int tm_unum){
-    const WorldModel & wm = agent->world();
+bool BhvMarkDecisionGreedy::needProjectMark(const WorldModel & wm, int opp_unum, int tm_unum){
     const AbstractPlayerObject * opp = wm.theirPlayer(opp_unum);
     int opp_min = wm.interceptTable()->opponentReachCycle();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min);

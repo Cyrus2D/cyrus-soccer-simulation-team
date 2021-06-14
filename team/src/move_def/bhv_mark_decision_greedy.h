@@ -73,7 +73,7 @@ public:
 
     static void midMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked);
 
-    static bool needProjectMark(PlayerAgent *agent, int opp_unum, int tm_unum);
+    static bool needProjectMark(const WorldModel & wm, int opp_unum, int tm_unum);
 
     static void midMarkThMarkCostFinder(const WorldModel &wm, double mark_eval[][12], bool used_hpos, vector<double> block_eval, bool fastest_opp_marked, Target opp_targets [], bool on_anti_offense);
 
