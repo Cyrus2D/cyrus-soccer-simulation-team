@@ -159,8 +159,8 @@ View_Tactical::doDefault( PlayerAgent * agent )
 //        return agent->doChangeView( ViewWidth::WIDE );
     }
     else if ( self_min < mate_min && self_min < opp_min){
-        if (self_min > 4){
-            res = ViewWidth::NORMAL;
+        if (self_min > 2){
+            res = ViewWidth::WIDE;
             select = true;
         }
     }
