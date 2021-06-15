@@ -37,6 +37,12 @@ vector<UnumEval> BhvMarkDecisionGreedy::oppEvaluatorMidMark(const WorldModel &wm
         EvalNode->second = opp_pos_x;
     }
     sort(opp_eval.begin(), opp_eval.end(), [](UnumEval &p1, UnumEval &p2) -> bool { return p1.second > p2.second; });
+        for(int o = 1; o < opp_eval.size(); o++){
+        double prev_eval = opp_eval[o - 1].second;
+        if (abs(opp_eval[o].second - prev_eval) < 5){
+            opp_eval[o].second = prev_eval;
+        }
+    }
     opp_eval.insert(opp_eval.begin(), make_pair(0, -1000));
     return opp_eval;
 }
