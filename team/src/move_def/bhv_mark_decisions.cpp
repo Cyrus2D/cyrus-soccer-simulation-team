@@ -310,10 +310,10 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkOffensiveCostFinder(const WorldModel 
             #ifdef DEBUG_PRINT
             dlog.addText(Logger::MARK, "----Opp:%d %.1f,%.1f", o, opp_pos.pos.x, opp_pos.pos.y);
             #endif
-            if (tm_pos.dist(opp->pos()) < 5)
+            //if (tm_pos.dist(opp->pos()) < 5)
                 opp_pos = MarkPositionFinder::getLeadNearMarkTarget(t, o, wm);
-            else
-                opp_pos = MarkPositionFinder::getLeadProjectionMarkTarget(t, o, wm);
+//            else
+  //              opp_pos = MarkPositionFinder::getLeadProjectionMarkTarget(t, o, wm);
 
             double max_hpos_dist = Setting::i()->mDefenseMove->mMidProj_HPosMaxDistMark;
             double max_pos_dist = Setting::i()->mDefenseMove->mMidProj_PosMaxDistMark;
