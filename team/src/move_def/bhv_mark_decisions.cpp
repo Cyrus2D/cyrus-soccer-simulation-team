@@ -147,19 +147,19 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
                 }
                 if (tm_pos.dist(opp_pos.pos) > max_pos_dist) {
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark off tm %d opp %d cancle for MaxPos", t, o);
+                    dlog.addText(Logger::MARK, "------DefDec mark off tm %d opp %d cancle for MaxPos", t, o);
                     #endif
                     continue;
                 }
                 if (tm_hpos.dist(opp_pos.pos) > max_hpos_dist) {
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark off tm %d opp %d cancle for MaxHPos", t, o);
+                    dlog.addText(Logger::MARK, "------DefDec mark off tm %d opp %d cancle for MaxHPos", t, o);
                     #endif
                     continue;
                 }
                 if (abs(tm_hpos.y - opp_pos.pos.y) > max_hpos_dist_y) {
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark off tm %d opp %d cancle for MaxHPosY", t, o);
+                    dlog.addText(Logger::MARK, "------DefDec mark off tm %d opp %d cancle for MaxHPosY", t, o);
                     #endif
                     continue;
                 }
@@ -207,7 +207,7 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
                 }
                 if (tm_pos.dist(opp_pos.pos) > max_pos_dist) {
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark off tm %d opp %d cancle for MaxPos", t, o);
+                    dlog.addText(Logger::MARK, "------DefDec mark off tm %d opp %d cancle for MaxPos", t, o);
                     #endif
                     continue;
                 }
@@ -217,13 +217,13 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
                 if (tm_hpos.dist(opp_pos.pos) > max_hpos_dist) {
 
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark off tm %d opp %d cancle for MaxHPos", t, o);
+                    dlog.addText(Logger::MARK, "------DefDec mark off tm %d opp %d cancle for MaxHPos", t, o);
                     #endif
                     continue;
                 }
                 if (abs(tm_hpos.y - opp_pos.pos.y) > max_hpos_dist_y) {
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark off tm %d opp %d cancle for MaxHPosY", t, o);
+                    dlog.addText(Logger::MARK, "------DefDec mark off tm %d opp %d cancle for MaxHPosY", t, o);
                     #endif
                     continue;
                 }
@@ -250,7 +250,7 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
                 }
             }
             #ifdef DEBUG_PRINT
-            dlog.addText(Logger::MARK, "----DefDec mark off tm %d opp %d eval %.2f", t, o, mark_eval[o][t]);
+            dlog.addText(Logger::MARK, "------DefDec mark off tm %d opp %d eval %.2f", t, o, mark_eval[o][t]);
             #endif
         }
     }
@@ -332,13 +332,13 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkOffensiveCostFinder(const WorldModel 
                 }
                 if (tm_pos.dist(opp_pos.pos) > max_pos_dist) {
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark off tm %d opp %d cancle for MaxPos", t, o);
+                    dlog.addText(Logger::MARK, "------DefDec mark off tm %d opp %d cancle for MaxPos", t, o);
                     #endif
                     continue;
                 }
                 if (tm_hpos.dist(opp_pos.pos) > max_hpos_dist) {
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark off tm %d opp %d cancle for MaxHPos", t, o);
+                    dlog.addText(Logger::MARK, "------DefDec mark off tm %d opp %d cancle for MaxHPos", t, o);
                     #endif
                     continue;
                 }
@@ -359,13 +359,13 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkOffensiveCostFinder(const WorldModel 
                 }
                 if (tm_pos.dist(opp_pos.pos) > max_pos_dist) {
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark off tm %d opp %d cancle for MaxPos", t, o);
+                    dlog.addText(Logger::MARK, "------DefDec mark off tm %d opp %d cancle for MaxPos", t, o);
                     #endif
                     continue;
                 }
                 if (tm_hpos.dist(opp_pos.pos) > max_hpos_dist) {
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark off tm %d opp %d cancle for MaxHPos", t, o);
+                    dlog.addText(Logger::MARK, "------DefDec mark off tm %d opp %d cancle for MaxHPos", t, o);
                     #endif
                     continue;
                 }
@@ -409,7 +409,7 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkCostFinder(const WorldModel &wm, doub
         Vector2D tm_pos = tm->pos();
         Vector2D tm_hpos = Strategy::i().getPosition(t);
         #ifdef DEBUG_PRINT
-        dlog.addText(Logger::MARK, ">>>Tm:%d %.1f,%.1f %.1f,%.1f", t, tm_pos.x, tm_pos.y, tm_hpos.x, tm_hpos.y);
+        dlog.addText(Logger::MARK, "###Tm:%d %.1f,%.1f %.1f,%.1f", t, tm_pos.x, tm_pos.y, tm_hpos.x, tm_hpos.y);
         #endif
         for (int o = 1; o <= 11; o++) {
             const AbstractPlayerObject *opp = wm.theirPlayer(o);
@@ -420,7 +420,7 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkCostFinder(const WorldModel &wm, doub
             Target opp_pos;
             opp_pos.pos = opp->pos();
             #ifdef DEBUG_PRINT
-            dlog.addText(Logger::MARK, ">>>>Opp:%d %.1f,%.1f", o, opp_pos.pos.x, opp_pos.pos.y);
+            dlog.addText(Logger::MARK, "-----Opp:%d %.1f,%.1f", o, opp_pos.pos.x, opp_pos.pos.y);
             #endif
             opp_pos = MarkPositionFinder::getLeadNearMarkTarget(t, o, wm);
             double max_hpos_dist = Setting::i()->mDefenseMove->mMidNear_HPosMaxDistMark; //15
@@ -440,13 +440,13 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkCostFinder(const WorldModel &wm, doub
                 }
                 if (tm_pos.dist(opp_pos.pos) > max_pos_dist) {
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark tm %d opp %d cancle for MaxPos", t, o);
+                    dlog.addText(Logger::MARK, "---------DefDec mark tm %d opp %d cancle for MaxPos", t, o);
                     #endif
                     continue;
                 }
                 if (tm_hpos.dist(opp_pos.pos) > max_hpos_dist) {
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark tm %d opp %d cancle for MaxHPos", t, o);
+                    dlog.addText(Logger::MARK, "---------DefDec mark tm %d opp %d cancle for MaxHPos", t, o);
                     #endif
                     continue;
                 }
@@ -467,25 +467,25 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkCostFinder(const WorldModel &wm, doub
                     max_hpos_dist /= 1.5;
                 if (!canCenterHalfMarkLeadNear(wm, t, opp_pos.pos, ball_inertia)){
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark tm %d opp %d cancle for center half", t, o);
+                    dlog.addText(Logger::MARK, "---------DefDec mark tm %d opp %d cancle for center half", t, o);
                     #endif
                     continue;
                 }
                 if (tm_pos.dist(opp_pos.pos) > max_pos_dist) {
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark tm %d opp %d cancle for MaxPos", t, o);
+                    dlog.addText(Logger::MARK, "---------DefDec mark tm %d opp %d cancle for MaxPos", t, o);
                     #endif
                     continue;
                 }
                 if (tm_hpos.dist(opp_pos.pos) > max_hpos_dist) {
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark tm %d opp %d cancle for MaxHPos", t, o);
+                    dlog.addText(Logger::MARK, "---------DefDec mark tm %d opp %d cancle for MaxHPos", t, o);
                     #endif
                     continue;
                 }
                 if((opp_pos.pos.x - tm_hpos.x) > 15){
                     #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "----DefDec mark tm %d opp %d cancle for MaxHPosX", t, o);
+                    dlog.addText(Logger::MARK, "---------DefDec mark tm %d opp %d cancle for MaxHPosX", t, o);
                     #endif
                     continue;
                 }
@@ -494,7 +494,7 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkCostFinder(const WorldModel &wm, doub
             if (tm->isTackling())
                 mark_eval[o][t] += 15;
             #ifdef DEBUG_PRINT
-            dlog.addText(Logger::MARK, "----DefDec mark tm %d opp %d eval %.2f", t, o, mark_eval[o][t]);
+            dlog.addText(Logger::MARK, "---------DefDec mark tm %d opp %d eval %.2f", t, o, mark_eval[o][t]);
             #endif
         }
     }
@@ -830,7 +830,8 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
     bool use_proj_mark = Setting::i()->mDefenseMove->mMid_UseProjectionMark;
     if (use_proj_mark) {
         #ifdef DEBUG_PRINT
-        dlog.addText(Logger::MARK, "----------------------------------------------------------------------------");
+        dlog.addText(Logger::MARK, "------------------------------------------------------------------"
+                                   "----------------------------------------------------------");
         dlog.addText(Logger::MARK, "Tm Middle Mark Opp Off");
         #endif
         midMarkLeadMarkOffensiveCostFinder(wm, mark_eval, used_hpos, block_eval, fastest_opp_marked);
@@ -895,6 +896,8 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
     if (ball_inertia.x < Setting::i()->mDefenseMove->mMidNear_StartX) {
         opp_eval = oppEvaluatorMidMark(wm, true);
         #ifdef DEBUG_PRINT
+        dlog.addText(Logger::MARK, "-------------------------------------------------------------------------"
+                                   "-------------------------------------------------------------------------");
         dlog.addText(Logger::MARK, "Tm Mark Opp");
         #endif
         midMarkLeadMarkCostFinder(wm, mark_eval, used_hpos, block_eval, fastest_opp_marked);
