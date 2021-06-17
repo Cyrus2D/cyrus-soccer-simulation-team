@@ -25,22 +25,11 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
             mark_eval[o][t] = 1000;
         }
     }
-    //Evaluate Opp
-    vector <UnumEval> opp_eval = oppEvaluatorMidMark(wm);
-
-    #ifdef DEBUG_PRINT
-    for (size_t i = 1; i <= 11; i++)
-        dlog.addText(Logger::MARK, "oppdanger %d is oppunum %d with eval %.2f", i, opp_eval[i].first,
-                     opp_eval[i].second);
-    dlog.addText(Logger::MARK, "OurDefLine %.1f", wm.ourDefenseLineX());
-    #endif
 
     bool fastest_opp_marked = false; // true: fastest is offensive can not be blocked by def players
     auto offensive_opps = getOppOffensive(wm, fastest_opp_marked);
     vector<double> block_eval = bhv_block::blocker_eval(wm);
-    #ifdef DEBUG_PRINT
-    dlog.addText(Logger::MARK, "Tm Def Mark Opp Off");
-    #endif
+
     bool used_hpos = false;
     if (opp_reach_cycle > 10) {
         #ifdef DEBUG_PRINT
@@ -49,6 +38,80 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
         used_hpos = true;
     }
 
+    MarkType how_mark[12];
+    size_t tm_mark_target[12];
+    size_t opp_marker[12];
+    size_t opp_mark_count[12];
+    for (int i = 1; i <= 11; i++) {
+        tm_mark_target[i] = 0;
+        opp_marker[i] = 0;
+        opp_mark_count[i] = 0;
+        how_mark[i] = MarkType::NoType;
+    }
+
+    //Tm Def Mark Opp Off
+    {
+        #ifdef DEBUG_PRINT
+        dlog.addText(Logger::MARK, "----------------------------------------------------------"
+                                   "----------------------------------------------------------------");
+        dlog.addText(Logger::MARK, "Tm Def Mark Opp Off");
+        #endif
+        bool on_anti_offense = isAntiOffensive(wm);
+        vector <UnumEval> opp_eval = oppEvaluatorMidMark(wm);
+        Target opp_targets[12];
+        midMarkThMarkCostFinder(wm, mark_eval, used_hpos, block_eval, fastest_opp_marked, opp_targets, on_anti_offense);
+        vector <size_t> temp_tms = midMarkThMarkMarkerFinder(mark_eval, fastest_opp);
+        vector <size_t> temp_opps = midMarkThMarkMarkedFinder(offensive_opps, opp_eval);
+        if (Setting::i()->mDefenseMove->mMidTh_RemoveNearOpps)
+            temp_opps = midMarkThMarkRemoveCloseOpp(wm, temp_opps, opp_targets);;
+        auto action = BestMatchFinder::find_best_dec(mark_eval, temp_tms, temp_opps);
+        midMarkThMarkSetResults(wm, action, temp_opps, how_mark, tm_mark_target, opp_marker, opp_mark_count,
+                                fastest_opp, fastest_opp_marked, opp_targets);
+
+    }
+
+    //Other mark Other
+    if (ball_inertia.x < Setting::i()->mDefenseMove->mMidNear_StartX) {
+        #ifdef DEBUG_PRINT
+        dlog.addText(Logger::MARK, "-------------------------------------------------------------------------"
+                                   "-------------------------------------------------------------------------");
+        dlog.addText(Logger::MARK, "Tm Mark Opp");
+        #endif
+        vector <UnumEval> opp_eval = oppEvaluatorMidMark(wm, true);
+        midMarkLeadMarkCostFinder(wm, mark_eval, used_hpos, block_eval, fastest_opp_marked);
+        vector <size_t> temp_tms = midMarkLeadMarkMarkerFinder(mark_eval, fastest_opp, tm_mark_target);
+        vector <size_t> temp_opps = midMarkLeadMarkMarkedFinder(wm, offensive_opps, opp_eval, fastest_opp, ball_inertia,
+                                                                opp_marker, how_mark);
+        auto action = BestMatchFinder::find_best_dec(mark_eval, temp_tms, temp_opps);
+        midMarkLeadMarkSetResults(wm, action, temp_opps, how_mark, tm_mark_target, opp_marker, opp_mark_count,
+                                  fastest_opp);
+    }
+
+    #ifdef DEBUG_PRINT
+    for (size_t t = 1; t <= 11; t++) {
+        dlog.addText(Logger::MARK, "Tm %d Opp %d in %s", t, tm_mark_target[t], markTypeString(how_mark[t]).c_str());
+        if (tm_mark_target[t] > 0) {
+            dlog.addLine(Logger::MARK, wm.theirPlayer(tm_mark_target[t])->pos(), wm.ourPlayer(t)->pos(), 255, 0, 0);
+        }
+    }
+    #endif
+    for (size_t t = 1; t <= 11; t++) {
+        if (how_mark[t] == MarkType::ThMarkFastestOpp || how_mark[t] == MarkType::ThMarkFar)
+            how_mark[t] = MarkType::ThMark;
+    }
+
+    mark_unum = tm_mark_target[wm.self().unum()];
+    mark_type = how_mark[wm.self().unum()];
+    for (int i = 1; i <= 11; i++) {
+        if (fastest_opp == tm_mark_target[i]) {
+            blocked = true;
+            break;
+        }
+    }
+}
+
+
+bool BhvMarkDecisionGreedy::isAntiOffensive(const WorldModel &wm) {
     bool on_anti_offense = false;
     int tm_number = 0;
     double avg_x = 0;
@@ -66,329 +129,7 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
     avg_x /= static_cast<double>(tm_number);
     if (avg_x > 15)
         on_anti_offense = true;
-
-    MarkType how_mark[12];
-    size_t tm_mark_target[12];
-    size_t opp_marker[12];
-    size_t opp_mark_count[12];
-    for (int i = 1; i <= 11; i++) {
-        tm_mark_target[i] = 0;
-        opp_marker[i] = 0;
-        opp_mark_count[i] = 0;
-        how_mark[i] = MarkType::NoType;
-    }
-
-    //Tm Def Mark Opp Off
-    {
-        Target opp_targets[12];
-        midMarkThMarkCostFinder(wm, mark_eval, used_hpos, block_eval, fastest_opp_marked, opp_targets, on_anti_offense);
-        vector <size_t> temp_opps;
-        vector <size_t> temp_tms;
-        for (size_t t = 2; t <= 11; t++) {
-            if (Strategy::i().tm_Line(t) == Strategy::PostLine::back) {
-                if (Setting::i()->mDefenseMove->mMidTh_BackInMark
-                    || Setting::i()->mDefenseMove->mMidTh_BackInBlock) {
-                    dlog.addText(Logger::MARK, "Tm %d can TH Mark", t);
-                    temp_tms.push_back(t);
-                }
-                for (size_t o = 2; o <= 11; o++) {
-                    if (o == fastest_opp) {
-                        if (!Setting::i()->mDefenseMove->mMidTh_BackInBlock)
-                            mark_eval[o][t] = 1000;
-                    }
-                    else {
-                        if (!Setting::i()->mDefenseMove->mMidTh_BackInMark)
-                            mark_eval[o][t] = 1000;
-                    }
-                }
-            }
-            else if (Strategy::i().tm_Line(t) == Strategy::PostLine::half) {
-                if (Setting::i()->mDefenseMove->mMidTh_HalfInMark
-                    || Setting::i()->mDefenseMove->mMidTh_HalfInBlock) {
-                    dlog.addText(Logger::MARK, "Tm %d can TH Mark", t);
-                    temp_tms.push_back(t);
-                }
-                for (size_t o = 2; o <= 11; o++) {
-                    if (o == fastest_opp) {
-                        if (!Setting::i()->mDefenseMove->mMidTh_HalfInBlock)
-                            mark_eval[o][t] = 1000;
-                    }
-                    else {
-                        if (!Setting::i()->mDefenseMove->mMidTh_HalfInMark)
-                            mark_eval[o][t] = 1000;
-                    }
-                }
-            }
-            else if (Strategy::i().tm_Line(t) == Strategy::PostLine::forward) {
-                if (Setting::i()->mDefenseMove->mMidTh_ForwardInMark
-                    || Setting::i()->mDefenseMove->mMidTh_ForwardInBlock) {
-                    dlog.addText(Logger::MARK, "Tm %d can TH Mark", t);
-                    temp_tms.push_back(t);
-                }
-                for (size_t o = 2; o <= 11; o++) {
-                    if (o == fastest_opp) {
-                        if (!Setting::i()->mDefenseMove->mMidTh_ForwardInBlock)
-                            mark_eval[o][t] = 1000;
-                    }
-                    else {
-                        if (!Setting::i()->mDefenseMove->mMidTh_ForwardInMark)
-                            mark_eval[o][t] = 1000;
-                    }
-                }
-            }
-        }
-        int max_opp_marked_here = 4;
-        for (size_t d = 1; d <= 6; d++) {
-            if (opp_eval[d].second < -999)
-                break;
-            if (max_opp_marked_here == temp_opps.size())
-                break;
-            size_t o = opp_eval[d].first;
-            if (std::find(offensive_opps.begin(), offensive_opps.end(), o) == offensive_opps.end()) {
-                #ifdef DEBUG_PRINT
-                dlog.addText(Logger::MARK, "Opp %d is not offensive", o);
-                #endif
-                continue;
-            }
-            #ifdef DEBUG_PRINT
-            dlog.addText(Logger::MARK, "Opp %d can TH Marked", o);
-            #endif
-            temp_opps.push_back(o);
-        }
-        vector <size_t> new_temp_opps;
-        dlog.addText(Logger::MARK, "Start to remove same opp");
-        for (int i = 0; i < temp_opps.size(); i++) {
-            int o1 = temp_opps[i];
-            if (wm.theirPlayer(o1)->pos().x <
-                Strategy::i().getPosition(2).x + Setting::i()->mDefenseMove->mMidTh_XNearOpps) {
-                dlog.addText(Logger::MARK, "--opp %d added to checked, it is danger", o1);
-                new_temp_opps.push_back(o1);
-                continue;
-            }
-            dlog.addText(Logger::MARK, "--opp %d", o1);
-            Vector2D o1_target = opp_targets[o1].pos;
-            int danger_opp = o1;
-            double danger_eval = wm.theirPlayer(o1)->pos().x;
-            for (int j = 0; j < temp_opps.size(); j++) {
-                if (i == j)continue;
-                int o2 = temp_opps[j];
-                Vector2D o2_target = opp_targets[o2].pos;
-                if (o1_target.dist(o2_target) < Setting::i()->mDefenseMove->mMidTh_DistanceNearOpps) {
-                    dlog.addText(Logger::MARK, "----opp %d is near, my pos (%.1f, %.1f), other pos (%.1f, %.1f)", o2,
-                                 o1_target.x, o1_target.y, o2_target.x, o2_target.y);
-                    if (wm.theirPlayer(o2)->pos().x < danger_eval) {
-                        dlog.addText(Logger::MARK, "----opp %d is danger than me", o2);
-                        danger_eval = wm.theirPlayer(o2)->pos().x;;
-                        danger_opp = o2;
-                    }
-                }
-                else {
-                    dlog.addText(Logger::MARK, "----opp %d is far", o2);
-                }
-            }
-            if (danger_opp == o1) {
-                dlog.addText(Logger::MARK, "--->opp %d added to temp", danger_opp);
-                new_temp_opps.push_back(danger_opp);
-            }
-        }
-        if (!Setting::i()->mDefenseMove->mMidTh_RemoveNearOpps)
-            new_temp_opps = temp_opps;
-
-        auto action = BestMatchFinder::find_best_dec(mark_eval, temp_tms, new_temp_opps);
-        for (size_t a = 0; a < action.first.size(); a++) {
-            if (action.first[a] == 0)
-                continue;
-            size_t tm = action.first[a];
-            size_t opp = new_temp_opps[a];
-            tm_mark_target[tm] = opp;
-            opp_marker[opp] = tm;
-            opp_mark_count[opp]++;
-            Vector2D opp_pos = wm.theirPlayer(opp)->pos();
-            Vector2D mark_target = opp_targets[opp].pos;
-            if (opp == fastest_opp && !fastest_opp_marked) {
-                how_mark[tm] = MarkType::Block;
-                #ifdef DEBUG_PRINT
-                dlog.addText(Logger::MARK, "**mark Off: %d block %d", tm, opp);
-                #endif
-            }
-            else {
-                if (opp == fastest_opp) {
-                    how_mark[tm] = MarkType::ThMarkFastestOpp;
-                    #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "**mark Off: %d THmarkFastestOpp %d", tm, opp);
-                    #endif
-                }
-                else if (opp_pos.x > mark_target.x + 5){
-                    how_mark[tm] = MarkType::ThMarkFar;
-                    #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "**mark Off: %d THmarkFar %d", tm, opp);
-                    #endif
-                }
-                else {
-                    how_mark[tm] = MarkType::ThMark;
-                    #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "**mark Off: %d THmark %d", tm, opp);
-                    #endif
-                }
-            }
-        }
-    }
-
-    //Tm Middle Mark Opp Off
-    bool use_proj_mark = Setting::i()->mDefenseMove->mMid_UseProjectionMark;
-
-    //Other mark Other
-    if (ball_inertia.x < Setting::i()->mDefenseMove->mMidNear_StartX) {
-        opp_eval = oppEvaluatorMidMark(wm, true);
-        #ifdef DEBUG_PRINT
-        dlog.addText(Logger::MARK, "-------------------------------------------------------------------------"
-                                   "-------------------------------------------------------------------------");
-        dlog.addText(Logger::MARK, "Tm Mark Opp");
-        #endif
-        midMarkLeadMarkCostFinder(wm, mark_eval, used_hpos, block_eval, fastest_opp_marked);
-
-        {
-            vector <size_t> temp_opps;
-            vector <size_t> temp_tms;
-            for (size_t t = 2; t <= 11; t++) {
-                if (tm_mark_target[t] != 0)
-                    continue;
-                if (Strategy::i().tm_Line(t) == Strategy::PostLine::back) {
-                    if (Setting::i()->mDefenseMove->mMidNear_BackInMark
-                        || Setting::i()->mDefenseMove->mMidNear_BackInBlock) {
-                        dlog.addText(Logger::MARK, "Tm %d can Near Mark", t);
-                        temp_tms.push_back(t);
-                    }
-                    for (size_t o = 2; o <= 11; o++) {
-                        if (o == fastest_opp) {
-                            if (!Setting::i()->mDefenseMove->mMidNear_BackInBlock)
-                                mark_eval[o][t] = 1000;
-                        }
-                        else {
-                            if (!Setting::i()->mDefenseMove->mMidNear_BackInMark)
-                                mark_eval[o][t] = 1000;
-                        }
-                    }
-                }
-                else if (Strategy::i().tm_Line(t) == Strategy::PostLine::half) {
-                    if (Setting::i()->mDefenseMove->mMidNear_HalfInMark
-                        || Setting::i()->mDefenseMove->mMidNear_HalfInBlock) {
-                        dlog.addText(Logger::MARK, "Tm %d can Near Mark", t);
-                        temp_tms.push_back(t);
-                    }
-                    for (size_t o = 2; o <= 11; o++) {
-                        if (o == fastest_opp) {
-                            if (!Setting::i()->mDefenseMove->mMidNear_HalfInBlock)
-                                mark_eval[o][t] = 1000;
-                        }
-                        else {
-                            if (!Setting::i()->mDefenseMove->mMidNear_HalfInMark)
-                                mark_eval[o][t] = 1000;
-                        }
-                    }
-                }
-                else if (Strategy::i().tm_Line(t) == Strategy::PostLine::forward) {
-                    if (Setting::i()->mDefenseMove->mMidNear_ForwardInMark
-                        || Setting::i()->mDefenseMove->mMidNear_ForwardInBlock) {
-                        dlog.addText(Logger::MARK, "Tm %d can Near Mark", t);
-                        temp_tms.push_back(t);
-                    }
-                    for (size_t o = 2; o <= 11; o++) {
-                        if (o == fastest_opp) {
-                            if (!Setting::i()->mDefenseMove->mMidNear_ForwardInBlock)
-                                mark_eval[o][t] = 1000;
-                        }
-                        else {
-                            if (!Setting::i()->mDefenseMove->mMidNear_ForwardInMark)
-                                mark_eval[o][t] = 1000;
-                        }
-                    }
-                }
-            }
-            for (int d = 1; d <= 11; d++) {
-                if (opp_eval[d].second < -999)
-                    break;
-                size_t o = opp_eval[d].first;
-                const AbstractPlayerObject *Opp = wm.theirPlayer(o);
-                if (Opp->unum() != fastest_opp)
-                    if (Opp->pos().x > ball_inertia.x + Setting::i()->mDefenseMove->mMidNear_OppsDistXToBall)
-                        continue;
-                if (opp_marker[o] != 0) {
-
-                    if (Opp->unum() == fastest_opp) {
-//                        if (!Setting::i()->mDefenseMove->mMidNear_BlockAgain) {
-                            if (how_mark[opp_marker[Opp->unum()]] != MarkType::ThMarkFastestOpp)
-                                continue;
-                    }
-                    else {
-                        if (how_mark[opp_marker[Opp->unum()]] == MarkType::ThMark)
-                            continue;
-//                        if (Opp->pos().x < wm.ourDefensePlayerLineX() + 10)
-//                            continue;
-//                        if (!Setting::i()->mDefenseMove->mMidNear_MarkAgain)
-//                            continue;
-//                        if(Opp->pos().dist(Opp->pos()) < Setting::i()->mDefenseMove->mMidNear_MarkAgainMaxDistToChangeCost)
-//                            for(int t=1; t <= 11; t++){
-//                                mark_eval[o][t] *= Setting::i()->mDefenseMove->mMidNear_MarkAgainChangeCostZ;
-//                            }
-                    }
-                }
-                temp_opps.push_back(o);
-                #ifdef DEBUG_PRINT
-                dlog.addText(Logger::MARK, "Opp %d can be LN Marked", o);
-                #endif
-            }
-            auto action = BestMatchFinder::find_best_dec(mark_eval, temp_tms, temp_opps);
-            for (size_t a = 0; a < action.first.size(); a++) {
-                if (action.first[a] == 0)
-                    continue;
-                size_t tm = action.first[a];
-                size_t opp = temp_opps[a];
-                tm_mark_target[tm] = opp;
-                opp_marker[opp] = tm;
-                opp_mark_count[opp]++;
-                if (opp == fastest_opp) {
-                    how_mark[tm] = MarkType::Block;
-                    #ifdef DEBUG_PRINT
-                    dlog.addText(Logger::MARK, "mark Off: %d block %d", tm, opp);
-                    #endif
-                }
-                else {
-                    if (how_mark[tm] == MarkType::NoType) {
-                        how_mark[tm] = MarkType::LeadProjectionMark;
-                        #ifdef DEBUG_PRINT
-                        dlog.addText(Logger::MARK, "mark Off: %d LP %d", tm, opp);
-                        #endif
-                    }
-                    else {
-                        how_mark[tm] = MarkType::LeadNearMark;
-                        #ifdef DEBUG_PRINT
-                        dlog.addText(Logger::MARK, "mark Off: %d LN %d", tm, opp);
-                        #endif
-                    }
-
-                }
-            }
-        }
-    }
-    #ifdef DEBUG_PRINT
-    for (size_t t = 1; t <= 11; t++) {
-        dlog.addText(Logger::MARK, "Tm %d Opp %d in %s", t, tm_mark_target[t], markTypeString(how_mark[t]).c_str());
-        if (how_mark[t] == MarkType::ThMarkFastestOpp || how_mark[t] == MarkType::ThMarkFar)
-            how_mark[t] = MarkType::ThMark;
-        if (tm_mark_target[t] > 0) {
-            dlog.addLine(Logger::MARK, wm.theirPlayer(tm_mark_target[t])->pos(), wm.ourPlayer(t)->pos(), 255, 0, 0);
-        }
-    }
-    #endif
-    mark_unum = tm_mark_target[wm.self().unum()];
-    mark_type = how_mark[wm.self().unum()];
-    for (int i = 1; i <= 11; i++) {
-        if (fastest_opp == tm_mark_target[i]) {
-            blocked = true;
-            break;
-        }
-    }
+    return on_anti_offense;
 }
 
 
@@ -424,37 +165,15 @@ vector <UnumEval> BhvMarkDecisionGreedy::oppEvaluatorMidMark(const WorldModel &w
         }
     }
     opp_eval.insert(opp_eval.begin(), make_pair(0, -1000));
-    return opp_eval;
-}
-
-
-vector <UnumEval> BhvMarkDecisionGreedy::oppEvaluatorGoalMark(const WorldModel &wm) {
-    vector <UnumEval> opp_eval;
-    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
-    for (int o = 1; o <= 11; o++) {
-        const AbstractPlayerObject *Opp = wm.theirPlayer(o);
-        auto EvalNode = opp_eval.insert(opp_eval.end(), make_pair(o, -1000));
-        if (Opp == NULL
-            || Opp->unum() < 1
-            || Opp->goalie()
-            || Opp->pos().x > -20)
-            continue;
-        double DistOppGoal = max(0.0, 40.0 - Opp->pos().dist(Vector2D(-52, 0))) - Opp->pos().x;
-        if (ball_pos.x < -30) {
-            if (ball_pos.absY() + 5 < Opp->pos().absY()
-                && Opp->pos().absY() > 15) {
-                DistOppGoal /= 2.0;
-            }
-        }
-        EvalNode->second = DistOppGoal;
-    }
-    sort(opp_eval.begin(), opp_eval.end(), [](UnumEval &p1, UnumEval &p2) -> bool { return p1.second > p2.second; });
     #ifdef DEBUG_PRINT
-    for (auto &pe : opp_eval)
-        dlog.addText(Logger::MARK, "sorted:opp %d eval %.1f", pe.first, pe.second);
+    for (size_t i = 1; i <= 11; i++)
+        dlog.addText(Logger::MARK, "oppdanger %d is oppunum %d with eval %.2f", i, opp_eval[i].first,
+                     opp_eval[i].second);
+    dlog.addText(Logger::MARK, "OurDefLine %.1f", wm.ourDefenseLineX());
     #endif
     return opp_eval;
 }
+
 
 void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double mark_eval[][12], bool used_hpos,
                                                     vector<double> block_eval, bool fastest_opp_marked,
@@ -651,6 +370,177 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
 }
 
 
+vector <size_t> BhvMarkDecisionGreedy::midMarkThMarkMarkerFinder(double (*mark_eval)[12], size_t fastest_opp) {
+    vector <size_t> temp_tms;
+    for (size_t t = 2; t <= 11; t++) {
+        if (Strategy::i().tm_Line(t) == Strategy::PostLine::back) {
+            if (Setting::i()->mDefenseMove->mMidTh_BackInMark
+                || Setting::i()->mDefenseMove->mMidTh_BackInBlock) {
+                dlog.addText(Logger::MARK, "Tm %d can TH Mark", t);
+                temp_tms.push_back(t);
+            }
+            for (size_t o = 2; o <= 11; o++) {
+                if (o == fastest_opp) {
+                    if (!Setting::i()->mDefenseMove->mMidTh_BackInBlock)
+                        mark_eval[o][t] = 1000;
+                }
+                else {
+                    if (!Setting::i()->mDefenseMove->mMidTh_BackInMark)
+                        mark_eval[o][t] = 1000;
+                }
+            }
+        }
+        else if (Strategy::i().tm_Line(t) == Strategy::PostLine::half) {
+            if (Setting::i()->mDefenseMove->mMidTh_HalfInMark
+                || Setting::i()->mDefenseMove->mMidTh_HalfInBlock) {
+                dlog.addText(Logger::MARK, "Tm %d can TH Mark", t);
+                temp_tms.push_back(t);
+            }
+            for (size_t o = 2; o <= 11; o++) {
+                if (o == fastest_opp) {
+                    if (!Setting::i()->mDefenseMove->mMidTh_HalfInBlock)
+                        mark_eval[o][t] = 1000;
+                }
+                else {
+                    if (!Setting::i()->mDefenseMove->mMidTh_HalfInMark)
+                        mark_eval[o][t] = 1000;
+                }
+            }
+        }
+        else if (Strategy::i().tm_Line(t) == Strategy::PostLine::forward) {
+            if (Setting::i()->mDefenseMove->mMidTh_ForwardInMark
+                || Setting::i()->mDefenseMove->mMidTh_ForwardInBlock) {
+                dlog.addText(Logger::MARK, "Tm %d can TH Mark", t);
+                temp_tms.push_back(t);
+            }
+            for (size_t o = 2; o <= 11; o++) {
+                if (o == fastest_opp) {
+                    if (!Setting::i()->mDefenseMove->mMidTh_ForwardInBlock)
+                        mark_eval[o][t] = 1000;
+                }
+                else {
+                    if (!Setting::i()->mDefenseMove->mMidTh_ForwardInMark)
+                        mark_eval[o][t] = 1000;
+                }
+            }
+        }
+    }
+    return temp_tms;
+}
+
+
+vector <size_t>
+BhvMarkDecisionGreedy::midMarkThMarkMarkedFinder(vector <size_t> &offensive_opps, vector <UnumEval> &opp_eval) {
+    vector <size_t> temp_opps;
+    int max_opp_marked_here = 4;
+    for (size_t d = 1; d <= 6; d++) {
+        if (opp_eval[d].second < -999)
+            break;
+        if (max_opp_marked_here == temp_opps.size())
+            break;
+        size_t o = opp_eval[d].first;
+        if (std::find(offensive_opps.begin(), offensive_opps.end(), o) == offensive_opps.end()) {
+            #ifdef DEBUG_PRINT
+            dlog.addText(Logger::MARK, "Opp %d is not offensive", o);
+            #endif
+            continue;
+        }
+        #ifdef DEBUG_PRINT
+        dlog.addText(Logger::MARK, "Opp %d can TH Marked", o);
+        #endif
+        temp_opps.push_back(o);
+    }
+    return temp_opps;
+}
+
+
+vector <size_t> BhvMarkDecisionGreedy::midMarkThMarkRemoveCloseOpp(const WorldModel &wm, vector <size_t> &temp_opps,
+                                                                   Target opp_targets[]) {
+    vector <size_t> new_temp_opps;
+    dlog.addText(Logger::MARK, "Start to remove same opp");
+    for (int i = 0; i < temp_opps.size(); i++) {
+        int o1 = temp_opps[i];
+        if (wm.theirPlayer(o1)->pos().x <
+            Strategy::i().getPosition(2).x + Setting::i()->mDefenseMove->mMidTh_XNearOpps) {
+            dlog.addText(Logger::MARK, "--opp %d added to checked, it is danger", o1);
+            new_temp_opps.push_back(o1);
+            continue;
+        }
+        dlog.addText(Logger::MARK, "--opp %d", o1);
+        Vector2D o1_target = opp_targets[o1].pos;
+        int danger_opp = o1;
+        double danger_eval = wm.theirPlayer(o1)->pos().x;
+        for (int j = 0; j < temp_opps.size(); j++) {
+            if (i == j)continue;
+            int o2 = temp_opps[j];
+            Vector2D o2_target = opp_targets[o2].pos;
+            if (o1_target.dist(o2_target) < Setting::i()->mDefenseMove->mMidTh_DistanceNearOpps) {
+                dlog.addText(Logger::MARK, "----opp %d is near, my pos (%.1f, %.1f), other pos (%.1f, %.1f)", o2,
+                             o1_target.x, o1_target.y, o2_target.x, o2_target.y);
+                if (wm.theirPlayer(o2)->pos().x < danger_eval) {
+                    dlog.addText(Logger::MARK, "----opp %d is danger than me", o2);
+                    danger_eval = wm.theirPlayer(o2)->pos().x;;
+                    danger_opp = o2;
+                }
+            }
+            else {
+                dlog.addText(Logger::MARK, "----opp %d is far", o2);
+            }
+        }
+        if (danger_opp == o1) {
+            dlog.addText(Logger::MARK, "--->opp %d added to temp", danger_opp);
+            new_temp_opps.push_back(danger_opp);
+        }
+    }
+    return new_temp_opps;
+}
+
+
+void BhvMarkDecisionGreedy::midMarkThMarkSetResults(const WorldModel &wm, pair<vector<int>, double> &action,
+                                                    vector <size_t> &temp_opps, MarkType how_mark[],
+                                                    size_t tm_mark_target[], size_t opp_marker[],
+                                                    size_t opp_mark_count[], size_t fastest_opp,
+                                                    bool fastest_opp_marked, Target opp_targets[]) {
+    for (size_t a = 0; a < action.first.size(); a++) {
+        if (action.first[a] == 0)
+            continue;
+        size_t tm = action.first[a];
+        size_t opp = temp_opps[a];
+        tm_mark_target[tm] = opp;
+        opp_marker[opp] = tm;
+        opp_mark_count[opp]++;
+        Vector2D opp_pos = wm.theirPlayer(opp)->pos();
+        Vector2D mark_target = opp_targets[opp].pos;
+        if (opp == fastest_opp && !fastest_opp_marked) {
+            how_mark[tm] = MarkType::Block;
+            #ifdef DEBUG_PRINT
+            dlog.addText(Logger::MARK, "**mark Off: %d block %d", tm, opp);
+            #endif
+        }
+        else {
+            if (opp == fastest_opp) {
+                how_mark[tm] = MarkType::ThMarkFastestOpp;
+                #ifdef DEBUG_PRINT
+                dlog.addText(Logger::MARK, "**mark Off: %d THmarkFastestOpp %d", tm, opp);
+                #endif
+            }
+            else if (opp_pos.x > mark_target.x + 5) {
+                how_mark[tm] = MarkType::ThMarkFar;
+                #ifdef DEBUG_PRINT
+                dlog.addText(Logger::MARK, "**mark Off: %d THmarkFar %d", tm, opp);
+                #endif
+            }
+            else {
+                how_mark[tm] = MarkType::ThMark;
+                #ifdef DEBUG_PRINT
+                dlog.addText(Logger::MARK, "**mark Off: %d THmark %d", tm, opp);
+                #endif
+            }
+        }
+    }
+}
+
+
 void BhvMarkDecisionGreedy::midMarkLeadMarkCostFinder(const WorldModel &wm, double mark_eval[][12], bool used_hpos,
                                                       vector<double> block_eval, bool fastest_opp_marked) {
     int opp_reach_cycle = wm.interceptTable()->opponentReachCycle();
@@ -773,6 +663,196 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkCostFinder(const WorldModel &wm, doub
     #endif
 }
 
+
+vector <size_t> BhvMarkDecisionGreedy::midMarkLeadMarkMarkerFinder(double (*mark_eval)[12], size_t fastest_opp,
+                                                                   size_t tm_mark_target[12]) {
+    vector <size_t> temp_tms;
+    for (size_t t = 2; t <= 11; t++) {
+        if (tm_mark_target[t] != 0)
+            continue;
+        if (Strategy::i().tm_Line(t) == Strategy::PostLine::back) {
+            if (Setting::i()->mDefenseMove->mMidNear_BackInMark
+                || Setting::i()->mDefenseMove->mMidNear_BackInBlock) {
+                dlog.addText(Logger::MARK, "Tm %d can Near Mark", t);
+                temp_tms.push_back(t);
+            }
+            for (size_t o = 2; o <= 11; o++) {
+                if (o == fastest_opp) {
+                    if (!Setting::i()->mDefenseMove->mMidNear_BackInBlock)
+                        mark_eval[o][t] = 1000;
+                }
+                else {
+                    if (!Setting::i()->mDefenseMove->mMidNear_BackInMark)
+                        mark_eval[o][t] = 1000;
+                }
+            }
+        }
+        else if (Strategy::i().tm_Line(t) == Strategy::PostLine::half) {
+            if (Setting::i()->mDefenseMove->mMidNear_HalfInMark
+                || Setting::i()->mDefenseMove->mMidNear_HalfInBlock) {
+                dlog.addText(Logger::MARK, "Tm %d can Near Mark", t);
+                temp_tms.push_back(t);
+            }
+            for (size_t o = 2; o <= 11; o++) {
+                if (o == fastest_opp) {
+                    if (!Setting::i()->mDefenseMove->mMidNear_HalfInBlock)
+                        mark_eval[o][t] = 1000;
+                }
+                else {
+                    if (!Setting::i()->mDefenseMove->mMidNear_HalfInMark)
+                        mark_eval[o][t] = 1000;
+                }
+            }
+        }
+        else if (Strategy::i().tm_Line(t) == Strategy::PostLine::forward) {
+            if (Setting::i()->mDefenseMove->mMidNear_ForwardInMark
+                || Setting::i()->mDefenseMove->mMidNear_ForwardInBlock) {
+                dlog.addText(Logger::MARK, "Tm %d can Near Mark", t);
+                temp_tms.push_back(t);
+            }
+            for (size_t o = 2; o <= 11; o++) {
+                if (o == fastest_opp) {
+                    if (!Setting::i()->mDefenseMove->mMidNear_ForwardInBlock)
+                        mark_eval[o][t] = 1000;
+                }
+                else {
+                    if (!Setting::i()->mDefenseMove->mMidNear_ForwardInMark)
+                        mark_eval[o][t] = 1000;
+                }
+            }
+        }
+    }
+    return temp_tms;
+}
+
+
+vector <size_t>
+BhvMarkDecisionGreedy::midMarkLeadMarkMarkedFinder(const WorldModel &wm, vector <size_t> &offensive_opps,
+                                                   vector <UnumEval> &opp_eval, size_t fastest_opp,
+                                                   Vector2D &ball_inertia, size_t opp_marker[], MarkType how_mark[]) {
+    vector <size_t> temp_opps;
+    for (int d = 1; d <= 11; d++) {
+        if (opp_eval[d].second < -999)
+            break;
+        size_t o = opp_eval[d].first;
+        const AbstractPlayerObject *Opp = wm.theirPlayer(o);
+        if (Opp->unum() != fastest_opp)
+            if (Opp->pos().x > ball_inertia.x + Setting::i()->mDefenseMove->mMidNear_OppsDistXToBall)
+                continue;
+        if (opp_marker[o] != 0) {
+
+            if (Opp->unum() == fastest_opp) {
+//                        if (!Setting::i()->mDefenseMove->mMidNear_BlockAgain) {
+                if (how_mark[opp_marker[Opp->unum()]] != MarkType::ThMarkFastestOpp)
+                    continue;
+            }
+            else {
+                if (how_mark[opp_marker[Opp->unum()]] == MarkType::ThMark)
+                    continue;
+//                        if (Opp->pos().x < wm.ourDefensePlayerLineX() + 10)
+//                            continue;
+//                        if (!Setting::i()->mDefenseMove->mMidNear_MarkAgain)
+//                            continue;
+//                        if(Opp->pos().dist(Opp->pos()) < Setting::i()->mDefenseMove->mMidNear_MarkAgainMaxDistToChangeCost)
+//                            for(int t=1; t <= 11; t++){
+//                                mark_eval[o][t] *= Setting::i()->mDefenseMove->mMidNear_MarkAgainChangeCostZ;
+//                            }
+            }
+        }
+        temp_opps.push_back(o);
+        #ifdef DEBUG_PRINT
+        dlog.addText(Logger::MARK, "Opp %d can be LN Marked", o);
+        #endif
+    }
+    return temp_opps;
+}
+
+
+void BhvMarkDecisionGreedy::midMarkLeadMarkSetResults(const WorldModel &wm, pair<vector<int>, double> &action,
+                                                      vector <size_t> &temp_opps, MarkType how_mark[],
+                                                      size_t tm_mark_target[], size_t opp_marker[],
+                                                      size_t opp_mark_count[], size_t fastest_opp) {
+    for (size_t a = 0; a < action.first.size(); a++) {
+        if (action.first[a] == 0)
+            continue;
+        size_t tm = action.first[a];
+        size_t opp = temp_opps[a];
+        tm_mark_target[tm] = opp;
+        opp_marker[opp] = tm;
+        opp_mark_count[opp]++;
+        if (opp == fastest_opp) {
+            how_mark[tm] = MarkType::Block;
+            #ifdef DEBUG_PRINT
+            dlog.addText(Logger::MARK, "mark Off: %d block %d", tm, opp);
+            #endif
+        }
+        else {
+            if (how_mark[tm] == MarkType::NoType) {
+                how_mark[tm] = MarkType::LeadProjectionMark;
+                #ifdef DEBUG_PRINT
+                dlog.addText(Logger::MARK, "mark Off: %d LP %d", tm, opp);
+                #endif
+            }
+            else {
+                how_mark[tm] = MarkType::LeadNearMark;
+                #ifdef DEBUG_PRINT
+                dlog.addText(Logger::MARK, "mark Off: %d LN %d", tm, opp);
+                #endif
+            }
+
+        }
+    }
+}
+
+
+bool BhvMarkDecisionGreedy::needProjectMark(const WorldModel &wm, int opp_unum, int tm_unum) {
+    const AbstractPlayerObject *opp = wm.theirPlayer(opp_unum);
+    int opp_min = wm.interceptTable()->opponentReachCycle();
+    Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min);
+    double first_pass_speed = calc_first_term_geom_series_last(1.5,
+                                                               ball_inertia.dist(opp->pos()),
+                                                               ServerParam::i().ballDecay());
+    if (first_pass_speed > 3.0)
+        first_pass_speed = calc_first_term_geom_series_last(1.0,
+                                                            ball_inertia.dist(opp->pos()),
+                                                            ServerParam::i().ballDecay());
+    if (first_pass_speed > 3.0)
+        first_pass_speed = calc_first_term_geom_series_last(0.5,
+                                                            ball_inertia.dist(opp->pos()),
+                                                            ServerParam::i().ballDecay());
+    if (first_pass_speed > 3.0)
+        first_pass_speed = calc_first_term_geom_series_last(0.0,
+                                                            ball_inertia.dist(opp->pos()),
+                                                            ServerParam::i().ballDecay());
+    if (first_pass_speed > 3.0)
+        return false;
+
+    int pass_cycle = calc_length_geom_series(first_pass_speed,
+                                             ball_inertia.dist(opp->pos()),
+                                             ServerParam::i().ballDecay());
+    Vector2D ball_pos = ball_inertia;
+    Vector2D ball_vel = Vector2D::polar2vector(first_pass_speed, (opp->pos() - ball_inertia).th());
+    Segment2D pass_segment(ball_inertia, opp->pos());
+    for (int c = 1; c < pass_cycle; c++) {
+        ball_pos += ball_vel;
+        for (int t = 2; t <= 11; t++) {
+            if (t == tm_unum)
+                continue;
+            const AbstractPlayerObject *tm = wm.ourPlayer(t);
+            if (tm == nullptr || tm->unum() != t)
+                continue;
+            if (!pass_segment.projection(tm->pos()).isValid())
+                continue;
+            int reach_cycle = tm->playerTypePtr()->cyclesToReachDistance(ball_pos.dist(tm->pos()));
+            if (reach_cycle < c)
+                return false;
+        }
+        ball_vel *= ServerParam::i().ballDecay();
+    }
+    return true;
+}
+
+
 bool
 BhvMarkDecisionGreedy::canCenterHalfMarkLeadNear(const WorldModel &wm, int t, Vector2D opp_pos, Vector2D ball_inertia) {
     if (Strategy::i().tm_Post(t) != Strategy::i().player_post::pp_ch)
@@ -797,6 +877,140 @@ BhvMarkDecisionGreedy::canCenterHalfMarkLeadNear(const WorldModel &wm, int t, Ve
         return false;
     return true;
 }
+
+
+void BhvMarkDecisionGreedy::goalMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked) {
+    const WorldModel &wm = agent->world();
+    int fastest_opp = (wm.interceptTable()->fastestOpponent() == NULL ? 0
+                                                                      : wm.interceptTable()->fastestOpponent()->unum());
+    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
+    //determine arbitrary offside line
+    double tm_hpos_x_min = 0;
+    for (int i = 2; i <= 11; i++) {
+        double tm_hpos_x = Strategy::i().getPosition(i).x;
+        if (tm_hpos_x < tm_hpos_x_min)
+            tm_hpos_x_min = tm_hpos_x;
+    }
+    double mark_eval[12][12];
+    for (int t = 1; t <= 11; t++) {
+        for (int o = 1; o <= 11; o++) {
+            mark_eval[o][t] = 1000;
+        }
+    }
+
+    vector<int> who_go_to_goal = Bhv_BasicMove::who_goto_goal(agent);
+    vector <UnumEval> opp_eval = oppEvaluatorGoalMark(wm);
+
+    MarkType how_mark[12];
+    int tm_mark_target[12];
+    for (int i = 1; i <= 11; i++) {
+        how_mark[i] = MarkType::NoType;
+        tm_mark_target[i] = 0;
+    }
+
+    goalMarkLeadMarkCostFinder(wm, mark_eval, who_go_to_goal);
+    {
+        vector <size_t> temp_opps;
+        vector <size_t> temp_tms;
+        for (int t = 2; t < 12; ++t) {
+            if (Strategy::i().tm_Line(t) == Strategy::PostLine::forward) {
+                if (!Setting::i()->mDefenseMove->mGoal_ForwardInMark
+                    && !Setting::i()->mDefenseMove->mGoal_ForwardInBlock)
+                    continue;
+                for (size_t o = 2; o <= 11; o++) {
+                    if (o == fastest_opp) {
+                        if (!Setting::i()->mDefenseMove->mGoal_ForwardInBlock)
+                            mark_eval[o][t] = 1000;
+                    }
+                    else {
+                        if (!Setting::i()->mDefenseMove->mGoal_ForwardInMark)
+                            mark_eval[o][t] = 1000;
+                    }
+                }
+            }
+            temp_tms.push_back(t);
+        }
+
+        for (int d = 0; d < 6; d++) {
+            if (opp_eval[d].second == -1000)
+                break;
+            int o = opp_eval[d].first;
+            temp_opps.push_back(o);
+        }
+        auto action = BestMatchFinder::find_best_dec(mark_eval, temp_tms, temp_opps);
+        #ifdef DEBUG_PRINT
+        dlog.addText(Logger::MARK, "after action created");
+        #endif
+        for (int a = 0; a < action.first.size(); a++) {
+            if (action.first[a] == 0)
+                continue;
+            int tm = action.first[a];
+            int opp = temp_opps[a];
+            tm_mark_target[tm] = opp;
+            if (opp == fastest_opp) {
+                how_mark[tm] = MarkType::Block;
+                #ifdef DEBUG_PRINT
+                dlog.addText(Logger::MARK, ">>>>mark Off: tm %d block opp %d", tm, opp);
+                #endif
+            }
+            else {
+                how_mark[tm] = MarkType::DangerMark;
+                #ifdef DEBUG_PRINT
+                dlog.addText(Logger::MARK, ">>>>mark Off: tm %d danger opp %d", tm, opp);
+                #endif
+            }
+        }
+    }
+    #ifdef DEBUG_PRINT
+    for (size_t t = 1; t <= 11; t++) {
+        dlog.addText(Logger::MARK, "Tm %d Opp %d in %s", t, tm_mark_target[t], markTypeString(how_mark[t]).c_str());
+        if (tm_mark_target[t] > 0) {
+            dlog.addLine(Logger::MARK, wm.theirPlayer(tm_mark_target[t])->pos(), wm.ourPlayer(t)->pos(), 255, 0, 0);
+        }
+    }
+    #endif
+    mark_unum = tm_mark_target[wm.self().unum()];
+    mark_type = how_mark[wm.self().unum()];
+    for (int i = 1; i <= 11; i++) {
+        if (fastest_opp == tm_mark_target[i]) {
+            blocked = true;
+            break;
+        }
+    }
+    if (how_mark[wm.self().unum()] != MarkType::NoType) {
+        last_mark = make_pair(wm.time().cycle(), tm_mark_target[wm.self().unum()]);
+    }
+}
+
+
+vector <UnumEval> BhvMarkDecisionGreedy::oppEvaluatorGoalMark(const WorldModel &wm) {
+    vector <UnumEval> opp_eval;
+    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
+    for (int o = 1; o <= 11; o++) {
+        const AbstractPlayerObject *Opp = wm.theirPlayer(o);
+        auto EvalNode = opp_eval.insert(opp_eval.end(), make_pair(o, -1000));
+        if (Opp == NULL
+            || Opp->unum() < 1
+            || Opp->goalie()
+            || Opp->pos().x > -20)
+            continue;
+        double DistOppGoal = max(0.0, 40.0 - Opp->pos().dist(Vector2D(-52, 0))) - Opp->pos().x;
+        if (ball_pos.x < -30) {
+            if (ball_pos.absY() + 5 < Opp->pos().absY()
+                && Opp->pos().absY() > 15) {
+                DistOppGoal /= 2.0;
+            }
+        }
+        EvalNode->second = DistOppGoal;
+    }
+    sort(opp_eval.begin(), opp_eval.end(), [](UnumEval &p1, UnumEval &p2) -> bool { return p1.second > p2.second; });
+    #ifdef DEBUG_PRINT
+    for (auto &pe : opp_eval)
+        dlog.addText(Logger::MARK, "sorted:opp %d eval %.1f", pe.first, pe.second);
+    #endif
+    return opp_eval;
+}
+
 
 void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, double mark_eval[][12],
                                                        vector<int> who_go_to_goal) {
@@ -900,149 +1114,6 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
     }
 }
 
-
-bool BhvMarkDecisionGreedy::needProjectMark(const WorldModel &wm, int opp_unum, int tm_unum) {
-    const AbstractPlayerObject *opp = wm.theirPlayer(opp_unum);
-    int opp_min = wm.interceptTable()->opponentReachCycle();
-    Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min);
-    double first_pass_speed = calc_first_term_geom_series_last(1.5,
-                                                               ball_inertia.dist(opp->pos()),
-                                                               ServerParam::i().ballDecay());
-    if (first_pass_speed > 3.0)
-        first_pass_speed = calc_first_term_geom_series_last(1.0,
-                                                            ball_inertia.dist(opp->pos()),
-                                                            ServerParam::i().ballDecay());
-    if (first_pass_speed > 3.0)
-        first_pass_speed = calc_first_term_geom_series_last(0.5,
-                                                            ball_inertia.dist(opp->pos()),
-                                                            ServerParam::i().ballDecay());
-    if (first_pass_speed > 3.0)
-        first_pass_speed = calc_first_term_geom_series_last(0.0,
-                                                            ball_inertia.dist(opp->pos()),
-                                                            ServerParam::i().ballDecay());
-    if (first_pass_speed > 3.0)
-        return false;
-
-    int pass_cycle = calc_length_geom_series(first_pass_speed,
-                                             ball_inertia.dist(opp->pos()),
-                                             ServerParam::i().ballDecay());
-    Vector2D ball_pos = ball_inertia;
-    Vector2D ball_vel = Vector2D::polar2vector(first_pass_speed, (opp->pos() - ball_inertia).th());
-    Segment2D pass_segment(ball_inertia, opp->pos());
-    for (int c = 1; c < pass_cycle; c++) {
-        ball_pos += ball_vel;
-        for (int t = 2; t <= 11; t++) {
-            if (t == tm_unum)
-                continue;
-            const AbstractPlayerObject *tm = wm.ourPlayer(t);
-            if (tm == nullptr || tm->unum() != t)
-                continue;
-            if (!pass_segment.projection(tm->pos()).isValid())
-                continue;
-            int reach_cycle = tm->playerTypePtr()->cyclesToReachDistance(ball_pos.dist(tm->pos()));
-            if (reach_cycle < c)
-                return false;
-        }
-        ball_vel *= ServerParam::i().ballDecay();
-    }
-    return true;
-}
-
-void BhvMarkDecisionGreedy::goalMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked) {
-    const WorldModel &wm = agent->world();
-    int fastest_opp = (wm.interceptTable()->fastestOpponent() == NULL ? 0
-                                                                      : wm.interceptTable()->fastestOpponent()->unum());
-    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
-    //determine arbitrary offside line
-    double tm_hpos_x_min = 0;
-    for (int i = 2; i <= 11; i++) {
-        double tm_hpos_x = Strategy::i().getPosition(i).x;
-        if (tm_hpos_x < tm_hpos_x_min)
-            tm_hpos_x_min = tm_hpos_x;
-    }
-    double mark_eval[12][12];
-    for (int t = 1; t <= 11; t++) {
-        for (int o = 1; o <= 11; o++) {
-            mark_eval[o][t] = 1000;
-        }
-    }
-
-    vector<int> who_go_to_goal = Bhv_BasicMove::who_goto_goal(agent);
-    vector <UnumEval> opp_eval = oppEvaluatorGoalMark(wm);
-
-    MarkType how_mark[12];
-    int tm_mark_target[12];
-    for (int i = 1; i <= 11; i++) {
-        how_mark[i] = MarkType::NoType;
-        tm_mark_target[i] = 0;
-    }
-
-    goalMarkLeadMarkCostFinder(wm, mark_eval, who_go_to_goal);
-    {
-        vector <size_t> temp_opps;
-        vector <size_t> temp_tms;
-        for (int t = 2; t < 12; ++t) {
-            if (Strategy::i().tm_Line(t) == Strategy::PostLine::forward) {
-                if (!Setting::i()->mDefenseMove->mGoal_ForwardInMark
-                    && !Setting::i()->mDefenseMove->mGoal_ForwardInBlock)
-                    continue;
-                for (size_t o = 2; o <= 11; o++) {
-                    if (o == fastest_opp) {
-                        if (!Setting::i()->mDefenseMove->mGoal_ForwardInBlock)
-                            mark_eval[o][t] = 1000;
-                    }
-                    else {
-                        if (!Setting::i()->mDefenseMove->mGoal_ForwardInMark)
-                            mark_eval[o][t] = 1000;
-                    }
-                }
-            }
-            temp_tms.push_back(t);
-        }
-
-        for (int d = 0; d < 6; d++) {
-            if (opp_eval[d].second == -1000)
-                break;
-            int o = opp_eval[d].first;
-            temp_opps.push_back(o);
-        }
-        auto action = BestMatchFinder::find_best_dec(mark_eval, temp_tms, temp_opps);
-        #ifdef DEBUG_PRINT
-        dlog.addText(Logger::MARK, "after action created");
-        #endif
-        for (int a = 0; a < action.first.size(); a++) {
-            if (action.first[a] == 0)
-                continue;
-            int tm = action.first[a];
-            int opp = temp_opps[a];
-            tm_mark_target[tm] = opp;
-            if (opp == fastest_opp) {
-                how_mark[tm] = MarkType::Block;
-                #ifdef DEBUG_PRINT
-                dlog.addText(Logger::MARK, ">>>>mark Off: tm %d block opp %d", tm, opp);
-                #endif
-            }
-            else {
-                how_mark[tm] = MarkType::DangerMark;
-                #ifdef DEBUG_PRINT
-                dlog.addText(Logger::MARK, ">>>>mark Off: tm %d danger opp %d", tm, opp);
-                #endif
-            }
-        }
-    }
-
-    mark_unum = tm_mark_target[wm.self().unum()];
-    mark_type = how_mark[wm.self().unum()];
-    for (int i = 1; i <= 11; i++) {
-        if (fastest_opp == tm_mark_target[i]) {
-            blocked = true;
-            break;
-        }
-    }
-    if (how_mark[wm.self().unum()] != MarkType::NoType) {
-        last_mark = make_pair(wm.time().cycle(), tm_mark_target[wm.self().unum()]);
-    }
-}
 
 void
 BhvMarkDecisionGreedy::antiDefMarkDecision(const WorldModel &wm, MarkType &marktype, int &markunum, bool &blocked) {

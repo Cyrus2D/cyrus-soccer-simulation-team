@@ -37,6 +37,7 @@ enum class MarkType {
     Block = 7,
     Goal_keep = 8
 };
+
 std::string markTypeString(MarkType markType);
 
 enum class MarkDec {
@@ -46,6 +47,7 @@ enum class MarkDec {
     GoalMark = 3,
     JustBlock = 4
 };
+
 struct Target {
     Target() {}
 
@@ -54,7 +56,9 @@ struct Target {
     Vector2D pos;
     AngleDeg th = 1000;
 };
+
 typedef pair<size_t, double> UnumEval;
+
 class BhvMarkDecisionGreedy {
 public:
     struct MarkAction {
@@ -73,28 +77,57 @@ public:
 
     static MarkDec markDecision(const WorldModel &wm);
 
+    static vector <size_t> getOppOffensive(const WorldModel &wm, bool &fastest_opp_marked);
+
+    static vector<int> getOppOffensiveStatic(const WorldModel &wm);
+
     static void midMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked);
 
-    static bool needProjectMark(const WorldModel & wm, int opp_unum, int tm_unum);
+    static bool isAntiOffensive(const WorldModel & wm);
 
-    static void midMarkThMarkCostFinder(const WorldModel &wm, double mark_eval[][12], bool used_hpos, vector<double> block_eval, bool fastest_opp_marked, Target opp_targets [], bool on_anti_offense);
+    static vector <UnumEval> oppEvaluatorMidMark(const WorldModel &wm, bool use_ball_dist = false);
 
-    static void midMarkLeadMarkOffensiveCostFinder(const WorldModel &wm, double mark_eval[][12], bool used_hpos, vector<double> block_eval, bool fastest_opp_marked);
+    static void
+    midMarkThMarkCostFinder(const WorldModel &wm, double mark_eval[][12], bool used_hpos, vector<double> block_eval,
+                            bool fastest_opp_marked, Target opp_targets[], bool on_anti_offense);
 
-    static void midMarkLeadMarkCostFinder(const WorldModel &wm, double mark_eval[][12], bool used_hpos, vector<double> block_eval, bool fastest_opp_marked);
+    static vector <size_t> midMarkThMarkMarkerFinder(double mark_eval[][12], size_t fastest_opp);
+
+    static vector <size_t> midMarkThMarkMarkedFinder(vector <size_t> &offensive_opps, vector <UnumEval> &opp_eval);
+
+    static vector <size_t>
+    midMarkThMarkRemoveCloseOpp(const WorldModel &wm, vector <size_t> &temp_opps, Target opp_targets[]);
+
+    static void
+    midMarkThMarkSetResults(const WorldModel &wm, pair<vector<int>, double> &action, vector <size_t> &temp_opps,
+                            MarkType how_mark[], size_t tm_mark_target[], size_t opp_marker[], size_t opp_mark_count[],
+                            size_t fastest_opp, bool fastest_opp_marked, Target opp_targets[]);
+
+    static void
+    midMarkLeadMarkCostFinder(const WorldModel &wm, double mark_eval[][12], bool used_hpos, vector<double> block_eval,
+                              bool fastest_opp_marked);
+
+    static vector <size_t>
+    midMarkLeadMarkMarkerFinder(double mark_eval[][12], size_t fastest_opp, size_t tm_mark_target[12]);
+
+    static vector <size_t>
+    midMarkLeadMarkMarkedFinder(const WorldModel &wm, vector <size_t> &offensive_opps, vector <UnumEval> &opp_eval,
+                                size_t fastest_opp, Vector2D &ball_inertia, size_t opp_marker[], MarkType how_mark[]);
+
+    static void midMarkLeadMarkSetResults(const WorldModel &wm, pair<vector<int>, double> &action,
+                                          vector <size_t> &temp_opps, MarkType how_mark[],
+                                          size_t tm_mark_target[], size_t opp_marker[],
+                                          size_t opp_mark_count[], size_t fastest_opp);
+
+    static bool needProjectMark(const WorldModel &wm, int opp_unum, int tm_unum);
 
     static bool canCenterHalfMarkLeadNear(const WorldModel &wm, int t, Vector2D opp_pos, Vector2D ball_inertia);
-    static void goalMarkLeadMarkCostFinder(const WorldModel &wm, double mark_eval[][12], vector<int> who_go_to_goal);
-
-    static vector<UnumEval> oppEvaluatorMidMark(const WorldModel &wm, bool use_ball_dist=false);
-
-    static vector<UnumEval> oppEvaluatorGoalMark(const WorldModel &wm);
-
-    static vector<int> getOppOffensiveStatic(const WorldModel & wm);
-
-    static vector<size_t> getOppOffensive(const WorldModel & wm, bool &fastest_opp_marked);
 
     static void goalMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked);
+
+    static vector <UnumEval> oppEvaluatorGoalMark(const WorldModel &wm);
+
+    static void goalMarkLeadMarkCostFinder(const WorldModel &wm, double mark_eval[][12], vector<int> who_go_to_goal);
 
     static void antiDefMarkDecision(const WorldModel &wm, MarkType &mark_type, int &mark_unum, bool &blocked);
 
