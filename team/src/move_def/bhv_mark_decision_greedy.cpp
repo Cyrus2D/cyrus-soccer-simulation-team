@@ -30,6 +30,10 @@ std::string markTypeString(MarkType mark_type) {
             return std::string("LeadNearMark");
         case MarkType::ThMark:
             return std::string("ThMark");
+        case MarkType::ThMarkFar:
+            return std::string("ThMarkFar");
+        case MarkType::ThMarkFastestOpp:
+            return std::string("ThMarkFastestOpp");
         case MarkType::DangerMark:
             return std::string("DangerMark");
         case MarkType::Block:

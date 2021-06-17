@@ -31,9 +31,11 @@ enum class MarkType {
     LeadProjectionMark = 1,
     LeadNearMark = 2,
     ThMark = 3,
-    DangerMark = 4,
-    Block = 5,
-    Goal_keep = 6
+    ThMarkFastestOpp = 4,
+    ThMarkFar = 5,
+    DangerMark = 6,
+    Block = 7,
+    Goal_keep = 8
 };
 std::string markTypeString(MarkType markType);
 

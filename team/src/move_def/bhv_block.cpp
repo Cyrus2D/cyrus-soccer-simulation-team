@@ -250,7 +250,8 @@ vector<double> bhv_block::blocker_eval(const WorldModel &wm) {
     }
     const int opp_min = wm.interceptTable()->opponentReachCycle();
     Vector2D start_drible = wm.ball().inertiaPoint(opp_min);
-    start_drible = start_drible + Vector2D::polar2vector(4, (Vector2D(-52, 0) - start_drible).th());
+    if (start_drible.x < wm.ourDefensePlayerLineX() + 10)
+        start_drible = start_drible + Vector2D::polar2vector(4, (Vector2D(-52, 0) - start_drible).th());
     double my_hdef_x = 100;
     for (int t = 2; t <= 11; t++) {
         Vector2D hpos = Strategy::i().getPosition(t);

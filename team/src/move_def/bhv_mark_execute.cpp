@@ -492,7 +492,21 @@ void bhv_mark_execute::lead_mark_move(PlayerAgent * agent, Target targ, double d
             dlog.addText(Logger::MARK, "##target pos change to proj!!!");
         }
     }
-    if(Body_GoToPoint2010(target_pos, dist_thr, dash_power).execute(agent)){
+    Segment2D opp_ball_seg(ball_inertia, opp_pos);
+    if (!opp_ball_seg.projection(self_pos).isValid())
+        dist_thr = 0.1;
+    double angle_thr = 15.0;
+    if (self_pos.dist(target_pos) > 2.0)
+        angle_thr = 20.0;
+//    Body_GoToPoint2010( const Vector2D & point,
+//    const double & dist_thr,
+//    const double & max_dash_power,
+//    const double & dash_speed = -1.0,
+//    const int cycle = 100,
+//    const bool save_recovery = true,
+//    const double & dir_thr = 15.0 )
+    if(Body_GoToPoint2010(target_pos, dist_thr, dash_power, 100, false, angle_thr).execute(agent)){
+//    if(Body_GoToPoint2010(target_pos, dist_thr, dash_power).execute(agent)){
         agent->debugClient().addMessage("mark:move:BGD (%.1f,%.1f) %.1f", targ.pos.x, targ.pos.y, dash_power);
         dlog.addText(Logger::MARK, "ran go to point");
     }else{
