@@ -1150,7 +1150,8 @@ Strategy::getFormation( const WorldModel & wm )
                       : wm.gameMode().scoreLeft() );
 
     int time = wm.time().cycle();
-
+    int opp_min = wm.interceptTable()->opponentReachCycle();
+    int mate_min = std::min(wm.interceptTable()->teammateReachCycle(), wm.interceptTable()->selfReachCycle());
     isGoal_forward = Setting::i()->mStrategySetting->mIsGoalForward;
 
     if(our_score > opp_score)
@@ -1349,7 +1350,8 @@ Strategy::getFormation( const WorldModel & wm )
         }
 
         return M_F550_offense_formation;
-    }else if(M_formation_type == FormationType::F0343){
+    }
+    else if(M_formation_type == FormationType::F0343){
         tm_line[1] = PostLine::forward;
 
         tm_line[2] = PostLine::back;
@@ -1509,7 +1511,8 @@ Strategy::getFormation( const WorldModel & wm )
         }
 
         return M_F0343_offense_formation;
-    }else if(M_formation_type == FormationType::Fsh){
+    }
+    else if(M_formation_type == FormationType::Fsh){
         tm_line[1] = PostLine::golie;
 
         tm_line[2] = PostLine::back;
@@ -1669,7 +1672,8 @@ Strategy::getFormation( const WorldModel & wm )
         }
 
         return M_Fsh_offense_formation;
-    }else if(M_formation_type == FormationType::HeliosFra){
+    }
+    else if(M_formation_type == FormationType::HeliosFra){
         tm_line[1] = PostLine::golie;
 
         tm_line[2] = PostLine::back;
@@ -1829,14 +1833,15 @@ Strategy::getFormation( const WorldModel & wm )
         }
 
         return M_Fhel_offense_formation;
-    }else if(M_formation_type == FormationType::F433){
+    }
+    else if(M_formation_type == FormationType::F433){
         tm_line[1] = PostLine::golie;
 
         tm_line[2] = PostLine::back;
         tm_line[3] = PostLine::back;
         tm_line[4] = PostLine::back;
 
-        if(wm.ball().pos().x < 15)
+        if(wm.ball().pos().x < 15 || opp_min < mate_min - 2)
             tm_line[5] = PostLine::back;
         else
             tm_line[5] = PostLine::half;
@@ -2289,6 +2294,8 @@ bool Strategy::isDefSit(const WorldModel & wm,int unum) const{
     //    }else{
     //        return false;
     //    }
+    if (self_min == myTeam_min && opp_min <= self_min)
+        return true;
     if (opp_min - myTeam_min < dif
             || (wm.lastKickerSide() == wm.theirSide() && self_line==PostLine::back)
             || (wm.lastKickerSide() == wm.theirSide() && self_line==PostLine::half && wm.ball().pos().x < -35)) {

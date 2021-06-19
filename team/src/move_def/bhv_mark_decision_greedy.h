@@ -85,7 +85,7 @@ public:
 
     static bool isAntiOffensive(const WorldModel & wm);
 
-    static vector <UnumEval> oppEvaluatorMidMark(const WorldModel &wm, bool use_ball_dist = false);
+    static vector <UnumEval> oppEvaluatorMidMark(const WorldModel &wm, vector<size_t> offensive_opps, bool use_ball_dist = false);
 
     static void
     midMarkThMarkCostFinder(const WorldModel &wm, double mark_eval[][12], bool used_hpos, vector<double> block_eval,

@@ -263,8 +263,10 @@ void bhv_mark_execute::set_mark_target_thr(const WorldModel & wm,
             target = MarkPositionFinder::getLeadProjectionMarkTarget(self_unum,
                                                                      opp->unum(), wm);
             double z_thr = std::max(1.0, ball_inertia.dist(target.pos) * 0.1);
-            dist_thr = 1.5 * z_thr;
-            dlog.addText(Logger::MARK, ">>>> LeadProj, target:(0.1f, 0.1f) distthr=%.1f", target.pos.x, target.pos.y,
+            dist_thr = z_thr;
+            if (ball_inertia.dist(target.pos) < 30 && opp->vel().r() > 0.1)
+                dist_thr = 0.5;
+            dlog.addText(Logger::MARK, ">>>> LeadProj, target:(%.1f, %.1f) distthr=%.1f", target.pos.x, target.pos.y,
                          dist_thr);
             break;
         }

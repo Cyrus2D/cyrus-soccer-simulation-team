@@ -28,14 +28,14 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
 
     bool fastest_opp_marked = false; // true: fastest is offensive can not be blocked by def players
     auto offensive_opps = getOppOffensive(wm, fastest_opp_marked);
-    vector<double> block_eval = bhv_block::blocker_eval(wm);
+    vector<double> block_eval = bhv_block::blocker_eval_mark_decision(wm);
 
     bool used_hpos = false;
     if (opp_reach_cycle > 10) {
         #ifdef DEBUG_PRINT
         dlog.addText(Logger::MARK, " ###used Hpos###");
         #endif
-        used_hpos = true;
+        used_hpos = false;
     }
 
     MarkType how_mark[12];
@@ -57,7 +57,7 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
         dlog.addText(Logger::MARK, "Tm Def Mark Opp Off");
         #endif
         bool on_anti_offense = isAntiOffensive(wm);
-        vector <UnumEval> opp_eval = oppEvaluatorMidMark(wm);
+        vector <UnumEval> opp_eval = oppEvaluatorMidMark(wm, offensive_opps);
         Target opp_targets[12];
         midMarkThMarkCostFinder(wm, mark_eval, used_hpos, block_eval, fastest_opp_marked, opp_targets, on_anti_offense);
         vector <size_t> temp_tms = midMarkThMarkMarkerFinder(mark_eval, fastest_opp);
@@ -77,7 +77,7 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
                                    "-------------------------------------------------------------------------");
         dlog.addText(Logger::MARK, "Tm Mark Opp");
         #endif
-        vector <UnumEval> opp_eval = oppEvaluatorMidMark(wm, true);
+        vector <UnumEval> opp_eval = oppEvaluatorMidMark(wm, offensive_opps, true);
         midMarkLeadMarkCostFinder(wm, mark_eval, used_hpos, block_eval, fastest_opp_marked);
         vector <size_t> temp_tms = midMarkLeadMarkMarkerFinder(mark_eval, fastest_opp, tm_mark_target);
         vector <size_t> temp_opps = midMarkLeadMarkMarkedFinder(wm, offensive_opps, opp_eval, fastest_opp, ball_inertia,
@@ -133,10 +133,11 @@ bool BhvMarkDecisionGreedy::isAntiOffensive(const WorldModel &wm) {
 }
 
 
-vector <UnumEval> BhvMarkDecisionGreedy::oppEvaluatorMidMark(const WorldModel &wm, bool use_ball_dist) {
+vector <UnumEval> BhvMarkDecisionGreedy::oppEvaluatorMidMark(const WorldModel &wm, vector<size_t> offensive_opps, bool use_ball_dist) {
     vector <UnumEval> opp_eval;
     size_t fastest_opp = (wm.interceptTable()->fastestOpponent() == NULL ? 0
                                                                          : wm.interceptTable()->fastestOpponent()->unum());
+    Vector2D ball_inertia = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
     for (size_t o = 1; o <= 11; o++) {
         const AbstractPlayerObject *opp = wm.theirPlayer(o);
         auto EvalNode = opp_eval.insert(opp_eval.end(), make_pair(o, -1000));
@@ -147,13 +148,17 @@ vector <UnumEval> BhvMarkDecisionGreedy::oppEvaluatorMidMark(const WorldModel &w
         Vector2D opp_pos = opp->pos();
         if (o == fastest_opp)
             opp_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
-        double opp_pos_x =
-                -std::max(opp_pos.x, wm.ourDefenseLineX()) + std::max(0.0, 50.0 - opp_pos.dist(Vector2D(-52, 0))) * 1.2;
+        double opp_pos_x = -std::max(opp_pos.x - wm.ourDefenseLineX(), 0.0) + 105.0;
+        opp_pos_x += std::max(0.0, 50.0 - opp_pos.dist(Vector2D(-52, 0))) * 1.2;
         if (use_ball_dist) {
-            double ball_dist = opp_pos.dist(wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle()));
-            ball_dist = (30 - min(30.0, ball_dist)) / 30.0;
-            opp_pos_x += 150;
-            opp_pos_x = opp_pos_x * (1 + ball_dist / 2.0);
+            double ball_dist = opp_pos.dist(ball_inertia);
+            ball_dist = (30 - min(30.0, ball_dist));// / 30.0;
+            opp_pos_x += ball_dist;
+        }
+
+        if (find(offensive_opps.begin(), offensive_opps.end(), o) != offensive_opps.end()
+            && opp_pos.x < wm.ourDefenseLineX() + 10){
+            opp_pos_x += 50;
         }
         EvalNode->second = opp_pos_x;
     }

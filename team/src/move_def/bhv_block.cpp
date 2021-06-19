@@ -16,6 +16,7 @@
 #include <rcsc/action/neck_turn_to_ball_or_scan.h>
 #include <rcsc/player/world_model.h>
 #include "../setting.h"
+#include <rcsc/common/logger.h>
 
 //tackle block
 bool bhv_block::do_tackle_block(PlayerAgent *agent) {
@@ -303,6 +304,75 @@ vector<double> bhv_block::blocker_eval(const WorldModel &wm) {
     return block_eval;
 }
 
+vector<double> bhv_block::blocker_eval_mark_decision(const WorldModel &wm) {
+    static int last_time_execute = 0;
+    static vector<double> block_eval(12, 1000);
+    if (wm.time().cycle() <= last_time_execute) {
+        return block_eval;
+    }
+    last_time_execute = wm.time().cycle();
+    block_eval = vector<double>(12, 1000);
+    vector<double> block_cycle;
+    vector<double> block_zarib;
+    for (int i = 0; i <= 11; i++) {
+        block_zarib.push_back(1.0);
+        block_cycle.push_back(1000);
+    }
+    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    Vector2D start_drible = wm.ball().inertiaPoint(opp_min);
+    if (start_drible.x < wm.ourDefensePlayerLineX() + 10)
+        start_drible = start_drible + Vector2D::polar2vector(4, (Vector2D(-52, 0) - start_drible).th());
+    double my_hdef_x = 100;
+    for (int t = 2; t <= 11; t++) {
+        Vector2D hpos = Strategy::i().getPosition(t);
+        if (hpos.x < my_hdef_x)
+            my_hdef_x = hpos.x;
+    }
+//    if (start_drible.x > -20 && start_drible.x > my_hdef_x + 5) {
+//        for (int t = 2; t <= 11; t++) {
+//            const AbstractPlayerObject *tm = wm.ourPlayer(t);
+//            if (tm == NULL || tm->unum() < 1)
+//                continue;
+//            if (Strategy::i().tm_Line(t) != Strategy::i().PostLine::back)
+//                continue;
+//            if (min_dist_opp(wm, tm->pos()) < 15 &&
+//                min_dist_opp_unum(wm, tm->pos()) != wm.interceptTable()->fastestOpponent()->unum()) {
+//                block_zarib[t] *= 1.5;
+//            }
+//        }
+//    }
+//    if (start_drible.x > -20 && start_drible.x > my_hdef_x + 5) {
+//        for (int t = 2; t <= 11; t++) {
+//            const AbstractPlayerObject *tm = wm.ourPlayer(t);
+//            if (tm == NULL || tm->unum() < 1)
+//                continue;
+//            if (Strategy::i().tm_Line(t) != Strategy::i().PostLine::back)
+//                continue;
+//            if (min_dist_opp(wm, tm->pos()) < 5 &&
+//                min_dist_opp_unum(wm, tm->pos()) != wm.interceptTable()->fastestOpponent()->unum()) {
+//                block_zarib[t] *= 1.5;
+//            }
+//        }
+//    }
+    for (int t = 2; t <= 11; t++) {
+        const AbstractPlayerObject *tm = wm.ourPlayer(t);
+        if (tm == NULL || tm->unum() < 1)
+            continue;
+        Vector2D tm_pos = tm->pos();
+        int cycle_reach = tm->playerTypePtr()->cyclesToReachDistance(tm_pos.dist(start_drible));
+	Vector2D target;
+	bhv_block::block_cycle(wm, t, cycle_reach, target);
+        if (tm->isTackling())
+            cycle_reach += 9;
+        cycle_reach *= block_zarib[t];
+        block_cycle[t] = cycle_reach;
+    }
+    for (int t = 2; t <= 11; t++) {
+        block_eval[t] = block_cycle[t];
+    }
+    return block_eval;
+}
+
 int bhv_block::who_is_blocker(const WorldModel &wm, vector<int> marker) {
     vector<double> block_eval = blocker_eval(wm);
     vector<int> blockers;
@@ -370,7 +440,24 @@ void bhv_block::block_cycle(const WorldModel &wm, int unum, int &cycle, Vector2D
     int start_drible_time;
     get_start_dribble(wm, start_drible, start_drible_time);
     double best_angle = get_dribble_angle(wm, start_drible);
-    Vector2D vel = Vector2D::polar2vector(0.8, best_angle);
+    double dribble_speed = 0.8;
+    Sector2D dribble_sector(start_drible, 0, 20, best_angle - 20, best_angle + 20);
+    dlog.addLine(Logger::BLOCK, start_drible, start_drible + Vector2D::polar2vector(20, best_angle - 20));
+    dlog.addLine(Logger::BLOCK, start_drible, start_drible + Vector2D::polar2vector(20, best_angle + 20));
+    bool is_tm_in_dribble_sector = false;
+    for (int i = 2; i <= 11; i++){
+        const AbstractPlayerObject * tm = wm.ourPlayer(i);
+        if (tm == nullptr || tm->unum() != i)
+            continue;
+        if (dribble_sector.contains(tm->pos())){
+            is_tm_in_dribble_sector = true;
+            break;
+        }
+    }
+    if (is_tm_in_dribble_sector){
+        dribble_speed = 0.6;
+    }
+    Vector2D vel = Vector2D::polar2vector(dribble_speed, best_angle);
     if (wm.ourPlayer(unum) == NULL || wm.ourPlayer(unum)->unum() < 1) {
         target = Vector2D::INVALIDATED;
         cycle = 1000;
@@ -402,18 +489,15 @@ void bhv_block::block_cycle(const WorldModel &wm, int unum, int &cycle, Vector2D
             }
             return;
         } else {
-//            if (debug) {
-//                std::cout<<"BC454"<<std::endl;
-//                dlog.addCircle(Logger::BLOCK, ball, 0.2, 255, 0, 0);
-//                char num[8];
-//                snprintf(num, 8, "%d", drible_step);
-//                char num2[8];
-//                std::cout<<"BC44ss"<<std::endl;
-//                snprintf(num2, 8, "%d", dash_step);
-//                dlog.addMessage(Logger::BLOCK, ball - Vector2D(0, 1), num);
-//                std::cout<<"BC44dd"<<std::endl;
-//                dlog.addMessage(Logger::BLOCK, ball - Vector2D(0, 2), num2);
-//            }
+            if (debug) {
+                dlog.addCircle(Logger::BLOCK, ball, 0.2, 255, 0, 0);
+                char num[8];
+                snprintf(num, 8, "%d", drible_step);
+                char num2[8];
+                snprintf(num2, 8, "%d", dash_step);
+                dlog.addMessage(Logger::BLOCK, ball - Vector2D(0, 1), num);
+                dlog.addMessage(Logger::BLOCK, ball - Vector2D(0, 2), num2);
+            }
         }
     }
     cycle = 1000;
@@ -539,19 +623,32 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
         if (wm.self().pos().dist(target) < 1) {
             AngleDeg dir = (target - wm.self().pos()).th() - wm.self().body();
             if (abs(dir.degree()) < 10 && abs(dir.degree()) > 170 &&
-                agent->doDash(100, dir))
+                agent->doDash(100, dir)){
+                agent->debugClient().addMessage("do dash");
                 move = true;
-        }
-        if (wm.interceptTable()->opponentReachCycle() > 5){
-            if(!Body_GoToPoint2010(target, 0.5, dash_power, 1.2,1,false, 15).execute(agent)){
-                Body_TurnToBall().execute(agent);
             }
         }
-        else if (!move && !Body_GoToPoint(target, 0.5, dash_power
-        ).execute(agent)) {
+        if (!move){
+            if (wm.interceptTable()->opponentReachCycle() > 5){
+                if (Body_GoToPoint2010(target, 0.5, dash_power, 1.2,1,false, 15).execute(agent)){
+                    agent->debugClient().addMessage("BGP5");
+                }else{
+                    agent->debugClient().addMessage("Turn5");
+                    Body_TurnToBall().execute(agent);
+                }
+            }
+            else{
+                if (Body_GoToPoint(target, 0.5, dash_power).execute(agent)) {
+                    agent->debugClient().addMessage("BGP-");
+                }
+                else{
+                    agent->debugClient().addMessage("Turn-");
+                    Body_TurnToPoint(target).execute(agent);
+                }
+            }
 
-            Body_TurnToPoint(target).execute(agent);
         }
+
         Bhv_BasicMove::set_def_neck_with_ball(agent, target, wm.interceptTable()->fastestOpponent(), wm.self().unum());
         Vector2D start_drible;
         int start_drible_time;
