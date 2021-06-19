@@ -1044,6 +1044,9 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
         if (tm == NULL
             || tm->unum() < 1)
             continue;
+        #ifdef DEBUG_PRINT
+        dlog.addText(Logger::MARK, "###tm %d", t);
+        #endif
         bool goto_goal = false;
         for (auto go_goal_nums : who_go_to_goal) {
             if (go_goal_nums == tm->unum())
@@ -1051,7 +1054,7 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
         }
         if (goto_goal) {
             #ifdef DEBUG_PRINT
-            dlog.addText(Logger::MARK, "continue because goto goal for tm %d", t);
+            dlog.addText(Logger::MARK, "------continue because goto goal for tm %d", t);
             #endif
             continue;
         }
@@ -1060,9 +1063,11 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
         for (int o = 1; o <= 11; o++) {
             const AbstractPlayerObject *opp = wm.theirPlayer(o);
             if (opp == NULL
-                || opp->unum() < 1
-                || opp->goalie())
+                || opp->unum() < 1)
                 continue;
+            #ifdef DEBUG_PRINT
+            dlog.addText(Logger::MARK, "-----$opp %d", o);
+            #endif
             Target opp_pos;
             opp_pos.pos = opp->pos();
             double max_hpos_dist = Setting::i()->mDefenseMove->mGoal_HPosMaxDistMark;
@@ -1078,14 +1083,25 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
                     max_pos_dist = Setting::i()->mDefenseMove->mGoal_PosMaxDistBlock * 0.6;
                     max_dist_to_offside = Setting::i()->mDefenseMove->mGoal_OffsideMaxDistBlock * 0.6;
                 }
-                if (opp_pos.pos.x > tm_hpos_x_min + max_dist_to_offside
-                    || opp_pos.pos.dist(tm_pos) > max_pos_dist
-                    || opp_pos.pos.dist(tm_hpos) > max_hpos_dist) {
+                if (opp_pos.pos.x > tm_hpos_x_min + max_dist_to_offside){
+                    #ifdef DEBUG_PRINT
+                    dlog.addText(Logger::MARK, "--------cancel for max_dist_to_offside %.1f > %.1f", opp_pos.pos.x, tm_hpos_x_min + max_dist_to_offside);
+                    #endif
+                    continue;
+                }
+                if (opp_pos.pos.dist(tm_pos) > max_pos_dist){
+                    #ifdef DEBUG_PRINT
+                    dlog.addText(Logger::MARK, "--------cancel for max_pos_dist %.1f > %.1f", opp_pos.pos.dist(tm_pos), max_pos_dist);
+                    #endif
+                    continue;
+                }
+                if (opp_pos.pos.dist(tm_hpos) > max_hpos_dist) {
+                    #ifdef DEBUG_PRINT
+                    dlog.addText(Logger::MARK, "--------cancel for max_hpos_dist %.1f > %.1f", opp_pos.pos.dist(tm_pos), max_hpos_dist);
+                    #endif
                     continue;
                 }
                 mark_eval[o][t] = block_eval[t];
-                if (ball_pos.x < -40 && ball_pos.absY() < 15)
-                    mark_eval[o][t] *= 5;
             }
             else {
                 double dist_tm_opp = opp_pos.pos.dist(use_home_pos ? tm_hpos : tm_pos);
@@ -1103,9 +1119,22 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
                     max_pos_dist = Setting::i()->mDefenseMove->mGoal_PosMaxDistMark * 2.0;
                     max_dist_to_offside = Setting::i()->mDefenseMove->mGoal_OffsideMaxDistMark * 2.0;
                 }
-                if (opp_pos.pos.x > tm_hpos_x_min + max_dist_to_offside
-                    || opp_pos.pos.dist(tm_pos) > max_pos_dist
-                    || opp_pos.pos.dist(tm_hpos) > max_hpos_dist) {
+                if (opp_pos.pos.x > tm_hpos_x_min + max_dist_to_offside){
+                    #ifdef DEBUG_PRINT
+                    dlog.addText(Logger::MARK, "--------cancel for max_dist_to_offside %.1f > %.1f", opp_pos.pos.x, tm_hpos_x_min + max_dist_to_offside);
+                    #endif
+                    continue;
+                }
+                if (opp_pos.pos.dist(tm_pos) > max_pos_dist){
+                    #ifdef DEBUG_PRINT
+                    dlog.addText(Logger::MARK, "--------cancel for max_pos_dist %.1f > %.1f", opp_pos.pos.dist(tm_pos), max_pos_dist);
+                    #endif
+                    continue;
+                }
+                if (opp_pos.pos.dist(tm_hpos) > max_hpos_dist) {
+                    #ifdef DEBUG_PRINT
+                    dlog.addText(Logger::MARK, "--------cancel for max_hpos_dist %.1f > %.1f", opp_pos.pos.dist(tm_pos), max_hpos_dist);
+                    #endif
                     continue;
                 }
                 mark_eval[o][t] = dist_tm_opp;
@@ -1113,7 +1142,7 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
             if (tm->isTackling())
                 mark_eval[o][t] += 10;
             #ifdef DEBUG_PRINT
-            dlog.addText(Logger::MARK, "--def mark off tm %d opp %d eval %.2f", t, o, mark_eval[o][t]);
+            dlog.addText(Logger::MARK, "-----$def mark off tm %d opp %d eval %.2f", t, o, mark_eval[o][t]);
             #endif
         }
     }
