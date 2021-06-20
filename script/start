@@ -1,0 +1,45 @@
+#!/bin/sh
+
+HOST=$1
+BASEDIR=$2
+NUM=$3
+port=6000
+Port=6002
+LIBPATH=./lib
+if [ x"$LIBPATH" != x ]; then
+  if [ x"$LD_LIBRARY_PATH" = x ]; then
+    LD_LIBRARY_PATH=$LIBPATH
+  else
+    LD_LIBRARY_PATH=$LIBPATH:$LD_LIBRARY_PATH
+  fi
+  export LD_LIBRARY_PATH
+fi
+
+teamname="CYRUS"
+
+player="./cyrus_player"
+coach="./cyrus_coach"
+
+config="player.conf"
+config_dir="formations-dt"
+coach_config="coach.conf"
+
+opt="--player-config ${config} --config_dir ${config_dir}"
+opt="${opt} -h ${HOST} -t ${teamname} -p ${port}"
+
+coachopt="--coach-config ${coach_config}"
+coachopt="${coachopt} -h ${HOST} -t ${teamname} -P ${Port}"
+
+cd $BASEDIR
+
+case $NUM in
+    1)
+        $player $opt -g
+        ;;
+    12)
+        $coach $coachopt
+        ;;
+    *)
+        $player $opt
+        ;;
+esac

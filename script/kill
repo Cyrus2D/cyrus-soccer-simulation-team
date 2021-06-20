@@ -1,0 +1,12 @@
+#!/bin/sh
+
+player="cyrus_player"
+coach="cyrus_coach"
+
+killall -TERM ${player}
+killall -TERM ${coach}
+
+sleep 2
+
+killall -KILL ${player}
+killall -KILL ${coach}
