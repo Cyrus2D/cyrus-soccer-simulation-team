@@ -874,7 +874,7 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
             bool used_penalty = true;
             if(!wm.self().isKickable())
                 used_penalty = false;
-            const int receiver_step = predictReceiverReachStep(receiver,
+            int receiver_step = predictReceiverReachStep(receiver,
                                                                receive_point, used_penalty) + (used_penalty?move_dist_penalty_step:0);
             const AngleDeg ball_move_angle =
                     (receive_point - M_first_point).th();
@@ -886,9 +886,15 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
             success_counts.clear();
             #endif
 
-            const int start_step = std::max(
+            int start_step = std::max(
                         std::max(MIN_RECEIVE_STEP, min_ball_step), receiver_step);
 
+            double first_ball_speed = calc_first_term_geom_series(ball_move_dist, SP.ballDecay(), start_step);
+            first_ball_speed = std::min(first_ball_speed, 3.0);
+            double receive_ball_speed = first_ball_speed * std::pow(SP.ballDecay(), start_step);
+            receive_ball_speed = std::min(receive_ball_speed, 3.0);
+            receiver_step = predictReceiverReachStep(receiver, receive_point, used_penalty) + (used_penalty?move_dist_penalty_step:0, receive_ball_speed);
+            start_step = std::max(std::max(MIN_RECEIVE_STEP, min_ball_step), receiver_step);
             #ifdef CREATE_SEVERAL_CANDIDATES_ON_SAME_POINT
             const int max_step = std::max( MAX_RECEIVE_STEP, start_step + 3 );
             #else
@@ -1573,7 +1579,7 @@ int StrictCheckPassGenerator::getNearestReceiverUnum(const Vector2D & pos) {
  */
 int StrictCheckPassGenerator::predictReceiverReachStep(
         const Receiver & receiver, const Vector2D & pos,
-        const bool use_penalty) {
+        const bool use_penalty, double receive_ball_speed) {
     const PlayerType * ptype = receiver.player_->playerTypePtr();
     double target_dist = receiver.inertia_pos_.dist(pos);
     int n_turn = (
@@ -1585,10 +1591,12 @@ int StrictCheckPassGenerator::predictReceiverReachStep(
                                                              ptype->kickableArea(), false));
     double dash_dist = target_dist;
 
-    // if ( receiver.pos_.x < pos.x )
-    // {
-    //     dash_dist -= ptype->kickableArea() * 0.5;
-    // }
+     if ( receive_ball_speed >= 0 )
+     {
+         double kick_area = ptype->kickableArea();
+         kick_area *= (1 - receive_ball_speed / 3.0);
+         dash_dist -= kick_area;
+     }
 
     if (use_penalty) {
         dash_dist += receiver.penalty_distance_;
