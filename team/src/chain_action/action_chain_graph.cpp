@@ -701,6 +701,7 @@ double calc_danger_eval_for_target(const WorldModel & wm,Vector2D target,int spe
     double cen_gld[16] = { 50, 40, 35, 30, 15, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0 };
     double forw_out_[16] = { 10, 8, 5, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     double forw_pen_[16] = { 20, 10, 8, 5, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    double forw_pen_helios[16] = { 10, 7, 5, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     double forw_pen_oxsy[16] = { 30, 25, 20, 15, 12, 10, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     for(int i = 0;i<16;i++){
         if(wm.ball().pos().x < -20){
@@ -714,12 +715,15 @@ double calc_danger_eval_for_target(const WorldModel & wm,Vector2D target,int spe
             if(target.x > 35 && target.absY() < 15)
                 aray[i] = forw_out_[i];
             else{
-                if(FieldAnalyzer::isYushan(wm))
-                    aray[i] = forw_pen_[i];
-                else if(FieldAnalyzer::isOxsy(wm) || our_score < opp_score || FieldAnalyzer::isMT(wm))
+                if (FieldAnalyzer::isOxsy(wm)){
                     aray[i] = forw_pen_oxsy[i];
-                else
+                }
+                else if (FieldAnalyzer::isHelius(wm)){
+                    aray[i] = forw_pen_helios[i];
+                }
+                else{
                     aray[i] = forw_pen_[i];
+                }
             }
         }
     }
