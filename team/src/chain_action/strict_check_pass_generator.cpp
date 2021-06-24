@@ -894,7 +894,8 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
             double receive_ball_speed = first_ball_speed * std::pow(SP.ballDecay(), start_step);
             receive_ball_speed = std::min(receive_ball_speed, 3.0);
             receiver_step = predictReceiverReachStep(receiver, receive_point, used_penalty, receive_ball_speed) + (used_penalty?move_dist_penalty_step:0);
-            start_step = std::max(std::max(MIN_RECEIVE_STEP, min_ball_step), receiver_step);
+            if (!wm.opponentsFromBall().empty() && wm.opponentsFromBall().front()->distFromBall() < 2.0)
+                start_step = std::max(std::max(MIN_RECEIVE_STEP, min_ball_step), receiver_step);
             #ifdef CREATE_SEVERAL_CANDIDATES_ON_SAME_POINT
             const int max_step = std::max( MAX_RECEIVE_STEP, start_step + 3 );
             #else
@@ -1136,7 +1137,8 @@ void StrictCheckPassGenerator::createThroughPass(const WorldModel & wm,
             const int min_ball_step = SP.ballMoveStep(SP.ballSpeedMax(), ball_move_dist);
             receive_ball_speed = std::min(receive_ball_speed, 3.0);
             receiver_step = predictReceiverReachStep(receiver, receive_point, false, receive_ball_speed);
-            start_step = std::max(std::max(MIN_RECEIVE_STEP, min_ball_step), receiver_step);
+            if (!wm.opponentsFromBall().empty() && wm.opponentsFromBall().front()->distFromBall() < 2.0)
+                start_step = std::max(std::max(MIN_RECEIVE_STEP, min_ball_step), receiver_step);
 
             if (pass_requested && (requested_move_angle - angle).abs() < 20.0) {
                 #ifdef DEBUG_PASS
