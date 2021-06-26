@@ -1550,3 +1550,25 @@ bool FieldAnalyzer::isCYRUS(const rcsc::WorldModel & wm){
     return false;
 }
 
+bool FieldAnalyzer::isJyo(const rcsc::WorldModel &wm) {
+    std::string name = wm.opponentTeamName();
+    if( (name.find("J") != std::string::npos || name.find("j") != std::string::npos)
+        && (name.find("Y") != std::string::npos || name.find("y") != std::string::npos)
+        && (name.find("O") != std::string::npos || name.find("o") != std::string::npos)
+        && (name.find("S") != std::string::npos || name.find("s") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+
+bool FieldAnalyzer::isAlice(const rcsc::WorldModel &wm) {
+    std::string name = wm.opponentTeamName();
+    if( (name.find("A") != std::string::npos || name.find("a") != std::string::npos)
+        && (name.find("L") != std::string::npos || name.find("l") != std::string::npos)
+           && (name.find("I") != std::string::npos || name.find("i") != std::string::npos)
+        && (name.find("C") != std::string::npos || name.find("c") != std::string::npos)
+        && (name.find("E") != std::string::npos || name.find("e") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}

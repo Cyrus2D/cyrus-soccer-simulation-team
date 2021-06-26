@@ -244,6 +244,7 @@ public:
     static bool isMT(const rcsc::WorldModel & wm);
     static bool isHFUT(const rcsc::WorldModel & wm);
     static bool isHelius(const rcsc::WorldModel & wm);
+    static bool isJyo(const rcsc::WorldModel & wm);
     static bool isFRA(const rcsc::WorldModel & wm);
     static bool isNamira(const rcsc::WorldModel & wm);
     static bool isOxsy(const rcsc::WorldModel & wm);
@@ -252,6 +253,7 @@ public:
     static bool isIT(const rcsc::WorldModel & wm);
     static bool isGLD(const rcsc::WorldModel & wm);
     static bool isPers(const rcsc::WorldModel & wm);
+    static bool isAlice(const rcsc::WorldModel & wm);
 
 private:
     static
