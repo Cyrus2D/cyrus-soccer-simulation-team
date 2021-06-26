@@ -562,7 +562,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
             if (self_min <= 1) {
                 if (!Body_Intercept2009(false, face).execute(agent)){
                     if (!Body_GoToPoint2010(wm.ball().inertiaPoint(1), 0.1, 100).execute(agent)){
-                        Body_TurnToPoint(face).execute(wm.ball().inertiaPoint(1));
+                        Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                     }
                 }
                 set_off_neck_with_ball(agent);
@@ -574,7 +574,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                         if (self_min <= opp_min) {
                             if (!Body_Intercept2009(false, face).execute(agent)){
                                 if (!Body_GoToPoint2010(wm.ball().inertiaPoint(self_min), 0.1, 100).execute(agent)){
-                                    Body_TurnToPoint(face).execute(wm.ball().inertiaPoint(self_min));
+                                    Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                                 }
                             }
                             agent->debugClient().addMessage("Intercept->A");
@@ -601,7 +601,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                         if (self_min <= opp_min) {
                             if (!Body_Intercept2009(false, face).execute(agent)){
                                 if (!Body_GoToPoint2010(wm.ball().inertiaPoint(1), 0.1, 100).execute(agent)){
-                                    Body_TurnToPoint(face).execute(wm.ball().inertiaPoint(1));
+                                    Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                                 }
                             }
                             agent->debugClient().addMessage("Intercept->C");
@@ -629,7 +629,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
         if (self_min <= 1) {
             if (!Body_Intercept2009(false).execute(agent)){
                 if (!Body_GoToPoint2010(wm.ball().inertiaPoint(1), 0.1, 100).execute(agent)){
-                    Body_TurnToPoint(face).execute(wm.ball().inertiaPoint(1));
+                    Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                 }
             }
             set_off_neck_with_ball(agent);
@@ -639,7 +639,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
             if (self_min <= opp_min) {
                 if (!Body_Intercept2009(false).execute(agent)){
                     if (!Body_GoToPoint2010(wm.ball().inertiaPoint(1), 0.1, 100).execute(agent)){
-                        Body_TurnToPoint(face).execute(wm.ball().inertiaPoint(1));
+                        Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                     }
                 }
                 agent->debugClient().addMessage("Intercept->F");
