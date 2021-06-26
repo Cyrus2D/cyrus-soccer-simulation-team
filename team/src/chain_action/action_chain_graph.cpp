@@ -380,7 +380,7 @@ ActionChainGraph::calculateResult( const WorldModel & wm )
             dlog.addText(Logger::ACTION_CHAIN, ">>>> best danger chain is empty and hold > add hold");
             #endif
             add_hold_to_result(wm);
-        }else if(wm.interceptTable()->opponentReachCycle() > 3 && wm.gameMode().type() != GameMode::PlayOn){
+        }else if(wm.interceptTable()->opponentReachCycle() > 3 && wm.gameMode().type() != GameMode::PlayOn && !wm.gameMode().isPenaltyKickMode()){
             #ifdef ACTION_CHAIN_DEBUG
             dlog.addText(Logger::ACTION_CHAIN, ">>>> opp is not near and hold  > add hold");
             #endif
