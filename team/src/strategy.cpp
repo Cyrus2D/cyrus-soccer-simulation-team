@@ -1169,6 +1169,12 @@ Strategy::getFormation( const WorldModel & wm )
     else if(our_score < opp_score)
     {
         M_formation_type = StringToFormationType(Setting::i()->mStrategySetting->mLostFormation);
+        if (time > 5400 && time < 6000){
+                M_formation_type = StringToFormationType(string("0343"));
+        }
+        if (time > 7000){
+            M_formation_type = StringToFormationType(string("0343"));
+        }
 //        if(!FieldAnalyzer::isFRA(wm))
 //        {
 //            if(time > 5400){
@@ -2085,6 +2091,8 @@ bool Strategy::is_open_deffense(const WorldModel &wm)
                       : wm.gameMode().scoreLeft() );
     if(FieldAnalyzer::isOxsy(wm)
             || FieldAnalyzer::isKN2C(wm))
+        return true;
+    if(FieldAnalyzer::isAlice(wm))
         return true;
     if(FieldAnalyzer::isNexus(wm)
             && opp_score > our_score){
