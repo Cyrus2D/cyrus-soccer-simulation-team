@@ -1172,7 +1172,7 @@ Strategy::getFormation( const WorldModel & wm )
         if (time > 5400 && time < 6000){
                 M_formation_type = StringToFormationType(string("0343"));
         }
-        if (time > 7000){
+        if (time > 7500){
             M_formation_type = StringToFormationType(string("0343"));
         }
 //        if(!FieldAnalyzer::isFRA(wm))
@@ -1892,6 +1892,7 @@ Strategy::getFormation( const WorldModel & wm )
                 if(FieldAnalyzer::isGLD(wm)){
                     return M_F433_offense_formation_for_gld;
                 }else if(FieldAnalyzer::isHelius(wm)){
+                    return M_F433_offense_formation;
                     return M_F433_offense_formation_for_hel;
                 }else if(FieldAnalyzer::isKN2C(wm)){
                     return M_F433_offense_formation_for_kn2c;
