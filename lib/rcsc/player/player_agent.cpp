@@ -1563,6 +1563,137 @@ PlayerAgent::Impl::analyzeSee( const char * msg )
                                             body_,
                                             agent_.effector(),
                                             current_time_ );
+        {
+            const auto end = visual_.markers().end();
+            for (auto it = visual_.markers().begin();
+                 it != end;
+                 ++it) {
+                dlog.addCircle(Logger::SENSOR, agent_.world().self().pos() + Vector2D::polar2vector(it->dist_,
+                                                                                                    it->dir_ +
+                                                                                                    agent_.world().self().face()),
+                               0.5, 0, 0, 0,
+                               true);
+            }
+        }
+        {
+            const auto end = visual_.behindMarkers().end();
+            for (auto it = visual_.behindMarkers().begin();
+                 it != end;
+                 ++it) {
+                dlog.addCircle(Logger::SENSOR, agent_.world().self().pos() + Vector2D::polar2vector(it->dist_,
+                                                                                                    it->dir_ +
+                                                                                                    agent_.world().self().face()),
+                               0.3, 250, 250, 250,
+                               true);
+            }
+        }
+//        has_vel_ = false;
+//        dist_chng_ = 0.0;
+//        dir_chng_ = 0.0;
+//
+//        MovableT::reset();
+//        unum_ = Unum_Unknown;
+//        goalie_ = false;
+//        body_ = VisualSensor::DIR_ERR;
+//        face_ = VisualSensor::DIR_ERR;
+//        arm_ = VisualSensor::DIR_ERR;
+//        kicked_ = false;
+//        tackle_ = false;
+        {
+            const auto end = visual_.teammates().end();
+            for (auto it = visual_.teammates().begin();
+                 it != end;
+                 ++it) {
+                auto pos = agent_.world().self().pos() + Vector2D::polar2vector(it->dist_,
+                                                                                it->dir_ +
+                                                                                agent_.world().self().face());
+                dlog.addCircle(Logger::SENSOR, pos,
+                               0.8, 0, 51, 204,
+                               true);
+                if (it->unum_ != Unum_Unknown){
+                    dlog.addMessage(Logger::SENSOR, pos.x + 0.0, pos.y - 0.8, std::to_string(it->unum_).c_str(), 0, 51, 204);
+                }
+                if (it->body_ != VisualSensor::DIR_ERR){
+                    dlog.addLine(Logger::SENSOR, pos, pos + Vector2D::polar2vector(1.8, it->body_ + agent_.world().self().face()), 0, 0, 255);
+                }
+            }
+        }
+        {
+            const auto end = visual_.unknownTeammates().end();
+            for (auto it = visual_.unknownTeammates().begin();
+                 it != end;
+                 ++it) {
+                auto pos = agent_.world().self().pos() + Vector2D::polar2vector(it->dist_,
+                                                                                it->dir_ +
+                                                                                agent_.world().self().face());
+                dlog.addCircle(Logger::SENSOR, pos,
+                               0.8, 51, 204, 255,
+                               true);
+                if (it->unum_ != Unum_Unknown){
+                    dlog.addMessage(Logger::SENSOR, pos.x + 0.0, pos.y - 0.8, std::to_string(it->unum_).c_str(), 51, 204, 255);
+                }
+                if (it->body_ != VisualSensor::DIR_ERR){
+                    dlog.addLine(Logger::SENSOR, pos, pos + Vector2D::polar2vector(1.8, it->body_ + agent_.world().self().face()), 0, 0, 255);
+                }
+            }
+        }
+        {
+            const auto end = visual_.opponents().end();
+            for (auto it = visual_.opponents().begin();
+                 it != end;
+                 ++it) {
+                auto pos = agent_.world().self().pos() + Vector2D::polar2vector(it->dist_,
+                                                                                it->dir_ +
+                                                                                agent_.world().self().face());
+                dlog.addCircle(Logger::SENSOR, pos,
+                               0.8, 255, 153, 0,
+                               true);
+                if (it->unum_ != Unum_Unknown){
+                    dlog.addMessage(Logger::SENSOR, pos.x + 0.0, pos.y - 0.8, std::to_string(it->unum_).c_str(), 255, 153, 0);
+                }
+                if (it->body_ != VisualSensor::DIR_ERR){
+                    dlog.addLine(Logger::SENSOR, pos, pos + Vector2D::polar2vector(1.8, it->body_ + agent_.world().self().face()), 255, 0, 0);
+                }
+            }
+        }
+        {
+            const auto end = visual_.unknownOpponents().end();
+            for (auto it = visual_.unknownOpponents().begin();
+                 it != end;
+                 ++it) {
+                auto pos = agent_.world().self().pos() + Vector2D::polar2vector(it->dist_,
+                                                                                it->dir_ +
+                                                                                agent_.world().self().face());
+                dlog.addCircle(Logger::SENSOR, pos,
+                               0.8, 255, 204, 153,
+                               true);
+                if (it->unum_ != Unum_Unknown){
+                    dlog.addMessage(Logger::SENSOR, pos.x + 0.0, pos.y - 0.8, std::to_string(it->unum_).c_str(), 255, 204, 153);
+                }
+                if (it->body_ != VisualSensor::DIR_ERR){
+                    dlog.addLine(Logger::SENSOR, pos, pos + Vector2D::polar2vector(1.8, it->body_ + agent_.world().self().face()), 255, 0, 0);
+                }
+            }
+        }
+        {
+            const auto end = visual_.unknownPlayers().end();
+            for (auto it = visual_.unknownPlayers().begin();
+                 it != end;
+                 ++it) {
+                auto pos = agent_.world().self().pos() + Vector2D::polar2vector(it->dist_,
+                                                                                it->dir_ +
+                                                                                agent_.world().self().face());
+                dlog.addCircle(Logger::SENSOR, pos,
+                               0.8, 128, 128, 128,
+                               true);
+                if (it->unum_ != Unum_Unknown){
+                    dlog.addMessage(Logger::SENSOR, pos.x + 0.0, pos.y - 0.8, std::to_string(it->unum_).c_str(), 128, 128, 128);
+                }
+                if (it->body_ != VisualSensor::DIR_ERR){
+                    dlog.addLine(Logger::SENSOR, pos, pos + Vector2D::polar2vector(1.8, it->body_ + agent_.world().self().face()), 255, 255, 255);
+                }
+            }
+        }
     }
 
     // adjust see synch
