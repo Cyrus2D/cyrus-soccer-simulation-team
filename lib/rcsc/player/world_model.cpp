@@ -2441,6 +2441,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
         std::vector<std::pair<double,SeenPlayerToMemPlayer> > dist_seen_player_to_mem_player;
         // seen opponent
         int un_opp_i = 0;
+        std::vector<int> opp_i_inserted_to_new;
         {
             const VisualSensor::PlayerCont::const_iterator it_seen_opp_end = see.opponents().end();
             for (auto it_seen_opp = see.opponents().begin();
@@ -2489,7 +2490,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
                                                                       &new_opponents,
                                                                       un_opp_i,
                                                                       it_mem_opp);
-                    dist_seen_player_to_mem_player.emplace_back(dist_mem_opp_to_seen_opp, tmp);
+                    dist_seen_player_to_mem_player.push_back(std::make_pair(dist_mem_opp_to_seen_opp, tmp));
                     find = true;
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
                     dlog.addText(Logger::WORLD, "---- seen opp %d,(%.1f,%.1f),opp %d,(%.1f,%.1f) ,dist=%.1f",
@@ -2524,7 +2525,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
                                                                       &new_opponents,
                                                                       un_opp_i,
                                                                       it_mem_unknown);
-                    dist_seen_player_to_mem_player.emplace_back(dist_unknown_to_seen_opp, tmp);
+                    dist_seen_player_to_mem_player.push_back(std::make_pair(dist_unknown_to_seen_opp, tmp));
                     find = true;
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
                     dlog.addText(Logger::WORLD, "---- seen opp %dist_unknown_to_seen_opp,(%.1f,%.1f),unplayer %dist_unknown_to_seen_opp,(%.1f,%.1f) ,dist=%.1f",
@@ -2541,6 +2542,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
                                  seen_player.unum_,seen_player.pos_.x,seen_player.pos_.y);
 #endif
                     new_opponents.push_back(PlayerObject(theirSide(),seen_player));
+                    opp_i_inserted_to_new.push_back(un_opp_i);
                 }
             }
         }
@@ -2598,7 +2600,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
                                                                       &new_opponents,
                                                                       un_opp_i,
                                                                       it_mem_opponent);
-                    dist_seen_player_to_mem_player.emplace_back(dist_seen_u_opp_to_opponent, tmp);
+                    dist_seen_player_to_mem_player.push_back(std::make_pair(dist_seen_u_opp_to_opponent, tmp));
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
                     dlog.addText(Logger::WORLD, "---- seen side opp %dist_seen_u_opp_to_opponent,(%.1f,%.1f),opp %dist_seen_u_opp_to_opponent,(%.1f,%.1f) ,dist=%.1f",
                                  seen_player.unum_, seen_player.pos_.x, seen_player.pos_.y,
@@ -2633,7 +2635,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
                                                                       &new_opponents,
                                                                       un_opp_i,
                                                                       it_mem_unknown);
-                    dist_seen_player_to_mem_player.emplace_back(dist_seen_u_opp_to_unknown, tmp);
+                    dist_seen_player_to_mem_player.push_back(std::make_pair(dist_seen_u_opp_to_unknown, tmp));
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
                     dlog.addText(Logger::WORLD, "---- seen side opp %dist_seen_u_opp_to_unknown,(%.1f,%.1f),unplayer %dist_seen_u_opp_to_unknown,(%.1f,%.1f) ,dist=%.1f",
                                  seen_player.unum_, seen_player.pos_.x, seen_player.pos_.y,
@@ -2646,6 +2648,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
                 un_opp_i ++;
                 if(!find){
                     new_opponents.push_back(PlayerObject(theirSide(), seen_player));
+                    opp_i_inserted_to_new.push_back(un_opp_i);
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
                     dlog.addText(Logger::WORLD, "new side opp %d,b(%.1f,%.1f)",
                                  seen_player.unum_, seen_player.pos_.x, seen_player.pos_.y);
@@ -2690,6 +2693,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
         {
             if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_opp_i) != processed_seen_players.end())
                 continue;
+            if (std::find(opp_i_inserted_to_new.begin(), opp_i_inserted_to_new.end(), seen_opp_i) != opp_i_inserted_to_new.end())
+                continue;
             Localization::PlayerT seen_player;
             if ( ! M_localize->localizePlayer( *it_seen_opp,
                                                MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
@@ -2706,6 +2711,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
              ++it_seen_u_opp )
         {
             if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_opp_i) != processed_seen_players.end())
+                continue;
+            if (std::find(opp_i_inserted_to_new.begin(), opp_i_inserted_to_new.end(), seen_opp_i) != opp_i_inserted_to_new.end())
                 continue;
             Localization::PlayerT seen_player;
             // localize
@@ -2729,6 +2736,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
 #endif
         std::vector<std::pair<double,SeenPlayerToMemPlayer> > dist_seen_player_to_mem_player;
         int un_tm_i = 0;
+        std::vector<int> seen_tm_in_new_tm;
         {
             const VisualSensor::PlayerCont::const_iterator it_seen_tm_end = see.teammates().end();
             for (auto it_seen_tm = see.teammates().begin();
@@ -2775,7 +2783,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
                                                                       &new_teammates,
                                                                       un_tm_i,
                                                                       it_mem_tm);
-                    dist_seen_player_to_mem_player.emplace_back(d, tmp);
+                    dist_seen_player_to_mem_player.push_back(std::make_pair(d, tmp));
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
                     dlog.addText(Logger::WORLD, "---- seen tm %d,(%.1f,%.1f),tm %d,(%.1f,%.1f) ,dist=%.1f",
                                  player.unum_, player.pos_.x, player.pos_.y,
@@ -2810,7 +2818,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
                                                                       &new_teammates,
                                                                       un_tm_i,
                                                                       it_mem_unknown);
-                    dist_seen_player_to_mem_player.emplace_back(d, tmp);
+                    dist_seen_player_to_mem_player.push_back(std::make_pair(d, tmp));
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
                     dlog.addText(Logger::WORLD, "---- seen tm %d,(%.1f,%.1f),unplayer %d,(%.1f,%.1f) ,dist=%.1f",
                                  player.unum_, player.pos_.x, player.pos_.y,
@@ -2823,6 +2831,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
                 un_tm_i ++;
                 if(!find){
                     new_teammates.push_back(PlayerObject(ourSide(),player));
+                    seen_tm_in_new_tm.push_back(un_tm_i);
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
                     dlog.addText(Logger::WORLD,"new tm %d,b(%.1f,%.1f)",
                                  player.unum_,player.pos_.x,player.pos_.y);
@@ -2885,7 +2894,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
                                                                       &new_teammates,
                                                                       un_tm_i,
                                                                       it_mem_tm);
-                    dist_seen_player_to_mem_player.emplace_back(d, tmp);
+                    dist_seen_player_to_mem_player.push_back(std::make_pair(d, tmp));
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
                     dlog.addText(Logger::WORLD, "---- seen side tm %d,(%.1f,%.1f),tm %d,(%.1f,%.1f) ,dist=%.1f",
                                  player.unum_, player.pos_.x, player.pos_.y,
@@ -2925,7 +2934,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
                                                                       &new_teammates,
                                                                       un_tm_i,
                                                                       it_mem_unknown);
-                    dist_seen_player_to_mem_player.emplace_back(d, tmp);
+                    dist_seen_player_to_mem_player.push_back(std::make_pair(d, tmp));
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
                     dlog.addText(Logger::WORLD, "---- seen side tm %d,(%.1f,%.1f),unplayer %d,(%.1f,%.1f) ,dist=%.1f",
                                  player.unum_, player.pos_.x, player.pos_.y,
@@ -2937,6 +2946,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
 
                 un_tm_i ++;
                 if(!find){
+                    seen_tm_in_new_tm.push_back(un_tm_i);
                     new_teammates.push_back(PlayerObject(ourSide(),player));
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
                     dlog.addText(Logger::WORLD,"new side tm %d,b(%.1f,%.1f)",
@@ -2978,6 +2988,8 @@ WorldModel::localizePlayers( const VisualSensor & see )
         {
             if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_tm_i) != processed_seen_players.end())
                 continue;
+            if (std::find(seen_tm_in_new_tm.begin(), seen_tm_in_new_tm.end(), seen_tm_i) != seen_tm_in_new_tm.end())
+                continue;
             Localization::PlayerT seen_player;
             if ( ! M_localize->localizePlayer( *it_seen_opp,
                                                MY_FACE, MY_FACE_ERR, MYPOS, MYVEL,
@@ -2989,11 +3001,13 @@ WorldModel::localizePlayers( const VisualSensor & see )
             new_teammates.push_back(PlayerObject(ourSide(), seen_player));
         }
         const VisualSensor::PlayerCont::const_iterator it_seen_u_tm_end = see.unknownTeammates().end();
-        for (auto it_seen_u_tm = see.unknownOpponents().begin();
+        for (auto it_seen_u_tm = see.unknownTeammates().begin();
              it_seen_u_tm != it_seen_u_tm_end;
              ++it_seen_u_tm )
         {
             if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_tm_i) != processed_seen_players.end())
+                continue;
+            if (std::find(seen_tm_in_new_tm.begin(), seen_tm_in_new_tm.end(), seen_tm_i) != seen_tm_in_new_tm.end())
                 continue;
             Localization::PlayerT seen_player;
             // localize
