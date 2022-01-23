@@ -2697,11 +2697,15 @@ WorldModel::localizePlayers( const VisualSensor & see )
             {
                 continue;
             }
+            if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_opp_i) != processed_seen_players.end()){
+                seen_opp_i += 1;
+                continue;
+            }
+            if (std::find(opp_i_inserted_to_new.begin(), opp_i_inserted_to_new.end(), seen_opp_i) != opp_i_inserted_to_new.end()){
+                seen_opp_i += 1;
+                continue;
+            }
             seen_opp_i += 1;
-            if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_opp_i) != processed_seen_players.end())
-                continue;
-            if (std::find(opp_i_inserted_to_new.begin(), opp_i_inserted_to_new.end(), seen_opp_i) != opp_i_inserted_to_new.end())
-                continue;
             new_opponents.push_back(PlayerObject(theirSide(), seen_player));
         }
         const VisualSensor::PlayerCont::const_iterator it_seen_u_opp_end = see.unknownOpponents().end();
@@ -2717,11 +2721,17 @@ WorldModel::localizePlayers( const VisualSensor & see )
             {
                 continue;
             }
+
+            if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_opp_i) != processed_seen_players.end()){
+                seen_opp_i += 1;
+                continue;
+            }
+
+            if (std::find(opp_i_inserted_to_new.begin(), opp_i_inserted_to_new.end(), seen_opp_i) != opp_i_inserted_to_new.end()){
+                seen_opp_i += 1;
+                continue;
+            }
             seen_opp_i += 1;
-            if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_opp_i) != processed_seen_players.end())
-                continue;
-            if (std::find(opp_i_inserted_to_new.begin(), opp_i_inserted_to_new.end(), seen_opp_i) != opp_i_inserted_to_new.end())
-                continue;
             new_opponents.push_back(PlayerObject(theirSide(), seen_player));
         }
     }
@@ -2992,11 +3002,15 @@ WorldModel::localizePlayers( const VisualSensor & see )
             {
                 continue;
             }
+            if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_tm_i) != processed_seen_players.end()){
+                seen_tm_i += 1;
+                continue;
+            }
+            if (std::find(seen_tm_in_new_tm.begin(), seen_tm_in_new_tm.end(), seen_tm_i) != seen_tm_in_new_tm.end()){
+                seen_tm_i += 1;
+                continue;
+            }
             seen_tm_i += 1;
-            if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_tm_i) != processed_seen_players.end())
-                continue;
-            if (std::find(seen_tm_in_new_tm.begin(), seen_tm_in_new_tm.end(), seen_tm_i) != seen_tm_in_new_tm.end())
-                continue;
             new_teammates.push_back(PlayerObject(ourSide(), seen_player));
         }
         const VisualSensor::PlayerCont::const_iterator it_seen_u_tm_end = see.unknownTeammates().end();
@@ -3012,11 +3026,15 @@ WorldModel::localizePlayers( const VisualSensor & see )
             {
                 continue;
             }
+            if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_tm_i) != processed_seen_players.end()){
+                seen_tm_i += 1;
+                continue;
+            }
+            if (std::find(seen_tm_in_new_tm.begin(), seen_tm_in_new_tm.end(), seen_tm_i) != seen_tm_in_new_tm.end()){
+                seen_tm_i += 1;
+                continue;
+            }
             seen_tm_i += 1;
-            if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_tm_i) != processed_seen_players.end())
-                continue;
-            if (std::find(seen_tm_in_new_tm.begin(), seen_tm_in_new_tm.end(), seen_tm_i) != seen_tm_in_new_tm.end())
-                continue;
             new_teammates.push_back(PlayerObject(ourSide(), seen_player));
         }
     }
