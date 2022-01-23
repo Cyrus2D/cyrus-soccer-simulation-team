@@ -2710,10 +2710,6 @@ WorldModel::localizePlayers( const VisualSensor & see )
              it_seen_u_opp != it_seen_u_opp_end;
              ++it_seen_u_opp )
         {
-            if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_opp_i) != processed_seen_players.end())
-                continue;
-            if (std::find(opp_i_inserted_to_new.begin(), opp_i_inserted_to_new.end(), seen_opp_i) != opp_i_inserted_to_new.end())
-                continue;
             Localization::PlayerT seen_player;
             // localize
             if ( ! M_localize->localizePlayer( *it_seen_u_opp,
@@ -2723,6 +2719,10 @@ WorldModel::localizePlayers( const VisualSensor & see )
                 continue;
             }
             seen_opp_i += 1;
+            if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_opp_i) != processed_seen_players.end())
+                continue;
+            if (std::find(opp_i_inserted_to_new.begin(), opp_i_inserted_to_new.end(), seen_opp_i) != opp_i_inserted_to_new.end())
+                continue;
             new_opponents.push_back(PlayerObject(theirSide(), seen_player));
         }
     }
@@ -3005,10 +3005,6 @@ WorldModel::localizePlayers( const VisualSensor & see )
              it_seen_u_tm != it_seen_u_tm_end;
              ++it_seen_u_tm )
         {
-            if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_tm_i) != processed_seen_players.end())
-                continue;
-            if (std::find(seen_tm_in_new_tm.begin(), seen_tm_in_new_tm.end(), seen_tm_i) != seen_tm_in_new_tm.end())
-                continue;
             Localization::PlayerT seen_player;
             // localize
             if ( ! M_localize->localizePlayer( *it_seen_u_tm,
@@ -3018,6 +3014,10 @@ WorldModel::localizePlayers( const VisualSensor & see )
                 continue;
             }
             seen_tm_i += 1;
+            if (std::find(processed_seen_players.begin(), processed_seen_players.end(), seen_tm_i) != processed_seen_players.end())
+                continue;
+            if (std::find(seen_tm_in_new_tm.begin(), seen_tm_in_new_tm.end(), seen_tm_i) != seen_tm_in_new_tm.end())
+                continue;
             new_teammates.push_back(PlayerObject(ourSide(), seen_player));
         }
     }
