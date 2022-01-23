@@ -2534,8 +2534,6 @@ WorldModel::localizePlayers( const VisualSensor & see )
 #endif
                 }
 
-
-                un_opp_i ++;
                 if(!find){
 #ifdef DEBUG_PRINT_PLAYER_UPDATE
                     dlog.addText(Logger::WORLD,"new opp %d,b(%.1f,%.1f)",
@@ -2544,6 +2542,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
                     new_opponents.push_back(PlayerObject(theirSide(),seen_player));
                     opp_i_inserted_to_new.push_back(un_opp_i);
                 }
+                un_opp_i ++;
             }
         }
 
@@ -2645,7 +2644,6 @@ WorldModel::localizePlayers( const VisualSensor & see )
                 }
 
 
-                un_opp_i ++;
                 if(!find){
                     new_opponents.push_back(PlayerObject(theirSide(), seen_player));
                     opp_i_inserted_to_new.push_back(un_opp_i);
@@ -2654,6 +2652,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
                                  seen_player.unum_, seen_player.pos_.x, seen_player.pos_.y);
 #endif
                 }
+                un_opp_i ++;
             }
         }
         std::sort(dist_seen_player_to_mem_player.begin(), dist_seen_player_to_mem_player.end(), majpair);
@@ -2828,7 +2827,6 @@ WorldModel::localizePlayers( const VisualSensor & see )
                 }
 
 
-                un_tm_i ++;
                 if(!find){
                     new_teammates.push_back(PlayerObject(ourSide(),player));
                     seen_tm_in_new_tm.push_back(un_tm_i);
@@ -2837,6 +2835,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
                                  player.unum_,player.pos_.x,player.pos_.y);
 #endif
                 }
+                un_tm_i ++;
             }
 
         }
@@ -2944,7 +2943,6 @@ WorldModel::localizePlayers( const VisualSensor & see )
                 }
 
 
-                un_tm_i ++;
                 if(!find){
                     seen_tm_in_new_tm.push_back(un_tm_i);
                     new_teammates.push_back(PlayerObject(ourSide(),player));
@@ -2953,6 +2951,7 @@ WorldModel::localizePlayers( const VisualSensor & see )
                                  player.unum_,player.pos_.x,player.pos_.y);
 #endif
                 }
+                un_tm_i ++;
             }
         }
         std::sort(dist_seen_player_to_mem_player.begin(), dist_seen_player_to_mem_player.end(), majpair);
