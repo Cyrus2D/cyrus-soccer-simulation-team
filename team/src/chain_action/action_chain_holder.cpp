@@ -117,8 +117,9 @@ ActionChainHolder::actionGenerator() const
 
  */
 void
-ActionChainHolder::update( const WorldModel & wm )
+ActionChainHolder::update( const PlayerAgent * agent )
 {
+    const WorldModel& wm = agent->world();
     static GameTime s_update_time( 0, 0 );
     static FieldEvaluator::ConstPtr s_update_evaluator;
     static ActionGenerator::ConstPtr s_update_generator;
@@ -134,7 +135,7 @@ ActionChainHolder::update( const WorldModel & wm )
     s_update_generator = M_generator;
 
     M_graph = ActionChainGraph::Ptr( new ActionChainGraph( M_evaluator, M_generator ) );
-    M_graph->calculate( wm );
+    M_graph->calculate( agent );
 }
 
 /*-------------------------------------------------------------------*/

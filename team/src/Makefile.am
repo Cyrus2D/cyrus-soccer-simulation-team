@@ -185,7 +185,9 @@ CHAINACTIONSOURCES = \
 	chain_action/strict_check_pass_generator.cpp \
 	chain_action/strict_check_pass_generator.h \
 	chain_action/tackle_generator.cpp \
-	chain_action/tackle_generator.h
+	chain_action/tackle_generator.h \
+	chain_action/DataExtractor.cpp \
+    chain_action/DataExtractor.h
 
 COACHSOURCES = \
 	sample_coach.cpp \

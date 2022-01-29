@@ -88,7 +88,7 @@ private:
     double M_best_evaluation_one_kick;
     double M_best_evaluation_one_kick_danger;
 
-	void calculateResult( const rcsc::WorldModel & wm );
+	void calculateResult( const rcsc::PlayerAgent * agent );
 	void add_hold_to_result(const rcsc::WorldModel & wm);
 	void add_nosafe_to_result();
     void add_onekick_to_result();
@@ -122,9 +122,9 @@ public:
 	 ActionChainGraph( const FieldEvaluator::ConstPtr & evaluator,
              const ActionGenerator::ConstPtr & generator);
 
-	 void calculate( const rcsc::WorldModel & wm )
+	 void calculate( const rcsc::PlayerAgent * agent )
 	 {
-		 calculateResult( wm );
+		 calculateResult( agent );
 	 }
 
 	 const std::vector< ActionStatePair > & getAllChain() const

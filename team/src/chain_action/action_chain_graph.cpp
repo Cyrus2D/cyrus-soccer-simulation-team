@@ -30,6 +30,7 @@
 #include "../strategy.h"
 #include "hold_ball.h"
 #include "../setting.h"
+#include "DataExtractor.h"
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/common/server_param.h>
@@ -44,9 +45,9 @@
 #include <cstdio>
 #include <cmath>
 
-#define DEBUG_PROFILE
-#define ACTION_CHAIN_DEBUG
-#define DEBUG_PAINT_EVALUATED_POINTS
+// #define DEBUG_PROFILE
+// #define ACTION_CHAIN_DEBUG
+// #define DEBUG_PAINT_EVALUATED_POINTS
 
 //#define ACTION_CHAIN_LOAD_DEBUG
 //#define DEBUG_COMPARE_SEARCH_TYPES
@@ -328,8 +329,9 @@ bool ActionChainGraph::choose_better_action(bool choose_onkick){
     return false;
 }
 void
-ActionChainGraph::calculateResult( const WorldModel & wm )
+ActionChainGraph::calculateResult( const PlayerAgent* agent)
 {
+    const WorldModel& wm = agent->world();
     debugPrintCurrentState( wm );
 
     #if (defined DEBUG_PROFILE) || (defined ACTION_CHAIN_LOAD_DEBUG)
@@ -416,6 +418,9 @@ ActionChainGraph::calculateResult( const WorldModel & wm )
     if(M_best_chain[0].action().kickCount() > 1)
         dlog.addText(Logger::ACTION_CHAIN, "kickcount is >1");
     #endif
+
+    ActionStatePair *first_layer = M_best_chain.begin().base();
+    DataExtractor::i().update(agent, first_layer);
 
     if(wm.interceptTable()->opponentReachCycle() <= (wm.self().goalie() ? 6:3)
             && M_best_chain[0].action().category() == CooperativeAction::Pass

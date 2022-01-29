@@ -278,7 +278,7 @@ SamplePlayer::actionImpl()
     //
     // update action chain
     //
-    ActionChainHolder::instance().update( world() );
+    ActionChainHolder::instance().update( this );
     const ActionChainGraph &chain_graph = ActionChainHolder::i().graph();
     ActionChainGraph::debug_send_chain( this, chain_graph.getAllChain() );
 
