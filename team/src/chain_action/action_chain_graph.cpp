@@ -715,14 +715,19 @@ double calc_danger_eval_for_target(const WorldModel & wm,Vector2D target,int spe
             if(target.x > 35 && target.absY() < 15)
                 aray[i] = forw_out_[i];
             else{
-                if (FieldAnalyzer::isOxsy(wm) || FieldAnalyzer::isAlice(wm) || FieldAnalyzer::isJyo(wm)){
+                if (FieldAnalyzer::isOxsy(wm) ||
+                    FieldAnalyzer::isAlice(wm) ||
+                    FieldAnalyzer::isYushan(wm) ||
+                    FieldAnalyzer::isJyo(wm))
+                {
                     aray[i] = forw_pen_oxsy[i];
                 }
                 else if (FieldAnalyzer::isHelius(wm)){
                     aray[i] = forw_pen_helios[i];
                 }
                 else{
-                    aray[i] = forw_pen_[i];
+                    aray[i] = forw_pen_oxsy[i];
+//                    aray[i] = forw_pen_[i];
                 }
             }
         }

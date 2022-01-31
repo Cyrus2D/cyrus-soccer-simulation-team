@@ -172,8 +172,7 @@ private:
 
     int predictReceiverReachStep( const Receiver & receiver,
                                   const rcsc::Vector2D & pos,
-                                  const bool use_penalty,
-                                  double receive_ball_speed = -1.0);
+                                  const bool use_penalty );
 
     int predictOpponentsReachStep( const rcsc::WorldModel & wm,
                                    const rcsc::Vector2D & first_ball_pos,
