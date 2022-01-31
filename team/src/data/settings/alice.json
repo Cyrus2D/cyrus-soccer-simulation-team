@@ -16,8 +16,8 @@
 				"ChainDeph":2,
 				"UseShootSafe":false,
 				"DribblePosCountZ":0.8,
-				"DribblePosCountMaxFrontOpp":8,
-				"DribblePosCountMaxBehindOpp":4
+				"DribblePosCountMaxFrontOpp":5,
+				"DribblePosCountMaxBehindOpp":2
 			},
 	"OffensiveMove":{
 				"Is9BrokeOffside":false
