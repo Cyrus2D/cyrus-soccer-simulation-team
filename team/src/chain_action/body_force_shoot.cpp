@@ -58,6 +58,7 @@ Body_ForceShoot::Body_ForceShoot()
 bool
 Body_ForceShoot::execute( rcsc::PlayerAgent * agent )
 {
+    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
     rcsc::dlog.addText( rcsc::Logger::ACTION,
                         __FILE__": execute()" );
     agent->debugClient().addMessage( "ForceShoot" );
@@ -78,7 +79,7 @@ Body_ForceShoot::execute( rcsc::PlayerAgent * agent )
                         __FILE__": no course, force kick" );
     agent->debugClient().setTarget( target );
 
-    if ( agent->world().existKickableOpponent() )
+    if ( wm.existKickableOpponent() )
     {
         if ( rcsc::Body_KickOneStep( target, param.ballSpeedMax() )
              .execute( agent ) )

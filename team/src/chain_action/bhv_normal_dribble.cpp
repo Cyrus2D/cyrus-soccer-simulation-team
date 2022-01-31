@@ -162,7 +162,7 @@ IntentionNormalDribble::finished(  PlayerAgent * agent )
         return true;
     }
 
-    const WorldModel & wm = agent->world();
+    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
     if ( M_last_execute_time.cycle() + 1 != wm.time().cycle() )
     {
@@ -231,7 +231,7 @@ IntentionNormalDribble::execute( PlayerAgent * agent )
                   __FILE__": (intention:execute) turn=%d dash=%d",
                   M_turn_step, M_dash_step );
 
-    const WorldModel & wm = agent->world();
+    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
 //    if (wm.ball().posCount() == 0 && wm.ball().velCount() == 0){
 //        Vector2D end_ball = wm.ball().inertiaPoint(M_turn_step + M_dash_step);
@@ -522,7 +522,7 @@ IntentionNormalDribble::doTurn( PlayerAgent * agent )
 
     const double default_dist_thr = 0.5;
 
-    const WorldModel & wm = agent->world();
+    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
     --M_turn_step;
 
@@ -584,7 +584,7 @@ IntentionNormalDribble::doDash( PlayerAgent * agent )
         return false;
     }
 
-    const WorldModel & wm = agent->world();
+    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
     --M_dash_step;
 

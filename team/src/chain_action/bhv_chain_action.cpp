@@ -105,7 +105,7 @@ IntentionTurnTo::finished( const PlayerAgent * agent )
 		return true;
 	}
 
-	const WorldModel & wm = agent->world();
+	const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
 	//
 	// check kickable
@@ -353,7 +353,7 @@ Bhv_ChainAction::execute( PlayerAgent * agent )
 
 bool Bhv_ChainAction::hold_ball(PlayerAgent *agent)
 {
-    const WorldModel & wm = agent->world();
+    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
     const ServerParam & SP = ServerParam::i();
 
     if ( wm.gameMode().type() != GameMode::PlayOn )
@@ -475,7 +475,7 @@ Vector2D Bhv_ChainAction::hold_body_face(const WorldModel & wm){
 bool
 Bhv_ChainAction::doTurnToForward( PlayerAgent * agent )
 {
-	const WorldModel & wm = agent->world();
+	const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
 	if ( wm.gameMode().type() != GameMode::PlayOn )
 	{

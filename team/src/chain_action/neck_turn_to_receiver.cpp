@@ -62,14 +62,15 @@ Neck_TurnToReceiver::Neck_TurnToReceiver( const ActionChainGraph & chain_graph )
 bool
 Neck_TurnToReceiver::execute( PlayerAgent * agent )
 {
+    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
     if ( agent->effector().queuedNextBallKickable() )
     {
         if ( executeImpl( agent ) )
         {
 
         }
-        else if ( agent->world().self().pos().x > 35.0
-                  || agent->world().self().pos().absY() > 20.0 )
+        else if ( wm.self().pos().x > 35.0
+                  || wm.self().pos().absY() > 20.0 )
         {
             dlog.addText( Logger::TEAM,
                           __FILE__": Neck_TurnToReceiver. next kickable."
@@ -103,7 +104,7 @@ Neck_TurnToReceiver::executeImpl( PlayerAgent * agent )
     dlog.addText( Logger::TEAM,
                   __FILE__": Neck_TurnToReceiver (executeImpl)" );
 
-    const WorldModel & wm = agent->world();
+    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
     const CooperativeAction & pass = M_chain_graph.getFirstAction();
     const AbstractPlayerObject * receiver = wm.ourPlayer( pass.targetPlayerUnum() );

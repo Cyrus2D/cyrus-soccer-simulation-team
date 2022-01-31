@@ -119,7 +119,7 @@ ActionChainHolder::actionGenerator() const
 void
 ActionChainHolder::update( const PlayerAgent * agent )
 {
-    const WorldModel& wm = agent->world();
+    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
     static GameTime s_update_time( 0, 0 );
     static FieldEvaluator::ConstPtr s_update_evaluator;
     static ActionGenerator::ConstPtr s_update_generator;

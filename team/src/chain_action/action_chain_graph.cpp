@@ -331,7 +331,7 @@ bool ActionChainGraph::choose_better_action(bool choose_onkick){
 void
 ActionChainGraph::calculateResult( const PlayerAgent* agent)
 {
-    const WorldModel& wm = agent->world();
+    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
     debugPrintCurrentState( wm );
 
     #if (defined DEBUG_PROFILE) || (defined ACTION_CHAIN_LOAD_DEBUG)
@@ -1088,7 +1088,7 @@ ActionChainGraph::debug_send_chain( PlayerAgent * agent,
 {
     const double DIRECT_PASS_DIST = 3.0;
 
-    const PredictState current_state( agent->world() );
+    const PredictState current_state( DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world() );
 
     for ( size_t i = 0; i < path.size(); ++i )
     {

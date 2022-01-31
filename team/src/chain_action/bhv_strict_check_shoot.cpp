@@ -53,7 +53,7 @@ using namespace rcsc;
 bool
 Bhv_StrictCheckShoot::execute( PlayerAgent * agent )
 {
-    const WorldModel & wm = agent->world();
+    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
     if ( ! wm.self().isKickable() )
     {
@@ -195,7 +195,7 @@ Bhv_StrictCheckShoot::doTurnNeckToShootPoint( PlayerAgent * agent,
     }
 
 #if 0
-    const WorldModel & wm = agent->world();
+    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
     if ( wm.seeTime() == wm.time() )
     {
         double current_width = wm.self().viewWidth().width();

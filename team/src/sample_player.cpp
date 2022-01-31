@@ -36,6 +36,7 @@
 #include "chain_action/action_chain_holder.h"
 #include "sample_field_evaluator.h"
 #include "chain_action/bhv_pass_kick_find_receiver.h"
+#include "chain_action/DataExtractor.h"
 
 #include "roles/soccer_role.h"
 
@@ -255,6 +256,7 @@ SamplePlayer::actionImpl()
     M_field_evaluator = createFieldEvaluator();
     M_action_generator = createActionGenerator();
 
+    DataExtractor::i().update_history(this);
     ActionChainHolder::instance().setFieldEvaluator( M_field_evaluator );
     ActionChainHolder::instance().setActionGenerator( M_action_generator );
 
@@ -620,6 +622,7 @@ SamplePlayer::doPreprocess()
     //
     if ( doShoot() )
     {
+        DataExtractor::i().update_for_shoot(this, Bhv_StrictCheckShoot::target, Bhv_StrictCheckShoot::speed);
         return true;
     }
 
