@@ -239,7 +239,7 @@ AudioMemory::setPlayer( const int sender,
     {
         M_player.clear();
     }
-    Player tmp = Player( sender, unum, pos, posCount );
+    Player tmp = Player( sender, unum, pos );
     if(sender == unum)
         tmp.setposcount(posCount);
     else
