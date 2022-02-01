@@ -110,6 +110,17 @@ View_Tactical::doDefault( PlayerAgent * agent )
     int opp_min = wm.interceptTable()->opponentReachCycle();
     int ball_reach_cycle = std::min( self_min, std::min( mate_min, opp_min ) );
 
+    if (self_min < mate_min && self_min <= opp_min){
+        if (self_min <= 2){
+            return agent->doChangeView( ViewWidth::NARROW );
+        }
+        if (self_min == 3){
+            return agent->doChangeView( ViewWidth::NORMAL );
+        }
+        if (self_min <= 5){
+            return agent->doChangeView( ViewWidth::WIDE );
+        }
+    }
     const Vector2D ball_pos = wm.ball().inertiaPoint( ball_reach_cycle );
     const double ball_dist = agent->effector().queuedNextSelfPos().dist( ball_pos );
 
