@@ -1666,6 +1666,25 @@ WorldModel::updatePlayerByHear()
                           player->pos().x, player->pos().y,
                           player->posCount(),
                           min_dist );
+            if (side == ourSide()){
+                auto pos = heard_player->pos_;
+                if (heard_player->body_ > -360) {
+                    dlog.addSector(Logger::SENSOR, pos, 0, 1.0, heard_player->body_ - 90, 180, 60, 67, 247, false);
+                }else{
+                    dlog.addCircle(Logger::SENSOR, pos, 1.0, 60, 67, 247, false);
+                }
+                dlog.addMessage(Logger::SENSOR, pos.x + 0.0, pos.y - 0.8, (std::to_string(heard_player->unum_) + "," + std::to_string(heard_player->posCount)).c_str(), 60, 67,247);
+            }
+            else{
+                auto pos = heard_player->pos_;
+                if (heard_player->body_ > -360) {
+                    dlog.addSector(Logger::SENSOR, pos, 0, 1.0, heard_player->body_ - 90, 180, 255, 145, 0, false);
+                }else{
+                    dlog.addCircle(Logger::SENSOR, pos, 1.0, 255, 145, 0, false);
+                }
+                dlog.addMessage(Logger::SENSOR, pos.x + 0.0, pos.y - 0.8, (std::to_string(heard_player->unum_ - 11) + "," + std::to_string(heard_player->posCount)).c_str(), 255, 145, 0);
+            }
+
 #endif
             double dist_heardplayer2sender = 1000;
             if(ourPlayer(heard_player->sender_)!=NULL
