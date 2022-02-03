@@ -38,6 +38,7 @@
 #include "action_chain_holder.h"
 #include "action_chain_graph.h"
 #include "cooperative_action.h"
+#include "DataExtractor.h"
 
 #include "dribble.h"
 #include "short_dribble_generator.h"
@@ -258,7 +259,7 @@ IntentionNormalDribble::execute( PlayerAgent * agent )
 
 //        ShortDribbleGenerator::instance().setQueuedAction( wm, current_action );
 
-        ActionChainHolder::instance().update( wm );
+        ActionChainHolder::instance().update( agent );
         const ActionChainGraph & search_result = ActionChainHolder::i().graph();
         const CooperativeAction & first_action = search_result.getFirstAction();
 

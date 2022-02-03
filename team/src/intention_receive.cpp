@@ -184,7 +184,7 @@ IntentionReceive::execute( PlayerAgent * agent )
             }
         }
         if(!shoot_is_best){
-            ActionChainHolder::instance().update( wm );
+            ActionChainHolder::instance().update( agent );
             const ActionChainGraph & chain_graph = ActionChainHolder::i().graph();
             const CooperativeAction & first_action = chain_graph.getFirstAction();
             switch (first_action.category()) {

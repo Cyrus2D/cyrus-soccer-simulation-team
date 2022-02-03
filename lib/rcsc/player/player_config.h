@@ -55,6 +55,7 @@ private:
     int M_interval_msec; //!< timeout interval
     int M_server_wait_seconds; //!< time to wait server message
     int M_cycle_max_time;
+    bool M_data_extract;
     bool M_use_sync_mode;
     //! msec threshold for action decision timing when see sync
     int M_wait_time_thr_synch_view;
@@ -248,6 +249,7 @@ public:
     int normalViewTimeThr() const { return M_normal_view_time_thr; }
 
     int cycleMaxTime() const { return M_cycle_max_time; }
+    bool dataExtract() const { return M_data_extract; }
     int useSyncMode() const { return M_use_sync_mode; }
     /*!
       \brief get the server host name string

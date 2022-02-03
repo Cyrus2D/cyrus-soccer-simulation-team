@@ -32,6 +32,7 @@
 
 #include "action_chain_holder.h"
 #include "action_chain_graph.h"
+#include "DataExtractor.h"
 
 #include <rcsc/action/basic_actions.h>
 #include <rcsc/action/neck_scan_field.h>

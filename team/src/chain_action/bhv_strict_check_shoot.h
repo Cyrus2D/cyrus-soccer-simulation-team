@@ -62,6 +62,9 @@ public:
     bool execute( rcsc::PlayerAgent * agent );
     rcsc::Vector2D get_best_shoot(const rcsc::WorldModel & wm);
 
+    static int time;
+    static rcsc::Vector2D target;
+    static double speed;
 private:
 
     bool doTurnNeckToShootPoint( rcsc::PlayerAgent * agent,

@@ -12,6 +12,7 @@
 #define ADD_ELEM(key, value) fout << (value) << cm
 
 double invalid_data = -2.0;
+bool DataExtractor::active = false;
 
 using namespace rcsc;
 
@@ -124,6 +125,8 @@ void DataExtractor::update_history(const rcsc::PlayerAgent *agent){
 
 
 void DataExtractor::update(const PlayerAgent *agent, const ActionStatePair *first_layer,bool update_shoot) {
+    if(!DataExtractor::active)
+        return;
     const WorldModel &wm = option.input_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
     if (last_update_cycle == wm.time().cycle())
@@ -188,7 +191,7 @@ void DataExtractor::init_file(const rcsc::WorldModel &wm) {
     time(&rawtime);
     timeinfo = localtime(&rawtime);
 
-    std::string dir = "/home/nader/data/robo_data/other_team/";
+    std::string dir = "/mnt/f/xxx/";
     strftime(buffer, sizeof(buffer), "%Y-%m-%d-%H-%M-%S", timeinfo);
     std::string str(buffer);
     std::string rand_name = std::to_string(SamplePlayer::player_port);
@@ -1223,9 +1226,9 @@ DataExtractor::Option::Option() {
     dribleAngle = NONE;
     nDribleAngle = 12;
     history_size = 0;
-    input_worldMode = FULLSTATE;
-    output_worldMode = FULLSTATE;
+    input_worldMode = NONE_FULLSTATE;
+    output_worldMode = NONE_FULLSTATE;
     playerSortMode = UNUM;
     kicker_first = false;
-    use_convertor = true;
+    use_convertor = false;
 }

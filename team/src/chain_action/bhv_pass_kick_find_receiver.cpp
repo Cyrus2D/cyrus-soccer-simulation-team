@@ -38,6 +38,7 @@
 #include "action_chain_holder.h"
 #include "action_chain_graph.h"
 #include "field_analyzer.h"
+#include "DataExtractor.h"
 
 #include "neck_turn_to_receiver.h"
 
@@ -1032,7 +1033,8 @@ Bhv_PassKickFindReceiver::doSayPrePass( PlayerAgent * agent,
 {
     const int receiver_unum = pass.targetPlayerUnum();
     const Vector2D & receive_pos = pass.targetPoint();
-
+	const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+	
     if ( agent->config().useCommunication()
             && receiver_unum != Unum_Unknown/*
             && ! agent->effector().queuedNextBallKickable()*/

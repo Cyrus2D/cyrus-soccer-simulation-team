@@ -180,6 +180,7 @@ SamplePlayer::~SamplePlayer()
 /*!
 
  */
+int SamplePlayer::player_port = 0;
 bool
 SamplePlayer::initImpl( CmdLineParser & cmd_parser )
 {
@@ -228,6 +229,9 @@ SamplePlayer::initImpl( CmdLineParser & cmd_parser )
                   << std::endl;
     }
 
+    DataExtractor::active = config().dataExtract();
+
+
     return true;
 }
 
@@ -242,7 +246,7 @@ SamplePlayer::initImpl( CmdLineParser & cmd_parser )
 void
 SamplePlayer::actionImpl()
 {
-
+    SamplePlayer::player_port = this->config().port();
     Setting::i();
     Setting::i()->SetTeamName(this->world().opponentTeamName());
     //
@@ -250,23 +254,6 @@ SamplePlayer::actionImpl()
     //
     Strategy::instance().update( world() );
     FieldAnalyzer::instance().update( world() );
-
-
-    auto p9 = world().ourPlayer(9);
-    std::cout << "CYCLE: " << world().time().cycle() << ": ";
-    if (p9 == nullptr || p9->unum() < 0){
-        std::cout << "(null,null)\t";
-    } else {
-        std::cout << "(" << p9->pos().x << "," << p9->pos().y << ")\t";
-    }
-    auto p9f = world().ourPlayer(9);
-    std::cout << "CYCLE: " << world().time().cycle() << ": ";
-    if (p9f == nullptr || p9f->unum() < 0){
-        std::cout << "f(null,null)\t";
-    } else {
-        std::cout << "f(" << p9f->pos().x << "," << p9f->pos().y << ")\t" << std::endl;
-    }
-
 
     //
     // prepare action chain

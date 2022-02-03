@@ -34,6 +34,7 @@
 #include "action_chain_graph.h"
 #include "action_state_pair.h"
 #include "field_analyzer.h"
+#include "DataExtractor.h"
 
 #include "bhv_pass_kick_find_receiver.h"
 #include "bhv_normal_dribble.h"

@@ -44,7 +44,7 @@ private:
     ActionGenerator::ConstPtr M_action_generator;
 
 public:
-
+    static int player_port;
     SamplePlayer();
 
     virtual

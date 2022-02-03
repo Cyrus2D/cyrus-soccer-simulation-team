@@ -87,6 +87,7 @@ public:
 
     //accessors
     static DataExtractor &i();
+    static bool active;
 
     void extract_output(const rcsc::WorldModel &wm, int category, const rcsc::Vector2D &target, const int &unum,
                         const char *desc, double bell_speed);

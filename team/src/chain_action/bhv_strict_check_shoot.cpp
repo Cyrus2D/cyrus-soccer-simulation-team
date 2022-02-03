@@ -34,6 +34,8 @@
 #endif
 
 #include "bhv_strict_check_shoot.h"
+#include "DataExtractor.h"
+#include "cooperative_action.h"
 
 #include "shoot_generator.h"
 
@@ -50,6 +52,11 @@ using namespace rcsc;
 /*!
 
 */
+int Bhv_StrictCheckShoot::time = 0;
+rcsc::Vector2D Bhv_StrictCheckShoot::target = Vector2D(0, 0);
+double Bhv_StrictCheckShoot::speed = 0;
+
+
 bool
 Bhv_StrictCheckShoot::execute( PlayerAgent * agent )
 {
@@ -127,6 +134,9 @@ Bhv_StrictCheckShoot::execute( PlayerAgent * agent )
         {
              agent->setNeckAction( new Neck_TurnToGoalieOrScan( -1 ) );
              agent->debugClient().addMessage( "Force1Step" );
+             Bhv_StrictCheckShoot::time = wm.time().cycle();
+             Bhv_StrictCheckShoot::target = best_shoot->target_point_;
+             Bhv_StrictCheckShoot::speed = best_shoot->first_ball_speed_;
              return true;
         }
     }
@@ -140,6 +150,9 @@ Bhv_StrictCheckShoot::execute( PlayerAgent * agent )
         {
             agent->setNeckAction( new Neck_TurnToGoalieOrScan( -1 ) );
         }
+        Bhv_StrictCheckShoot::time = wm.time().cycle();
+        Bhv_StrictCheckShoot::target = best_shoot->target_point_;
+        Bhv_StrictCheckShoot::speed = best_shoot->first_ball_speed_;
         return true;
     }
 

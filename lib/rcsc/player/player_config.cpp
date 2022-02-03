@@ -75,6 +75,7 @@ PlayerConfig::setDefaultParam()
     M_goalie = false;
 
     M_cycle_max_time = 70;
+    M_data_extract = false;
     M_use_sync_mode = false;
 
     M_interval_msec = 10;
@@ -194,6 +195,7 @@ PlayerConfig::createParamMap( ParamMap & param_map )
         ( "interval_msec", "", &M_interval_msec )
         ( "server_wait_seconds", "", &M_server_wait_seconds )
         ( "cycle_max_time", "", &M_cycle_max_time )
+        ( "data_extract", "", &M_data_extract )
         ( "use_sync_mode", "", &M_use_sync_mode )
 
         ( "wait_time_thr_synch_view", "", &M_wait_time_thr_synch_view )

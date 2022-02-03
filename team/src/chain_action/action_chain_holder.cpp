@@ -34,6 +34,7 @@
 #endif
 
 #include "action_chain_holder.h"
+#include "DataExtractor.h"
 #include <rcsc/player/world_model.h>
 
 using namespace rcsc;
