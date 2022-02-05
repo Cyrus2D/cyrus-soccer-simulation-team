@@ -328,7 +328,6 @@ bool bhv_unmark::is_good_for_unmark(const WorldModel & wm) {
 		}
 	}
 
-	double offside_x = wm.offsideLineX();
 	if (target_pos.dist(home_pos) > max_dist_home_pos) {
 		dlog.addText(Logger::POSITIONING,
 				"------cancel home pos max dist");
@@ -344,6 +343,7 @@ bool bhv_unmark::is_good_for_unmark(const WorldModel & wm) {
 				"------cancel min ball dist");
 		return false;
 	}
+    double offside_x = wm.offsideLineX();
 	if (target_pos.x > offside_x - 0.5) {
 		dlog.addText(Logger::POSITIONING,
 				"------cancel offside");
@@ -452,6 +452,8 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
 			target_pos = penalty_unmark(wm);
 		}
 		agent->debugClient().addCircle(target_pos, 0.3);
+        agent->debugClient().setTarget(target_pos);
+        dlog.addCircle(Logger::POSITIONING, target_pos, 0.1, 255,255,0, true);
 		Body_GoToPoint2010(new_target, 0.3, dash_power).execute(agent);
 	}
 	else if (abs(target_body - wm.self().body().degree()) > 10
@@ -665,10 +667,6 @@ bool bhv_unmarkes::execute(PlayerAgent * agent) {
 
 
 	create_targets(wm);
-    for (int i = 0; i < unmarks.size(); i++) {
-        dlog.addCircle(Logger::POSITIONING,unmarks[i].target_pos.x, unmarks[i].target_pos.y, 0.3);
-        dlog.addMessage(Logger::POSITIONING,unmarks[i].target_pos.x + 0.1, unmarks[i].target_pos.y + 0.1, to_string(unmarks[i].number).c_str(), 255, 255, 255);
-    }
 	evaluate_targets(wm, passers);
     #ifdef DEBUG_UNMARK
 	dlog.addText(Logger::POSITIONING,"number of unmark:%d",unmarks.size());
@@ -703,27 +701,62 @@ bool bhv_unmarkes::can_unmark(const WorldModel & wm) {
     Strategy::PostLine pl_line = Strategy::i().self_Line();
     int stamina = wm.self().stamina();
     static const Rect2D penalty_area=Rect2D(Vector2D(38,-17),Vector2D(53,17));
-    if (wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle()).dist(wm.self().pos()) > 30)
+    if (wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle()).dist(wm.self().pos()) > 30){
+        #ifdef unmark_debug
+        dlog.addText(Logger::POSITIONING, "Can not unmarking because dist to ball is more than 30");
+        #endif
         return false;
+    }
+
     if(wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle()).x > 25
-        && Strategy::i().getPosition(wm.self().unum()).x > 20)
+        && Strategy::i().getPosition(wm.self().unum()).x > 20){
+        #ifdef unmark_debug
+        dlog.addText(Logger::POSITIONING, "Can unmarking, because ballx>25 selfhpx > 20");
+        #endif
         return true;
-    if(Strategy::i().getPosition(wm.self().unum()).dist(wm.self().pos()) > 15)
+    }
+
+    if(Strategy::i().getPosition(wm.self().unum()).dist(wm.self().pos()) > 15){
+        #ifdef unmark_debug
+        dlog.addText(Logger::POSITIONING, "Can not unmarking, because dist to hpos is more than 15");
+        #endif
         return false;
-    if(penalty_area.contains(wm.self().pos()))
+    }
+
+    if(penalty_area.contains(wm.self().pos())){
+        #ifdef unmark_debug
+        dlog.addText(Logger::POSITIONING, "Can unmarking because in pen area");
+        #endif
         return true;
+    }
+
     if (pl_line == Strategy::PostLine::back) {
-        if (stamina > 5500)
+        if (stamina > 5500){
+            #ifdef unmark_debug
+            dlog.addText(Logger::POSITIONING, "Can unmarking because back stamina > 5500");
+            #endif
             return true;
+        }
     }
     else if (pl_line == Strategy::PostLine::half) {
-        if (stamina > 4500)
+        if (stamina > 4500){
+            #ifdef unmark_debug
+            dlog.addText(Logger::POSITIONING, "Can unmarking because half stamina > 4500");
+            #endif
             return true;
+        }
     }
     else {
-        if (stamina > 3500)
+        if (stamina > 3500){
+            #ifdef unmark_debug
+            dlog.addText(Logger::POSITIONING, "Can unmarking because forward stamina > 3500");
+            #endif
             return true;
+        }
     }
+    #ifdef unmark_debug
+    dlog.addText(Logger::POSITIONING, "Can not unmarking no reason");
+    #endif
 	return false;
 }
 vector<unmark_passer> bhv_unmarkes::update_passer(const WorldModel & wm) {
@@ -835,25 +868,58 @@ void bhv_unmarkes::evaluate_targets(const WorldModel &wm, vector <unmark_passer>
     #endif
 	if (passers.size() > 0) {
 		for (auto& u: unmarks){
+            u.passers = passers;
             #ifdef DEBUG_UNMARK
-            dlog.addText(Logger::POSITIONING, "#%d--unmark_target(%.2f,%.2f)",
+            dlog.addText(Logger::POSITIONING, "#%d--unmark_target(%.2f,%.2f), start checking ...",
                          u.number, u.target_pos.x, u.target_pos.y);
             #endif
-            u.passers = passers;
             if (u.is_good_for_unmark(wm)) {
                 if (u.update_for_pass(wm, passers)){
                     #ifdef DEBUG_UNMARK
-                    dlog.addText(Logger::POSITIONING, "----is good for pass");
+                    dlog.addText(Logger::POSITIONING, "#%d--unmark_target(%.2f,%.2f), is good for pass",
+                                 u.number, u.target_pos.x, u.target_pos.y);
+                    dlog.addCircle(Logger::POSITIONING,u.target_pos.x, u.target_pos.y,
+                                   0.3, 58, 44, 255, false);
+                    dlog.addMessage(Logger::POSITIONING,u.target_pos.x + 0.1,
+                                    u.target_pos.y + 0.1,
+                                    to_string(u.number).c_str(), 255, 255, 255);
                     #endif
                     u.good_for_pass = true;
                 }
                 else if (u.update_for_unmark(wm)){
-                        #ifdef DEBUG_UNMARK
-                        dlog.addText(Logger::POSITIONING,
-                                     "----is good for unmark");
-                        #endif
-                        u.good_for_unmark = true;
+                    #ifdef DEBUG_UNMARK
+                    dlog.addText(Logger::POSITIONING, "#%d--unmark_target(%.2f,%.2f), is good for unmark",
+                                 u.number, u.target_pos.x, u.target_pos.y);
+                    dlog.addCircle(Logger::POSITIONING,u.target_pos.x, u.target_pos.y,
+                                   0.3, 247, 0, 255, false);
+                    dlog.addMessage(Logger::POSITIONING,u.target_pos.x + 0.1,
+                                    u.target_pos.y + 0.1,
+                                    to_string(u.number).c_str(), 255, 255, 255);
+                    #endif
+                    u.good_for_unmark = true;
                 }
+                else{
+                    #ifdef DEBUG_UNMARK
+                    dlog.addText(Logger::POSITIONING, "#%d--unmark_target(%.2f,%.2f), "
+                                                      "is not good, not pass not unmark",
+                                 u.number, u.target_pos.x, u.target_pos.y);
+                    dlog.addCircle(Logger::POSITIONING,u.target_pos.x, u.target_pos.y,
+                                   0.3, 255, 150, 44, false);
+                    dlog.addMessage(Logger::POSITIONING,u.target_pos.x + 0.1,
+                                    u.target_pos.y + 0.1,
+                                    to_string(u.number).c_str(), 255, 255, 255);
+                    #endif
+                }
+            }else{
+                #ifdef DEBUG_UNMARK
+                dlog.addText(Logger::POSITIONING, "#%d--unmark_target(%.2f,%.2f), is not good for unmark",
+                             u.number, u.target_pos.x, u.target_pos.y);
+                dlog.addCircle(Logger::POSITIONING,u.target_pos.x, u.target_pos.y,
+                               0.3, 0, 0, 0, false);
+                dlog.addMessage(Logger::POSITIONING,u.target_pos.x + 0.1,
+                                u.target_pos.y + 0.1,
+                                to_string(u.number).c_str(), 0, 0, 0);
+                #endif
             }
 		}
 	}
@@ -901,32 +967,50 @@ void bhv_unmarkes::update_best_unmark(const WorldModel & wm) { //borna
         }
 
     }
-    if (max_eval_pass == min_eval_pass)
+    if (max_eval_pass == min_eval_pass){
         for (int i = 0; i < unmarks.size(); i++) {
             if(unmarks[i].good_for_pass){
-                dlog.addCircle(Logger::POSITIONING,unmarks[i].target_pos.x, unmarks[i].target_pos.y, 0.3, 255, 0, 0, true);
+                dlog.addCircle(Logger::POSITIONING,unmarks[i].target_pos.x, unmarks[i].target_pos.y, 0.2, 0, 0, 255, true);
                 if(unmarks[i].best_passer.unum == fastest_tm)
                     dlog.addCircle(Logger::POSITIONING,unmarks[i].target_pos.x, unmarks[i].target_pos.y, 0.05, 255, 255, 255, true);
-            }else if(unmarks[i].good_for_unmark){
-                dlog.addCircle(Logger::POSITIONING,unmarks[i].target_pos.x, unmarks[i].target_pos.y, 0.3, 0, 0, 255, true);
             }
         }
-    else
+    }
+    else{
         for (int i = 0; i < unmarks.size(); i++) {
             if(unmarks[i].good_for_pass){
-                dlog.addCircle(Logger::POSITIONING,unmarks[i].target_pos.x, unmarks[i].target_pos.y, 0.3, 255, 230 - static_cast<int>((unmarks[i].eval_for_pass - min_eval_pass)/(max_eval_pass - min_eval_pass) * 230), 0, true);
+                int r = 179 - static_cast<int>((unmarks[i].eval_for_pass - min_eval_pass)/(max_eval_pass - min_eval_pass) * 179);
+                int g = 171 - static_cast<int>((unmarks[i].eval_for_pass - min_eval_pass)/(max_eval_pass - min_eval_pass) * 171);;
+                int b = 255;
+                dlog.addCircle(Logger::POSITIONING,unmarks[i].target_pos.x, unmarks[i].target_pos.y, 0.3, r, g, b, true);
                 if(unmarks[i].best_passer.unum == fastest_tm)
                     dlog.addCircle(Logger::POSITIONING,unmarks[i].target_pos.x, unmarks[i].target_pos.y, 0.1, 255, 255, 255, true);
-            }else if(unmarks[i].good_for_unmark){
-                dlog.addCircle(Logger::POSITIONING,unmarks[i].target_pos.x, unmarks[i].target_pos.y, 0.3, 0, 230 - static_cast<int>((unmarks[i].eval_for_unmark - min_eval_unmark)/(max_eval_unmark - min_eval_unmark) * 230), 255, true);
             }
         }
+    }
+
+    if (max_eval_unmark == min_eval_unmark){
+        for (int i = 0; i < unmarks.size(); i++) {
+            if(unmarks[i].good_for_unmark){
+                dlog.addCircle(Logger::POSITIONING,unmarks[i].target_pos.x, unmarks[i].target_pos.y, 0.3, 247, 0, 255, true);
+            }
+        }
+    }
+    else{
+        for (int i = 0; i < unmarks.size(); i++) {
+            if(unmarks[i].good_for_unmark){
+                int r = 255 - static_cast<int>((unmarks[i].eval_for_unmark - min_eval_unmark)/(max_eval_unmark - min_eval_unmark) * 10);
+                int g = 180 - static_cast<int>((unmarks[i].eval_for_unmark - min_eval_unmark)/(max_eval_unmark - min_eval_unmark) * 180);;
+                int b = 255;
+                dlog.addCircle(Logger::POSITIONING,unmarks[i].target_pos.x, unmarks[i].target_pos.y, 0.3, r, g, b, true);
+            }
+        }
+    }
     #endif
 
 	double max_eval = -1000;
 	for (int i = 0; i < unmarks.size(); i++) {
 		if (unmarks[i].good_for_pass) {
-//            if (unmarks[i].dist2self <= 5) {
                 if (max_eval < unmarks[i].eval_for_pass) {
                     best_unmark = &unmarks[i];
                     max_eval = unmarks[i].eval_for_pass;
@@ -934,37 +1018,15 @@ void bhv_unmarkes::update_best_unmark(const WorldModel & wm) { //borna
 //            }
         }
 	}
-//	if (max_eval == -1000) {
-//		for (int i = 0; i < unmarks.size(); i++) {
-//			if (unmarks[i].good_for_pass)
-//				if (unmarks[i].dist2self <= 10) {
-//					if (max_eval < unmarks[i].eval_for_pass) {
-//						best_unmark = &unmarks[i];
-//						max_eval = unmarks[i].eval_for_pass;
-//					}
-//				}
-//		}
-//	}
     if (max_eval != -1000)
         return;
-//	if (max_eval == -1000) {
-		for (int i = 0; i < unmarks.size(); i++) {
-			if (unmarks[i].good_for_unmark)
-				if (max_eval < unmarks[i].eval_for_unmark) {
-					best_unmark = &unmarks[i];
-					max_eval = unmarks[i].eval_for_unmark;
-				}
-		}
-//	}
-//	if (max_eval == -1000) {
-//		for (int i = 0; i < unmarks.size(); i++) {
-//			if (!unmarks[i].good_for_unmark)
-//				if (max_eval < unmarks[i].eval_for_pass) {
-//					best_unmark = &unmarks[i];
-//					max_eval = unmarks[i].eval_for_pass;
-//				}
-//		}
-//	}
+    for (int i = 0; i < unmarks.size(); i++) {
+        if (unmarks[i].good_for_unmark)
+            if (max_eval < unmarks[i].eval_for_unmark) {
+                best_unmark = &unmarks[i];
+                max_eval = unmarks[i].eval_for_unmark;
+            }
+    }
 }
 
 Vector2D bhv_unmark::get_avoid_circle_point( const WorldModel & wm,
