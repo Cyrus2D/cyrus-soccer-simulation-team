@@ -71,13 +71,15 @@ def convertor_counts(count):
 
 
 def normalize_key_value(k: str, v):
-    if k[-1] == 'x':
-        if k[-2] == 'pos':  # absolute position
+    key_sp = k.split('_')
+    if key_sp[-1] == 'x':
+        if key_sp[-2] == 'pos':  # absolute position
             return convertor_x(v)
-    elif k[-1] == 'y':
-        if k[-2] == 'pos':  # absolute position
+    elif key_sp[-1] == 'y':
+        if key_sp[-2] == 'pos':  # absolute position
             return convertor_y(v)
     elif k.endswith("unum") or k.endswith("unum_index"):
         return convertor_unum(v)
     else:
-        raise Exception("not handled normalizer")
+        pass
+        # raise Warning("not handled normalizer")
