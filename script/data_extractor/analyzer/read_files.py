@@ -133,7 +133,6 @@ def read_a_file_multi_process(file_name: str, id, ret_dic):
         data_x.append(x)
         data_y.append(y)
 
-    print(len(data_x), len(data_y))
     ret_dic[id] = (data_x, data_y)
 
 
@@ -142,21 +141,17 @@ def read_folder(path: str):
     files = [f for f in os.listdir() if not f[0] == '.' and f.split('.')[-1] == 'csv']
     
     X, Y = [], []
-    test_data = []
     for file in files:
         print(file)
         x,y = read_a_file(file)
         X += x
         Y += y
-        test_data.append((file, x, y))
-    print(len(X), len(Y))
-    return test_data
+    return X, Y
 
 def read_folder_multi_thread(path: str):
     os.chdir(path)
     files = [f for f in os.listdir() if not f[0] == '.' and f.split('.')[-1] == 'csv']
     X, Y = [], []
-    test_data = []
 
     batch = len(files)//number_of_threads
     for b in range(batch+1):
@@ -178,31 +173,10 @@ def read_folder_multi_thread(path: str):
         for id, value in ret_dic.items():
             X += value[0]
             Y += value[1]
-            test_data.append((files[id], value[0], value[1]))
 
-    print(len(X), len(Y))
-    return test_data
+    return X, Y
 
 
 if __name__ == "__main__":
-    # x, y = read_a_file("/mnt/f/xxx/2022-02-03-23-56-55_10_KN2C_E6000.csv")
-    # print(x)
-    # print(y)
     b = read_folder("/mnt/f/xxx/")
     a = read_folder_multi_thread("/mnt/f/xxx/")
-
-    file_name = "2022-02-03-11-51-56_3_KN2C_E6000.csv"
-    resa = []
-    resb = []
-    for i in a:
-        if i[0] == file_name:
-            resa = (i[1], i[2])
-            break
-    for i in b:
-        if i[0] == file_name:
-            resb = (i[1], i[2])
-            break
-    
-    for i in range(len(resa[0])):
-        print(resa[0][i])
-        print(resb[0][i])
