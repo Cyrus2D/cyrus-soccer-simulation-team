@@ -1,13 +1,20 @@
-from nomalizer import normalize_key_value
+from analyzer.nomalizer import normalize_key_value
 import os
 from multiprocessing import Process, Manager
-
+import numpy as np
 
 read_ball_pos = True
 read_players_pos = True
 read_with_normalize = True
 read_out_unum = True
 number_of_threads = 7
+
+
+def one_hot(n, size):
+    n = round(n)
+    lst = [0 for i in range(size)]
+    lst[n-1] = 1
+    return lst
 
 
 def read_a_file(file_name: str):
@@ -66,7 +73,7 @@ def read_a_file(file_name: str):
                     pass
             else:
                 pass
-            
+
         data_x.append(x)
         data_y.append(y)
 
@@ -80,7 +87,7 @@ def read_a_file_multi_process(file_name: str, id, ret_dic):
 
     data_x, data_y = [], []
 
-    for line in lines[1:]:
+    for line in lines[1:-1]:
         values = line.split(',')[:-1]
         x = []
         y = []
@@ -124,33 +131,36 @@ def read_a_file_multi_process(file_name: str, id, ret_dic):
                 key_sp = key.split("_")
                 if key_sp[-1] == 'unum':  # out unum
                     if read_out_unum:
-                        y.append(value)
+                        y.append(one_hot(value, 11))
                 else:
                     pass
             else:
                 pass
-            
-        data_x.append(x)
-        data_y.append(y)
+
+        data_x.append(np.array(x))
+        data_y.append(np.array(y).reshape(11, 1))
 
     ret_dic[id] = (data_x, data_y)
 
 
 def read_folder(path: str):
     os.chdir(path)
-    files = [f for f in os.listdir() if not f[0] == '.' and f.split('.')[-1] == 'csv']
-    
+    files = [f for f in os.listdir() if not f[0] ==
+             '.' and f.split('.')[-1] == 'csv']
+
     X, Y = [], []
     for file in files:
         print(file)
-        x,y = read_a_file(file)
+        x, y = read_a_file(file)
         X += x
         Y += y
     return X, Y
 
+
 def read_folder_multi_thread(path: str):
     os.chdir(path)
-    files = [f for f in os.listdir() if not f[0] == '.' and f.split('.')[-1] == 'csv']
+    files = [f for f in os.listdir() if not f[0] ==
+             '.' and f.split('.')[-1] == 'csv']
     X, Y = [], []
 
     batch = len(files)//number_of_threads
@@ -163,13 +173,14 @@ def read_folder_multi_thread(path: str):
             if index >= len(files):
                 break
             file = files[index]
-            thread = Process(target=read_a_file_multi_process, args=(file, index,ret_dic))
+            thread = Process(target=read_a_file_multi_process,
+                             args=(file, index, ret_dic))
             thread.start()
             threads.append(thread)
-        
+
         for t in threads:
             t.join()
-        
+
         for id, value in ret_dic.items():
             X += value[0]
             Y += value[1]
