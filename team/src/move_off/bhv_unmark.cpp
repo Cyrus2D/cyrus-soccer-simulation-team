@@ -19,6 +19,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+#include "debugs.h"
 //#define DEBUG_UNMARK
 static const int VALID_PLAYER_THRESHOLD = 8;
 Vector2D bhv_unmarkes::last_ball_inertia = Vector2D(0,0);
