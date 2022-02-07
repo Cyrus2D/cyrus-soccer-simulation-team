@@ -874,7 +874,7 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
             bool used_penalty = true;
             if(!wm.self().isKickable())
                 used_penalty = false;
-            int receiver_step = predictReceiverReachStep(receiver,
+            const int receiver_step = predictReceiverReachStep(receiver,
                                                                receive_point, used_penalty) + (used_penalty?move_dist_penalty_step:0);
             const AngleDeg ball_move_angle =
                     (receive_point - M_first_point).th();
@@ -886,21 +886,8 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
             success_counts.clear();
             #endif
 
-            int start_step = std::max(
+            const int start_step = std::max(
                         std::max(MIN_RECEIVE_STEP, min_ball_step), receiver_step);
-
-            double first_ball_speed = calc_first_term_geom_series(ball_move_dist, SP.ballDecay(), start_step);
-
-            if (!FieldAnalyzer::isHelius(wm) && !FieldAnalyzer::isJyo(wm)){
-                first_ball_speed = std::min(first_ball_speed, 3.0);
-                double receive_ball_speed = first_ball_speed * std::pow(SP.ballDecay(), start_step);
-                receive_ball_speed = std::min(receive_ball_speed, 3.0);
-
-                if (!wm.opponentsFromBall().empty() && wm.opponentsFromBall().front()->distFromBall() < 2.0){
-                    receiver_step = predictReceiverReachStep(receiver, receive_point, used_penalty, receive_ball_speed) + (used_penalty?move_dist_penalty_step:0);
-                    start_step = std::max(std::max(MIN_RECEIVE_STEP, min_ball_step), receiver_step);
-                }
-            }
 
             #ifdef CREATE_SEVERAL_CANDIDATES_ON_SAME_POINT
             const int max_step = std::max( MAX_RECEIVE_STEP, start_step + 3 );
@@ -1127,7 +1114,7 @@ void StrictCheckPassGenerator::createThroughPass(const WorldModel & wm,
                 }
             }
 
-            int receiver_step = predictReceiverReachStep(receiver,
+            const int receiver_step = predictReceiverReachStep(receiver,
                                                                receive_point, false);
             const AngleDeg ball_move_angle =
                     (receive_point - M_first_point).th();
@@ -1137,21 +1124,6 @@ void StrictCheckPassGenerator::createThroughPass(const WorldModel & wm,
             #endif
 
             int start_step = receiver_step;
-            const int min_ball_step = SP.ballMoveStep(SP.ballSpeedMax(), ball_move_dist);
-            if (!FieldAnalyzer::isHelius(wm) && !FieldAnalyzer::isJyo(wm)){
-                double first_ball_speed = calc_first_term_geom_series(ball_move_dist, SP.ballDecay(), start_step);
-                first_ball_speed = std::min(first_ball_speed, 3.0);
-                double receive_ball_speed = first_ball_speed * std::pow(SP.ballDecay(), start_step);
-
-                receive_ball_speed = std::min(receive_ball_speed, 3.0);
-                if (!wm.opponentsFromBall().empty() && wm.opponentsFromBall().front()->distFromBall() < 2.0){
-                    receiver_step = predictReceiverReachStep(receiver, receive_point, false, receive_ball_speed);
-                    start_step = std::max(std::max(MIN_RECEIVE_STEP, min_ball_step), receiver_step);
-                }
-            }
-
-
-
             if (pass_requested && (requested_move_angle - angle).abs() < 20.0) {
                 #ifdef DEBUG_PASS
                 dlog.addText( M_pass_logger,
@@ -1182,7 +1154,8 @@ void StrictCheckPassGenerator::createThroughPass(const WorldModel & wm,
                 }
             }
 
-
+            const int min_ball_step = SP.ballMoveStep(SP.ballSpeedMax(),
+                                                      ball_move_dist);
 
             start_step = std::max(std::max(MIN_RECEIVE_STEP, min_ball_step),
                                   start_step);
@@ -1600,7 +1573,7 @@ int StrictCheckPassGenerator::getNearestReceiverUnum(const Vector2D & pos) {
  */
 int StrictCheckPassGenerator::predictReceiverReachStep(
         const Receiver & receiver, const Vector2D & pos,
-        const bool use_penalty, double receive_ball_speed) {
+        const bool use_penalty) {
     const PlayerType * ptype = receiver.player_->playerTypePtr();
     double target_dist = receiver.inertia_pos_.dist(pos);
     int n_turn = (
@@ -1612,12 +1585,10 @@ int StrictCheckPassGenerator::predictReceiverReachStep(
                                                              ptype->kickableArea(), false));
     double dash_dist = target_dist;
 
-     if ( receive_ball_speed >= 0 )
-     {
-         double kick_area = ptype->kickableArea();
-         kick_area *= (1 - receive_ball_speed / 3.0);
-         dash_dist -= kick_area;
-     }
+    // if ( receiver.pos_.x < pos.x )
+    // {
+    //     dash_dist -= ptype->kickableArea() * 0.5;
+    // }
 
     if (use_penalty) {
         dash_dist += receiver.penalty_distance_;
