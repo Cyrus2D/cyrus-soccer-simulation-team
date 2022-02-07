@@ -13,7 +13,7 @@ k_best = 1
 use_pass = False
 use_cluster = True
 
-data_x, data_y = read_folder_multi_thread("/mnt/f/xxx")
+data_x, data_y = read_folder_multi_thread("/data1/aref/2d/data/", "YuShan2021")
 data_x = array(data_x)
 data_y = array(data_y)
 

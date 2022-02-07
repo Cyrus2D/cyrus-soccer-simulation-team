@@ -160,20 +160,21 @@ def read_folder(path: str):
     return X, Y
 
 
-def read_folder_multi_thread(path: str):
+def read_folder_multi_thread(path: str, key=""):
     os.chdir(path)
-    files = [f for f in os.listdir() if not f[0] ==
-             '.' and f.split('.')[-1] == 'csv']
+    files = [f for f in os.listdir() 
+                if not f[0] == '.' 
+                and f.split('.')[-1] == 'csv' 
+                and f.find(key) >= 0]
     X, Y = [], []
 
     batch = len(files)//number_of_threads
     for b in range(batch+1):
         ret_dic = Manager().dict()
         threads = []
-
+        print(f"{b*number_of_threads}/{len(files)}", end="")
         for t in range(number_of_threads):
             index = b*number_of_threads + t
-            print(files[index])
             if index >= len(files):
                 break
             file = files[index]
@@ -188,6 +189,8 @@ def read_folder_multi_thread(path: str):
         for id, value in ret_dic.items():
             X += value[0]
             Y += value[1]
+        
+        print("\r", end='')
 
     return X, Y
 
