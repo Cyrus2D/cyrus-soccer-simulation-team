@@ -136,7 +136,10 @@ def read_a_file_multi_process(file_name: str, id, ret_dic):
                     pass
             else:
                 pass
-
+        
+        if len(y) == 0 or len(x) == 0:
+            continue
+        
         data_x.append(np.array(x))
         data_y.append(np.array(y).reshape(11, 1))
 
