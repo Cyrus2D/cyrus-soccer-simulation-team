@@ -7,7 +7,7 @@ read_ball_pos = True
 read_players_pos = True
 read_with_normalize = True
 read_out_unum = True
-number_of_threads = 7
+number_of_threads = 100
 
 
 def one_hot(n, size):
@@ -170,6 +170,7 @@ def read_folder_multi_thread(path: str):
 
         for t in range(number_of_threads):
             index = b*number_of_threads + t
+            print(files[index])
             if index >= len(files):
                 break
             file = files[index]
