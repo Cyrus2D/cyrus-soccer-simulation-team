@@ -8,6 +8,9 @@
 #include <random>
 #include <time.h>
 
+#include <vector>
+
+
 #define cm ","
 #define ADD_ELEM(key, value) fout << (value) << cm
 
@@ -329,7 +332,7 @@ void DataExtractor::init_file(const rcsc::WorldModel &wm) {
             }
         }
     }
-    for (int i = 1; i <= 11; i++) {
+    for (int i = 1; i <= 15; i++) {
         if (option.side == OPP || option.side == BOTH)
             header += "p_r_" + std::to_string(i) + "_side,";
         if (option.unum == OPP || option.unum == BOTH)
@@ -525,8 +528,8 @@ void DataExtractor::extract_players(const rcsc::WorldModel &wm) {
     }
 }
 
-std::vector<const AbstractPlayerObject *>
-DataExtractor::sort_players(const rcsc::WorldModel &wm) {
+
+std::vector<const AbstractPlayerObject *> DataExtractor::sort_players(const rcsc::WorldModel &wm) {
     static int cycle = 0;
     static std::vector<const AbstractPlayerObject *> tms;
     if (wm.time().cycle() == cycle){
@@ -538,35 +541,27 @@ DataExtractor::sort_players(const rcsc::WorldModel &wm) {
     std::vector<const AbstractPlayerObject *> opps;
     tms.clear();
     opps.clear();
-    for (int i = 1, j = 0; i <= 11 && j <= 1; i++) {
-        const AbstractPlayerObject *player;
-        if (j == 0)
-            player = wm.ourPlayer(i);
-        else
-            player = wm.theirPlayer(i);
 
-        if (player == NULL
-            || player->isGhost()
-            || player->unum() < 1
-            || !player->pos().isValid()
-            || !player->vel().isValid())
+    for (const PlayerObject& player: wm.teammates()){
+        if (player.isGhost()
+            || player.unum() < 1
+            || !player.pos().isValid())
             continue;
-        if (j == 0){
-            if (option.kicker_first){
-                if (wm.self().unum()!=i)
-                    tms.push_back(player);
+        if (option.kicker_first){
+                if (wm.self().unum()!=player.unum())
+                    tms.push_back(&player);
             }else{
-                tms.push_back(player);
+                tms.push_back(&player);
             }
-        }
-        else
-            opps.push_back(player);
-
-        if (i == 11) {
-            i = 0;
-            j += 1;
-        }
     }
+    for (const PlayerObject& player: wm.opponents()){
+        if (player.isGhost()
+            || player.unum() < 1
+            || !player.pos().isValid())
+            continue;
+        opps.push_back(&player);
+    }
+
     auto unum_sort = [](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
         return p1->unum() > p2->unum();
     };
@@ -599,7 +594,7 @@ DataExtractor::sort_players(const rcsc::WorldModel &wm) {
         for (; tms.size() < 11; tms.push_back(static_cast<AbstractPlayerObject *>(0)));
     }
 
-    for (; opps.size() < 11; opps.push_back(static_cast<AbstractPlayerObject *>(0)));
+    for (; opps.size() < 15; opps.push_back(static_cast<AbstractPlayerObject *>(0)));
 
     tms.insert(tms.end(), opps.begin(), opps.end());
 
@@ -771,21 +766,20 @@ void DataExtractor::extract_pass_angle(const AbstractPlayerObject *player, const
     std::vector<std::pair<double, double>> opp_pass_angle_dist;
     std::vector<std::pair<double, double>> opp_pass_projection;
     std::vector<std::pair<double, double>> opp_pass_projection_bodydiff;
-    for (int o = 1; o <= 11; o++) {
-        const AbstractPlayerObject *opp = wm.theirPlayer(o);
-        if (opp == nullptr || opp->unum() != o)
-            continue;
-        opp_dist_angle.push_back(std::make_pair(opp->pos().dist(ball_pos), (opp->pos() - ball_pos).th().degree()));
-        opp_dist_body_diff.push_back(std::make_pair(opp->pos().dist(ball_pos), ((ball_pos - opp->pos()).th() - opp->body()).abs()));
-        AngleDeg diff = (tm_pos - ball_pos).th() - (opp->pos() - ball_pos).th();
+    for (const auto& opp: wm.opponents()) {
+        if (opp.isGhost() || !opp.pos().isValid() || !opp.bodyValid()) continue;
+
+        opp_dist_angle.push_back(std::make_pair(opp.pos().dist(ball_pos), (opp.pos() - ball_pos).th().degree()));
+        opp_dist_body_diff.push_back(std::make_pair(opp.pos().dist(ball_pos), ((ball_pos - opp.pos()).th() - opp.body()).abs()));
+        AngleDeg diff = (tm_pos - ball_pos).th() - (opp.pos() - ball_pos).th();
         if (diff.abs() > 50)
             continue;
-        if (opp->pos().dist(ball_pos) > tm_pos.dist(ball_pos) + 1.0)
+        if (opp.pos().dist(ball_pos) > tm_pos.dist(ball_pos) + 1.0)
             continue;
-        opp_pass_angle_dist.push_back(std::make_pair(diff.abs(), opp->distFromBall()));
-        Vector2D proj_pos = Line2D(ball_pos, tm_pos).projection(opp->pos());
-        opp_pass_projection.push_back(std::make_pair(proj_pos.dist(opp->pos()), proj_pos.dist(ball_pos)));
-        opp_pass_projection_bodydiff.push_back(std::make_pair(proj_pos.dist(opp->pos()), ((proj_pos - opp->pos()).th() - opp->body()).abs()));
+        opp_pass_angle_dist.push_back(std::make_pair(diff.abs(), opp.distFromBall()));
+        Vector2D proj_pos = Line2D(ball_pos, tm_pos).projection(opp.pos());
+        opp_pass_projection.push_back(std::make_pair(proj_pos.dist(opp.pos()), proj_pos.dist(ball_pos)));
+        opp_pass_projection_bodydiff.push_back(std::make_pair(proj_pos.dist(opp.pos()), ((proj_pos - opp.pos()).th() - opp.body()).abs()));
     }
     if (option.openAnglePass == side || option.openAnglePass == BOTH) {
         ADD_ELEM("pass_dist", convertor_dist(ball_pos.dist(tm_pos)));
@@ -849,12 +843,24 @@ void DataExtractor::extract_pass_angle(const AbstractPlayerObject *player, const
 
 void DataExtractor::extract_vel(const AbstractPlayerObject *player, DataSide side) {
     if (option.vel == side || option.vel == BOTH) {
-        ADD_ELEM("v_x", convertor_pvx(player->vel().x));
-        ADD_ELEM("v_y", convertor_pvy(player->vel().y));
+        if (player->vel().isValid()){
+            ADD_ELEM("v_x", convertor_pvx(player->vel().x));
+            ADD_ELEM("v_y", convertor_pvy(player->vel().y));
+        }
+        else {
+            ADD_ELEM("v_x", invalid_data);
+            ADD_ELEM("v_y", invalid_data);
+        }
     }
     if (option.polarVel == side || option.polarVel == BOTH) {
-        ADD_ELEM("v_r", convertor_pv(player->vel().r()));
-        ADD_ELEM("v_t", convertor_angle(player->vel().th().degree()));
+        if (player->vel().isValid()){
+            ADD_ELEM("v_r", convertor_pv(player->vel().r()));
+            ADD_ELEM("v_t", convertor_angle(player->vel().th().degree()));
+        }
+        else {
+            ADD_ELEM("v_r", invalid_data);
+            ADD_ELEM("v_t", invalid_data);
+        }
     }
 }
 
@@ -903,14 +909,13 @@ void DataExtractor::extract_goal_open_angle(const rcsc::AbstractPlayerObject *pl
 
     std::vector<Vector2D> players_in_area;
 
-    for (int i = 1; i <= 11; i++) {
-        const AbstractPlayerObject *opp = wm.theirPlayer(i);
-        if (opp == NULL || opp->unum() < 1)
+    for (const auto& opp: wm.opponents()){
+        if (opp.isGhost() || !opp.pos().isValid())
             continue;
-        if (!player_goal_area.contains(opp->pos()))
+        if (!player_goal_area.contains(opp.pos()))
             continue;
 
-        players_in_area.push_back(opp->pos());
+        players_in_area.push_back(opp.pos());
     }
     players_in_area.push_back(goal_t);
     players_in_area.push_back(goal_b);
@@ -1045,12 +1050,11 @@ void DataExtractor::extract_drible_angles(const WorldModel &wm) {
     for (double angle = -180; angle < 180; angle += delta) {
 
         double min_opp_dist = 30;
-        for (int i = 1; i <= 11; i++) {
-            const AbstractPlayerObject *opp = wm.theirPlayer(i);
-            if (opp == NULL || opp->unum() < 0)
+        for (const auto& opp: wm.opponents()){
+            if (opp.isGhost() || !opp.pos().isValid())
                 continue;
 
-            Vector2D kicker2opp = (opp->pos() - kicker->pos());
+            Vector2D kicker2opp = (opp.pos() - kicker->pos());
             if (kicker2opp.th().degree() < angle || kicker2opp.th().degree() > angle + delta)
                 continue;
 
@@ -1228,7 +1232,7 @@ DataExtractor::Option::Option() {
     history_size = 0;
     input_worldMode = NONE_FULLSTATE;
     output_worldMode = NONE_FULLSTATE;
-    playerSortMode = UNUM;
+    playerSortMode = X;
     kicker_first = false;
     use_convertor = false;
 }
