@@ -114,7 +114,8 @@ PLAYERHEADERS = \
 	sample_field_evaluator.h \
 	sample_player.h \
 	setting.h \
-        strategy.h
+    strategy.h \
+    debugs.h
 
 CHAINACTIONSOURCES = \
 	chain_action/actgen_action_chain_length_filter.h \
