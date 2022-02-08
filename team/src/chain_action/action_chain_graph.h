@@ -79,11 +79,13 @@ private:
     std::vector< ActionStatePair > M_all_dribble;
 
     std::vector< ActionStatePair > M_best_chain;
+    std::vector< ActionStatePair > M_best_chain_pass;
     std::vector< ActionStatePair > M_best_chain_danger;
     std::vector< ActionStatePair > M_result_one_kick;
     std::vector< ActionStatePair > M_result_one_kick_danger;
 
     double M_best_evaluation;
+    double M_best_evaluation_pass;
     double M_best_evaluation_danger;
     double M_best_evaluation_one_kick;
     double M_best_evaluation_one_kick_danger;

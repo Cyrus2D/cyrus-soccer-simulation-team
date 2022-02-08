@@ -419,8 +419,13 @@ ActionChainGraph::calculateResult( const PlayerAgent* agent)
         dlog.addText(Logger::ACTION_CHAIN, "kickcount is >1");
     #endif
 
-    ActionStatePair *first_layer = M_best_chain.begin().base();
-    DataExtractor::i().update(agent, first_layer);
+//    ActionStatePair *first_layer = M_best_chain.begin().base();
+//    DataExtractor::i().update(agent, first_layer);
+    if (!M_best_chain_pass.empty()){
+        ActionStatePair *first_layer = M_best_chain_pass.begin().base();
+        DataExtractor::i().update(agent, first_layer);
+    }
+
 
     if(wm.interceptTable()->opponentReachCycle() <= (wm.self().goalie() ? 6:3)
             && M_best_chain[0].action().category() == CooperativeAction::Pass
@@ -803,6 +808,8 @@ ActionChainGraph::calculateResultBestFirstSearch( const WorldModel & wm,
     //
     M_best_chain.clear();
     M_best_evaluation = -std::numeric_limits< double >::max();
+    M_best_evaluation_pass = -std::numeric_limits< double >::max();
+    M_best_chain_pass.clear();
     *(n_evaluated) = 0;
 
 
@@ -849,11 +856,13 @@ ActionChainGraph::calculateResultBestFirstSearch( const WorldModel & wm,
     #endif
     M_best_chain = empty_path;
     M_best_chain_danger = empty_path;
+    M_best_chain_pass = empty_path;
 
     M_best_evaluation = current_evaluation;
     M_best_evaluation_danger = -1000;
     M_best_evaluation_one_kick = -1000;
     M_best_evaluation_one_kick_danger = -1000;
+    M_best_evaluation_pass = -1000;
 
     queue.push( std::pair< std::vector< ActionStatePair >, double >
                 ( empty_path, current_evaluation ) );
@@ -1039,6 +1048,12 @@ ActionChainGraph::calculateResultBestFirstSearch( const WorldModel & wm,
                         M_best_evaluation_one_kick = ev;
                         M_result_one_kick = candidate_series;
                     }
+                }
+            }
+            if (candidate_series[0].action().category() == CooperativeAction::Pass){
+                if (ev > M_best_evaluation_pass){
+                    M_best_evaluation_pass = ev;
+                    M_best_chain_pass = candidate_series;
                 }
             }
 
