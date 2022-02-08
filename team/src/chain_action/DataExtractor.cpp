@@ -543,21 +543,14 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players(const rcsc
     opps.clear();
 
     for (const PlayerObject& player: wm.teammates()){
-        if (player.isGhost()
-            || player.unum() < 1
-            || !player.pos().isValid())
+        if (!player.pos().isValid())
             continue;
-        if (option.kicker_first){
-                if (wm.self().unum()!=player.unum())
-                    tms.push_back(&player);
-            }else{
-                tms.push_back(&player);
-            }
+        tms.push_back(&player);
     }
+    if (!option.kicker_first)
+        tms.push_back(&(wm.self()));
     for (const PlayerObject& player: wm.opponents()){
-        if (player.isGhost()
-            || player.unum() < 1
-            || !player.pos().isValid())
+        if (!player.pos().isValid())
             continue;
         opps.push_back(&player);
     }
@@ -606,7 +599,7 @@ void DataExtractor::add_null_player(int unum, DataSide side) {
     if (option.side == side || option.side == BOTH)
         ADD_ELEM("side", side == OPP ? -1 : 1);
     if (option.unum == side || option.unum == BOTH)
-        ADD_ELEM("unum", convertor_unum(unum));
+        ADD_ELEM("unum", unum);
     if (option.type == side || option.type == BOTH) {
         ADD_ELEM("player_type_dash_rate", invalid_data);
         ADD_ELEM("player_type_effort_max", invalid_data);
@@ -767,7 +760,7 @@ void DataExtractor::extract_pass_angle(const AbstractPlayerObject *player, const
     std::vector<std::pair<double, double>> opp_pass_projection;
     std::vector<std::pair<double, double>> opp_pass_projection_bodydiff;
     for (const auto& opp: wm.opponents()) {
-        if (opp.isGhost() || !opp.pos().isValid() || !opp.bodyValid()) continue;
+        if (!opp.pos().isValid() || !opp.bodyValid()) continue;
 
         opp_dist_angle.push_back(std::make_pair(opp.pos().dist(ball_pos), (opp.pos() - ball_pos).th().degree()));
         opp_dist_body_diff.push_back(std::make_pair(opp.pos().dist(ball_pos), ((ball_pos - opp.pos()).th() - opp.body()).abs()));
@@ -910,7 +903,7 @@ void DataExtractor::extract_goal_open_angle(const rcsc::AbstractPlayerObject *pl
     std::vector<Vector2D> players_in_area;
 
     for (const auto& opp: wm.opponents()){
-        if (opp.isGhost() || !opp.pos().isValid())
+        if (!opp.pos().isValid())
             continue;
         if (!player_goal_area.contains(opp.pos()))
             continue;
@@ -957,15 +950,28 @@ void DataExtractor::extract_base_data(const rcsc::AbstractPlayerObject *player, 
 }
 
 void DataExtractor::extract_type(const AbstractPlayerObject *player, DataSide side) {
-    ADD_ELEM("player_type_dash_rate", player->playerTypePtr()->dashPowerRate());
-    ADD_ELEM("player_type_effort_max", player->playerTypePtr()->effortMax());
-    ADD_ELEM("player_type_effort_min", player->playerTypePtr()->effortMin());
-    ADD_ELEM("player_type_kickable", player->playerTypePtr()->kickableArea());
-    ADD_ELEM("player_type_margin", player->playerTypePtr()->kickableMargin());
-    ADD_ELEM("player_type_kick_power", player->playerTypePtr()->kickPowerRate());
-    ADD_ELEM("player_type_decay", player->playerTypePtr()->playerDecay());
-    ADD_ELEM("player_type_size", player->playerTypePtr()->playerSize());
-    ADD_ELEM("player_type_speed_max", player->playerTypePtr()->realSpeedMax());
+    if (player->unum() < 0){
+        ADD_ELEM("player_type_dash_rate", invalid_data);
+        ADD_ELEM("player_type_effort_max", invalid_data);
+        ADD_ELEM("player_type_effort_min", invalid_data);
+        ADD_ELEM("player_type_kickable", invalid_data);
+        ADD_ELEM("player_type_margin", invalid_data);
+        ADD_ELEM("player_type_kick_power", invalid_data);
+        ADD_ELEM("player_type_decay", invalid_data);
+        ADD_ELEM("player_type_size", invalid_data);
+        ADD_ELEM("player_type_speed_max", invalid_data);
+    }
+    else{
+        ADD_ELEM("player_type_dash_rate", player->playerTypePtr()->dashPowerRate());
+        ADD_ELEM("player_type_effort_max", player->playerTypePtr()->effortMax());
+        ADD_ELEM("player_type_effort_min", player->playerTypePtr()->effortMin());
+        ADD_ELEM("player_type_kickable", player->playerTypePtr()->kickableArea());
+        ADD_ELEM("player_type_margin", player->playerTypePtr()->kickableMargin());
+        ADD_ELEM("player_type_kick_power", player->playerTypePtr()->kickPowerRate());
+        ADD_ELEM("player_type_decay", player->playerTypePtr()->playerDecay());
+        ADD_ELEM("player_type_size", player->playerTypePtr()->playerSize());
+        ADD_ELEM("player_type_speed_max", player->playerTypePtr()->realSpeedMax());
+    }
 }
 
 void DataExtractor::extract_counts(const rcsc::AbstractPlayerObject *player, DataSide side) {
@@ -1167,6 +1173,8 @@ double DataExtractor::convertor_pvy(double pvy) {
 double DataExtractor::convertor_unum(double unum) {
     if (!option.use_convertor)
         return unum;
+    if (unum == -1)
+        return unum;
     return unum / 11.0;
 }
 
@@ -1233,6 +1241,6 @@ DataExtractor::Option::Option() {
     input_worldMode = NONE_FULLSTATE;
     output_worldMode = NONE_FULLSTATE;
     playerSortMode = X;
-    kicker_first = false;
-    use_convertor = false;
+    kicker_first = true;
+    use_convertor = true;
 }
