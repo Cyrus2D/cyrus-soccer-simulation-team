@@ -664,10 +664,74 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players2(const rcs
         for (; opps.size() < 15; opps.push_back(static_cast<AbstractPlayerObject *>(0)));
     }
 
-    const AbstractPlayerObject *self = wm.ourPlayer(wm.self().unum());
-    auto degree_sort = [self](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
-        return (p1->pos() - self->pos()).th().abs() < (p2->pos() - self->pos()).th().abs();
-    }; // TODO sort from -180 to 180, change it by ABS to change from back to front, IS IT OKEY???!
+    tms.insert(tms.end(), opps.begin(), opps.end());
+
+    return tms;
+}
+
+
+std::vector<const AbstractPlayerObject *> DataExtractor::sort_players3(const rcsc::WorldModel &wm) {
+    static int cycle = 0;
+    static std::vector<const AbstractPlayerObject *> tms;
+    if (wm.time().cycle() == cycle){
+        return tms;
+    }
+    auto unum_sort = [](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
+        return p1->unum() > p2->unum();
+    };
+    auto x_sort = [](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
+        return p1->pos().x > p2->pos().x;
+    };
+
+    cycle = wm.time().cycle();
+    tms.clear();
+//    std::vector<const AbstractPlayerObject *> tms;
+    std::vector<const AbstractPlayerObject *> opps;
+    tms.clear();
+    opps.clear();
+
+    for (int i = 1; i <= 11; i++){
+        const AbstractPlayerObject * player = wm.ourPlayer(i);
+        if (player == nullptr || player->unum() < 0 || !player->pos().isValid() || player->isGhost()){
+            tms.push_back(static_cast<AbstractPlayerObject *>(0));
+            continue;
+        }
+        tms.push_back(player);
+    }
+
+
+    if (option.playerSortMode == X) {
+        int max_opponent_count = 15;
+        for (const PlayerObject &player: wm.theirPlayers()) {
+            if (!player.pos().isValid())
+                continue;
+            opps.push_back(&player);
+            if (opps.size() == max_opponent_count)
+                break;
+        }
+        std::sort(opps.begin(), opps.end(), x_sort);
+        for (; opps.size() < 15; opps.push_back(static_cast<AbstractPlayerObject *>(0)));
+    } else if (option.playerSortMode == UNUM){
+        for (int i = 1; i <= 11; i++){
+            const AbstractPlayerObject * player = wm.theirPlayer(i);
+            if (player == nullptr || player->unum() < 0 || !player->pos().isValid() || player->isGhost()){
+                tms.push_back(static_cast<AbstractPlayerObject *>(0));
+                continue;
+            }
+            tms.push_back(player);
+        }
+        int max_opponent_count = 15;
+        for (const PlayerObject &player: wm.theirPlayers()) {
+            if (!player.pos().isValid())
+                continue;
+            if (player.unum() > 0)
+                continue;
+            opps.push_back(&player);
+            if (opps.size() == max_opponent_count)
+                break;
+        }
+        for (; opps.size() < 15; opps.push_back(static_cast<AbstractPlayerObject *>(0)));
+    }
 
     tms.insert(tms.end(), opps.begin(), opps.end());
 

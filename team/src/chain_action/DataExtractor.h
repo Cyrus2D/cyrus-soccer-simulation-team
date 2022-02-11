@@ -166,6 +166,7 @@ private:
 
     std::vector<const rcsc::AbstractPlayerObject *> sort_players(const rcsc::WorldModel &wm);
     std::vector<const rcsc::AbstractPlayerObject *> sort_players2(const rcsc::WorldModel &wm);
+    std::vector<const rcsc::AbstractPlayerObject *> sort_players3(const rcsc::WorldModel &wm);
     static std::vector<std::vector<rcsc::Vector2D>> history_pos;
     static std::vector<std::vector<rcsc::Vector2D>> history_vel;
     static std::vector<std::vector<rcsc::AngleDeg>> history_body;
