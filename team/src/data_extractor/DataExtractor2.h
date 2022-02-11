@@ -102,7 +102,7 @@ private:
 
     void extract_ball(const DEState &wm);
 
-    void extract_players(const rcsc::WorldModel &wm);
+    void extract_players(const DEState &wm);
 
     void add_null_player(int unum, DataSide2 side);
 
@@ -163,12 +163,12 @@ private:
 
     void extract_counts(const rcsc::AbstractPlayerObject *player, DataSide2 side);
 
-    void extract_kicker(const rcsc::WorldModel &wm);
+    void extract_kicker(const DEState &wm);
 
     void extract_drible_angles(const rcsc::WorldModel &wm);
 
     std::vector<const rcsc::AbstractPlayerObject *> sort_players(const rcsc::WorldModel &wm);
-    std::vector<const rcsc::AbstractPlayerObject *> sort_players2(const rcsc::WorldModel &wm);
+    std::vector<const rcsc::AbstractPlayerObject *> sort_players2(const DEState &wm);
     static std::vector<std::vector<rcsc::Vector2D>> history_pos;
     static std::vector<std::vector<rcsc::Vector2D>> history_vel;
     static std::vector<std::vector<rcsc::AngleDeg>> history_body;

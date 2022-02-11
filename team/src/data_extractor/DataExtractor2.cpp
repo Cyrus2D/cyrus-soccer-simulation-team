@@ -208,7 +208,7 @@ void DataExtractor2::get_data(const DEState & wm){
 //    extract_kicker(wm);
 
     // players
-//    extract_players(wm);
+    extract_players(wm);
 
     // output
 //    if (!update_shoot){
@@ -537,11 +537,11 @@ void DataExtractor2::extract_ball(const DEState &wm) {
 //    ADD_ELEM("offside_count", wm.offsideLineCount());
 }
 
-void DataExtractor2::extract_kicker(const rcsc::WorldModel &wm) {
-    extract_drible_angles(wm);
+void DataExtractor2::extract_kicker(const DEState &wm) {
+//    extract_drible_angles(wm);
 }
 
-void DataExtractor2::extract_players(const rcsc::WorldModel &wm) {
+void DataExtractor2::extract_players(const DEState &wm) {
     auto players = sort_players(wm);
     for (uint i = 0; i < players.size(); i++) {
         const AbstractPlayerObject *player = players[i];
