@@ -114,7 +114,15 @@ PLAYERHEADERS = \
 	sample_field_evaluator.h \
 	sample_player.h \
 	setting.h \
-        strategy.h
+    strategy.h
+
+DATAEXTRACTORSOURCE = \
+    data_extractor/DataExtractor2.cpp \
+    data_extractor/DEState.cpp
+
+DATAEXTRACTORHEADERS = \
+    data_extractor/DataExtractor2.h \
+    data_extractor/DEState.h
 
 CHAINACTIONSOURCES = \
 	chain_action/actgen_action_chain_length_filter.h \
@@ -221,7 +229,9 @@ cyrus_player_SOURCES = \
 	$(MOVEDEF) \
 	$(GOALIE) \
 	$(NECK) \
-	$(ROLES)
+	$(ROLES) \
+	$(DATAEXTRACTORSOURCE)
+
 cyrus_player_CXXFLAGS = -W -Wall -std=c++11
 cyrus_player_LDFLAGS =
 cyrus_player_LDADD =
@@ -247,7 +257,8 @@ noinst_HEADERS = \
 	$(MOVEDEFH) \
 	$(GOALIEH) \
 	$(NECKH) \
-	$(ROLESH)
+	$(ROLESH) \
+	$(DATAEXTRACTORHEADERS)
 
 AM_CPPFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/src/move_off  -I$(top_srcdir)/src/chain_action
 AM_CFLAGS = -W -Wall -std=c++11
