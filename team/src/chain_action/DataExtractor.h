@@ -105,7 +105,7 @@ private:
 
     void extract_pos(const rcsc::AbstractPlayerObject *player, const rcsc::WorldModel &wm, DataSide side);
 
-    void extract_vel(const rcsc::AbstractPlayerObject *player, DataSide side);
+    void extract_vel(const rcsc::AbstractPlayerObject *player, DataSide side, const rcsc::WorldModel &wm);
 
     void extract_pass_angle(const rcsc::AbstractPlayerObject *player, const rcsc::WorldModel &wm, DataSide side);
 
@@ -113,7 +113,7 @@ private:
 
     void extract_goal_open_angle(const rcsc::AbstractPlayerObject *player, const rcsc::WorldModel &wm, DataSide side);
 
-    void extract_base_data(const rcsc::AbstractPlayerObject *player, DataSide side);
+    void extract_base_data(const rcsc::AbstractPlayerObject *player, DataSide side, const rcsc::WorldModel &wm);
 
     void extract_type(const rcsc::AbstractPlayerObject *player, DataSide side);
 
@@ -158,7 +158,7 @@ private:
 
     double convertor_counts(double count);
 
-    void extract_counts(const rcsc::AbstractPlayerObject *player, DataSide side);
+    void extract_counts(const rcsc::AbstractPlayerObject *player, DataSide side, const rcsc::WorldModel &wm);
 
     void extract_kicker(const rcsc::WorldModel &wm);
 
