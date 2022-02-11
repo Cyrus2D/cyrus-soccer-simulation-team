@@ -664,6 +664,7 @@ bool bhv_unmarkes::execute(PlayerAgent * agent) {
     dlog.addText(Logger::POSITIONING,"I can unmark");
     #endif
     vector<unmark_passer> passers = update_passer(wm);
+    vector<unmark_passer> passers_dnn = update_passer_dnn(wm);
     #ifdef DEBUG_UNMARK
     for(auto &passer: passers){
         dlog.addText(Logger::POSITIONING,"passer:%d in (%.2f,%.2f) after %d, oppminc:%d",passer.unum,passer.ballpos.x,passer.ballpos.y,passer.cycle_recive_ball,passer.oppmin_cycle);
@@ -788,6 +789,14 @@ bool bhv_unmarkes::can_unmark(const WorldModel & wm) {
     #endif
     return false;
 }
+#include "data_extractor/DataExtractor2.h"
+vector<unmark_passer> bhv_unmarkes::update_passer_dnn(const WorldModel &wm) {
+    vector<unmark_passer> res;
+    const DEState & state = DEState(wm);
+    DataExtractor2::i().get_data(state);
+    return res;
+}
+
 vector<unmark_passer> bhv_unmarkes::update_passer(const WorldModel & wm) {
     vector<unmark_passer> res;
     const PlayerObject * tm = wm.interceptTable()->fastestTeammate();
