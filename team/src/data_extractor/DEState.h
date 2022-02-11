@@ -38,13 +38,13 @@ public:
         return M_rpos;
     }
     bool posValid() const{
-
+        return M_pos.isValid();
     }
     bool velValid() const{
-
+        return M_rpos.isValid();
     }
     bool rposValid() const{
-
+        return M_vel.isValid();
     }
 };
 class DEPlayer{
