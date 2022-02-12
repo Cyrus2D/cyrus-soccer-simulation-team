@@ -49,6 +49,7 @@ private:
         DataSide polarVel;
         DataSide counts;
         DataSide isKicker;
+        DataSide isGhost;
         DataSide openAnglePass;
         DataSide nearestOppDist;
         DataSide polarGoalCenter;

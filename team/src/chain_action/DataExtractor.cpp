@@ -279,6 +279,8 @@ void DataExtractor::init_file(const rcsc::WorldModel &wm) {
         }
         if (option.isKicker == TM || option.isKicker == BOTH)
             header += "p_l_" + std::to_string(i) + "_is_kicker,";
+        if (option.isGhost == TM || option.isGhost == BOTH)
+            header += "p_l_" + std::to_string(i) + "_is_ghost,";
         if (option.openAnglePass == TM || option.openAnglePass == BOTH) {
             header += "p_l_" + std::to_string(i) + "_pass_dist,";
             header += "p_l_" + std::to_string(i) + "_pass_opp1_dist,";
@@ -387,6 +389,8 @@ void DataExtractor::init_file(const rcsc::WorldModel &wm) {
         }
         if (option.isKicker == OPP || option.isKicker == BOTH)
             header += "p_r_" + std::to_string(i) + "_is_kicker,";
+        if (option.isGhost == OPP || option.isGhost == BOTH)
+            header += "p_r_" + std::to_string(i) + "_is_ghost,";
         if (option.openAnglePass == OPP || option.openAnglePass == BOTH) {
             header += "p_r_" + std::to_string(i) + "_pass_angle,";
             header += "p_r_" + std::to_string(i) + "_pass_dist,";
@@ -522,6 +526,12 @@ void DataExtractor::extract_players(const rcsc::WorldModel &wm) {
                 ADD_ELEM("is_kicker", 1);
             } else
                 ADD_ELEM("is_kicker", 0);
+        }
+        if (option.isGhost == side || option.isGhost == BOTH) {
+            if (player->isGhost()) {
+                ADD_ELEM("is_ghost", 1);
+            } else
+                ADD_ELEM("is_ghost", 0);
         }
 
         extract_pass_angle(player, wm, side);
@@ -800,6 +810,9 @@ void DataExtractor::add_null_player(int unum, DataSide side) {
     }
     if (option.isKicker == side || option.isKicker == BOTH)
         ADD_ELEM("is_kicker", invalid_data);
+    if (option.isGhost == side || option.isGhost == BOTH) {
+        ADD_ELEM("is_ghost", invalid_data);
+    }
     if (option.openAnglePass == side || option.openAnglePass == BOTH) {
         ADD_ELEM("pass_dist", invalid_data);
         ADD_ELEM("pass_opp1_dist", invalid_data);
@@ -1500,6 +1513,7 @@ DataExtractor::Option::Option() {
     polarVel = BOTH;
     counts = BOTH;
     isKicker = TM;
+    isGhost = TM;
     openAnglePass = TM;
     nearestOppDist = TM;
     polarGoalCenter = TM;
