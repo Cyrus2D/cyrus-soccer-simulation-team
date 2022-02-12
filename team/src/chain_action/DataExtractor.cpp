@@ -4,10 +4,10 @@
 
 #include "DataExtractor.h"
 #include "cooperative_action.h"
+#include "../sample_player.h"
 #include <rcsc/player/world_model.h>
 #include <random>
 #include <time.h>
-
 #include <vector>
 
 
@@ -33,158 +33,40 @@ DataExtractor::DataExtractor() :
 DataExtractor::~DataExtractor() {
 }
 
-#include "../sample_player.h"
-void DataExtractor::update_history(const rcsc::PlayerAgent *agent){
-    const WorldModel &wm = option.input_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
-    static int last_update = -1;
-    if (last_update == -1){
-        for (int i = 0; i <= 22; i++){
-            std::vector<Vector2D> temp_pos(5, Vector2D(0,0));
-            std::vector<Vector2D> temp_vel(5, Vector2D(0,0));
-            std::vector<AngleDeg> temp_body(5, AngleDeg(0));
-            std::vector<int> temp_pos_count(5, -1);
-            DataExtractor::history_pos.push_back(temp_pos);
-            DataExtractor::history_vel.push_back(temp_vel);
-            DataExtractor::history_body.push_back(temp_body);
-            DataExtractor::history_pos_count.push_back(temp_pos_count);
-            DataExtractor::history_vel_count.push_back(temp_pos_count);
-            DataExtractor::history_body_count.push_back(temp_pos_count);
-        }
-    }
-    if (last_update == wm.time().cycle())
-        return;
-    last_update = wm.time().cycle();
-    if (wm.ball().posValid()){
-        DataExtractor::history_pos[0].push_back(wm.ball().pos());
-        DataExtractor::history_pos_count[0].push_back(wm.ball().posCount());
-    }else{
-        DataExtractor::history_pos[0].push_back(Vector2D::INVALIDATED);
-        DataExtractor::history_pos_count[0].push_back(-1);
-    }
-    if (wm.ball().velValid()){
-        DataExtractor::history_vel[0].push_back(wm.ball().vel());
-        DataExtractor::history_vel_count[0].push_back(wm.ball().velCount());
-    }else{
-        DataExtractor::history_vel[0].push_back(Vector2D::INVALIDATED);
-        DataExtractor::history_vel_count[0].push_back(-1);
-    }
-    for (int i=1; i<=11; i++){
-        const AbstractPlayerObject * p = wm.ourPlayer(i);
-        if(p == NULL || p->unum() != i){
-            DataExtractor::history_pos[i].push_back(Vector2D::INVALIDATED);
-            DataExtractor::history_pos_count[i].push_back(-1);
-            DataExtractor::history_vel[i].push_back(Vector2D::INVALIDATED);
-            DataExtractor::history_vel_count[i].push_back(-1);
-            DataExtractor::history_body[i].push_back(AngleDeg(0));
-            DataExtractor::history_body_count[i].push_back(-1);
-        }else{
-            if(p->pos().isValid()){
-                DataExtractor::history_pos[i].push_back(p->pos());
-                DataExtractor::history_pos_count[i].push_back(p->posCount());
-            }else{
-                DataExtractor::history_pos[i].push_back(Vector2D::INVALIDATED);
-                DataExtractor::history_pos_count[i].push_back(-1);
-            }
-            if(p->vel().isValid()){
-                DataExtractor::history_vel[i].push_back(p->vel());
-                DataExtractor::history_vel_count[i].push_back(p->velCount());
-            }else{
-                DataExtractor::history_vel[i].push_back(Vector2D::INVALIDATED);
-                DataExtractor::history_vel_count[i].push_back(-1);
-            }
-            DataExtractor::history_body[i].push_back(p->body());
-            DataExtractor::history_body_count[i].push_back(p->bodyCount());
-        }
-    }
-    for (int i=1; i<=11; i++){
-        const AbstractPlayerObject * p = wm.theirPlayer(i);
-        if(p == NULL || p->unum() != i){
-            DataExtractor::history_pos[i+11].push_back(Vector2D::INVALIDATED);
-            DataExtractor::history_pos_count[i+11].push_back(-1);
-            DataExtractor::history_vel[i+11].push_back(Vector2D::INVALIDATED);
-            DataExtractor::history_vel_count[i+11].push_back(-1);
-            DataExtractor::history_body[i+11].push_back(AngleDeg(0));
-            DataExtractor::history_body_count[i+11].push_back(-1);
-        }else{
-            if(p->pos().isValid()){
-                DataExtractor::history_pos[i+11].push_back(p->pos());
-                DataExtractor::history_pos_count[i+11].push_back(p->posCount());
-            }else{
-                DataExtractor::history_pos[i+11].push_back(Vector2D::INVALIDATED);
-                DataExtractor::history_pos_count[i+11].push_back(-1);
-            }
-            if(p->vel().isValid()){
-                DataExtractor::history_vel[i+11].push_back(p->vel());
-                DataExtractor::history_vel_count[i+11].push_back(p->velCount());
-            }else{
-                DataExtractor::history_vel[i+11].push_back(Vector2D::INVALIDATED);
-                DataExtractor::history_vel_count[i+11].push_back(-1);
-            }
-            DataExtractor::history_body[i+11].push_back(p->body());
-            DataExtractor::history_body_count[i+11].push_back(p->bodyCount());
-        }
-    }
+
+DataExtractor::Option::Option() {
+    side = BOTH;
+    unum = BOTH;
+    type = BOTH;
+    body = BOTH;
+    face = BOTH;
+    tackling = NONE;
+    kicking = NONE;
+    card = NONE;
+    pos = BOTH;
+    relativePos = BOTH;
+    polarPos = BOTH;
+    vel = BOTH;
+    polarVel = BOTH;
+    counts = BOTH;
+    isKicker = TM;
+    isGhost = TM;
+    openAnglePass = TM;
+    nearestOppDist = TM;
+    polarGoalCenter = TM;
+    openAngleGoal = NONE;
+    in_offside = TM;
+
+    dribleAngle = NONE;
+    nDribleAngle = 12;
+    history_size = 0;
+    input_worldMode = NONE_FULLSTATE;
+    output_worldMode = NONE_FULLSTATE;
+    playerSortMode = X;
+    kicker_first = false;
+    use_convertor = true;
 }
 
-
-void DataExtractor::update(const PlayerAgent *agent, const ActionStatePair *first_layer,bool update_shoot) {
-    if(!DataExtractor::active)
-        return;
-    const WorldModel &wm = option.input_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
-
-    if (last_update_cycle == wm.time().cycle())
-        return;
-    if (!wm.self().isKickable())
-        return;
-    if (wm.gameMode().type() != rcsc::GameMode::PlayOn)
-        return;
-    if (!fout.is_open()) {
-        init_file(wm);
-    }
-    last_update_cycle = wm.time().cycle();
-    data.clear();
-
-    if (!update_shoot){
-        if (
-                ((CooperativeAction &) first_layer->action()).category() > 2
-                ||
-                !((CooperativeAction &) first_layer->action()).targetPoint().isValid()
-                ||
-                ((CooperativeAction &) first_layer->action()).targetPlayerUnum() > 11
-                ||
-                ((CooperativeAction &) first_layer->action()).targetPlayerUnum() < 1
-                )
-            return;
-    }
-
-    // cycle
-    ADD_ELEM("cycle", convertor_cycle(last_update_cycle));
-
-    // ball
-    extract_ball(wm);
-
-    // kicker
-    extract_kicker(wm);
-
-    // players
-    extract_players(wm);
-
-    // output
-    if (!update_shoot){
-        extract_output(wm,
-                       ((CooperativeAction &) first_layer->action()).category(),
-                       ((CooperativeAction &) first_layer->action()).targetPoint(),
-                       ((CooperativeAction &) first_layer->action()).targetPlayerUnum(),
-                       ((CooperativeAction &) first_layer->action()).description(),
-                       ((CooperativeAction &) first_layer->action()).firstBallSpeed());
-        fout << std::endl;
-    }
-}
-
-DataExtractor &DataExtractor::i() {
-    static DataExtractor instance;
-    return instance;
-}
 
 void DataExtractor::init_file(const rcsc::WorldModel &wm) {
     time_t rawtime;
@@ -436,6 +318,160 @@ void DataExtractor::init_file(const rcsc::WorldModel &wm) {
     header += "out_category,out_target_x,out_target_y,out_unum,out_unum_index,out_ball_speed,out_ball_dir,out_desc,";
     fout << header << std::endl;
 }
+
+
+void DataExtractor::update_history(const rcsc::PlayerAgent *agent){
+    const WorldModel &wm = option.input_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+    static int last_update = -1;
+    if (last_update == -1){
+        for (int i = 0; i <= 22; i++){
+            std::vector<Vector2D> temp_pos(5, Vector2D(0,0));
+            std::vector<Vector2D> temp_vel(5, Vector2D(0,0));
+            std::vector<AngleDeg> temp_body(5, AngleDeg(0));
+            std::vector<int> temp_pos_count(5, -1);
+            DataExtractor::history_pos.push_back(temp_pos);
+            DataExtractor::history_vel.push_back(temp_vel);
+            DataExtractor::history_body.push_back(temp_body);
+            DataExtractor::history_pos_count.push_back(temp_pos_count);
+            DataExtractor::history_vel_count.push_back(temp_pos_count);
+            DataExtractor::history_body_count.push_back(temp_pos_count);
+        }
+    }
+    if (last_update == wm.time().cycle())
+        return;
+    last_update = wm.time().cycle();
+    if (wm.ball().posValid()){
+        DataExtractor::history_pos[0].push_back(wm.ball().pos());
+        DataExtractor::history_pos_count[0].push_back(wm.ball().posCount());
+    }else{
+        DataExtractor::history_pos[0].push_back(Vector2D::INVALIDATED);
+        DataExtractor::history_pos_count[0].push_back(-1);
+    }
+    if (wm.ball().velValid()){
+        DataExtractor::history_vel[0].push_back(wm.ball().vel());
+        DataExtractor::history_vel_count[0].push_back(wm.ball().velCount());
+    }else{
+        DataExtractor::history_vel[0].push_back(Vector2D::INVALIDATED);
+        DataExtractor::history_vel_count[0].push_back(-1);
+    }
+    for (int i=1; i<=11; i++){
+        const AbstractPlayerObject * p = wm.ourPlayer(i);
+        if(p == NULL || p->unum() != i){
+            DataExtractor::history_pos[i].push_back(Vector2D::INVALIDATED);
+            DataExtractor::history_pos_count[i].push_back(-1);
+            DataExtractor::history_vel[i].push_back(Vector2D::INVALIDATED);
+            DataExtractor::history_vel_count[i].push_back(-1);
+            DataExtractor::history_body[i].push_back(AngleDeg(0));
+            DataExtractor::history_body_count[i].push_back(-1);
+        }else{
+            if(p->pos().isValid()){
+                DataExtractor::history_pos[i].push_back(p->pos());
+                DataExtractor::history_pos_count[i].push_back(p->posCount());
+            }else{
+                DataExtractor::history_pos[i].push_back(Vector2D::INVALIDATED);
+                DataExtractor::history_pos_count[i].push_back(-1);
+            }
+            if(p->vel().isValid()){
+                DataExtractor::history_vel[i].push_back(p->vel());
+                DataExtractor::history_vel_count[i].push_back(p->velCount());
+            }else{
+                DataExtractor::history_vel[i].push_back(Vector2D::INVALIDATED);
+                DataExtractor::history_vel_count[i].push_back(-1);
+            }
+            DataExtractor::history_body[i].push_back(p->body());
+            DataExtractor::history_body_count[i].push_back(p->bodyCount());
+        }
+    }
+    for (int i=1; i<=11; i++){
+        const AbstractPlayerObject * p = wm.theirPlayer(i);
+        if(p == NULL || p->unum() != i){
+            DataExtractor::history_pos[i+11].push_back(Vector2D::INVALIDATED);
+            DataExtractor::history_pos_count[i+11].push_back(-1);
+            DataExtractor::history_vel[i+11].push_back(Vector2D::INVALIDATED);
+            DataExtractor::history_vel_count[i+11].push_back(-1);
+            DataExtractor::history_body[i+11].push_back(AngleDeg(0));
+            DataExtractor::history_body_count[i+11].push_back(-1);
+        }else{
+            if(p->pos().isValid()){
+                DataExtractor::history_pos[i+11].push_back(p->pos());
+                DataExtractor::history_pos_count[i+11].push_back(p->posCount());
+            }else{
+                DataExtractor::history_pos[i+11].push_back(Vector2D::INVALIDATED);
+                DataExtractor::history_pos_count[i+11].push_back(-1);
+            }
+            if(p->vel().isValid()){
+                DataExtractor::history_vel[i+11].push_back(p->vel());
+                DataExtractor::history_vel_count[i+11].push_back(p->velCount());
+            }else{
+                DataExtractor::history_vel[i+11].push_back(Vector2D::INVALIDATED);
+                DataExtractor::history_vel_count[i+11].push_back(-1);
+            }
+            DataExtractor::history_body[i+11].push_back(p->body());
+            DataExtractor::history_body_count[i+11].push_back(p->bodyCount());
+        }
+    }
+}
+
+
+void DataExtractor::update(const PlayerAgent *agent, const ActionStatePair *first_layer,bool update_shoot) {
+    if(!DataExtractor::active)
+        return;
+    const WorldModel &wm = option.input_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+
+    if (last_update_cycle == wm.time().cycle())
+        return;
+    if (!wm.self().isKickable())
+        return;
+    if (wm.gameMode().type() != rcsc::GameMode::PlayOn)
+        return;
+    if (!fout.is_open()) {
+        init_file(wm);
+    }
+    last_update_cycle = wm.time().cycle();
+    data.clear();
+
+    if (!update_shoot){
+        if (
+                ((CooperativeAction &) first_layer->action()).category() > 2
+                ||
+                !((CooperativeAction &) first_layer->action()).targetPoint().isValid()
+                ||
+                ((CooperativeAction &) first_layer->action()).targetPlayerUnum() > 11
+                ||
+                ((CooperativeAction &) first_layer->action()).targetPlayerUnum() < 1
+                )
+            return;
+    }
+
+    // cycle
+    ADD_ELEM("cycle", convertor_cycle(last_update_cycle));
+
+    // ball
+    extract_ball(wm);
+
+    // kicker
+    extract_kicker(wm);
+
+    // players
+    extract_players(wm);
+
+    // output
+    if (!update_shoot){
+        extract_output(wm,
+                       ((CooperativeAction &) first_layer->action()).category(),
+                       ((CooperativeAction &) first_layer->action()).targetPoint(),
+                       ((CooperativeAction &) first_layer->action()).targetPlayerUnum(),
+                       ((CooperativeAction &) first_layer->action()).description(),
+                       ((CooperativeAction &) first_layer->action()).firstBallSpeed());
+        fout << std::endl;
+    }
+}
+
+DataExtractor &DataExtractor::i() {
+    static DataExtractor instance;
+    return instance;
+}
+
 
 void DataExtractor::extract_ball(const rcsc::WorldModel &wm) {
     if (wm.ball().posValid()) {
@@ -1497,35 +1533,3 @@ Polar::Polar(rcsc::Vector2D p) {
     r = p.r();
 }
 
-DataExtractor::Option::Option() {
-    side = BOTH;
-    unum = BOTH;
-    type = BOTH;
-    body = BOTH;
-    face = BOTH;
-    tackling = NONE;
-    kicking = NONE;
-    card = NONE;
-    pos = BOTH;
-    relativePos = BOTH;
-    polarPos = BOTH;
-    vel = BOTH;
-    polarVel = BOTH;
-    counts = BOTH;
-    isKicker = TM;
-    isGhost = TM;
-    openAnglePass = TM;
-    nearestOppDist = TM;
-    polarGoalCenter = TM;
-    openAngleGoal = NONE;
-    in_offside = TM;
-
-    dribleAngle = NONE;
-    nDribleAngle = 12;
-    history_size = 0;
-    input_worldMode = NONE_FULLSTATE;
-    output_worldMode = NONE_FULLSTATE;
-    playerSortMode = X;
-    kicker_first = false;
-    use_convertor = true;
-}
