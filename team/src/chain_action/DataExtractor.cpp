@@ -40,8 +40,8 @@ DataExtractor::Option::Option() {
     type = BOTH;
     body = BOTH;
     face = BOTH;
-    tackling = NONE;
-    kicking = NONE;
+    tackling = BOTH;
+    kicking = BOTH;
     card = NONE;
     pos = BOTH;
     relativePos = BOTH;
