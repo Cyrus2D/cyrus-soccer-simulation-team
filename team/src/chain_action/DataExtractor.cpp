@@ -439,15 +439,18 @@ void DataExtractor::extract_ball(const rcsc::WorldModel &wm) {
         ADD_ELEM("p_y", convertor_y(wm.ball().pos().y));
         ADD_ELEM("p_r", convertor_dist(wm.ball().pos().r()));
         ADD_ELEM("p_t", convertor_angle(wm.ball().pos().th().degree()));
-        ADD_ELEM("kicker_x", convertor_dist_x(wm.ball().rpos().x));
-        ADD_ELEM("kicker_y", convertor_dist_y(wm.ball().rpos().y));
-        ADD_ELEM("kicker_r", convertor_dist(wm.ball().rpos().r()));
-        ADD_ELEM("kicker_t", convertor_angle(wm.ball().rpos().th().degree()));
     } else {
         ADD_ELEM("p_x", invalid_data);
         ADD_ELEM("p_y", invalid_data);
         ADD_ELEM("p_r", invalid_data);
         ADD_ELEM("p_t", invalid_data);
+    }
+    if (wm.ball().rposValid()){
+        ADD_ELEM("kicker_x", convertor_dist_x(wm.ball().rpos().x));
+        ADD_ELEM("kicker_y", convertor_dist_y(wm.ball().rpos().y));
+        ADD_ELEM("kicker_r", convertor_dist(wm.ball().rpos().r()));
+        ADD_ELEM("kicker_t", convertor_angle(wm.ball().rpos().th().degree()));
+    }else{
         ADD_ELEM("kicker_x", invalid_data);
         ADD_ELEM("kicker_y", invalid_data);
         ADD_ELEM("kicker_r", invalid_data);
@@ -502,7 +505,7 @@ void DataExtractor::extract_players(const rcsc::WorldModel &wm) {
     auto players = sort_players(wm);
     for (uint i = 0; i < players.size(); i++) {
         const AbstractPlayerObject *player = players[i];
-        if (player == NULL) {
+        if (player == nullptr) {
             add_null_player(invalid_data,
                             (i <= 10 ? TM : OPP));
             continue;
@@ -563,7 +566,7 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players(const rcsc
     }
 
     auto unum_sort = [](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
-        return p1->unum() > p2->unum();
+        return p1->unum() < p2->unum();
     };
     auto x_sort = [](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
         return p1->pos().x > p2->pos().x;
@@ -588,13 +591,13 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players(const rcsc
     }
 
     if (option.kicker_first){
-        for (; tms.size() < 10; tms.push_back(static_cast<AbstractPlayerObject *>(0)));
+        for (; tms.size() < 10; tms.push_back(nullptr);
         tms.insert(tms.begin(), wm.ourPlayer(wm.self().unum()));
     }else{
-        for (; tms.size() < 11; tms.push_back(static_cast<AbstractPlayerObject *>(0)));
+        for (; tms.size() < 11; tms.push_back(nullptr);
     }
 
-    for (; opps.size() < 15; opps.push_back(static_cast<AbstractPlayerObject *>(0)));
+    for (; opps.size() < 15; opps.push_back(nullptr);
 
     tms.insert(tms.end(), opps.begin(), opps.end());
 
@@ -608,7 +611,7 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players2(const rcs
         return tms;
     }
     auto unum_sort = [](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
-        return p1->unum() > p2->unum();
+        return p1->unum() < p2->unum();
     };
     auto x_sort = [](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
         return p1->pos().x > p2->pos().x;
@@ -624,7 +627,7 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players2(const rcs
     for (int i = 1; i <= 11; i++){
         const AbstractPlayerObject * player = wm.ourPlayer(i);
         if (player == nullptr || player->unum() < 0 || !player->pos().isValid() || player->isGhost()){
-            tms.push_back(static_cast<AbstractPlayerObject *>(0));
+            tms.push_back(nullptr);
             continue;
         }
         tms.push_back(player);
@@ -641,15 +644,15 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players2(const rcs
                 break;
         }
         std::sort(opps.begin(), opps.end(), x_sort);
-        for (; opps.size() < 15; opps.push_back(static_cast<AbstractPlayerObject *>(0)));
+        for (; opps.size() < 15; opps.push_back(nullptr);
     } else if (option.playerSortMode == UNUM){
         for (int i = 1; i <= 11; i++){
             const AbstractPlayerObject * player = wm.theirPlayer(i);
-            if (player == nullptr || player->unum() < 0 || !player->pos().isValid() || player->isGhost()){
-                tms.push_back(static_cast<AbstractPlayerObject *>(0));
+            if (player == nullptr || player->unum() < 0 || !player->pos().isValid()){
+                opps.push_back(nullptr);
                 continue;
             }
-            tms.push_back(player);
+            opps.push_back(player);
         }
         int max_opponent_count = 15;
         for (const PlayerObject &player: wm.opponents()) {
@@ -661,7 +664,7 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players2(const rcs
             if (opps.size() == max_opponent_count)
                 break;
         }
-        for (; opps.size() < 15; opps.push_back(static_cast<AbstractPlayerObject *>(0)));
+        for (; opps.size() < 15; opps.push_back(nullptr);
     }
 
     tms.insert(tms.end(), opps.begin(), opps.end());
@@ -677,7 +680,7 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players3(const rcs
         return tms;
     }
     auto unum_sort = [](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
-        return p1->unum() > p2->unum();
+        return p1->unum() < p2->unum();
     };
     auto x_sort = [](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
         return p1->pos().x > p2->pos().x;
@@ -692,8 +695,8 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players3(const rcs
 
     for (int i = 1; i <= 11; i++){
         const AbstractPlayerObject * player = wm.ourPlayer(i);
-        if (player == nullptr || player->unum() < 0 || !player->pos().isValid() || player->isGhost()){
-            tms.push_back(static_cast<AbstractPlayerObject *>(0));
+        if (player == nullptr || player->unum() < 0 || !player->pos().isValid()){
+            tms.push_back(nullptr);
             continue;
         }
         tms.push_back(player);
@@ -710,15 +713,15 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players3(const rcs
                 break;
         }
         std::sort(opps.begin(), opps.end(), x_sort);
-        for (; opps.size() < 15; opps.push_back(static_cast<AbstractPlayerObject *>(0)));
+        for (; opps.size() < 15; opps.push_back(nullptr);
     } else if (option.playerSortMode == UNUM){
         for (int i = 1; i <= 11; i++){
             const AbstractPlayerObject * player = wm.theirPlayer(i);
             if (player == nullptr || player->unum() < 0 || !player->pos().isValid() || player->isGhost()){
-                tms.push_back(static_cast<AbstractPlayerObject *>(0));
+                opps.push_back(static_cast<AbstractPlayerObject *>(0));
                 continue;
             }
-            tms.push_back(player);
+            opps.push_back(player);
         }
         int max_opponent_count = 15;
         for (const AbstractPlayerObject *player: wm.theirPlayers()) {
@@ -730,7 +733,7 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players3(const rcs
             if (opps.size() == max_opponent_count)
                 break;
         }
-        for (; opps.size() < 15; opps.push_back(static_cast<AbstractPlayerObject *>(0)));
+        for (; opps.size() < 15; opps.push_back(nullptr);
     }
 
     tms.insert(tms.end(), opps.begin(), opps.end());
@@ -1129,13 +1132,13 @@ void DataExtractor::extract_goal_open_angle(const rcsc::AbstractPlayerObject *pl
 
     std::vector<Vector2D> players_in_area;
 
-    for (const auto& opp: wm.opponents()){
-        if (!opp.pos().isValid())
+    for (const auto& opp: wm.theirPlayers()){
+        if (!opp->pos().isValid())
             continue;
-        if (!player_goal_area.contains(opp.pos()))
+        if (!player_goal_area.contains(opp->pos()))
             continue;
 
-        players_in_area.push_back(opp.pos());
+        players_in_area.push_back(opp->pos());
     }
     players_in_area.push_back(goal_t);
     players_in_area.push_back(goal_b);
@@ -1158,8 +1161,13 @@ void DataExtractor::extract_goal_open_angle(const rcsc::AbstractPlayerObject *pl
 void DataExtractor::extract_base_data(const rcsc::AbstractPlayerObject *player, DataSide side, const rcsc::WorldModel &wm) {
     if (option.side == side || option.side == BOTH)
         ADD_ELEM("side", player->side());
-    if (option.unum == side || option.unum == BOTH)
-        ADD_ELEM("unum", convertor_unum(player->unum()));
+    if (option.unum == side || option.unum == BOTH){
+        if (player->unum() == -1){
+            ADD_ELEM("unum", convertor_unum(invalid_data);
+        }else{
+            ADD_ELEM("unum", convertor_unum(player->unum()));
+        }
+    }
     if (option.type == side || option.type == BOTH)
         extract_type(player, side);
     int max_face_count = 5;
@@ -1188,7 +1196,7 @@ void DataExtractor::extract_base_data(const rcsc::AbstractPlayerObject *player, 
 }
 
 void DataExtractor::extract_type(const AbstractPlayerObject *player, DataSide side) {
-    if (player->unum() < 0){
+    if (player->unum() < 0 || player->playerTypePtr() == nullptr){
         ADD_ELEM("player_type_dash_rate", invalid_data);
         ADD_ELEM("player_type_effort_max", invalid_data);
         ADD_ELEM("player_type_effort_min", invalid_data);
@@ -1456,14 +1464,20 @@ double DataExtractor::convertor_counts(double count) {
 
 uint DataExtractor::find_unum_index(const rcsc::WorldModel &wm, uint unum) {
     auto players = sort_players(wm);
+    if (players.size() < 11)
+        std::cout<<wm.self().unum()<<" "<<"size problems"<<players.size()<<std::endl;
     for (uint i = 0; i < 11; i++) {
         auto player = players[i];
-        if (player == NULL)
-            return 0;
+        if (player == nullptr)
+            continue;
         if (player->unum() == unum)
             return i + 1; // TODO add 1 or not??
     }
+
+    std::cout<<wm.self().unum()<<" "<<"not match"<<players.size()<<std::endl;
+    return 0;
 }
+
 
 Polar::Polar(rcsc::Vector2D p) {
     teta = p.th().degree();
