@@ -637,13 +637,13 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players(const rcsc
     }
 
     if (option.kicker_first){
-        for (; tms.size() < 10; tms.push_back(nullptr);
+        for (; tms.size() < 10; tms.push_back(nullptr));
         tms.insert(tms.begin(), wm.ourPlayer(wm.self().unum()));
     }else{
-        for (; tms.size() < 11; tms.push_back(nullptr);
+        for (; tms.size() < 11; tms.push_back(nullptr));
     }
 
-    for (; opps.size() < 15; opps.push_back(nullptr);
+    for (; opps.size() < 15; opps.push_back(nullptr));
 
     tms.insert(tms.end(), opps.begin(), opps.end());
 
@@ -690,7 +690,7 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players2(const rcs
                 break;
         }
         std::sort(opps.begin(), opps.end(), x_sort);
-        for (; opps.size() < 15; opps.push_back(nullptr);
+        for (; opps.size() < 15; opps.push_back(nullptr));
     } else if (option.playerSortMode == UNUM){
         for (int i = 1; i <= 11; i++){
             const AbstractPlayerObject * player = wm.theirPlayer(i);
@@ -710,7 +710,7 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players2(const rcs
             if (opps.size() == max_opponent_count)
                 break;
         }
-        for (; opps.size() < 15; opps.push_back(nullptr);
+        for (; opps.size() < 15; opps.push_back(nullptr));
     }
 
     tms.insert(tms.end(), opps.begin(), opps.end());
@@ -759,7 +759,7 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players3(const rcs
                 break;
         }
         std::sort(opps.begin(), opps.end(), x_sort);
-        for (; opps.size() < 15; opps.push_back(nullptr);
+        for (; opps.size() < 15; opps.push_back(nullptr));
     } else if (option.playerSortMode == UNUM){
         for (int i = 1; i <= 11; i++){
             const AbstractPlayerObject * player = wm.theirPlayer(i);
@@ -779,7 +779,7 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players3(const rcs
             if (opps.size() == max_opponent_count)
                 break;
         }
-        for (; opps.size() < 15; opps.push_back(nullptr);
+        for (; opps.size() < 15; opps.push_back(nullptr));
     }
 
     tms.insert(tms.end(), opps.begin(), opps.end());
@@ -1212,7 +1212,7 @@ void DataExtractor::extract_base_data(const rcsc::AbstractPlayerObject *player, 
         ADD_ELEM("side", player->side());
     if (option.unum == side || option.unum == BOTH){
         if (player->unum() == -1){
-            ADD_ELEM("unum", convertor_unum(invalid_data);
+            ADD_ELEM("unum", invalid_data);
         }else{
             ADD_ELEM("unum", convertor_unum(player->unum()));
         }
