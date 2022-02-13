@@ -117,11 +117,11 @@ PLAYERHEADERS = \
     strategy.h
 
 DATAEXTRACTORSOURCE = \
-    data_extractor/DataExtractor2.cpp \
+    data_extractor/offensive_data_extractor.cpp \
     data_extractor/DEState.cpp
 
 DATAEXTRACTORHEADERS = \
-    data_extractor/DataExtractor2.h \
+    data_extractor/offensive_data_extractor.h \
     data_extractor/DEState.h
 
 CHAINACTIONSOURCES = \
