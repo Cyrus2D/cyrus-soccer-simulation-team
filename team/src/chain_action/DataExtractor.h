@@ -49,6 +49,7 @@ private:
         DataSide polarVel;
         DataSide counts;
         DataSide isKicker;
+        DataSide isGhost;
         DataSide openAnglePass;
         DataSide nearestOppDist;
         DataSide polarGoalCenter;
@@ -105,7 +106,7 @@ private:
 
     void extract_pos(const rcsc::AbstractPlayerObject *player, const rcsc::WorldModel &wm, DataSide side);
 
-    void extract_vel(const rcsc::AbstractPlayerObject *player, DataSide side);
+    void extract_vel(const rcsc::AbstractPlayerObject *player, DataSide side, const rcsc::WorldModel &wm);
 
     void extract_pass_angle(const rcsc::AbstractPlayerObject *player, const rcsc::WorldModel &wm, DataSide side);
 
@@ -113,7 +114,7 @@ private:
 
     void extract_goal_open_angle(const rcsc::AbstractPlayerObject *player, const rcsc::WorldModel &wm, DataSide side);
 
-    void extract_base_data(const rcsc::AbstractPlayerObject *player, DataSide side);
+    void extract_base_data(const rcsc::AbstractPlayerObject *player, DataSide side, const rcsc::WorldModel &wm);
 
     void extract_type(const rcsc::AbstractPlayerObject *player, DataSide side);
 
@@ -158,7 +159,7 @@ private:
 
     double convertor_counts(double count);
 
-    void extract_counts(const rcsc::AbstractPlayerObject *player, DataSide side);
+    void extract_counts(const rcsc::AbstractPlayerObject *player, DataSide side, const rcsc::WorldModel &wm);
 
     void extract_kicker(const rcsc::WorldModel &wm);
 
@@ -166,6 +167,7 @@ private:
 
     std::vector<const rcsc::AbstractPlayerObject *> sort_players(const rcsc::WorldModel &wm);
     std::vector<const rcsc::AbstractPlayerObject *> sort_players2(const rcsc::WorldModel &wm);
+    std::vector<const rcsc::AbstractPlayerObject *> sort_players3(const rcsc::WorldModel &wm);
     static std::vector<std::vector<rcsc::Vector2D>> history_pos;
     static std::vector<std::vector<rcsc::Vector2D>> history_vel;
     static std::vector<std::vector<rcsc::AngleDeg>> history_body;

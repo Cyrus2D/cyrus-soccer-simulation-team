@@ -4,10 +4,10 @@
 
 #include "DataExtractor.h"
 #include "cooperative_action.h"
+#include "../sample_player.h"
 #include <rcsc/player/world_model.h>
 #include <random>
 #include <time.h>
-
 #include <vector>
 
 
@@ -33,7 +33,293 @@ DataExtractor::DataExtractor() :
 DataExtractor::~DataExtractor() {
 }
 
-#include "../sample_player.h"
+
+DataExtractor::Option::Option() {
+    side = BOTH;
+    unum = BOTH;
+    type = BOTH;
+    body = BOTH;
+    face = BOTH;
+    tackling = BOTH;
+    kicking = BOTH;
+    card = NONE;
+    pos = BOTH;
+    relativePos = BOTH;
+    polarPos = BOTH;
+    vel = BOTH;
+    polarVel = BOTH;
+    counts = BOTH;
+    isKicker = TM;
+    isGhost = TM;
+    openAnglePass = TM;
+    nearestOppDist = TM;
+    polarGoalCenter = TM;
+    openAngleGoal = NONE;
+    in_offside = TM;
+
+    dribleAngle = NONE;
+    nDribleAngle = 12;
+    history_size = 0;
+    input_worldMode = NONE_FULLSTATE;
+    output_worldMode = NONE_FULLSTATE;
+    playerSortMode = X;
+    kicker_first = false;
+    use_convertor = true;
+}
+
+
+void DataExtractor::init_file(const rcsc::WorldModel &wm) {
+    time_t rawtime;
+    struct tm *timeinfo;
+    char buffer[80];
+
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+
+    std::string dir = "/mnt/f/xxx/";
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d-%H-%M-%S", timeinfo);
+    std::string str(buffer);
+    std::string rand_name = std::to_string(SamplePlayer::player_port);
+    str += "_" + std::to_string(wm.self().unum()) + "_" + wm.opponentTeamName() + "_E" + rand_name + ".csv";
+
+    fout = std::ofstream((dir + str).c_str());
+
+    // Cycle and BALL
+    std::string header = "cycle,ball_pos_x,ball_pos_y,ball_pos_r,ball_pos_t,ball_kicker_x,ball_kicker_y,ball_kicker_r,ball_kicker_t,ball_vel_x,ball_vel_y,ball_vel_r,ball_vel_t,";
+    for (int j = 0; j < option.history_size; j++){
+        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_pos_x,";
+        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_pos_y,";
+        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_pos_r,";
+        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_pos_t,";
+        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_vel_x,";
+        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_vel_y,";
+        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_vel_r,";
+        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_vel_t,";
+    }
+    header += "offside_count,";
+
+    // Kicker
+    if (option.dribleAngle == Kicker)
+        for (int i = 0; i < option.nDribleAngle; i++) {
+            header += "dribble_angle_" + std::to_string(i) + ",";
+        }
+
+    for (int i = 1; i <= 11; i++) {
+        if (option.side == TM || option.side == BOTH)
+            header += "p_l_" + std::to_string(i) + "_side,";
+        if (option.unum == TM || option.unum == BOTH)
+            header += "p_l_" + std::to_string(i) + "_unum,";
+        if (option.type == TM || option.type == BOTH) {
+            header += "p_l_" + std::to_string(i) + "_player_type_dash_rate,";
+            header += "p_l_" + std::to_string(i) + "_player_type_effort_max,";
+            header += "p_l_" + std::to_string(i) + "_player_type_effort_min,";
+            header += "p_l_" + std::to_string(i) + "_player_type_kickable,";
+            header += "p_l_" + std::to_string(i) + "_player_type_margin,";
+            header += "p_l_" + std::to_string(i) + "_player_type_kick_power,";
+            header += "p_l_" + std::to_string(i) + "_player_type_decay,";
+            header += "p_l_" + std::to_string(i) + "_player_type_size,";
+            header += "p_l_" + std::to_string(i) + "_player_type_speed_max,";
+        }
+        if (option.body == TM || option.body == BOTH)
+            header += "p_l_" + std::to_string(i) + "_body,";
+        if (option.face == TM || option.face == BOTH)
+            header += "p_l_" + std::to_string(i) + "_face,";
+        if (option.tackling == TM || option.tackling == BOTH)
+            header += "p_l_" + std::to_string(i) + "_tackling,";
+        if (option.kicking == TM || option.kicking == BOTH)
+            header += "p_l_" + std::to_string(i) + "_kicking,";
+        if (option.card == TM || option.card == BOTH)
+            header += "p_l_" + std::to_string(i) + "_card,";
+        if (option.pos == TM || option.pos == BOTH) {
+            header += "p_l_" + std::to_string(i) + "_pos_x,";
+            header += "p_l_" + std::to_string(i) + "_pos_y,";
+        }
+        if (option.polarPos == TM || option.polarPos == BOTH) {
+            header += "p_l_" + std::to_string(i) + "_pos_r,";
+            header += "p_l_" + std::to_string(i) + "_pos_t,";
+        }
+        if (option.relativePos == TM || option.relativePos == BOTH) {
+            header += "p_l_" + std::to_string(i) + "_kicker_x,";
+            header += "p_l_" + std::to_string(i) + "_kicker_y,";
+            header += "p_l_" + std::to_string(i) + "_kicker_r,";
+            header += "p_l_" + std::to_string(i) + "_kicker_t,";
+        }
+        if (option.in_offside == TM)
+            header += "p_l_" + std::to_string(i) + "_in_offside,";
+        if (option.vel == TM || option.vel == BOTH) {
+            header += "p_l_" + std::to_string(i) + "_vel_x,";
+            header += "p_l_" + std::to_string(i) + "_vel_y,";
+        }
+        if (option.polarVel == TM || option.polarVel == BOTH) {
+            header += "p_l_" + std::to_string(i) + "_vel_r,";
+            header += "p_l_" + std::to_string(i) + "_vel_t,";
+        }
+        if (option.counts == TM || option.counts == BOTH) {
+            header += "p_l_" + std::to_string(i) + "_pos_count,";
+            header += "p_l_" + std::to_string(i) + "_vel_count,";
+            header += "p_l_" + std::to_string(i) + "_body_count,";
+        }
+        if (option.isKicker == TM || option.isKicker == BOTH)
+            header += "p_l_" + std::to_string(i) + "_is_kicker,";
+        if (option.isGhost == TM || option.isGhost == BOTH)
+            header += "p_l_" + std::to_string(i) + "_is_ghost,";
+        if (option.openAnglePass == TM || option.openAnglePass == BOTH) {
+            header += "p_l_" + std::to_string(i) + "_pass_dist,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp1_dist,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp1_angle,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp1_dist_line,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp1_dist_proj,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp1_dist_diffbody,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp2_dist,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp2_angle,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp2_dist_line,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp2_dist_proj,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp2_dist_diffbody,";
+        }
+        if (option.nearestOppDist == TM || option.nearestOppDist == BOTH){
+            header += "p_l_" + std::to_string(i) + "_near1_opp_dist,";
+            header += "p_l_" + std::to_string(i) + "_near1_opp_angle,";
+            header += "p_l_" + std::to_string(i) + "_near1_opp_diffbody,";
+            header += "p_l_" + std::to_string(i) + "_near2_opp_dist,";
+            header += "p_l_" + std::to_string(i) + "_near2_opp_angle,";
+            header += "p_l_" + std::to_string(i) + "_near2_opp_diffbody,";
+        }
+        if (option.polarGoalCenter == TM || option.polarGoalCenter == BOTH) {
+            header += "p_l_" + std::to_string(i) + "_angle_goal_center_r,";
+            header += "p_l_" + std::to_string(i) + "_angle_goal_center_t,";
+        }
+        if (option.openAngleGoal == TM || option.openAngleGoal == BOTH)
+            header += "p_l_" + std::to_string(i) + "_open_goal_angle,";
+        for (int j = 0; j < option.history_size; j++){
+            if (option.body == TM || option.body == BOTH)
+                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_body,";
+            if (option.pos == TM || option.pos == BOTH) {
+                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_x,";
+                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_y,";
+            }
+            if (option.polarPos == TM || option.polarPos == BOTH) {
+                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_r,";
+                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_t,";
+            }
+            if (option.vel == TM || option.vel == BOTH) {
+                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_x,";
+                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_y,";
+            }
+            if (option.polarVel == TM || option.polarVel == BOTH) {
+                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_r,";
+                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_t,";
+            }
+            if (option.counts == TM || option.counts == BOTH) {
+                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_count,";
+                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_count,";
+                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_body_count,";
+            }
+        }
+    }
+    for (int i = 1; i <= 15; i++) {
+        if (option.side == OPP || option.side == BOTH)
+            header += "p_r_" + std::to_string(i) + "_side,";
+        if (option.unum == OPP || option.unum == BOTH)
+            header += "p_r_" + std::to_string(i) + "_unum,";
+        if (option.type == OPP || option.type == BOTH) {
+            header += "p_r_" + std::to_string(i) + "_player_type_dash_rate,";
+            header += "p_r_" + std::to_string(i) + "_player_type_effort_max,";
+            header += "p_r_" + std::to_string(i) + "_player_type_effort_min,";
+            header += "p_r_" + std::to_string(i) + "_player_type_kickable,";
+            header += "p_r_" + std::to_string(i) + "_player_type_margin,";
+            header += "p_r_" + std::to_string(i) + "_player_type_kick_power,";
+            header += "p_r_" + std::to_string(i) + "_player_type_decay,";
+            header += "p_r_" + std::to_string(i) + "_player_type_size,";
+            header += "p_r_" + std::to_string(i) + "_player_type_speed_max,";
+        }
+        if (option.body == OPP || option.body == BOTH)
+            header += "p_r_" + std::to_string(i) + "_body,";
+        if (option.face == OPP || option.face == BOTH)
+            header += "p_r_" + std::to_string(i) + "_face,";
+        if (option.tackling == OPP || option.tackling == BOTH)
+            header += "p_r_" + std::to_string(i) + "_tackling,";
+        if (option.kicking == OPP || option.kicking == BOTH)
+            header += "p_r_" + std::to_string(i) + "_kicking,";
+        if (option.card == OPP || option.card == BOTH)
+            header += "p_r_" + std::to_string(i) + "_card,";
+        if (option.pos == OPP || option.pos == BOTH) {
+            header += "p_r_" + std::to_string(i) + "_pos_x,";
+            header += "p_r_" + std::to_string(i) + "_pos_y,";
+        }
+        if (option.polarPos == OPP || option.polarPos == BOTH) {
+            header += "p_r_" + std::to_string(i) + "_pos_r,";
+            header += "p_r_" + std::to_string(i) + "_pos_t,";
+        }
+        if (option.relativePos == OPP || option.relativePos == BOTH) {
+            header += "p_r_" + std::to_string(i) + "_kicker_x,";
+            header += "p_r_" + std::to_string(i) + "_kicker_y,";
+            header += "p_r_" + std::to_string(i) + "_kicker_r,";
+            header += "p_r_" + std::to_string(i) + "_kicker_t,";
+        }
+        if (option.vel == OPP || option.vel == BOTH) {
+            header += "p_r_" + std::to_string(i) + "_vel_x,";
+            header += "p_r_" + std::to_string(i) + "_vel_y,";
+        }
+        if (option.polarVel == OPP || option.polarVel == BOTH) {
+            header += std::string("p_r_") + std::to_string(i) + "_vel_r,";
+            header += std::string("p_r_") + std::to_string(i) + "_vel_t,";
+        }
+        if (option.counts == OPP || option.counts == BOTH) {
+            header += std::string("p_r_") + std::to_string(i) + "_pos_count,";
+            header += std::string("p_r_") + std::to_string(i) + "_vel_count,";
+            header += std::string("p_r_") + std::to_string(i) + "_body_count,";
+        }
+        if (option.isKicker == OPP || option.isKicker == BOTH)
+            header += "p_r_" + std::to_string(i) + "_is_kicker,";
+        if (option.isGhost == OPP || option.isGhost == BOTH)
+            header += "p_r_" + std::to_string(i) + "_is_ghost,";
+        if (option.openAnglePass == OPP || option.openAnglePass == BOTH) {
+            header += "p_r_" + std::to_string(i) + "_pass_angle,";
+            header += "p_r_" + std::to_string(i) + "_pass_dist,";
+        }
+        if (option.nearestOppDist == OPP || option.nearestOppDist == BOTH){
+            header += "p_r_" + std::to_string(i) + "_near1_opp_dist,";
+            header += "p_r_" + std::to_string(i) + "_near1_opp_angle,";
+            header += "p_r_" + std::to_string(i) + "_near2_opp_dist,";
+            header += "p_r_" + std::to_string(i) + "_near2_opp_angle,";
+        }
+        if (option.polarGoalCenter == OPP || option.polarGoalCenter == BOTH) {
+            header += "p_r_" + std::to_string(i) + "_angle_coal_center_r,";
+            header += "p_r_" + std::to_string(i) + "_angle_goal_center_t,";
+        }
+        if (option.openAngleGoal == OPP || option.openAngleGoal == BOTH)
+            header += "p_r_" + std::to_string(i) + "_open_goal_Angle,";
+        for (int j = 0; j < option.history_size; j++){
+            if (option.body == OPP || option.body == BOTH)
+                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_body,";
+            if (option.pos == OPP || option.pos == BOTH) {
+                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_x,";
+                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_y,";
+            }
+            if (option.polarPos == OPP || option.polarPos == BOTH) {
+                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_r,";
+                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_t,";
+            }
+            if (option.vel == OPP || option.vel == BOTH) {
+                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_x,";
+                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_y,";
+            }
+            if (option.polarVel == OPP || option.polarVel == BOTH) {
+                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_r,";
+                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_t,";
+            }
+            if (option.counts == OPP || option.counts == BOTH) {
+                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_count,";
+                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_count,";
+                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_body_count,";
+            }
+        }
+    }
+    header += "out_category,out_target_x,out_target_y,out_unum,out_unum_index,out_ball_speed,out_ball_dir,out_desc,";
+    fout << header << std::endl;
+}
+
+
 void DataExtractor::update_history(const rcsc::PlayerAgent *agent){
     const WorldModel &wm = option.input_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
     static int last_update = -1;
@@ -186,252 +472,6 @@ DataExtractor &DataExtractor::i() {
     return instance;
 }
 
-void DataExtractor::init_file(const rcsc::WorldModel &wm) {
-    time_t rawtime;
-    struct tm *timeinfo;
-    char buffer[80];
-
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-
-    std::string dir = "/mnt/f/xxx/";
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d-%H-%M-%S", timeinfo);
-    std::string str(buffer);
-    std::string rand_name = std::to_string(SamplePlayer::player_port);
-    str += "_" + std::to_string(wm.self().unum()) + "_" + wm.opponentTeamName() + "_E" + rand_name + ".csv";
-
-    fout = std::ofstream((dir + str).c_str());
-
-    // Cycle and BALL
-    std::string header = "cycle,ball_pos_x,ball_pos_y,ball_pos_r,ball_pos_t,ball_kicker_x,ball_kicker_y,ball_kicker_r,ball_kicker_t,ball_vel_x,ball_vel_y,ball_vel_r,ball_vel_t,";
-    for (int j = 0; j < option.history_size; j++){
-        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_pos_x,";
-        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_pos_y,";
-        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_pos_r,";
-        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_pos_t,";
-        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_vel_x,";
-        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_vel_y,";
-        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_vel_r,";
-        header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_vel_t,";
-    }
-    header += "offside_count,";
-
-    // Kicker
-    if (option.dribleAngle == Kicker)
-        for (int i = 0; i < option.nDribleAngle; i++) {
-            header += "dribble_angle_" + std::to_string(i) + ",";
-        }
-
-    for (int i = 1; i <= 11; i++) {
-        if (option.side == TM || option.side == BOTH)
-            header += "p_l_" + std::to_string(i) + "_side,";
-        if (option.unum == TM || option.unum == BOTH)
-            header += "p_l_" + std::to_string(i) + "_unum,";
-        if (option.type == TM || option.type == BOTH) {
-            header += "p_l_" + std::to_string(i) + "_player_type_dash_rate,";
-            header += "p_l_" + std::to_string(i) + "_player_type_effort_max,";
-            header += "p_l_" + std::to_string(i) + "_player_type_effort_min,";
-            header += "p_l_" + std::to_string(i) + "_player_type_kickable,";
-            header += "p_l_" + std::to_string(i) + "_player_type_margin,";
-            header += "p_l_" + std::to_string(i) + "_player_type_kick_power,";
-            header += "p_l_" + std::to_string(i) + "_player_type_decay,";
-            header += "p_l_" + std::to_string(i) + "_player_type_size,";
-            header += "p_l_" + std::to_string(i) + "_player_type_speed_max,";
-        }
-        if (option.body == TM || option.body == BOTH)
-            header += "p_l_" + std::to_string(i) + "_body,";
-        if (option.face == TM || option.face == BOTH)
-            header += "p_l_" + std::to_string(i) + "_face,";
-        if (option.tackling == TM || option.tackling == BOTH)
-            header += "p_l_" + std::to_string(i) + "_tackling,";
-        if (option.kicking == TM || option.kicking == BOTH)
-            header += "p_l_" + std::to_string(i) + "_kicking,";
-        if (option.card == TM || option.card == BOTH)
-            header += "p_l_" + std::to_string(i) + "_card,";
-        if (option.pos == TM || option.pos == BOTH) {
-            header += "p_l_" + std::to_string(i) + "_pos_x,";
-            header += "p_l_" + std::to_string(i) + "_pos_y,";
-        }
-        if (option.polarPos == TM || option.polarPos == BOTH) {
-            header += "p_l_" + std::to_string(i) + "_pos_r,";
-            header += "p_l_" + std::to_string(i) + "_pos_t,";
-        }
-        if (option.relativePos == TM || option.relativePos == BOTH) {
-            header += "p_l_" + std::to_string(i) + "_kicker_x,";
-            header += "p_l_" + std::to_string(i) + "_kicker_y,";
-            header += "p_l_" + std::to_string(i) + "_kicker_r,";
-            header += "p_l_" + std::to_string(i) + "_kicker_t,";
-        }
-        if (option.in_offside == TM)
-            header += "p_l_" + std::to_string(i) + "_in_offside,";
-        if (option.vel == TM || option.vel == BOTH) {
-            header += "p_l_" + std::to_string(i) + "_vel_x,";
-            header += "p_l_" + std::to_string(i) + "_vel_y,";
-        }
-        if (option.polarVel == TM || option.polarVel == BOTH) {
-            header += "p_l_" + std::to_string(i) + "_vel_r,";
-            header += "p_l_" + std::to_string(i) + "_vel_t,";
-        }
-        if (option.counts == TM || option.counts == BOTH) {
-            header += "p_l_" + std::to_string(i) + "_pos_count,";
-            header += "p_l_" + std::to_string(i) + "_vel_count,";
-            header += "p_l_" + std::to_string(i) + "_body_count,";
-        }
-        if (option.isKicker == TM || option.isKicker == BOTH)
-            header += "p_l_" + std::to_string(i) + "_is_kicker,";
-        if (option.openAnglePass == TM || option.openAnglePass == BOTH) {
-            header += "p_l_" + std::to_string(i) + "_pass_dist,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp1_dist,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp1_angle,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp1_dist_line,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp1_dist_proj,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp1_dist_diffbody,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp2_dist,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp2_angle,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp2_dist_line,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp2_dist_proj,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp2_dist_diffbody,";
-        }
-        if (option.nearestOppDist == TM || option.nearestOppDist == BOTH){
-            header += "p_l_" + std::to_string(i) + "_near1_opp_dist,";
-            header += "p_l_" + std::to_string(i) + "_near1_opp_angle,";
-            header += "p_l_" + std::to_string(i) + "_near1_opp_diffbody,";
-            header += "p_l_" + std::to_string(i) + "_near2_opp_dist,";
-            header += "p_l_" + std::to_string(i) + "_near2_opp_angle,";
-            header += "p_l_" + std::to_string(i) + "_near2_opp_diffbody,";
-        }
-        if (option.polarGoalCenter == TM || option.polarGoalCenter == BOTH) {
-            header += "p_l_" + std::to_string(i) + "_angle_goal_center_r,";
-            header += "p_l_" + std::to_string(i) + "_angle_goal_center_t,";
-        }
-        if (option.openAngleGoal == TM || option.openAngleGoal == BOTH)
-            header += "p_l_" + std::to_string(i) + "_open_goal_angle,";
-        for (int j = 0; j < option.history_size; j++){
-            if (option.body == TM || option.body == BOTH)
-                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_body,";
-            if (option.pos == TM || option.pos == BOTH) {
-                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_x,";
-                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_y,";
-            }
-            if (option.polarPos == TM || option.polarPos == BOTH) {
-                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_r,";
-                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_t,";
-            }
-            if (option.vel == TM || option.vel == BOTH) {
-                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_x,";
-                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_y,";
-            }
-            if (option.polarVel == TM || option.polarVel == BOTH) {
-                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_r,";
-                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_t,";
-            }
-            if (option.counts == TM || option.counts == BOTH) {
-                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_count,";
-                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_count,";
-                header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_body_count,";
-            }
-        }
-    }
-    for (int i = 1; i <= 15; i++) {
-        if (option.side == OPP || option.side == BOTH)
-            header += "p_r_" + std::to_string(i) + "_side,";
-        if (option.unum == OPP || option.unum == BOTH)
-            header += "p_r_" + std::to_string(i) + "_unum,";
-        if (option.type == OPP || option.type == BOTH) {
-            header += "p_r_" + std::to_string(i) + "_player_type_dash_rate,";
-            header += "p_r_" + std::to_string(i) + "_player_type_effort_max,";
-            header += "p_r_" + std::to_string(i) + "_player_type_effort_min,";
-            header += "p_r_" + std::to_string(i) + "_player_type_kickable,";
-            header += "p_r_" + std::to_string(i) + "_player_type_margin,";
-            header += "p_r_" + std::to_string(i) + "_player_type_kick_power,";
-            header += "p_r_" + std::to_string(i) + "_player_type_decay,";
-            header += "p_r_" + std::to_string(i) + "_player_type_size,";
-            header += "p_r_" + std::to_string(i) + "_player_type_speed_max,";
-        }
-        if (option.body == OPP || option.body == BOTH)
-            header += "p_r_" + std::to_string(i) + "_body,";
-        if (option.face == OPP || option.face == BOTH)
-            header += "p_r_" + std::to_string(i) + "_face,";
-        if (option.tackling == OPP || option.tackling == BOTH)
-            header += "p_r_" + std::to_string(i) + "_tackling,";
-        if (option.kicking == OPP || option.kicking == BOTH)
-            header += "p_r_" + std::to_string(i) + "_kicking,";
-        if (option.card == OPP || option.card == BOTH)
-            header += "p_r_" + std::to_string(i) + "_card,";
-        if (option.pos == OPP || option.pos == BOTH) {
-            header += "p_r_" + std::to_string(i) + "_pos_x,";
-            header += "p_r_" + std::to_string(i) + "_pos_y,";
-        }
-        if (option.polarPos == OPP || option.polarPos == BOTH) {
-            header += "p_r_" + std::to_string(i) + "_pos_r,";
-            header += "p_r_" + std::to_string(i) + "_pos_t,";
-        }
-        if (option.relativePos == OPP || option.relativePos == BOTH) {
-            header += "p_r_" + std::to_string(i) + "_kicker_x,";
-            header += "p_r_" + std::to_string(i) + "_kicker_y,";
-            header += "p_r_" + std::to_string(i) + "_kicker_r,";
-            header += "p_r_" + std::to_string(i) + "_kicker_t,";
-        }
-        if (option.vel == OPP || option.vel == BOTH) {
-            header += "p_r_" + std::to_string(i) + "_vel_x,";
-            header += "p_r_" + std::to_string(i) + "_vel_y,";
-        }
-        if (option.polarVel == OPP || option.polarVel == BOTH) {
-            header += std::string("p_r_") + std::to_string(i) + "_vel_r,";
-            header += std::string("p_r_") + std::to_string(i) + "_vel_t,";
-        }
-        if (option.counts == OPP || option.counts == BOTH) {
-            header += std::string("p_r_") + std::to_string(i) + "_pos_count,";
-            header += std::string("p_r_") + std::to_string(i) + "_vel_count,";
-            header += std::string("p_r_") + std::to_string(i) + "_body_count,";
-        }
-        if (option.isKicker == OPP || option.isKicker == BOTH)
-            header += "p_r_" + std::to_string(i) + "_is_kicker,";
-        if (option.openAnglePass == OPP || option.openAnglePass == BOTH) {
-            header += "p_r_" + std::to_string(i) + "_pass_angle,";
-            header += "p_r_" + std::to_string(i) + "_pass_dist,";
-        }
-        if (option.nearestOppDist == OPP || option.nearestOppDist == BOTH){
-            header += "p_r_" + std::to_string(i) + "_near1_opp_dist,";
-            header += "p_r_" + std::to_string(i) + "_near1_opp_angle,";
-            header += "p_r_" + std::to_string(i) + "_near2_opp_dist,";
-            header += "p_r_" + std::to_string(i) + "_near2_opp_angle,";
-        }
-        if (option.polarGoalCenter == OPP || option.polarGoalCenter == BOTH) {
-            header += "p_r_" + std::to_string(i) + "_angle_coal_center_r,";
-            header += "p_r_" + std::to_string(i) + "_angle_goal_center_t,";
-        }
-        if (option.openAngleGoal == OPP || option.openAngleGoal == BOTH)
-            header += "p_r_" + std::to_string(i) + "_open_goal_Angle,";
-        for (int j = 0; j < option.history_size; j++){
-            if (option.body == OPP || option.body == BOTH)
-                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_body,";
-            if (option.pos == OPP || option.pos == BOTH) {
-                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_x,";
-                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_y,";
-            }
-            if (option.polarPos == OPP || option.polarPos == BOTH) {
-                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_r,";
-                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_t,";
-            }
-            if (option.vel == OPP || option.vel == BOTH) {
-                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_x,";
-                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_y,";
-            }
-            if (option.polarVel == OPP || option.polarVel == BOTH) {
-                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_r,";
-                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_t,";
-            }
-            if (option.counts == OPP || option.counts == BOTH) {
-                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_count,";
-                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_count,";
-                header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_body_count,";
-            }
-        }
-    }
-    header += "out_category,out_target_x,out_target_y,out_unum,out_unum_index,out_ball_speed,out_ball_dir,out_desc,";
-    fout << header << std::endl;
-}
 
 void DataExtractor::extract_ball(const rcsc::WorldModel &wm) {
     if (wm.ball().posValid()) {
@@ -439,15 +479,18 @@ void DataExtractor::extract_ball(const rcsc::WorldModel &wm) {
         ADD_ELEM("p_y", convertor_y(wm.ball().pos().y));
         ADD_ELEM("p_r", convertor_dist(wm.ball().pos().r()));
         ADD_ELEM("p_t", convertor_angle(wm.ball().pos().th().degree()));
-        ADD_ELEM("kicker_x", convertor_dist_x(wm.ball().rpos().x));
-        ADD_ELEM("kicker_y", convertor_dist_y(wm.ball().rpos().y));
-        ADD_ELEM("kicker_r", convertor_dist(wm.ball().rpos().r()));
-        ADD_ELEM("kicker_t", convertor_angle(wm.ball().rpos().th().degree()));
     } else {
         ADD_ELEM("p_x", invalid_data);
         ADD_ELEM("p_y", invalid_data);
         ADD_ELEM("p_r", invalid_data);
         ADD_ELEM("p_t", invalid_data);
+    }
+    if (wm.ball().rposValid()){
+        ADD_ELEM("kicker_x", convertor_dist_x(wm.ball().rpos().x));
+        ADD_ELEM("kicker_y", convertor_dist_y(wm.ball().rpos().y));
+        ADD_ELEM("kicker_r", convertor_dist(wm.ball().rpos().r()));
+        ADD_ELEM("kicker_t", convertor_angle(wm.ball().rpos().th().degree()));
+    }else{
         ADD_ELEM("kicker_x", invalid_data);
         ADD_ELEM("kicker_y", invalid_data);
         ADD_ELEM("kicker_r", invalid_data);
@@ -491,7 +534,7 @@ void DataExtractor::extract_ball(const rcsc::WorldModel &wm) {
             ADD_ELEM('history_v_t', convertor_angle(DataExtractor::history_vel[0][len - 2 - i].th().degree()));
         }
     }
-    ADD_ELEM("offside_count", wm.offsideLineCount());
+    ADD_ELEM("offside_count", convertor_counts(wm.offsideLineCount()));
 }
 
 void DataExtractor::extract_kicker(const rcsc::WorldModel &wm) {
@@ -502,23 +545,29 @@ void DataExtractor::extract_players(const rcsc::WorldModel &wm) {
     auto players = sort_players(wm);
     for (uint i = 0; i < players.size(); i++) {
         const AbstractPlayerObject *player = players[i];
-        if (player == NULL) {
+        if (player == nullptr) {
             add_null_player(invalid_data,
                             (i <= 10 ? TM : OPP));
             continue;
         }
 
         DataSide side = player->side() == wm.ourSide() ? TM : OPP;
-        extract_base_data(player, side);
+        extract_base_data(player, side, wm);
         extract_pos(player, wm, side);
-        extract_vel(player, side);
-        extract_counts(player, side);
+        extract_vel(player, side, wm);
+        extract_counts(player, side, wm);
 
         if (option.isKicker == side || option.isKicker == BOTH) {
             if (player->unum() == wm.self().unum()) {
                 ADD_ELEM("is_kicker", 1);
             } else
                 ADD_ELEM("is_kicker", 0);
+        }
+        if (option.isGhost == side || option.isGhost == BOTH) {
+            if (player->isGhost()) {
+                ADD_ELEM("is_ghost", 1);
+            } else
+                ADD_ELEM("is_ghost", 0);
         }
 
         extract_pass_angle(player, wm, side);
@@ -563,7 +612,7 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players(const rcsc
     }
 
     auto unum_sort = [](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
-        return p1->unum() > p2->unum();
+        return p1->unum() < p2->unum();
     };
     auto x_sort = [](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
         return p1->pos().x > p2->pos().x;
@@ -588,13 +637,13 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players(const rcsc
     }
 
     if (option.kicker_first){
-        for (; tms.size() < 10; tms.push_back(static_cast<AbstractPlayerObject *>(0)));
+        for (; tms.size() < 10; tms.push_back(nullptr));
         tms.insert(tms.begin(), wm.ourPlayer(wm.self().unum()));
     }else{
-        for (; tms.size() < 11; tms.push_back(static_cast<AbstractPlayerObject *>(0)));
+        for (; tms.size() < 11; tms.push_back(nullptr));
     }
 
-    for (; opps.size() < 15; opps.push_back(static_cast<AbstractPlayerObject *>(0)));
+    for (; opps.size() < 15; opps.push_back(nullptr));
 
     tms.insert(tms.end(), opps.begin(), opps.end());
 
@@ -608,7 +657,7 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players2(const rcs
         return tms;
     }
     auto unum_sort = [](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
-        return p1->unum() > p2->unum();
+        return p1->unum() < p2->unum();
     };
     auto x_sort = [](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
         return p1->pos().x > p2->pos().x;
@@ -624,7 +673,7 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players2(const rcs
     for (int i = 1; i <= 11; i++){
         const AbstractPlayerObject * player = wm.ourPlayer(i);
         if (player == nullptr || player->unum() < 0 || !player->pos().isValid() || player->isGhost()){
-            tms.push_back(static_cast<AbstractPlayerObject *>(0));
+            tms.push_back(nullptr);
             continue;
         }
         tms.push_back(player);
@@ -641,15 +690,15 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players2(const rcs
                 break;
         }
         std::sort(opps.begin(), opps.end(), x_sort);
-        for (; opps.size() < 15; opps.push_back(static_cast<AbstractPlayerObject *>(0)));
+        for (; opps.size() < 15; opps.push_back(nullptr));
     } else if (option.playerSortMode == UNUM){
         for (int i = 1; i <= 11; i++){
             const AbstractPlayerObject * player = wm.theirPlayer(i);
-            if (player == nullptr || player->unum() < 0 || !player->pos().isValid() || player->isGhost()){
-                tms.push_back(static_cast<AbstractPlayerObject *>(0));
+            if (player == nullptr || player->unum() < 0 || !player->pos().isValid()){
+                opps.push_back(nullptr);
                 continue;
             }
-            tms.push_back(player);
+            opps.push_back(player);
         }
         int max_opponent_count = 15;
         for (const PlayerObject &player: wm.opponents()) {
@@ -661,13 +710,77 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players2(const rcs
             if (opps.size() == max_opponent_count)
                 break;
         }
-        for (; opps.size() < 15; opps.push_back(static_cast<AbstractPlayerObject *>(0)));
+        for (; opps.size() < 15; opps.push_back(nullptr));
     }
 
-    const AbstractPlayerObject *self = wm.ourPlayer(wm.self().unum());
-    auto degree_sort = [self](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
-        return (p1->pos() - self->pos()).th().abs() < (p2->pos() - self->pos()).th().abs();
-    }; // TODO sort from -180 to 180, change it by ABS to change from back to front, IS IT OKEY???!
+    tms.insert(tms.end(), opps.begin(), opps.end());
+
+    return tms;
+}
+
+
+std::vector<const AbstractPlayerObject *> DataExtractor::sort_players3(const rcsc::WorldModel &wm) {
+    static int cycle = 0;
+    static std::vector<const AbstractPlayerObject *> tms;
+    if (wm.time().cycle() == cycle){
+        return tms;
+    }
+    auto unum_sort = [](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
+        return p1->unum() < p2->unum();
+    };
+    auto x_sort = [](const AbstractPlayerObject *p1, const AbstractPlayerObject *p2) -> bool {
+        return p1->pos().x > p2->pos().x;
+    };
+
+    cycle = wm.time().cycle();
+    tms.clear();
+//    std::vector<const AbstractPlayerObject *> tms;
+    std::vector<const AbstractPlayerObject *> opps;
+    tms.clear();
+    opps.clear();
+
+    for (int i = 1; i <= 11; i++){
+        const AbstractPlayerObject * player = wm.ourPlayer(i);
+        if (player == nullptr || player->unum() < 0 || !player->pos().isValid()){
+            tms.push_back(nullptr);
+            continue;
+        }
+        tms.push_back(player);
+    }
+
+
+    if (option.playerSortMode == X) {
+        int max_opponent_count = 15;
+        for (const AbstractPlayerObject *player: wm.theirPlayers()) {
+            if (!player->pos().isValid())
+                continue;
+            opps.push_back(player);
+            if (opps.size() == max_opponent_count)
+                break;
+        }
+        std::sort(opps.begin(), opps.end(), x_sort);
+        for (; opps.size() < 15; opps.push_back(nullptr));
+    } else if (option.playerSortMode == UNUM){
+        for (int i = 1; i <= 11; i++){
+            const AbstractPlayerObject * player = wm.theirPlayer(i);
+            if (player == nullptr || player->unum() < 0 || !player->pos().isValid() || player->isGhost()){
+                opps.push_back(static_cast<AbstractPlayerObject *>(0));
+                continue;
+            }
+            opps.push_back(player);
+        }
+        int max_opponent_count = 15;
+        for (const AbstractPlayerObject *player: wm.theirPlayers()) {
+            if (!player->pos().isValid())
+                continue;
+            if (player->unum() > 0)
+                continue;
+            opps.push_back(player);
+            if (opps.size() == max_opponent_count)
+                break;
+        }
+        for (; opps.size() < 15; opps.push_back(nullptr));
+    }
 
     tms.insert(tms.end(), opps.begin(), opps.end());
 
@@ -677,7 +790,7 @@ std::vector<const AbstractPlayerObject *> DataExtractor::sort_players2(const rcs
 
 void DataExtractor::add_null_player(int unum, DataSide side) {
     if (option.side == side || option.side == BOTH)
-        ADD_ELEM("side", side == OPP ? -1 : 1);
+        ADD_ELEM("side", invalid_data);
     if (option.unum == side || option.unum == BOTH)
         ADD_ELEM("unum", unum);
     if (option.type == side || option.type == BOTH) {
@@ -733,6 +846,9 @@ void DataExtractor::add_null_player(int unum, DataSide side) {
     }
     if (option.isKicker == side || option.isKicker == BOTH)
         ADD_ELEM("is_kicker", invalid_data);
+    if (option.isGhost == side || option.isGhost == BOTH) {
+        ADD_ELEM("is_ghost", invalid_data);
+    }
     if (option.openAnglePass == side || option.openAnglePass == BOTH) {
         ADD_ELEM("pass_dist", invalid_data);
         ADD_ELEM("pass_opp1_dist", invalid_data);
@@ -834,16 +950,52 @@ void DataExtractor::update_for_shoot(const rcsc::PlayerAgent *agent, rcsc::Vecto
 void DataExtractor::extract_pass_angle(const AbstractPlayerObject *player, const WorldModel &wm, DataSide side) {
     Vector2D ball_pos = wm.ball().pos();
     Vector2D tm_pos = player->pos();
+    int max_pos_count = 30;
+    int max_vel_count = 5;
+    int max_face_count = 2;
+    if (player->unum() == wm.self().unum() && player->side() == wm.ourSide()){
+        max_pos_count = 20;
+        max_vel_count = 10;
+        max_face_count = 5;
+    }
+
+    if (!ball_pos.isValid() || !tm_pos.isValid() || !wm.ball().posValid() || player->posCount() > max_pos_count){
+        if (option.openAnglePass == side || option.openAnglePass == BOTH) {
+            ADD_ELEM("pass_dist", invalid_data);
+            ADD_ELEM("pass_opp1_dist", invalid_data);
+            ADD_ELEM("pass_opp1_angle", invalid_data);
+            ADD_ELEM("pass_opp1_dist_line", invalid_data);
+            ADD_ELEM("pass_opp1_dist_proj", invalid_data);
+            ADD_ELEM("pass_opp1_dist_diffbody", invalid_data);
+            ADD_ELEM("pass_opp2_dist", invalid_data);
+            ADD_ELEM("pass_opp2_angle", invalid_data);
+            ADD_ELEM("pass_opp2_dist_line", invalid_data);
+            ADD_ELEM("pass_opp2_dist_proj", invalid_data);
+            ADD_ELEM("pass_opp2_dist_diffbody", invalid_data);
+        }
+        if (option.nearestOppDist == side || option.nearestOppDist == BOTH){
+            ADD_ELEM("opp1_dist", invalid_data);
+            ADD_ELEM("opp1_angle", invalid_data);
+            ADD_ELEM("opp1_diffbody", invalid_data);
+            ADD_ELEM("opp2_dist", invalid_data);
+            ADD_ELEM("opp2_angle", invalid_data);
+            ADD_ELEM("opp2_diffbody", invalid_data);
+        }
+        return;
+    }
     std::vector<std::pair<double, double>> opp_dist_angle;
     std::vector<std::pair<double, double>> opp_dist_body_diff;
     std::vector<std::pair<double, double>> opp_pass_angle_dist;
     std::vector<std::pair<double, double>> opp_pass_projection;
     std::vector<std::pair<double, double>> opp_pass_projection_bodydiff;
     for (const auto& opp: wm.opponents()) {
-        if (!opp.pos().isValid() || !opp.bodyValid()) continue;
+        if (!opp.pos().isValid()) continue;
 
         opp_dist_angle.push_back(std::make_pair(opp.pos().dist(ball_pos), (opp.pos() - ball_pos).th().degree()));
-        opp_dist_body_diff.push_back(std::make_pair(opp.pos().dist(ball_pos), ((ball_pos - opp.pos()).th() - opp.body()).abs()));
+        if (opp.bodyValid())
+            opp_dist_body_diff.push_back(std::make_pair(opp.pos().dist(ball_pos), ((ball_pos - opp.pos()).th() - opp.body()).abs()));
+        else
+            opp_dist_body_diff.push_back(std::make_pair(opp.pos().dist(ball_pos), invalid_data));
         AngleDeg diff = (tm_pos - ball_pos).th() - (opp.pos() - ball_pos).th();
         if (diff.abs() > 50)
             continue;
@@ -852,7 +1004,10 @@ void DataExtractor::extract_pass_angle(const AbstractPlayerObject *player, const
         opp_pass_angle_dist.push_back(std::make_pair(diff.abs(), opp.distFromBall()));
         Vector2D proj_pos = Line2D(ball_pos, tm_pos).projection(opp.pos());
         opp_pass_projection.push_back(std::make_pair(proj_pos.dist(opp.pos()), proj_pos.dist(ball_pos)));
-        opp_pass_projection_bodydiff.push_back(std::make_pair(proj_pos.dist(opp.pos()), ((proj_pos - opp.pos()).th() - opp.body()).abs()));
+        if (opp.bodyValid())
+            opp_pass_projection_bodydiff.push_back(std::make_pair(proj_pos.dist(opp.pos()), ((proj_pos - opp.pos()).th() - opp.body()).abs()));
+        else
+            opp_pass_projection_bodydiff.push_back(std::make_pair(proj_pos.dist(opp.pos()), invalid_data));
     }
     if (option.openAnglePass == side || option.openAnglePass == BOTH) {
         ADD_ELEM("pass_dist", convertor_dist(ball_pos.dist(tm_pos)));
@@ -864,7 +1019,10 @@ void DataExtractor::extract_pass_angle(const AbstractPlayerObject *player, const
             ADD_ELEM("pass_opp1_angle", convertor_angle(opp_pass_angle_dist[0].first));
             ADD_ELEM("pass_opp1_dist_line", convertor_dist(opp_pass_projection[0].first));
             ADD_ELEM("pass_opp1_dist_proj", convertor_dist(opp_pass_projection[0].second));
-            ADD_ELEM("pass_opp1_dist_diffbody", convertor_angle(opp_pass_projection_bodydiff[0].second));
+            if (opp_pass_projection_bodydiff[0].second != invalid_data)
+                ADD_ELEM("pass_opp1_dist_diffbody", convertor_angle(opp_pass_projection_bodydiff[0].second));
+            else
+                ADD_ELEM("pass_opp1_dist_diffbody", invalid_data);
         }
         else{
             ADD_ELEM("pass_opp1_dist", invalid_data);
@@ -894,7 +1052,10 @@ void DataExtractor::extract_pass_angle(const AbstractPlayerObject *player, const
         if (opp_dist_angle.size() >= 1){
             ADD_ELEM("opp1_dist", convertor_dist(opp_dist_angle[0].first));
             ADD_ELEM("opp1_angle", convertor_angle(opp_dist_angle[0].second));
-            ADD_ELEM("opp1_diffbody", convertor_angle(opp_dist_body_diff[0].second));
+            if (opp_dist_body_diff[0].second != invalid_data)
+                ADD_ELEM("opp1_diffbody", convertor_angle(opp_dist_body_diff[0].second));
+            else
+                ADD_ELEM("opp1_diffbody", invalid_data);
         }
         else{
             ADD_ELEM("opp1_dist", invalid_data);
@@ -904,7 +1065,10 @@ void DataExtractor::extract_pass_angle(const AbstractPlayerObject *player, const
         if (opp_dist_angle.size() >= 2){
             ADD_ELEM("opp2_dist", convertor_dist(opp_dist_angle[1].first));
             ADD_ELEM("opp2_angle", convertor_angle(opp_dist_angle[1].second));
-            ADD_ELEM("opp2_diffbody", convertor_angle(opp_dist_body_diff[1].second));
+            if (opp_dist_body_diff[1].second != invalid_data)
+                ADD_ELEM("opp2_diffbody", convertor_angle(opp_dist_body_diff[1].second));
+            else
+                ADD_ELEM("opp2_diffbody", invalid_data);
         }
         else{
             ADD_ELEM("opp2_dist", invalid_data);
@@ -914,9 +1078,12 @@ void DataExtractor::extract_pass_angle(const AbstractPlayerObject *player, const
     }
 }
 
-void DataExtractor::extract_vel(const AbstractPlayerObject *player, DataSide side) {
+void DataExtractor::extract_vel(const AbstractPlayerObject *player, DataSide side, const rcsc::WorldModel &wm) {
+    int max_vel_count = 5;
+    if (player->unum() == wm.self().unum() && player->side() == wm.ourSide())
+        max_vel_count = 10;
     if (option.vel == side || option.vel == BOTH) {
-        if (player->vel().isValid()){
+        if (player->vel().isValid() && player->velCount() <= max_vel_count){
             ADD_ELEM("v_x", convertor_pvx(player->vel().x));
             ADD_ELEM("v_y", convertor_pvy(player->vel().y));
         }
@@ -926,7 +1093,7 @@ void DataExtractor::extract_vel(const AbstractPlayerObject *player, DataSide sid
         }
     }
     if (option.polarVel == side || option.polarVel == BOTH) {
-        if (player->vel().isValid()){
+        if (player->vel().isValid() && player->velCount() <= max_vel_count){
             ADD_ELEM("v_r", convertor_pv(player->vel().r()));
             ADD_ELEM("v_t", convertor_angle(player->vel().th().degree()));
         }
@@ -938,27 +1105,50 @@ void DataExtractor::extract_vel(const AbstractPlayerObject *player, DataSide sid
 }
 
 void DataExtractor::extract_pos(const AbstractPlayerObject *player, const WorldModel &wm, DataSide side) {
-    if (option.pos == side || option.pos == BOTH) {
-        ADD_ELEM("pos_x", convertor_x(player->pos().x));
-        ADD_ELEM("pos_y", convertor_y(player->pos().y));
-    }
-    if (option.polarPos == side || option.polarPos == BOTH) {
-        ADD_ELEM("pos_r", convertor_dist(player->pos().r()));
-        ADD_ELEM("pos_t", convertor_angle(player->pos().th().degree()));
-    }
-    Vector2D rpos = player->pos() - wm.self().pos();
-    if (option.relativePos == side || option.relativePos == BOTH) {
-        ADD_ELEM("kicker_x", convertor_dist_x(rpos.x));
-        ADD_ELEM("kicker_y", convertor_dist_y(rpos.y));
-        ADD_ELEM("kicker_r", convertor_dist(rpos.r()));
-        ADD_ELEM("kicker_t", convertor_angle(rpos.th().degree()));
-    }
+    int max_pos_count = 30;
+    if (player->unum() == wm.self().unum() && player->side() == wm.ourSide())
+        max_pos_count = 20;
 
-    if (option.in_offside == side || option.in_offside == BOTH) {
-        if (player->pos().x > wm.offsideLineX()) {
-            ADD_ELEM("pos_offside", 1);
-        } else {
-            ADD_ELEM("pos_offside", 0);
+    if (player->posCount() <= max_pos_count and player->pos().isValid()){
+        if (option.pos == side || option.pos == BOTH) {
+            ADD_ELEM("pos_x", convertor_x(player->pos().x));
+            ADD_ELEM("pos_y", convertor_y(player->pos().y));
+        }
+        if (option.polarPos == side || option.polarPos == BOTH) {
+            ADD_ELEM("pos_r", convertor_dist(player->pos().r()));
+            ADD_ELEM("pos_t", convertor_angle(player->pos().th().degree()));
+        }
+        Vector2D rpos = player->pos() - wm.self().pos();
+        if (option.relativePos == side || option.relativePos == BOTH) {
+            ADD_ELEM("kicker_x", convertor_dist_x(rpos.x));
+            ADD_ELEM("kicker_y", convertor_dist_y(rpos.y));
+            ADD_ELEM("kicker_r", convertor_dist(rpos.r()));
+            ADD_ELEM("kicker_t", convertor_angle(rpos.th().degree()));
+        }
+        if (option.in_offside == side || option.in_offside == BOTH) {
+            if (player->pos().x > wm.offsideLineX()) {
+                ADD_ELEM("pos_offside", 1);
+            } else {
+                ADD_ELEM("pos_offside", 0);
+            }
+        }
+    }else{
+        if (option.pos == side || option.pos == BOTH) {
+            ADD_ELEM("pos_x", invalid_data);
+            ADD_ELEM("pos_y", invalid_data);
+        }
+        if (option.polarPos == side || option.polarPos == BOTH) {
+            ADD_ELEM("pos_r", invalid_data);
+            ADD_ELEM("pos_t", invalid_data);
+        }
+        if (option.relativePos == side || option.relativePos == BOTH) {
+            ADD_ELEM("kicker_x", invalid_data);
+            ADD_ELEM("kicker_y", invalid_data);
+            ADD_ELEM("kicker_r", invalid_data);
+            ADD_ELEM("kicker_t", invalid_data);
+        }
+        if (option.in_offside == side || option.in_offside == BOTH) {
+            ADD_ELEM("pos_offside", invalid_data);
         }
     }
 }
@@ -966,6 +1156,11 @@ void DataExtractor::extract_pos(const AbstractPlayerObject *player, const WorldM
 void DataExtractor::extract_goal_polar(const AbstractPlayerObject *player, DataSide side) {
     if (!(option.polarGoalCenter == side || option.polarGoalCenter == BOTH))
         return;
+    if (!player->pos().isValid()){
+        ADD_ELEM("angle_goal_center_r", invalid_data);
+        ADD_ELEM("angle_goal_center_t", invalid_data);
+        return;
+    }
     Vector2D goal_center = Vector2D(52, 0);
     ADD_ELEM("angle_goal_center_r", convertor_dist((goal_center - player->pos()).r()));
     ADD_ELEM("angle_goal_center_t", convertor_angle((goal_center - player->pos()).th().degree()));
@@ -976,19 +1171,23 @@ void DataExtractor::extract_goal_open_angle(const rcsc::AbstractPlayerObject *pl
                                             DataSide side) {
     if (!(option.openAngleGoal == side || option.openAngleGoal == BOTH))
         return;
+    if (!player->pos().isValid()){
+        ADD_ELEM("goal_open_angle", invalid_data);
+        return;
+    }
     Vector2D goal_t = Vector2D(52, -7);
     Vector2D goal_b = Vector2D(52, 7);
     Triangle2D player_goal_area = Triangle2D(goal_b, goal_t, player->pos());
 
     std::vector<Vector2D> players_in_area;
 
-    for (const auto& opp: wm.opponents()){
-        if (!opp.pos().isValid())
+    for (const auto& opp: wm.theirPlayers()){
+        if (!opp->pos().isValid())
             continue;
-        if (!player_goal_area.contains(opp.pos()))
+        if (!player_goal_area.contains(opp->pos()))
             continue;
 
-        players_in_area.push_back(opp.pos());
+        players_in_area.push_back(opp->pos());
     }
     players_in_area.push_back(goal_t);
     players_in_area.push_back(goal_b);
@@ -1005,22 +1204,38 @@ void DataExtractor::extract_goal_open_angle(const rcsc::AbstractPlayerObject *pl
         if (angle_diff > max_open_angle)
             max_open_angle = angle_diff;
     }
-
-
     ADD_ELEM("goal_open_angle", convertor_angle(max_open_angle));
 }
 
-void DataExtractor::extract_base_data(const rcsc::AbstractPlayerObject *player, DataSide side) {
+void DataExtractor::extract_base_data(const rcsc::AbstractPlayerObject *player, DataSide side, const rcsc::WorldModel &wm) {
     if (option.side == side || option.side == BOTH)
         ADD_ELEM("side", player->side());
-    if (option.unum == side || option.unum == BOTH)
-        ADD_ELEM("unum", convertor_unum(player->unum()));
+    if (option.unum == side || option.unum == BOTH){
+        if (player->unum() == -1){
+            ADD_ELEM("unum", invalid_data);
+        }else{
+            ADD_ELEM("unum", convertor_unum(player->unum()));
+        }
+    }
     if (option.type == side || option.type == BOTH)
         extract_type(player, side);
-    if (option.body == side || option.body == BOTH)
-        ADD_ELEM("body", convertor_angle(player->body().degree()));
-    if (option.face == side || option.face == BOTH)
-        ADD_ELEM("face", convertor_angle(player->face().degree()));
+    int max_face_count = 5;
+    if (player->unum() == wm.self().unum() && player->side() == wm.ourSide())
+        max_face_count = 2;
+    if (option.body == side || option.body == BOTH) {
+        if (player->bodyCount() <= max_face_count) {
+            ADD_ELEM("body", convertor_angle(player->body().degree()));
+        } else {
+            ADD_ELEM("body", invalid_data);
+        }
+    }
+    if (option.face == side || option.face == BOTH){
+        if (player->faceCount() <= max_face_count){
+            ADD_ELEM("face", convertor_angle(player->face().degree()));
+        }else{
+            ADD_ELEM("face", invalid_data);
+        }
+    }
     if (option.tackling == side || option.tackling == BOTH)
         ADD_ELEM("tackling", player->isTackling());
     if (option.kicking == side || option.kicking == BOTH)
@@ -1030,7 +1245,7 @@ void DataExtractor::extract_base_data(const rcsc::AbstractPlayerObject *player, 
 }
 
 void DataExtractor::extract_type(const AbstractPlayerObject *player, DataSide side) {
-    if (player->unum() < 0){
+    if (player->unum() < 0 || player->playerTypePtr() == nullptr){
         ADD_ELEM("player_type_dash_rate", invalid_data);
         ADD_ELEM("player_type_effort_max", invalid_data);
         ADD_ELEM("player_type_effort_min", invalid_data);
@@ -1054,13 +1269,32 @@ void DataExtractor::extract_type(const AbstractPlayerObject *player, DataSide si
     }
 }
 
-void DataExtractor::extract_counts(const rcsc::AbstractPlayerObject *player, DataSide side) {
+void DataExtractor::extract_counts(const rcsc::AbstractPlayerObject *player, DataSide side, const rcsc::WorldModel &wm) {
+    int max_pos_count = 30;
+    int max_vel_count = 5;
+    int max_face_count = 2;
+    if (player->unum() == wm.self().unum() && player->side() == wm.ourSide()){
+        max_pos_count = 20;
+        max_vel_count = 10;
+        max_face_count = 5;
+    }
     if (!(option.counts == side || option.counts == BOTH))
         return;
-
-    ADD_ELEM("pos_count", convertor_counts(player->posCount()));
-    ADD_ELEM("vel_count", convertor_counts(player->velCount()));
-    ADD_ELEM("body_count", convertor_counts(player->bodyCount()));
+    if (player->posCount() <= max_pos_count){
+        ADD_ELEM("pos_count", convertor_counts(player->posCount()));
+    }else{
+        ADD_ELEM("pos_count", invalid_data);
+    }
+    if (player->velCount() <= max_vel_count){
+        ADD_ELEM("vel_count", convertor_counts(player->velCount()));
+    }else{
+        ADD_ELEM("vel_count", invalid_data);
+    }
+    if (player->bodyCount() <= max_face_count){
+        ADD_ELEM("body_count", convertor_counts(player->bodyCount()));
+    }else{
+        ADD_ELEM("body_count", invalid_data);
+    }
 }
 
 void DataExtractor::extract_history(const rcsc::AbstractPlayerObject *player, DataSide side) {
@@ -1278,49 +1512,24 @@ double DataExtractor::convertor_counts(double count) {
 }
 
 uint DataExtractor::find_unum_index(const rcsc::WorldModel &wm, uint unum) {
-    auto players = sort_players2(wm);
+    auto players = sort_players(wm);
+    if (players.size() < 11)
+        std::cout<<wm.self().unum()<<" "<<"size problems"<<players.size()<<std::endl;
     for (uint i = 0; i < 11; i++) {
         auto player = players[i];
-        if (player == NULL)
-            return 0;
+        if (player == nullptr)
+            continue;
         if (player->unum() == unum)
             return i + 1; // TODO add 1 or not??
     }
+
+    std::cout<<wm.self().unum()<<" "<<"not match"<<players.size()<<std::endl;
+    return 0;
 }
+
 
 Polar::Polar(rcsc::Vector2D p) {
     teta = p.th().degree();
     r = p.r();
 }
 
-DataExtractor::Option::Option() {
-    side = BOTH;
-    unum = BOTH;
-    type = BOTH;
-    body = BOTH;
-    face = BOTH;
-    tackling = NONE;
-    kicking = NONE;
-    card = NONE;
-    pos = BOTH;
-    relativePos = BOTH;
-    polarPos = BOTH;
-    vel = BOTH;
-    polarVel = BOTH;
-    counts = NONE;
-    isKicker = TM;
-    openAnglePass = TM;
-    nearestOppDist = TM;
-    polarGoalCenter = TM;
-    openAngleGoal = NONE;
-    in_offside = TM;
-
-    dribleAngle = NONE;
-    nDribleAngle = 12;
-    history_size = 0;
-    input_worldMode = NONE_FULLSTATE;
-    output_worldMode = NONE_FULLSTATE;
-    playerSortMode = UNUM;
-    kicker_first = false;
-    use_convertor = true;
-}
