@@ -16,6 +16,9 @@ public:
     Vector2D M_pos;
     Vector2D M_rpos;
     Vector2D M_vel;
+    int M_pos_count;
+    int M_rpos_count;
+    int M_vel_count;
     DEBall(){
         M_pos = Vector2D::INVALIDATED;
         M_rpos = Vector2D::INVALIDATED;
@@ -36,6 +39,15 @@ public:
     }
     const Vector2D & rpos() const{
         return M_rpos;
+    }
+    const int & rposCount() const{
+        return M_rpos_count;
+    }
+    const int & posCount() const{
+        return M_pos_count;
+    }
+    const int & velCount() const{
+        return M_vel_count;
     }
     bool posValid() const{
         return M_pos.isValid();
@@ -98,6 +110,7 @@ public:
 };
 class DEState {
 public:
+    int M_cycle;
     DEBall M_ball;
     std::vector<DEPlayer> M_all_players;
     std::vector<DEPlayer*> M_teammates;
@@ -108,11 +121,15 @@ public:
     std::vector<DEPlayer*> M_our_players;
     std::vector<DEPlayer*> M_their_players;
     DEState(const WorldModel & wm){
+        M_cycle = wm.time().cycle();
         M_ball = DEBall(wm.ball());
         for (auto p: wm.allPlayers()){
             M_all_players.push_back(DEPlayer(p, M_ball));
         }
         updateVectors();
+    }
+    int cycle() const{
+        return M_cycle;
     }
     const DEBall & ball() const{
         return M_ball;
