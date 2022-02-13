@@ -19,14 +19,21 @@ public:
     int M_pos_count;
     int M_rpos_count;
     int M_vel_count;
-    DEBall(){
+    const BallObject * M_ball;
+    DEBall():
+    M_ball(nullptr)
+    {
         M_pos = Vector2D::INVALIDATED;
         M_rpos = Vector2D::INVALIDATED;
         M_vel = Vector2D(0, 0);
     }
-    DEBall(const BallObject & ball){
+    DEBall(const BallObject & ball):
+        M_ball(&ball){
         M_pos = ball.pos();
         M_vel = ball.vel();
+    }
+    const BallObject * ball() const{
+        return M_ball;
     }
     void update_rpos(Vector2D & kicker_pos){
         M_rpos = kicker_pos - M_pos;
@@ -65,10 +72,22 @@ public:
     Vector2D M_vel;
     AngleDeg M_body;
     AngleDeg M_face;
+    int M_pos_count;
+    int M_rpos_count;
+    int M_vel_count;
+    int M_body_count;
+    int M_face_count;
     int M_unum;
     int M_side;
     double M_dist_from_ball;
-    DEPlayer(){
+    bool M_is_ghost;
+    const PlayerType * M_player_type;
+    const AbstractPlayerObject * M_player;
+
+    DEPlayer():
+        M_player(nullptr),
+        M_is_ghost(false),
+        M_player_type(nullptr){
         M_pos = Vector2D::INVALIDATED;
         M_vel = Vector2D(0, 0);
         M_body = 0;
@@ -76,8 +95,14 @@ public:
         M_unum = -1;
         M_side = 0;
         M_dist_from_ball = 0;
+        M_is_ghost = false;
+        M_body_count = 0;
+        M_face_count = 0;
     }
-    DEPlayer(const AbstractPlayerObject * p, DEBall & ball){
+    DEPlayer(const AbstractPlayerObject * p, DEBall & ball):
+            M_player_type(p->playerTypePtr()),
+            M_player(p)
+        {
         M_pos = p->pos();
         M_vel = p->vel();
         M_body = p->body();
@@ -85,27 +110,60 @@ public:
         M_unum = p->unum();
         M_side = p->side();
         M_dist_from_ball = pos().dist(ball.pos());
+        M_is_ghost = p->isGhost();
+        M_body_count = p->bodyCount();
+        M_body_count = p->faceCount();
     }
-    const int & unum(){
+    const AbstractPlayerObject * player() const{
+        return M_player;
+    }
+    const int & unum() const{
         return M_unum;
     }
-    const int & side(){
+    const int & side() const{
         return M_side;
     }
-    const Vector2D & pos(){
+    const Vector2D & pos() const{
         return M_pos;
     }
-    const Vector2D & vel(){
+    const Vector2D & vel() const{
         return M_vel;
     }
-    const AngleDeg & body(){
+    const AngleDeg & body() const{
         return M_body;
     }
-    const AngleDeg & face(){
+    const AngleDeg & face() const{
         return M_face;
     }
-    const double & distFromBall(){
+    const int & rposCount() const{
+        return M_rpos_count;
+    }
+    const int & posCount() const{
+        return M_pos_count;
+    }
+    const int & velCount() const{
+        return M_vel_count;
+    }
+    const int & bodyCount() const{
+        return M_body_count;
+    }
+    const int & faceCount() const{
+        return M_face_count;
+    }
+    double distFromBall() const{
         return M_dist_from_ball;
+    }
+    bool isGhost() const{
+        return M_is_ghost;
+    }
+    const PlayerType * playerTypePtr() const{
+        return M_player_type;
+    }
+    const bool isTackling() const{
+        return false;
+    }
+    const bool kicked() const{
+        return false;
     }
 };
 class DEState {
@@ -120,13 +178,25 @@ public:
     DEPlayer * M_known_opponents[12];
     std::vector<DEPlayer*> M_our_players;
     std::vector<DEPlayer*> M_their_players;
-    DEState(const WorldModel & wm){
+    int M_kicker_unum;
+    DEPlayer* M_kicker_player;
+    double M_offside_line_x;
+    int M_offside_line_count;
+    int M_our_side;
+    const WorldModel &M_wm;
+
+    DEState(const WorldModel & wm):
+        M_wm(wm)
+        {
         M_cycle = wm.time().cycle();
+        M_offside_line_x = wm.offsideLineX();
+        M_offside_line_count = wm.offsideLineCount();
+        M_our_side = wm.ourSide();
         M_ball = DEBall(wm.ball());
         for (auto p: wm.allPlayers()){
             M_all_players.push_back(DEPlayer(p, M_ball));
         }
-        updateVectors();
+        updateVectors(wm);
     }
     int cycle() const{
         return M_cycle;
@@ -134,7 +204,7 @@ public:
     const DEBall & ball() const{
         return M_ball;
     }
-    void updateVectors(){
+    void updateVectors(const WorldModel & wm){
         for (int i = 0; i <= 11; i++){
             M_known_teammates[i] = nullptr;//DEPlayer();
             M_known_opponents[i] = nullptr;//DEPlayer();
@@ -158,34 +228,54 @@ public:
                 }
             }
         }
+        // kicker
+        //update rpos
     }
     std::vector<DEPlayer> & allPlayers(){
         return M_all_players;
     }
-    std::vector<DEPlayer*> teammates(){
+    std::vector<DEPlayer*> teammates() const{
         return M_teammates;
     }
-    std::vector<DEPlayer*> opponents(){
+    std::vector<DEPlayer*> opponents() const{
         return M_opponents;
     }
-    std::vector<DEPlayer*> unknownPlayers(){
+    std::vector<DEPlayer*> unknownPlayers() const{
         return M_unknown_players;
     }
-    std::vector<DEPlayer*> ourPlayers(){
+    std::vector<DEPlayer*> ourPlayers() const{
         return M_our_players;
     }
-    std::vector<DEPlayer*> theirPlayers(){
+    std::vector<DEPlayer*> theirPlayers() const{
         return M_their_players;
     }
-    DEPlayer * ourPlayer(int i){
+    DEPlayer * ourPlayer(int i) const{
         if (i < 0 || i > 11)
             return nullptr;
         return M_known_teammates[i];
     }
-    DEPlayer * theirPlayer(int i){
+    DEPlayer * theirPlayer(int i) const{
         if (i < 0 || i > 11)
             return nullptr;
         return M_known_opponents[i];
+    }
+    DEPlayer * kicker() const{
+        return M_kicker_player;
+    }
+    int kickerUnum() const{
+        return M_kicker_unum;
+    }
+    int offsideLineCount() const{
+        return M_offside_line_count;
+    }
+    double offsideLineX() const{
+        return M_offside_line_x;
+    }
+    int ourSide() const{
+        return M_our_side;
+    }
+    const WorldModel & wm() const{
+        return M_wm;
     }
 };
 
