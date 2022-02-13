@@ -526,33 +526,7 @@ void OffensiveDataExtractor::extract_ball(const DEState & wm) {
         ADD_ELEM("v_r", invalid_data);
         ADD_ELEM("v_t", invalid_data);
     }
-    int len = OffensiveDataExtractor::history_pos_count[0].size();
-    for(int i = 0; i < option.history_size; i++){
-        if(OffensiveDataExtractor::history_pos_count[0][len - 2 - i] == -1){
-            ADD_ELEM('history_p_x', invalid_data);
-            ADD_ELEM('history_p_y', invalid_data);
-            ADD_ELEM('history_p_r', invalid_data);
-            ADD_ELEM('history_p_t', invalid_data);
-        }
-        else{
-            ADD_ELEM('history_p_x', convertor_x(OffensiveDataExtractor::history_pos[0][len - 2 - i].x));
-            ADD_ELEM('history_p_y', convertor_y(OffensiveDataExtractor::history_pos[0][len - 2 - i].y));
-            ADD_ELEM('history_p_r', convertor_dist(OffensiveDataExtractor::history_pos[0][len - 2 - i].r()));
-            ADD_ELEM('history_p_t', convertor_angle(OffensiveDataExtractor::history_pos[0][len - 2 - i].th().degree()));
-        }
-        if(OffensiveDataExtractor::history_vel_count[0][len - 2 - i] == -1){
-            ADD_ELEM('history_v_x', invalid_data);
-            ADD_ELEM('history_v_y', invalid_data);
-            ADD_ELEM('history_v_r', invalid_data);
-            ADD_ELEM('history_v_t', invalid_data);
-        }
-        else{
-            ADD_ELEM('history_v_x', convertor_bvx(OffensiveDataExtractor::history_vel[0][len - 2 - i].x));
-            ADD_ELEM('history_v_y', convertor_bvy(OffensiveDataExtractor::history_vel[0][len - 2 - i].y));
-            ADD_ELEM('history_v_r', convertor_bv(OffensiveDataExtractor::history_vel[0][len - 2 - i].r()));
-            ADD_ELEM('history_v_t', convertor_angle(OffensiveDataExtractor::history_vel[0][len - 2 - i].th().degree()));
-        }
-    }
+
     ADD_ELEM("offside_count", convertor_counts(wm.offsideLineCount()));
 }
 
@@ -560,7 +534,7 @@ void OffensiveDataExtractor::extract_kicker(const rcsc::WorldModel &wm) {
     extract_drible_angles(wm);
 }
 
-void OffensiveDataExtractor::extract_players(const rcsc::WorldModel &wm) {
+void OffensiveDataExtractor::extract_players(const DEState &wm) {
     auto players = sort_players(wm);
     for (uint i = 0; i < players.size(); i++) {
         const AbstractPlayerObject *player = players[i];
@@ -597,16 +571,16 @@ void OffensiveDataExtractor::extract_players(const rcsc::WorldModel &wm) {
 }
 
 
-std::vector<const AbstractPlayerObject *> OffensiveDataExtractor::sort_players(const rcsc::WorldModel &wm) {
+std::vector<const DEPlayer *> OffensiveDataExtractor::sort_players(const DEState &wm) {
     static int cycle = 0;
-    static std::vector<const AbstractPlayerObject *> tms;
+    static std::vector<const DEPlayer *> tms;
     if (wm.time().cycle() == cycle){
         return tms;
     }
     cycle = wm.time().cycle();
     tms.clear();
 //    std::vector<const AbstractPlayerObject *> tms;
-    std::vector<const AbstractPlayerObject *> opps;
+    std::vector<const DEPlayer *> opps;
     tms.clear();
     opps.clear();
 
@@ -669,7 +643,7 @@ std::vector<const AbstractPlayerObject *> OffensiveDataExtractor::sort_players(c
     return tms;
 }
 
-std::vector<const AbstractPlayerObject *> OffensiveDataExtractor::sort_players2(const rcsc::WorldModel &wm) {
+std::vector<const AbstractPlayerObject *> OffensiveDataExtractor::sort_players2(const DEState &wm) {
     static int cycle = 0;
     static std::vector<const AbstractPlayerObject *> tms;
     if (wm.time().cycle() == cycle){
@@ -738,7 +712,7 @@ std::vector<const AbstractPlayerObject *> OffensiveDataExtractor::sort_players2(
 }
 
 
-std::vector<const AbstractPlayerObject *> OffensiveDataExtractor::sort_players3(const rcsc::WorldModel &wm) {
+std::vector<const AbstractPlayerObject *> OffensiveDataExtractor::sort_players3(const DEState &wm) {
     static int cycle = 0;
     static std::vector<const AbstractPlayerObject *> tms;
     if (wm.time().cycle() == cycle){
@@ -1373,13 +1347,13 @@ void OffensiveDataExtractor::extract_history(const rcsc::AbstractPlayerObject *p
     }
 }
 
-void OffensiveDataExtractor::extract_drible_angles(const WorldModel &wm) {
+void OffensiveDataExtractor::extract_drible_angles(const DEState &wm) {
 
 //    const PlayerObject *kicker = wm.interceptTable()->fastestTeammate(); // TODO What is error ?!?!
     if (option.dribleAngle != Kicker)
         return;
-    const AbstractPlayerObject *kicker = wm.ourPlayer(wm.self().unum());
-    if (kicker == NULL || kicker->unum() < 0) {
+    const DEPlayer *kicker = wm.ourPlayer(wm.kickerUnum());
+    if (kicker == nullptr || kicker->unum() < 0) {
         for (int i = 1; i <= option.nDribleAngle; i++)
             ADD_ELEM("dribble_angle", -2);
         return;
