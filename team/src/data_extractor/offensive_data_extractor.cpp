@@ -415,59 +415,69 @@ void OffensiveDataExtractor::init_file(DEState &state) {
 //}
 
 
-//void OffensiveDataExtractor::update(const PlayerAgent *agent, const ActionStatePair *first_layer,bool update_shoot) {
-//    if(!OffensiveDataExtractor::active)
-//        return;
-//    DEState &state = option.input_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
-//
-//    if (last_update_cycle == state.time().cycle())
-//        return;
-//    if (!state.self().isKickable())
-//        return;
-//    if (state.gameMode().type() != rcsc::GameMode::PlayOn)
-//        return;
-//    if (!fout.is_open()) {
-//        init_file(state);
-//    }
-//    last_update_cycle = state.time().cycle();
-//    data.clear();
-//
-//    if (!update_shoot){
-//        if (
-//                ((CooperativeAction &) first_layer->action()).category() > 2
-//                ||
-//                !((CooperativeAction &) first_layer->action()).targetPoint().isValid()
-//                ||
-//                ((CooperativeAction &) first_layer->action()).targetPlayerUnum() > 11
-//                ||
-//                ((CooperativeAction &) first_layer->action()).targetPlayerUnum() < 1
-//                )
-//            return;
-//    }
-//
-//    // cycle
-//    ADD_ELEM("cycle", convertor_cycle(last_update_cycle));
-//
-//    // ball
-//    extract_ball(state);
-//
-//    // kicker
-//    extract_kicker(state);
-//
-//    // players
-//    extract_players(state);
-//
-//    // output
-//    if (!update_shoot){
-//        extract_output(state,
-//                       ((CooperativeAction &) first_layer->action()).category(),
-//                       ((CooperativeAction &) first_layer->action()).targetPoint(),
-//                       ((CooperativeAction &) first_layer->action()).targetPlayerUnum(),
-//                       ((CooperativeAction &) first_layer->action()).description(),
-//                       ((CooperativeAction &) first_layer->action()).firstBallSpeed());
-//        fout << std::endl;
-//    }
-//}
+void OffensiveDataExtractor::update(const PlayerAgent *agent, const CooperativeAction &action,bool update_shoot) {
+    if(!OffensiveDataExtractor::active)
+        return;
+    const WorldModel & wm = option.input_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+    if (last_update_cycle == wm.time().cycle())
+        return;
+    if (!wm.self().isKickable())
+        return;
+    if (wm.gameMode().type() != rcsc::GameMode::PlayOn)
+        return;
+
+    DEState state = DEState(wm);
+
+
+    if (!fout.is_open()) {
+        init_file(state);
+    }
+    last_update_cycle = wm.time().cycle();
+    features.clear();
+
+    if (!update_shoot){
+        if (
+                action.category() > 2
+                ||
+                !action.targetPoint().isValid()
+                ||
+                action.targetPlayerUnum() > 11
+                ||
+                action.targetPlayerUnum() < 1
+                )
+            return;
+    }
+
+    // cycle
+    ADD_ELEM("cycle", convertor_cycle(last_update_cycle));
+
+    // ball
+    extract_ball(state);
+
+    // kicker
+    extract_kicker(state);
+
+    // players
+    extract_players(state);
+
+    // output
+    if (!update_shoot){
+        extract_output(state,
+                       action.category(),
+                       action.targetPoint(),
+                       action.targetPlayerUnum(),
+                       action.description(),
+                       action.firstBallSpeed());
+    }
+    for (int i = 0; i < features.size(); i++){
+        if ( i == features.size() - 1){
+            fout<<features[i];
+        }else{
+            fout<<features[i]<<",";
+        }
+    }
+    fout<<std::endl;
+}
 
 void OffensiveDataExtractor::get_data(DEState & state){
     features.clear();
@@ -891,9 +901,9 @@ void OffensiveDataExtractor::add_null_player(int unum, ODEDataSide side) {
 
 void OffensiveDataExtractor::extract_output(DEState &state,
                                    int category,
-                                   rcsc::Vector2D &target,
-                                   int &unum,
-                                   char *desc,
+                                   const rcsc::Vector2D &target,
+                                   const int &unum,
+                                   const char *desc,
                                    double ball_speed) {
     ADD_ELEM("category", category);
     ADD_ELEM("target_x", convertor_x(target.x));

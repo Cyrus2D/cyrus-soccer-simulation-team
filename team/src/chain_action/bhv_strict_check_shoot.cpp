@@ -34,7 +34,7 @@
 #endif
 
 #include "bhv_strict_check_shoot.h"
-#include "DataExtractor.h"
+#include "../data_extractor/offensive_data_extractor.h"
 #include "cooperative_action.h"
 
 #include "shoot_generator.h"
@@ -60,7 +60,7 @@ double Bhv_StrictCheckShoot::speed = 0;
 bool
 Bhv_StrictCheckShoot::execute( PlayerAgent * agent )
 {
-    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+    const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
     if ( ! wm.self().isKickable() )
     {
@@ -208,7 +208,7 @@ Bhv_StrictCheckShoot::doTurnNeckToShootPoint( PlayerAgent * agent,
     }
 
 #if 0
-    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+    const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
     if ( wm.seeTime() == wm.time() )
     {
         double current_width = wm.self().viewWidth().width();

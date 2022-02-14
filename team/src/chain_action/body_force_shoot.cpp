@@ -34,7 +34,7 @@
 #endif
 
 #include "body_force_shoot.h"
-#include "DataExtractor.h"
+#include "../data_extractor/offensive_data_extractor.h"
 #include "cooperative_action.h"
 
 #include <rcsc/player/player_agent.h>
@@ -60,7 +60,7 @@ Body_ForceShoot::Body_ForceShoot()
 bool
 Body_ForceShoot::execute( rcsc::PlayerAgent * agent )
 {
-    const rcsc::WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+    const rcsc::WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
     rcsc::dlog.addText( rcsc::Logger::ACTION,
                         __FILE__": execute()" );
     agent->debugClient().addMessage( "ForceShoot" );

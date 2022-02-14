@@ -32,7 +32,7 @@
 
 #include "action_chain_holder.h"
 #include "action_chain_graph.h"
-#include "DataExtractor.h"
+#include "../data_extractor/offensive_data_extractor.h"
 
 #include <rcsc/action/basic_actions.h>
 #include <rcsc/action/neck_scan_field.h>
@@ -63,7 +63,7 @@ Neck_TurnToReceiver::Neck_TurnToReceiver( const ActionChainGraph & chain_graph )
 bool
 Neck_TurnToReceiver::execute( PlayerAgent * agent )
 {
-    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+    const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
     if ( agent->effector().queuedNextBallKickable() )
     {
         if ( executeImpl( agent ) )
@@ -105,7 +105,7 @@ Neck_TurnToReceiver::executeImpl( PlayerAgent * agent )
     dlog.addText( Logger::TEAM,
                   __FILE__": Neck_TurnToReceiver (executeImpl)" );
 
-    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+    const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
     const CooperativeAction & pass = M_chain_graph.getFirstAction();
     const AbstractPlayerObject * receiver = wm.ourPlayer( pass.targetPlayerUnum() );

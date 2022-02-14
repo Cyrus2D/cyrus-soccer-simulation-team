@@ -8,8 +8,10 @@
 #include <fstream>
 #include <rcsc/geom.h>
 #include <rcsc/player/player_agent.h>
-
+//#include "../chain_action/action_state_pair.h"
+#include "../chain_action/cooperative_action.h"
 #include "DEState.h"
+
 //#include "shoot_generator.h"
 enum ODEDataSide {
     NONE,
@@ -83,17 +85,21 @@ public:
 
     ~OffensiveDataExtractor();
     Option option;
-//    void update(const rcsc::PlayerAgent *agent,
-//                const ActionStatePair *first_layer,
-//                bool update_shoot=false);
+    void update(const rcsc::PlayerAgent *agent,
+                const CooperativeAction &action,
+                bool update_shoot=false);
 
 
     //accessors
     static OffensiveDataExtractor &i();
     static bool active;
 
-    void extract_output(DEState &state, int category, rcsc::Vector2D &target, int &unum,
-                        char *desc, double bell_speed);
+    void extract_output(DEState &state,
+                        int category,
+                        const rcsc::Vector2D &target,
+                        const int &unum,
+                        const char *desc,
+                        double bell_speed);
     void update_for_shoot(const rcsc::PlayerAgent *agent, rcsc::Vector2D target, double bell_speed);
 
     void update_history(const rcsc::PlayerAgent *agent);

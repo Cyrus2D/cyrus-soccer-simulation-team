@@ -38,7 +38,7 @@
 #include "action_chain_holder.h"
 #include "action_chain_graph.h"
 #include "field_analyzer.h"
-#include "DataExtractor.h"
+#include "../data_extractor/offensive_data_extractor.h"
 
 #include "neck_turn_to_receiver.h"
 
@@ -115,7 +115,7 @@ IntentionPassKickFindReceiver::finished(  PlayerAgent * agent )
 		return true;
 	}
 
-	const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+	const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
 	//
 	// check kickable
@@ -214,7 +214,7 @@ Bhv_PassKickFindReceiver::Bhv_PassKickFindReceiver( const ActionChainGraph & cha
 bool
 IntentionPassKickFindReceiver::execute( PlayerAgent * agent )
 {
-	const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+	const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 	const AbstractPlayerObject * receiver = wm.ourPlayer( M_receiver_unum );
 
 	if ( ! receiver )
@@ -276,7 +276,7 @@ Bhv_PassKickFindReceiver::execute( PlayerAgent * agent )
 	dlog.addText( Logger::TEAM,
 			__FILE__": Bhv_PassKickFindReceiver" );
 
-	const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+	const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
 	if ( ! wm.self().isKickable() )
 	{
@@ -487,7 +487,7 @@ bool
 Bhv_PassKickFindReceiver::doCheckReceiver( PlayerAgent * agent,
 		const CooperativeAction & pass )
 {
-	const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+	const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
 	double nearest_opp_dist = 65535.0;
 	wm.getOpponentNearestTo( wm.ball().pos(), 10, &nearest_opp_dist );
@@ -627,7 +627,7 @@ bool
 Bhv_PassKickFindReceiver::doKeepBall( rcsc::PlayerAgent * agent,
 		const CooperativeAction & pass )
 {
-	Vector2D ball_vel = getKeepBallVel( DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world());
+	Vector2D ball_vel = getKeepBallVel( OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world());
 
 	if ( ! ball_vel.isValid() )
 	{
@@ -641,7 +641,7 @@ Bhv_PassKickFindReceiver::doKeepBall( rcsc::PlayerAgent * agent,
 	// perform first kick
 	//
 
-	const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+	const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
 	Vector2D kick_accel = ball_vel - wm.ball().vel();
 	double kick_power = kick_accel.r() / wm.self().kickRate();
@@ -851,7 +851,7 @@ Bhv_PassKickFindReceiver::doTurnBodyNeckToReceiver( PlayerAgent * agent,
 		const CooperativeAction & pass )
 {
 	const ServerParam & SP = ServerParam::i();
-	const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+	const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 	const AbstractPlayerObject * receiver = wm.ourPlayer( pass.targetPlayerUnum() );
 
 	const double next_view_half_width = agent->effector().queuedNextViewWidth().width() * 0.5;
@@ -993,7 +993,7 @@ Bhv_PassKickFindReceiver::doSayPass( PlayerAgent * agent,
 {
 	const int receiver_unum = pass.targetPlayerUnum();
 	const Vector2D & receive_pos = pass.targetPoint();
-	const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+	const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
 	if ( agent->config().useCommunication()
             && receiver_unum != Unum_Unknown/*
@@ -1033,7 +1033,7 @@ Bhv_PassKickFindReceiver::doSayPrePass( PlayerAgent * agent,
 {
     const int receiver_unum = pass.targetPlayerUnum();
     const Vector2D & receive_pos = pass.targetPoint();
-	const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+	const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 	
     if ( agent->config().useCommunication()
             && receiver_unum != Unum_Unknown/*

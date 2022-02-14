@@ -30,7 +30,7 @@
 #include "../strategy.h"
 #include "hold_ball.h"
 #include "../setting.h"
-#include "DataExtractor.h"
+#include "../data_extractor/offensive_data_extractor.h"
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/common/server_param.h>
@@ -331,7 +331,7 @@ bool ActionChainGraph::choose_better_action(bool choose_onkick){
 void
 ActionChainGraph::calculateResult( const PlayerAgent* agent)
 {
-    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+    const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
     debugPrintCurrentState( wm );
 
     #if (defined DEBUG_PROFILE) || (defined ACTION_CHAIN_LOAD_DEBUG)
@@ -423,7 +423,7 @@ ActionChainGraph::calculateResult( const PlayerAgent* agent)
 //    DataExtractor::i().update(agent, first_layer);
     if (!M_best_chain_pass.empty()){
         ActionStatePair *first_layer = M_best_chain_pass.begin().base();
-        DataExtractor::i().update(agent, first_layer);
+        OffensiveDataExtractor::i().update(agent, first_layer->action());
     }
 
 
@@ -1108,7 +1108,7 @@ ActionChainGraph::debug_send_chain( PlayerAgent * agent,
 {
     const double DIRECT_PASS_DIST = 3.0;
 
-    const PredictState current_state( DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world() );
+    const PredictState current_state( OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world() );
 
     for ( size_t i = 0; i < path.size(); ++i )
     {

@@ -34,7 +34,7 @@
 #include "action_chain_graph.h"
 #include "action_state_pair.h"
 #include "field_analyzer.h"
-#include "DataExtractor.h"
+#include "../data_extractor/offensive_data_extractor.h"
 
 #include "bhv_pass_kick_find_receiver.h"
 #include "bhv_normal_dribble.h"
@@ -106,7 +106,7 @@ IntentionTurnTo::finished( const PlayerAgent * agent )
 		return true;
 	}
 
-	const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+	const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
 	//
 	// check kickable
@@ -354,7 +354,7 @@ Bhv_ChainAction::execute( PlayerAgent * agent )
 
 bool Bhv_ChainAction::hold_ball(PlayerAgent *agent)
 {
-    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+    const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
     const ServerParam & SP = ServerParam::i();
 
     if ( wm.gameMode().type() != GameMode::PlayOn )
@@ -476,7 +476,7 @@ Vector2D Bhv_ChainAction::hold_body_face(const WorldModel & wm){
 bool
 Bhv_ChainAction::doTurnToForward( PlayerAgent * agent )
 {
-	const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+	const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
 	if ( wm.gameMode().type() != GameMode::PlayOn )
 	{

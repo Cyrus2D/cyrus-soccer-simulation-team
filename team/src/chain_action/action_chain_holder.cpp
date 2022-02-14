@@ -34,7 +34,7 @@
 #endif
 
 #include "action_chain_holder.h"
-#include "DataExtractor.h"
+#include "../data_extractor/offensive_data_extractor.h"
 #include <rcsc/player/world_model.h>
 
 using namespace rcsc;
@@ -120,7 +120,7 @@ ActionChainHolder::actionGenerator() const
 void
 ActionChainHolder::update( const PlayerAgent * agent )
 {
-    const WorldModel &wm = DataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
+    const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
     static GameTime s_update_time( 0, 0 );
     static FieldEvaluator::ConstPtr s_update_evaluator;
     static ActionGenerator::ConstPtr s_update_generator;
