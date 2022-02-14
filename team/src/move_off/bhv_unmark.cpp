@@ -793,7 +793,7 @@ bool bhv_unmarkes::can_unmark(const WorldModel & wm) {
 #include "data_extractor/DEState.h"
 vector<unmark_passer> bhv_unmarkes::update_passer_dnn(const WorldModel &wm) {
     vector<unmark_passer> res;
-    const DEState & state = DEState(wm);
+    DEState state = DEState(wm);
     OffensiveDataExtractor::i().get_data(state);
     return res;
 }

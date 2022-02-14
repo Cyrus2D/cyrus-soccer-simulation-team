@@ -92,40 +92,40 @@ public:
     static OffensiveDataExtractor &i();
     static bool active;
 
-    void extract_output(const DEState &state, int category, const rcsc::Vector2D &target, const int &unum,
-                        const char *desc, double bell_speed);
+    void extract_output(DEState &state, int category, rcsc::Vector2D &target, int &unum,
+                        char *desc, double bell_speed);
     void update_for_shoot(const rcsc::PlayerAgent *agent, rcsc::Vector2D target, double bell_speed);
 
     void update_history(const rcsc::PlayerAgent *agent);
 
-    void get_data(const DEState & state);
+    void get_data(DEState &state);
 private:
-    void init_file(const DEState &state);
+    void init_file(DEState &state);
 
-    void extract_ball(const DEState & state);
+    void extract_ball(DEState &state);
 
-    void extract_players(const DEState & state);
+    void extract_players(DEState &state);
 
     void add_null_player(int unum, ODEDataSide side);
 
-    void extract_pos(const DEPlayer *player, const DEState & state, ODEDataSide side);
+    void extract_pos(DEPlayer *player, DEState &state, ODEDataSide side);
 
-    void extract_vel(const DEPlayer *player, ODEDataSide side, const DEState & state);
+    void extract_vel(DEPlayer *player, ODEDataSide side, DEState &state);
 
-    void extract_pass_angle(const DEPlayer *player, const DEState & state, ODEDataSide side);
+    void extract_pass_angle(DEPlayer *player, DEState &state, ODEDataSide side);
 
-    void extract_goal_polar(const DEPlayer *player, ODEDataSide side);
+    void extract_goal_polar(DEPlayer *player, ODEDataSide side);
 
-    void extract_goal_open_angle(const DEPlayer *player, const DEState & state, ODEDataSide side);
+    void extract_goal_open_angle(DEPlayer *player, DEState &state, ODEDataSide side);
 
-    void extract_base_data(const DEPlayer *player, ODEDataSide side, const DEState & state);
+    void extract_base_data(DEPlayer *player, ODEDataSide side, DEState &state);
 
-    void extract_type(const DEPlayer *player, ODEDataSide side);
+    void extract_type(DEPlayer *player, ODEDataSide side);
 
-    void extract_history(const DEPlayer *player, ODEDataSide side);
+    void extract_history(DEPlayer *player, ODEDataSide side);
 
 
-    uint find_unum_index(const DEState & state, uint unum);
+    uint find_unum_index(DEState &state, uint unum);
 
     double convertor_x(double x);
 
@@ -163,15 +163,15 @@ private:
 
     double convertor_counts(double count);
 
-    void extract_counts(const DEPlayer *player, ODEDataSide side, const DEState &state);
+    void extract_counts(DEPlayer *player, ODEDataSide side, DEState &state);
 
-    void extract_kicker(const DEState &state);
+    void extract_kicker(DEState &state);
 
-    void extract_drible_angles(const DEState &state);
+    void extract_drible_angles(DEState &state);
 
-    std::vector<const DEPlayer *> sort_players(const DEState &state);
-    std::vector<const DEPlayer *> sort_players2(const DEState &state);
-    std::vector<const DEPlayer *> sort_players3(const DEState &state);
+    std::vector<DEPlayer *> sort_players(DEState &state);
+    std::vector<DEPlayer *> sort_players2(DEState &state);
+    std::vector<DEPlayer *> sort_players3(DEState &state);
     static std::vector<std::vector<rcsc::Vector2D>> history_pos;
     static std::vector<std::vector<rcsc::Vector2D>> history_vel;
     static std::vector<std::vector<rcsc::AngleDeg>> history_body;
