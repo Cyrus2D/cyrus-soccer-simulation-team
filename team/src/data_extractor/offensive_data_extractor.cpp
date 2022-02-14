@@ -37,36 +37,36 @@ OffensiveDataExtractor::~OffensiveDataExtractor() {
 
 
 OffensiveDataExtractor::Option::Option() {
-    side = BOTH;
-    unum = BOTH;
-    type = BOTH;
-    body = BOTH;
-    face = BOTH;
-    tackling = BOTH;
-    kicking = BOTH;
+    side = NONE;
+    unum = NONE;
+    type = NONE;
+    body = NONE;
+    face = NONE;
+    tackling = NONE;
+    kicking = NONE;
     card = NONE;
-    pos = BOTH;
-    relativePos = BOTH;
-    polarPos = BOTH;
-    vel = BOTH;
-    polarVel = BOTH;
-    counts = BOTH;
-    isKicker = TM;
-    isGhost = TM;
-    openAnglePass = TM;
-    nearestOppDist = TM;
-    polarGoalCenter = TM;
+    pos = NONE;
+    relativePos = NONE;
+    polarPos = NONE;
+    vel = NONE;
+    polarVel = NONE;
+    counts = NONE;
+    isKicker = NONE;
+    isGhost = NONE;
+    openAnglePass = NONE;
+    nearestOppDist = NONE;
+    polarGoalCenter = NONE;
     openAngleGoal = NONE;
-    in_offside = TM;
+    in_offside = NONE;
 
     dribleAngle = NONE;
     nDribleAngle = 12;
     history_size = 0;
     input_worldMode = NONE_FULLSTATE;
     output_worldMode = NONE_FULLSTATE;
-    playerSortMode = X;
+    playerSortMode = UNUM;
     kicker_first = false;
-    use_convertor = true;
+    use_convertor = false;
 }
 
 
@@ -78,11 +78,11 @@ void OffensiveDataExtractor::init_file(DEState &state) {
     time(&rawtime);
     timeinfo = localtime(&rawtime);
 
-    std::string dir = "/mnt/f/xxx/";
+    std::string dir = "/home/nader/workspace/robo/cyrus/data/";
     strftime(buffer, sizeof(buffer), "%Y-%m-%d-%H-%M-%S", timeinfo);
     std::string str(buffer);
     std::string rand_name = std::to_string(SamplePlayer::player_port);
-    str += "_" + std::to_string(state.kicker()->unum()) + "_" + state.wm().opponentTeamName() + "_E" + rand_name + ".csv";
+    str += "_" + std::to_string(state.wm().self().unum()) + "_" + state.wm().opponentTeamName() + "_E" + rand_name + ".csv";
 
     fout = std::ofstream((dir + str).c_str());
 
@@ -427,7 +427,8 @@ void OffensiveDataExtractor::update(const PlayerAgent *agent, const CooperativeA
         return;
 
     DEState state = DEState(wm);
-
+    if (state.kicker() == nullptr)
+        return;
 
     if (!fout.is_open()) {
         init_file(state);

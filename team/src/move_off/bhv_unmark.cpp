@@ -664,7 +664,7 @@ bool bhv_unmarkes::execute(PlayerAgent * agent) {
     dlog.addText(Logger::POSITIONING,"I can unmark");
     #endif
     vector<unmark_passer> passers = update_passer(wm);
-    vector<unmark_passer> passers_dnn = update_passer_dnn(wm);
+//    vector<unmark_passer> passers_dnn = update_passer_dnn(wm);
     #ifdef DEBUG_UNMARK
     for(auto &passer: passers){
         dlog.addText(Logger::POSITIONING,"passer:%d in (%.2f,%.2f) after %d, oppminc:%d",passer.unum,passer.ballpos.x,passer.ballpos.y,passer.cycle_recive_ball,passer.oppmin_cycle);
