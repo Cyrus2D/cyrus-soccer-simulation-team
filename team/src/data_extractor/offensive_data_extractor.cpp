@@ -39,20 +39,27 @@ OffensiveDataExtractor::~OffensiveDataExtractor() {
 
 
 OffensiveDataExtractor::Option::Option() {
-    side = BOTH;
+    cycle = true; //
+    ball_pos = true;
+    ball_vel = false;
+    ball_kicker_pos = true;
+    offside_count = true;
+    side = NONE;
     unum = BOTH;
-    type = BOTH;
+    type = NONE;
     body = BOTH;
-    face = BOTH;
-    tackling = BOTH;
-    kicking = BOTH;
+    face = NONE;
+    tackling = NONE;
+    kicking = NONE;
     card = NONE;
     pos = BOTH;
     relativePos = BOTH;
     polarPos = BOTH;
-    vel = BOTH;
-    polarVel = BOTH;
-    counts = BOTH;
+    vel = NONE;
+    polarVel = NONE;
+    pos_counts = BOTH;
+    vel_counts = NONE;
+    body_counts = NONE;
     isKicker = TM;
     isGhost = TM;
     openAnglePass = TM;
@@ -89,9 +96,29 @@ void OffensiveDataExtractor::init_file(DEState &state) {
     str += "_" + std::to_string(state.wm().self().unum()) + "_" + state.wm().opponentTeamName() + "_E" + rand_name + ".csv";
 
     fout = std::ofstream((dir + str).c_str());
+    std::string header = get_header();
+    #ifdef ODEDebug
+        dlog.addText(Logger::BLOCK, header.c_str());
+    #endif
+    fout << header << std::endl;
+}
 
+
+std::string OffensiveDataExtractor::get_header() {
+    std::string header = "";
     // Cycle and BALL
-    std::string header = "cycle,ball_pos_x,ball_pos_y,ball_pos_r,ball_pos_t,ball_kicker_x,ball_kicker_y,ball_kicker_r,ball_kicker_t,ball_vel_x,ball_vel_y,ball_vel_r,ball_vel_t,";
+    if (option.cycle)
+        header += "cycle,";
+    if (option.ball_pos){
+        header += std::string("ball_pos_x,ball_pos_y,ball_pos_r,ball_pos_t,");
+    }
+    if (option.ball_kicker_pos){
+        header += std::string("ball_kicker_x,ball_kicker_y,ball_kicker_r,ball_kicker_t,");
+    }
+    if (option.ball_vel){
+        header += std::string("ball_vel_x,ball_vel_y,ball_vel_r,ball_vel_t,");
+    }
+
     for (int j = 0; j < option.history_size; j++){
         header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_pos_x,";
         header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_pos_y,";
@@ -102,7 +129,9 @@ void OffensiveDataExtractor::init_file(DEState &state) {
         header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_vel_r,";
         header += std::string("ball_") + "history_" + std::to_string(j + 1) + "_vel_t,";
     }
-    header += "offside_count,";
+    if (option.offside_count){
+        header += "offside_count,";
+    }
 
     // Kicker
     if (option.dribleAngle == Kicker)
@@ -136,6 +165,12 @@ void OffensiveDataExtractor::init_file(DEState &state) {
             header += "p_l_" + std::to_string(i) + "_kicking,";
         if (option.card == TM || option.card == BOTH)
             header += "p_l_" + std::to_string(i) + "_card,";
+        if (option.pos_counts == TM || option.pos_counts == BOTH)
+            header += "p_l_" + std::to_string(i) + "_pos_count,";
+        if (option.vel_counts == TM || option.vel_counts == BOTH)
+            header += "p_l_" + std::to_string(i) + "_vel_count,";
+        if (option.body_counts == TM || option.body_counts == BOTH)
+            header += "p_l_" + std::to_string(i) + "_body_count,";
         if (option.pos == TM || option.pos == BOTH) {
             header += "p_l_" + std::to_string(i) + "_pos_x,";
             header += "p_l_" + std::to_string(i) + "_pos_y,";
@@ -160,11 +195,7 @@ void OffensiveDataExtractor::init_file(DEState &state) {
             header += "p_l_" + std::to_string(i) + "_vel_r,";
             header += "p_l_" + std::to_string(i) + "_vel_t,";
         }
-        if (option.counts == TM || option.counts == BOTH) {
-            header += "p_l_" + std::to_string(i) + "_pos_count,";
-            header += "p_l_" + std::to_string(i) + "_vel_count,";
-            header += "p_l_" + std::to_string(i) + "_body_count,";
-        }
+
         if (option.isKicker == TM || option.isKicker == BOTH)
             header += "p_l_" + std::to_string(i) + "_is_kicker,";
         if (option.isGhost == TM || option.isGhost == BOTH)
@@ -215,11 +246,12 @@ void OffensiveDataExtractor::init_file(DEState &state) {
                 header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_r,";
                 header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_t,";
             }
-            if (option.counts == TM || option.counts == BOTH) {
+            if (option.pos_counts == TM || option.pos_counts == BOTH)
                 header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_count,";
+            if (option.vel_counts == TM || option.vel_counts == BOTH)
                 header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_count,";
+            if (option.body_counts == TM || option.body_counts == BOTH)
                 header += "p_l_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_body_count,";
-            }
         }
     }
     for (int i = 1; i <= 15; i++) {
@@ -248,6 +280,12 @@ void OffensiveDataExtractor::init_file(DEState &state) {
             header += "p_r_" + std::to_string(i) + "_kicking,";
         if (option.card == OPP || option.card == BOTH)
             header += "p_r_" + std::to_string(i) + "_card,";
+        if (option.pos_counts == OPP || option.pos_counts == BOTH)
+            header += std::string("p_r_") + std::to_string(i) + "_pos_count,";
+        if (option.vel_counts == OPP || option.vel_counts == BOTH)
+            header += std::string("p_r_") + std::to_string(i) + "_vel_count,";
+        if (option.body_counts == OPP || option.body_counts == BOTH)
+            header += std::string("p_r_") + std::to_string(i) + "_body_count,";
         if (option.pos == OPP || option.pos == BOTH) {
             header += "p_r_" + std::to_string(i) + "_pos_x,";
             header += "p_r_" + std::to_string(i) + "_pos_y,";
@@ -270,11 +308,7 @@ void OffensiveDataExtractor::init_file(DEState &state) {
             header += std::string("p_r_") + std::to_string(i) + "_vel_r,";
             header += std::string("p_r_") + std::to_string(i) + "_vel_t,";
         }
-        if (option.counts == OPP || option.counts == BOTH) {
-            header += std::string("p_r_") + std::to_string(i) + "_pos_count,";
-            header += std::string("p_r_") + std::to_string(i) + "_vel_count,";
-            header += std::string("p_r_") + std::to_string(i) + "_body_count,";
-        }
+
         if (option.isKicker == OPP || option.isKicker == BOTH)
             header += "p_r_" + std::to_string(i) + "_is_kicker,";
         if (option.isGhost == OPP || option.isGhost == BOTH)
@@ -314,21 +348,17 @@ void OffensiveDataExtractor::init_file(DEState &state) {
                 header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_r,";
                 header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_t,";
             }
-            if (option.counts == OPP || option.counts == BOTH) {
+            if (option.pos_counts == OPP || option.pos_counts == BOTH)
                 header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_pos_count,";
+            if (option.vel_counts == OPP || option.vel_counts == BOTH)
                 header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_vel_count,";
+            if (option.body_counts == OPP || option.body_counts == BOTH)
                 header += "p_r_" + std::to_string(i) + "_history_" + std::to_string(j + 1) + "_body_count,";
-            }
         }
     }
     header += "out_category,out_target_x,out_target_y,out_unum,out_unum_index,out_ball_speed,out_ball_dir,out_desc,";
-    #ifdef ODEDebug
-        dlog.addText(Logger::BLOCK, header.c_str());
-    #endif
-    fout << header << std::endl;
+    return header;
 }
-
-
 //void OffensiveDataExtractor::update_history(const rcsc::PlayerAgent *agent){
 //    DEState &state = option.input_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 //    static int last_update = -1;
@@ -460,7 +490,8 @@ void OffensiveDataExtractor::update(const PlayerAgent *agent, const CooperativeA
     }
 
     // cycle
-    ADD_ELEM("cycle", convertor_cycle(last_update_cycle));
+    if (option.cycle)
+        ADD_ELEM("cycle", convertor_cycle(last_update_cycle));
 
     // ball
     extract_ball(state);
@@ -490,8 +521,11 @@ void OffensiveDataExtractor::update(const PlayerAgent *agent, const CooperativeA
     fout<<std::endl;
 }
 
-void OffensiveDataExtractor::get_data(DEState & state){
+std::vector<double> OffensiveDataExtractor::get_data(DEState & state){
     features.clear();
+    if (option.cycle)
+        ADD_ELEM("cycle", convertor_cycle(state.cycle()));
+
     // ball
     extract_ball(state);
 
@@ -500,7 +534,7 @@ void OffensiveDataExtractor::get_data(DEState & state){
 
     // players
     extract_players(state);
-
+    return features;
 }
 
 OffensiveDataExtractor &OffensiveDataExtractor::i() {
@@ -513,62 +547,69 @@ void OffensiveDataExtractor::extract_ball(DEState &state) {
     #ifdef ODEDebug
     dlog.addText(Logger::BLOCK, "start extract_ball");
     #endif
-    if (state.ball().posValid()) {
-        ADD_ELEM("p_x", convertor_x(state.ball().pos().x));
-        ADD_ELEM("p_y", convertor_y(state.ball().pos().y));
-        ADD_ELEM("p_r", convertor_dist(state.ball().pos().r()));
-        ADD_ELEM("p_t", convertor_angle(state.ball().pos().th().degree()));
+    if (option.ball_pos){
+        if (state.ball().posValid()) {
+            ADD_ELEM("p_x", convertor_x(state.ball().pos().x));
+            ADD_ELEM("p_y", convertor_y(state.ball().pos().y));
+            ADD_ELEM("p_r", convertor_dist(state.ball().pos().r()));
+            ADD_ELEM("p_t", convertor_angle(state.ball().pos().th().degree()));
+            #ifdef ODEDebug
+            dlog.addText(Logger::BLOCK, "##add ball pos x y r t");
+            #endif
+        } else {
+            ADD_ELEM("p_x", invalid_data_);
+            ADD_ELEM("p_y", invalid_data_);
+            ADD_ELEM("p_r", invalid_data_);
+            ADD_ELEM("p_t", invalid_data_);
+            #ifdef ODEDebug
+            dlog.addText(Logger::BLOCK, "##@add ball invalid pos x y r t");
+            #endif
+        }
+    }
+    if (option.ball_kicker_pos){
+        if (state.ball().rposValid()){
+            ADD_ELEM("kicker_x", convertor_dist_x(state.ball().rpos().x));
+            ADD_ELEM("kicker_y", convertor_dist_y(state.ball().rpos().y));
+            ADD_ELEM("kicker_r", convertor_dist(state.ball().rpos().r()));
+            ADD_ELEM("kicker_t", convertor_angle(state.ball().rpos().th().degree()));
+            #ifdef ODEDebug
+            dlog.addText(Logger::BLOCK, "##add ball rpos x y r t");
+            #endif
+        }else{
+            ADD_ELEM("kicker_x", invalid_data_);
+            ADD_ELEM("kicker_y", invalid_data_);
+            ADD_ELEM("kicker_r", invalid_data_);
+            ADD_ELEM("kicker_t", invalid_data_);
+            #ifdef ODEDebug
+            dlog.addText(Logger::BLOCK, "##@add ball invalid rpos x y r t");
+            #endif
+        }
+    }
+    if (option.ball_vel){
+        if (state.ball().velValid()) {
+            ADD_ELEM("v_x", convertor_bvx(state.ball().vel().x));
+            ADD_ELEM("v_y", convertor_bvy(state.ball().vel().y));
+            ADD_ELEM("v_r", convertor_bv(state.ball().vel().r()));
+            ADD_ELEM("v_t", convertor_angle(state.ball().vel().th().degree()));
+            #ifdef ODEDebug
+            dlog.addText(Logger::BLOCK, "##add ball vel x y r t");
+            #endif
+        } else {
+            ADD_ELEM("v_x", invalid_data_);
+            ADD_ELEM("v_y", invalid_data_);
+            ADD_ELEM("v_r", invalid_data_);
+            ADD_ELEM("v_t", invalid_data_);
+            #ifdef ODEDebug
+            dlog.addText(Logger::BLOCK, "##@add ball invalid vel x y r t");
+            #endif
+        }
+    }
+    if (option.offside_count){
+        ADD_ELEM("offside_count", convertor_counts(state.offsideLineCount()));
         #ifdef ODEDebug
-        dlog.addText(Logger::BLOCK, "##add ball pos x y r t");
-        #endif
-    } else {
-        ADD_ELEM("p_x", invalid_data_);
-        ADD_ELEM("p_y", invalid_data_);
-        ADD_ELEM("p_r", invalid_data_);
-        ADD_ELEM("p_t", invalid_data_);
-        #ifdef ODEDebug
-        dlog.addText(Logger::BLOCK, "##@add ball invalid pos x y r t");
+        dlog.addText(Logger::BLOCK, "##add offside count");
         #endif
     }
-    if (state.ball().rposValid()){
-        ADD_ELEM("kicker_x", convertor_dist_x(state.ball().rpos().x));
-        ADD_ELEM("kicker_y", convertor_dist_y(state.ball().rpos().y));
-        ADD_ELEM("kicker_r", convertor_dist(state.ball().rpos().r()));
-        ADD_ELEM("kicker_t", convertor_angle(state.ball().rpos().th().degree()));
-        #ifdef ODEDebug
-        dlog.addText(Logger::BLOCK, "##add ball rpos x y r t");
-        #endif
-    }else{
-        ADD_ELEM("kicker_x", invalid_data_);
-        ADD_ELEM("kicker_y", invalid_data_);
-        ADD_ELEM("kicker_r", invalid_data_);
-        ADD_ELEM("kicker_t", invalid_data_);
-        #ifdef ODEDebug
-        dlog.addText(Logger::BLOCK, "##@add ball invalid rpos x y r t");
-        #endif
-    }
-    if (state.ball().velValid()) {
-        ADD_ELEM("v_x", convertor_bvx(state.ball().vel().x));
-        ADD_ELEM("v_y", convertor_bvy(state.ball().vel().y));
-        ADD_ELEM("v_r", convertor_bv(state.ball().vel().r()));
-        ADD_ELEM("v_t", convertor_angle(state.ball().vel().th().degree()));
-        #ifdef ODEDebug
-        dlog.addText(Logger::BLOCK, "##add ball vel x y r t");
-        #endif
-    } else {
-        ADD_ELEM("v_x", invalid_data_);
-        ADD_ELEM("v_y", invalid_data_);
-        ADD_ELEM("v_r", invalid_data_);
-        ADD_ELEM("v_t", invalid_data_);
-        #ifdef ODEDebug
-        dlog.addText(Logger::BLOCK, "##@add ball invalid vel x y r t");
-        #endif
-    }
-
-    ADD_ELEM("offside_count", convertor_counts(state.offsideLineCount()));
-    #ifdef ODEDebug
-    dlog.addText(Logger::BLOCK, "##add offside count");
-    #endif
 }
 
 void OffensiveDataExtractor::extract_kicker(DEState &state) {
@@ -599,9 +640,10 @@ void OffensiveDataExtractor::extract_players(DEState &state) {
         #endif
         ODEDataSide side = player->side() == state.ourSide() ? TM : OPP;
         extract_base_data(player, side, state);
+        extract_counts(player, side, state);
         extract_pos(player, state, side);
         extract_vel(player, side, state);
-        extract_counts(player, side, state);
+
 
         if (option.isKicker == side || option.isKicker == BOTH) {
             if (player->unum() == state.kicker()->unum()) {
@@ -882,6 +924,12 @@ void OffensiveDataExtractor::add_null_player(int unum, ODEDataSide side) {
         ADD_ELEM("kicking", invalid_data_);
     if (option.card == side || option.card == BOTH)
         ADD_ELEM("card", invalid_data_);
+    if (option.pos_counts == side || option.pos_counts == BOTH)
+        ADD_ELEM("pos_count", invalid_data_);
+    if (option.vel_counts == side || option.vel_counts == BOTH)
+        ADD_ELEM("vel_count", invalid_data_);
+    if (option.body_counts == side || option.body_counts == BOTH)
+        ADD_ELEM("body_count", invalid_data_);
     if (option.pos == side || option.pos == BOTH) {
         ADD_ELEM("pos_x", invalid_data_);
         ADD_ELEM("pos_y", invalid_data_);
@@ -906,11 +954,6 @@ void OffensiveDataExtractor::add_null_player(int unum, ODEDataSide side) {
     if (option.polarVel == side || option.polarVel == BOTH) {
         ADD_ELEM("v_r", invalid_data_);
         ADD_ELEM("v_t", invalid_data_);
-    }
-    if (option.counts == side || option.counts == BOTH) {
-        ADD_ELEM("pos_count", invalid_data_);
-        ADD_ELEM("vel_count", invalid_data_);
-        ADD_ELEM("body_count", invalid_data_);
     }
     if (option.isKicker == side || option.isKicker == BOTH)
         ADD_ELEM("is_kicker", invalid_data_);
@@ -967,11 +1010,12 @@ void OffensiveDataExtractor::add_null_player(int unum, ODEDataSide side) {
             ADD_ELEM('history_vel_r', invalid_data_);
             ADD_ELEM('history_vel_t', invalid_data_);
         }
-        if (option.counts == side || option.counts == BOTH){
+        if (option.pos_counts == side || option.pos_counts == BOTH)
             ADD_ELEM('history_pos_count', invalid_data_);
+        if (option.vel_counts == side || option.vel_counts == BOTH)
             ADD_ELEM('history_vel_count', invalid_data_);
+        if (option.body_counts == side || option.body_counts == BOTH)
             ADD_ELEM('history_body_count', invalid_data_);
-        }
     }
 }
 
@@ -1417,22 +1461,26 @@ void OffensiveDataExtractor::extract_counts(DEPlayer *player, ODEDataSide side, 
         max_vel_count = 10;
         max_face_count = 5;
     }
-    if (!(option.counts == side || option.counts == BOTH))
-        return;
-    if (player->posCount() <= max_pos_count){
-        ADD_ELEM("pos_count", convertor_counts(player->posCount()));
-    }else{
-        ADD_ELEM("pos_count", invalid_data_);
+    if (option.pos_counts == side || option.pos_counts == BOTH){
+        if (player->posCount() <= max_pos_count){
+            ADD_ELEM("pos_count", convertor_counts(player->posCount()));
+        }else{
+            ADD_ELEM("pos_count", invalid_data_);
+        }
     }
-    if (player->velCount() <= max_vel_count){
-        ADD_ELEM("vel_count", convertor_counts(player->velCount()));
-    }else{
-        ADD_ELEM("vel_count", invalid_data_);
+    if (option.vel_counts == side || option.vel_counts == BOTH){
+        if (player->velCount() <= max_vel_count){
+            ADD_ELEM("vel_count", convertor_counts(player->velCount()));
+        }else{
+            ADD_ELEM("vel_count", invalid_data_);
+        }
     }
-    if (player->bodyCount() <= max_face_count){
-        ADD_ELEM("body_count", convertor_counts(player->bodyCount()));
-    }else{
-        ADD_ELEM("body_count", invalid_data_);
+    if (option.body_counts == side || option.body_counts == BOTH){
+        if (player->bodyCount() <= max_face_count){
+            ADD_ELEM("body_count", convertor_counts(player->bodyCount()));
+        }else{
+            ADD_ELEM("body_count", invalid_data_);
+        }
     }
 }
 
@@ -1485,11 +1533,12 @@ void OffensiveDataExtractor::extract_history(DEPlayer *player, ODEDataSide side)
                 ADD_ELEM('history_vel_t', convertor_angle(OffensiveDataExtractor::history_vel[unum][len - 2 - i].th().degree()));
             }
         }
-        if (option.counts == side || option.counts == BOTH){
+        if (option.pos_counts == side || option.pos_counts == BOTH)
             ADD_ELEM('history_pos_count', convertor_counts(OffensiveDataExtractor::history_pos_count[unum][len - 2 - i]));
+        if (option.vel_counts == side || option.vel_counts == BOTH)
             ADD_ELEM('history_vel_count', convertor_counts(OffensiveDataExtractor::history_pos_count[unum][len - 2 - i]));
+        if (option.body_counts == side || option.body_counts == BOTH)
             ADD_ELEM('history_body_count', convertor_counts(OffensiveDataExtractor::history_pos_count[unum][len - 2 - i]));
-        }
     }
 }
 

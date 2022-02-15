@@ -37,6 +37,11 @@ class OffensiveDataExtractor {
 private:
     struct Option {
     public:
+        bool cycle;
+        bool ball_pos;
+        bool ball_vel;
+        bool ball_kicker_pos;
+        bool offside_count;
         ODEDataSide side;
         ODEDataSide unum;
         ODEDataSide type;
@@ -50,7 +55,9 @@ private:
         ODEDataSide polarPos;
         ODEDataSide vel;
         ODEDataSide polarVel;
-        ODEDataSide counts;
+        ODEDataSide pos_counts;
+        ODEDataSide vel_counts;
+        ODEDataSide body_counts;
         ODEDataSide isKicker;
         ODEDataSide isGhost;
         ODEDataSide openAnglePass;
@@ -88,7 +95,7 @@ public:
     void update(const rcsc::PlayerAgent *agent,
                 const CooperativeAction &action,
                 bool update_shoot=false);
-
+    std::string get_header();
 
     //accessors
     static OffensiveDataExtractor &i();
@@ -104,7 +111,7 @@ public:
 
     void update_history(const rcsc::PlayerAgent *agent);
 
-    void get_data(DEState &state);
+    std::vector<double> get_data(DEState &state);
 private:
     void init_file(DEState &state);
 

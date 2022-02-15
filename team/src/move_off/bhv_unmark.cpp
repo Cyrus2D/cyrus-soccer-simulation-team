@@ -664,7 +664,7 @@ bool bhv_unmarkes::execute(PlayerAgent * agent) {
     dlog.addText(Logger::POSITIONING,"I can unmark");
     #endif
     vector<unmark_passer> passers = update_passer(wm);
-//    vector<unmark_passer> passers_dnn = update_passer_dnn(wm);
+    vector<unmark_passer> passers_dnn = update_passer_dnn(wm, agent);
     #ifdef DEBUG_UNMARK
     for(auto &passer: passers){
         dlog.addText(Logger::POSITIONING,"passer:%d in (%.2f,%.2f) after %d, oppminc:%d",passer.unum,passer.ballpos.x,passer.ballpos.y,passer.cycle_recive_ball,passer.oppmin_cycle);
@@ -791,10 +791,82 @@ bool bhv_unmarkes::can_unmark(const WorldModel & wm) {
 }
 #include "data_extractor/offensive_data_extractor.h"
 #include "data_extractor/DEState.h"
-vector<unmark_passer> bhv_unmarkes::update_passer_dnn(const WorldModel &wm) {
+#include <CppDNN/DeepNueralNetwork.h>
+vector<unmark_passer> bhv_unmarkes::update_passer_dnn(const WorldModel &wm, PlayerAgent * agent) {
     vector<unmark_passer> res;
     DEState state = DEState(wm);
-    OffensiveDataExtractor::i().get_data(state);
+    int fastest_tm = 0;
+    if (wm.interceptTable()->fastestTeammate() != nullptr)
+        fastest_tm = wm.interceptTable()->fastestTeammate()->unum();
+    if (fastest_tm < 1)
+        return res;
+    if (!state.updateKicker(fastest_tm))
+        return res;
+    auto features = OffensiveDataExtractor::i().get_data(state);
+    std::string header = OffensiveDataExtractor::i().get_header();
+    static bool file_created = false;
+    static std::ofstream fout;
+    if (!file_created){
+        file_created = true;
+        time_t rawtime;
+        struct tm *timeinfo;
+        char buffer[80];
+
+        time(&rawtime);
+        timeinfo = localtime(&rawtime);
+
+        std::string dir = "/home/nader/workspace/robo/cyrus/data/";
+        auto file_name = "" + std::to_string(state.wm().self().unum()) + ".csv";
+
+        fout = std::ofstream((dir + file_name).c_str());
+        fout << header << std::endl;
+    }
+    for (auto &f: features)
+        fout << f << ",";
+
+    static DeepNueralNetwork * pass_prediction;
+    static bool load_dnn = false;
+    if(!load_dnn){
+        load_dnn = true;
+        pass_prediction = new DeepNueralNetwork();
+        pass_prediction->ReadFromKeras("./data/deep/yushan_pass_prediction.weight");
+    }
+    fout << features.size()<<",";
+    MatrixXd input(537,1);
+    for (int i = 1; i <= 537; i += 1){
+        input(i - 1,0) = features[i];
+    }
+    pass_prediction->Calculate(input);
+    std::vector<std::pair<double, int>> predict;
+    for (int i = 0; i < 12; i++){
+        fout << pass_prediction->mOutput(i) * 100<<",";
+        if (i != 0)
+            predict.push_back(make_pair(pass_prediction->mOutput(i), i));
+    }
+    std::sort(predict.begin(), predict.end());
+    if (wm.ourPlayer(predict[10].second) != nullptr && wm.ourPlayer(predict[10].second)->unum() > 0){
+        Vector2D target_pos = wm.ourPlayer(predict[10].second)->pos();
+        if (target_pos.isValid()){
+            agent->debugClient().addLine(state.kicker()->pos() - Vector2D(-0.2, 0), target_pos - Vector2D(-0.2, 0));
+            agent->debugClient().addLine(state.kicker()->pos() - Vector2D(-0.1, 0), target_pos - Vector2D(-0.1, 0));
+            agent->debugClient().addLine(state.kicker()->pos(), target_pos);
+            agent->debugClient().addLine(state.kicker()->pos() - Vector2D(0.2, 0), target_pos - Vector2D(0.2, 0));
+            agent->debugClient().addLine(state.kicker()->pos() - Vector2D(0.1, 0), target_pos - Vector2D(0.1, 0));
+            agent->debugClient().addCircle(target_pos, 2);
+        }
+    }
+    if (wm.ourPlayer(predict[9].second) != nullptr && wm.ourPlayer(predict[9].second)->unum() > 0){
+        Vector2D target_pos = wm.ourPlayer(predict[9].second)->pos();
+        if (target_pos.isValid()){
+            agent->debugClient().addLine(state.kicker()->pos() - Vector2D(-0.1, 0), target_pos - Vector2D(-0.1, 0));
+            agent->debugClient().addLine(state.kicker()->pos(), target_pos);
+            agent->debugClient().addLine(state.kicker()->pos() - Vector2D(0.1, 0), target_pos - Vector2D(0.1, 0));
+        }
+    }
+    for (int i = 10; i >= 0; i--){
+        fout << predict[i].second<<",";
+    }
+    fout << std::endl;
     return res;
 }
 
