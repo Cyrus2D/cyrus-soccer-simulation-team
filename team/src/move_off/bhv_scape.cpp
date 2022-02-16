@@ -60,6 +60,14 @@ bool bhv_scape::can_scape(const WorldModel & wm){
     if(ball_iner.dist(target_point) > 35
             || ball_iner.dist(self_pos) > 35)
         return false;
+    int fastest_tm = 0;
+    if (wm.interceptTable()->fastestTeammate() != nullptr && wm.interceptTable()->fastestTeammate()->unum() > 0){
+        fastest_tm = wm.interceptTable()->fastestTeammate()->unum();
+    }
+    if (fastest_tm == 9 && wm.self().unum() == 10)
+        return false;
+    if (fastest_tm == 10 && wm.self().unum() == 11)
+        return false;
 //    if(ball_iner.x < target_point.x - 20)
 //        return false;
     if(Setting::i()->mOffensiveMove->mIs9BrokeOffside

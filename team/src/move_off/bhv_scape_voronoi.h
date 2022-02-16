@@ -205,14 +205,6 @@ public:
             return false;
         if(wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle()).x > 35)
             return false;
-        int fastest_tm = 0;
-        if (wm.interceptTable()->fastestTeammate() != nullptr && wm.interceptTable()->fastestTeammate()->unum() > 0){
-            fastest_tm = wm.interceptTable()->fastestTeammate()->unum();
-        }
-        if (fastest_tm == 9 && wm.self().unum() == 10)
-            return false;
-        if (fastest_tm == 10 && wm.self().unum() == 11)
-            return false;
         if (pl_line == Strategy::PostLine::back) {
             if (stamina > 4500)
                 return true;
