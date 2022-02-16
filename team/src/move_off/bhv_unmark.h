@@ -135,7 +135,7 @@ public:
                const Circle2D & ball_circle,
                const Vector2D & target_point );
 };
-
+#include <CppDNN/DeepNueralNetwork.h>
 class bhv_unmarkes {
 public:
 	vector<bhv_unmark> unmarks;
@@ -149,6 +149,8 @@ public:
 	bool execute(PlayerAgent * agent);
 	bool can_unmark(const WorldModel & wm);
 	vector<unmark_passer> update_passer(const WorldModel & wm);
+    static DeepNueralNetwork * pass_prediction;
+    static void load_dnn();
     vector<unmark_passer> update_passer_dnn_writer(const WorldModel & wm, PlayerAgent * agent);
     vector<unmark_passer> update_passer_dnn(const WorldModel & wm, PlayerAgent * agent);
     vector< pair< double, pair<int, int>>> predict_pass(vector<double> & features, vector<int> ignored_player, int kicker);

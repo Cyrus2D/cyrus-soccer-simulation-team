@@ -800,15 +800,16 @@ bool bhv_unmarkes::can_unmark(const WorldModel & wm) {
 }
 #include "data_extractor/offensive_data_extractor.h"
 #include "data_extractor/DEState.h"
-#include <CppDNN/DeepNueralNetwork.h>
-vector< pair< double, pair<int, int>>> bhv_unmarkes::predict_pass(vector<double> & features, vector<int> ignored_player, int kicker){
-    static DeepNueralNetwork * pass_prediction;
+DeepNueralNetwork * bhv_unmarkes::pass_prediction = new DeepNueralNetwork();
+void bhv_unmarkes::load_dnn(){
     static bool load_dnn = false;
     if(!load_dnn){
         load_dnn = true;
-        pass_prediction = new DeepNueralNetwork();
         pass_prediction->ReadFromKeras("./data/deep/yushan_pass_prediction.weight");
     }
+}
+vector< pair< double, pair<int, int>>> bhv_unmarkes::predict_pass(vector<double> & features, vector<int> ignored_player, int kicker){
+
     MatrixXd input(537,1);
     for (int i = 1; i <= 537; i += 1){
         input(i - 1,0) = features[i];

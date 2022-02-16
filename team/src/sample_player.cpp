@@ -77,6 +77,7 @@
 #include <rcsc/common/player_param.h>
 #include <rcsc/common/audio_memory.h>
 #include <rcsc/common/say_message_parser.h>
+#include "move_off/bhv_unmark.h"
 // #include <rcsc/common/free_message_parser.h>
 
 #include "setting.h"
@@ -230,7 +231,7 @@ SamplePlayer::initImpl( CmdLineParser & cmd_parser )
     }
 
     OffensiveDataExtractor::active = config().dataExtract();
-
+    bhv_unmarkes::load_dnn();
 
     return true;
 }
