@@ -873,7 +873,7 @@ vector<unmark_passer> bhv_unmarkes::update_passer_dnn(const WorldModel &wm, Play
                     dlog.addText(Logger::MARK, "######is in ignored");
                     continue;
                 }
-                if (best_pass.first < 0.05){
+                if (best_pass.first < 0.01){
                     dlog.addText(Logger::MARK, "######is not valuable");
                     continue;
                 }
@@ -914,6 +914,7 @@ vector<unmark_passer> bhv_unmarkes::update_passer_dnn(const WorldModel &wm, Play
                 cycle_recive_ball = wm.interceptTable()->teammateReachCycle() * 2.0;
             }
             res.push_back(unmark_passer(p.second.first, kicker_pos, wm.interceptTable()->opponentReachCycle(), cycle_recive_ball));
+            res[res.size() - 1].is_fastest = true;
         }
     }
     return res;
