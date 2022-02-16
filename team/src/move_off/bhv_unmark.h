@@ -149,7 +149,9 @@ public:
 	bool execute(PlayerAgent * agent);
 	bool can_unmark(const WorldModel & wm);
 	vector<unmark_passer> update_passer(const WorldModel & wm);
+    vector<unmark_passer> update_passer_dnn_writer(const WorldModel & wm, PlayerAgent * agent);
     vector<unmark_passer> update_passer_dnn(const WorldModel & wm, PlayerAgent * agent);
+    vector< pair< double, pair<int, int>>> predict_pass(vector<double> & features, vector<int> ignored_player, int kicker);
 	void create_targets(const WorldModel & wm);
 	void evaluate_targets(const WorldModel & wm, vector<unmark_passer> passer);
 	void update_best_unmark(const WorldModel & wm);
