@@ -9,7 +9,12 @@
 #include <rcsc/player/abstract_player_object.h>
 #include <rcsc/player/ball_object.h>
 #include <rcsc/player/world_model.h>
+#include <rcsc/player/intercept_table.h>
 #include <vector>
+#include <rcsc/common/logger.h>
+#include <string>
+#define DESDebug
+
 using namespace rcsc;
 class DEBall{
 public:
@@ -20,50 +25,51 @@ public:
     int M_rpos_count;
     int M_vel_count;
     const BallObject * M_ball;
-    DEBall():
-    M_ball(nullptr)
-    {
-        M_pos = Vector2D::INVALIDATED;
-        M_rpos = Vector2D::INVALIDATED;
-        M_vel = Vector2D(0, 0);
-    }
+    DEBall(){}
     DEBall(const BallObject & ball):
         M_ball(&ball){
         M_pos = ball.pos();
-        M_vel = ball.vel();
+        M_vel = Vector2D(0, 0);//ball.vel();
+        M_rpos = ball.rpos();
+        M_pos_count = 0;//ball.posCount();
+        M_rpos_count = 0;//ball.rposCount();
+        M_vel_count = 0;//ball.velCount();
     }
     const BallObject * ball() const{
         return M_ball;
     }
+    void update_pos(Vector2D pos){
+        M_pos = pos;
+    }
     void update_rpos(Vector2D & kicker_pos){
         M_rpos = kicker_pos - M_pos;
     }
-    const Vector2D & pos() const{
+    Vector2D & pos() {
         return M_pos;
     }
-    const Vector2D & vel() const{
+    Vector2D & vel() {
         return M_vel;
     }
-    const Vector2D & rpos() const{
+    Vector2D & rpos() {
         return M_rpos;
     }
-    const int & rposCount() const{
+    int & rposCount() {
         return M_rpos_count;
     }
-    const int & posCount() const{
+    int & posCount() {
         return M_pos_count;
     }
-    const int & velCount() const{
+    int & velCount() {
         return M_vel_count;
     }
-    bool posValid() const{
-        return M_pos.isValid();
+    bool posValid() {
+        return M_pos_count <= 10;
     }
-    bool velValid() const{
-        return M_rpos.isValid();
+    bool velValid() {
+        return M_vel_count <= 10;
     }
-    bool rposValid() const{
-        return M_vel.isValid();
+    bool rposValid() {
+        return M_rpos_count <= 5;
     }
 };
 class DEPlayer{
@@ -73,7 +79,6 @@ public:
     AngleDeg M_body;
     AngleDeg M_face;
     int M_pos_count;
-    int M_rpos_count;
     int M_vel_count;
     int M_body_count;
     int M_face_count;
@@ -83,99 +88,90 @@ public:
     bool M_is_ghost;
     const PlayerType * M_player_type;
     const AbstractPlayerObject * M_player;
-
-    DEPlayer():
-        M_player(nullptr),
-        M_is_ghost(false),
-        M_player_type(nullptr){
-        M_pos = Vector2D::INVALIDATED;
-        M_vel = Vector2D(0, 0);
-        M_body = 0;
-        M_face = 0;
-        M_unum = -1;
-        M_side = 0;
-        M_dist_from_ball = 0;
-        M_is_ghost = false;
-        M_body_count = 0;
-        M_face_count = 0;
-    }
+    bool M_body_valid;
     DEPlayer(const AbstractPlayerObject * p, DEBall & ball):
             M_player_type(p->playerTypePtr()),
             M_player(p)
         {
         M_pos = p->pos();
-        M_vel = p->vel();
+        M_vel = Vector2D(0, 0);//p->vel();
         M_body = p->body();
         M_face = p->face();
         M_unum = p->unum();
         M_side = p->side();
         M_dist_from_ball = pos().dist(ball.pos());
         M_is_ghost = p->isGhost();
-        M_body_count = p->bodyCount();
-        M_body_count = p->faceCount();
+        M_pos_count = 0;//p->posCount();
+        M_vel_count = 0;//p->velCount();
+        M_body_count = 0;//p->bodyCount();
+        M_face_count = 0;//p->faceCount();
+        M_body_valid = false;
     }
-    const AbstractPlayerObject * player() const{
+    const AbstractPlayerObject * player(){
         return M_player;
     }
-    const int & unum() const{
+    int & unum(){
         return M_unum;
     }
-    const int & side() const{
+    int & side(){
         return M_side;
     }
-    const Vector2D & pos() const{
+    Vector2D & pos(){
         return M_pos;
     }
-    const Vector2D & vel() const{
+    Vector2D & vel(){
         return M_vel;
     }
-    const AngleDeg & body() const{
+    AngleDeg & body(){
         return M_body;
     }
-    const AngleDeg & face() const{
+    AngleDeg & face(){
         return M_face;
     }
-    const int & rposCount() const{
-        return M_rpos_count;
-    }
-    const int & posCount() const{
+    int & posCount(){
         return M_pos_count;
     }
-    const int & velCount() const{
+    int & velCount(){
         return M_vel_count;
     }
-    const int & bodyCount() const{
+    int & bodyCount(){
         return M_body_count;
     }
-    const int & faceCount() const{
+    int & faceCount(){
         return M_face_count;
     }
-    double distFromBall() const{
+    double distFromBall(){
         return M_dist_from_ball;
     }
-    bool isGhost() const{
+    bool isGhost(){
         return M_is_ghost;
     }
-    const PlayerType * playerTypePtr() const{
+    const PlayerType * playerTypePtr(){
         return M_player_type;
     }
-    const bool isTackling() const{
+    bool isTackling(){
         return false;
     }
-    const bool kicked() const{
+    bool kicked(){
         return false;
+    }
+    bool bodyValid(){
+        return M_body_count <= 2;
+    }
+    void updateForKicker(Vector2D & ball_pos){
+        M_dist_from_ball = M_pos.dist(ball_pos);
     }
 };
 class DEState {
 public:
     int M_cycle;
     DEBall M_ball;
-    std::vector<DEPlayer> M_all_players;
+    std::vector<DEPlayer*> M_all_players;
     std::vector<DEPlayer*> M_teammates;
     std::vector<DEPlayer*> M_opponents;
     std::vector<DEPlayer*> M_unknown_players;
-    DEPlayer * M_known_teammates[12];
-    DEPlayer * M_known_opponents[12];
+    std::vector<DEPlayer*> M_known_teammates;
+    std::vector<DEPlayer*> M_known_opponents;
     std::vector<DEPlayer*> M_our_players;
     std::vector<DEPlayer*> M_their_players;
     int M_kicker_unum;
@@ -184,97 +180,176 @@ public:
     int M_offside_line_count;
     int M_our_side;
     const WorldModel &M_wm;
-
+    bool current_cycle;
     DEState(const WorldModel & wm):
         M_wm(wm)
-        {
+    {
         M_cycle = wm.time().cycle();
+        current_cycle = true;
         M_offside_line_x = wm.offsideLineX();
         M_offside_line_count = wm.offsideLineCount();
         M_our_side = wm.ourSide();
         M_ball = DEBall(wm.ball());
+        #ifdef DESDebug
+        dlog.addText(Logger::BLOCK, "Start updating M_all_players");
+        #endif
         for (auto p: wm.allPlayers()){
-            M_all_players.push_back(DEPlayer(p, M_ball));
+            #ifdef DESDebug
+            dlog.addText(Logger::BLOCK, "##side:%d, unum:%d is added to all_players", p->side(), p->unum());
+            #endif
+            M_all_players.push_back(new DEPlayer(p, M_ball));
         }
+        #ifdef DESDebug
+        dlog.addText(Logger::BLOCK, "End updating M_all_players");
+        #endif
         updateVectors(wm);
     }
-    int cycle() const{
+    ~DEState(){
+        for (auto p : M_all_players)
+        {
+            delete p;
+        }
+        M_all_players.clear();
+    }
+    int cycle(){
         return M_cycle;
     }
-    const DEBall & ball() const{
+    DEBall & ball(){
         return M_ball;
     }
     void updateVectors(const WorldModel & wm){
+        #ifdef DESDebug
+        dlog.addText(Logger::BLOCK, "Start updating Vectors");
+        #endif
         for (int i = 0; i <= 11; i++){
-            M_known_teammates[i] = nullptr;//DEPlayer();
-            M_known_opponents[i] = nullptr;//DEPlayer();
+            M_known_teammates.push_back(nullptr);//DEPlayer();
+            M_known_opponents.push_back(nullptr);//DEPlayer();
         }
         for (auto p: M_all_players){
-            if (p.side() == -1){
-                M_our_players.push_back(&p);
-                M_teammates.push_back(&p);
-                if (p.unum() != -1){
-                    M_known_teammates[p.unum()] = &p;
+            #ifdef DESDebug
+            dlog.addText(Logger::BLOCK, "--P side%d unum%d", p->side(), p->unum());
+            #endif
+            if (p->side() == ourSide()){
+                #ifdef DESDebug
+                dlog.addText(Logger::BLOCK, "###is tm");
+                #endif
+                M_our_players.push_back(p);
+                M_teammates.push_back(p);
+                #ifdef DESDebug
+                dlog.addText(Logger::BLOCK, "####pushed to ourPlayers, teammates");
+                #endif
+                if (p->unum() != -1){
+                    M_known_teammates[p->unum()] = p;
+                    #ifdef DESDebug
+                    dlog.addText(Logger::BLOCK, "#####add to kn tm %d %d, add %s", p->unum(), M_known_teammates[p->unum()]->unum(), p);
+                    #endif
                 }
             }else{
-                M_their_players.push_back(&p);
-                if(p.side() == 1){
-                    M_opponents.push_back(&p);
+                #ifdef DESDebug
+                dlog.addText(Logger::BLOCK, "###is opp");
+                #endif
+                M_their_players.push_back(p);
+                #ifdef DESDebug
+                dlog.addText(Logger::BLOCK, "#####pushed to their_players");
+                #endif
+                if(p->side() == -ourSide()){
+                    #ifdef DESDebug
+                    dlog.addText(Logger::BLOCK, "#####pushed to opponents");
+                    #endif
+                    M_opponents.push_back(p);
                 }else{
-                    M_unknown_players.push_back(&p);
+                    #ifdef DESDebug
+                    dlog.addText(Logger::BLOCK, "#####pushed to unknown_players");
+                    #endif
+                    M_unknown_players.push_back(p);
                 }
-                if (p.unum() != -1){
-                    M_known_opponents[p.unum()] = &p;
+                if (p->unum() != -1){
+                    #ifdef DESDebug
+                    dlog.addText(Logger::BLOCK, "#####pushed to known_opponents");
+                    #endif
+                    M_known_opponents[p->unum()] = p;
                 }
             }
         }
-        // kicker
-        //update rpos
+        #ifdef DESDebug
+        dlog.addText(Logger::BLOCK, "----M_known_teammates--- %d", M_known_teammates.size());
+        for (auto p: M_known_teammates){
+            if (p != nullptr)
+                dlog.addText(Logger::BLOCK, "## tm %d side %d %s", p->unum(), p->side(), p);
+        }
+        #endif
+        int fastest_unum = wm.interceptTable()->fastestTeammate()->unum();
+        int tm_reach = wm.interceptTable()->teammateReachCycle();
+        int self_reach = wm.interceptTable()->selfReachCycle();
+        if (self_reach <= tm_reach){
+            M_kicker_unum = wm.self().unum();
+            M_kicker_player = M_known_teammates[wm.self().unum()];
+        }else{
+            M_kicker_unum = fastest_unum;
+            M_kicker_player = M_known_teammates[fastest_unum];
+        }
+        if (M_kicker_unum == -1){
+            M_kicker_player = nullptr;
+        }
     }
-    std::vector<DEPlayer> & allPlayers(){
+    std::vector<DEPlayer*> & allPlayers(){
         return M_all_players;
     }
-    std::vector<DEPlayer*> teammates() const{
+    std::vector<DEPlayer*> teammates(){
         return M_teammates;
     }
-    std::vector<DEPlayer*> opponents() const{
+    std::vector<DEPlayer*> opponents(){
         return M_opponents;
     }
-    std::vector<DEPlayer*> unknownPlayers() const{
+    std::vector<DEPlayer*> unknownPlayers(){
         return M_unknown_players;
     }
-    std::vector<DEPlayer*> ourPlayers() const{
+    std::vector<DEPlayer*> ourPlayers(){
         return M_our_players;
     }
-    std::vector<DEPlayer*> theirPlayers() const{
+    std::vector<DEPlayer*> theirPlayers(){
         return M_their_players;
     }
-    DEPlayer * ourPlayer(int i) const{
+    DEPlayer * ourPlayer(int i){
         if (i < 0 || i > 11)
             return nullptr;
         return M_known_teammates[i];
     }
-    DEPlayer * theirPlayer(int i) const{
+    DEPlayer * theirPlayer(int i){
         if (i < 0 || i > 11)
             return nullptr;
         return M_known_opponents[i];
     }
-    DEPlayer * kicker() const{
+    DEPlayer * kicker(){
         return M_kicker_player;
     }
-    int kickerUnum() const{
+    int kickerUnum(){
         return M_kicker_unum;
     }
-    int offsideLineCount() const{
+    bool updateKicker(int unum){
+        if (unum < 0 || unum > 11)
+            return false;
+        if (M_known_teammates[unum] == nullptr)
+            return false;
+        M_kicker_unum = unum;
+        M_kicker_player = M_known_teammates[unum];
+        M_ball.update_pos(M_kicker_player->pos() + Vector2D(0.2, 0));
+        M_ball.update_rpos(M_kicker_player->pos());
+        for (auto p: M_all_players){
+            p->updateForKicker(M_ball.pos());
+        }
+        return true;
+    }
+    int offsideLineCount(){
         return M_offside_line_count;
     }
-    double offsideLineX() const{
+    double offsideLineX(){
         return M_offside_line_x;
     }
-    int ourSide() const{
+    int ourSide(){
         return M_our_side;
     }
-    const WorldModel & wm() const{
+    const WorldModel & wm(){
         return M_wm;
     }
 };
