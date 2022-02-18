@@ -326,13 +326,16 @@ public:
     int kickerUnum(){
         return M_kicker_unum;
     }
-    bool updateKicker(int unum){
+    bool updateKicker(int unum, Vector2D kicker_pos=Vector2D::INVALIDATED){
         if (unum < 0 || unum > 11)
             return false;
         if (M_known_teammates[unum] == nullptr)
             return false;
         M_kicker_unum = unum;
         M_kicker_player = M_known_teammates[unum];
+        if (kicker_pos.isValid()){
+            M_kicker_player->M_pos = kicker_pos;
+        }
         M_ball.update_pos(M_kicker_player->pos() + Vector2D(0.2, 0));
         M_ball.update_rpos(M_kicker_player->pos());
         for (auto p: M_all_players){
