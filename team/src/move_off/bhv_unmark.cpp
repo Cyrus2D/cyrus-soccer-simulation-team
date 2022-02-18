@@ -832,7 +832,8 @@ vector<unmark_passer> bhv_unmarkes::update_passer_dnn(const WorldModel &wm, Play
         fastest_tm = wm.interceptTable()->fastestTeammate()->unum();
     if (fastest_tm < 1)
         return res;
-    if (!state.updateKicker(fastest_tm))
+    int tm_reach_cycle = wm.interceptTable()->teammateReachCycle();
+    if (!state.updateKicker(fastest_tm, wm.ball().inertiaPoint(tm_reach_cycle)))
         return res;
 
     vector<int> ignored_player;
