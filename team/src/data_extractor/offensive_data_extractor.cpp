@@ -74,7 +74,6 @@ OffensiveDataExtractor::Option::Option() {
     output_worldMode = NONE_FULLSTATE;
     playerSortMode = X;
     kicker_first = false;
-    use_convertor = true;
     use_convertor = false;
 }
 
@@ -90,6 +89,7 @@ void OffensiveDataExtractor::init_file(DEState &state) {
     time(&rawtime);
     timeinfo = localtime(&rawtime);
 
+    std::string dir = "/home/nader/workspace/robo/cyrus/data/";
     strftime(buffer, sizeof(buffer), "%Y-%m-%d-%H-%M-%S", timeinfo);
     std::string str(buffer);
     std::string rand_name = std::to_string(SamplePlayer::player_port);
@@ -1131,7 +1131,6 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
         #endif
         if (diff.abs() > 60)
             continue;
-        if (opp->pos().dist(ball_pos) > tm_pos.dist(ball_pos) + 5.0)
         if (opp->pos().dist(ball_pos) > tm_pos.dist(ball_pos) + 6.0)
             continue;
         candid.open_angle = diff.abs();
@@ -1146,8 +1145,6 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
 
     }
     if (option.openAnglePass == side || option.openAnglePass == BOTH) {
-        auto open_angle_sorter = [](ODEOpenAngle *p1, ODEOpenAngle *p2) -> bool {
-            return p1->open_angle < p2->open_angle;
         auto open_angle_sorter = [](ODEOpenAngle &p1, ODEOpenAngle &p2) -> bool {
             return p1.open_angle < p2.open_angle;
         };
