@@ -1131,7 +1131,7 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
         #endif
         if (diff.abs() > 60)
             continue;
-        if (opp->pos().dist(ball_pos) > tm_pos.dist(ball_pos) + 6.0)
+        if (opp->pos().dist(ball_pos) > tm_pos.dist(ball_pos) + 10.0)
             continue;
         candid.open_angle = diff.abs();
         Vector2D proj_pos = Line2D(ball_pos, tm_pos).projection(opp->pos());
