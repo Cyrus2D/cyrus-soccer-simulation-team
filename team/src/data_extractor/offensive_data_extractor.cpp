@@ -1156,9 +1156,9 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
             dlog.addText(Logger::BLOCK, "###### add opp angle pass first");
             #endif
             ADD_ELEM("pass_opp1_dist", convertor_dist(candidates[0].dist_self_to_opp));
-            ADD_ELEM("pass_opp1_dist_proj_to_opp", convertor_angle(candidates[0].dist_opp_proj));
+            ADD_ELEM("pass_opp1_dist_proj_to_opp", convertor_dist(candidates[0].dist_opp_proj));
             ADD_ELEM("pass_opp1_dist_proj_to_kicker", convertor_dist(candidates[0].dist_self_to_opp_proj));
-            ADD_ELEM("pass_opp1_open_angle", convertor_dist(candidates[0].open_angle));
+            ADD_ELEM("pass_opp1_open_angle", convertor_angle(candidates[0].open_angle));
             if (candidates[0].opp_body_diff != invalid_data_)
                 ADD_ELEM("pass_opp1_dist_diffbody", convertor_angle(candidates[0].opp_body_diff));
             else
@@ -1179,9 +1179,9 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
             dlog.addText(Logger::BLOCK, "###### add opp angle pass second");
             #endif
             ADD_ELEM("pass_opp2_dist", convertor_dist(candidates[1].dist_self_to_opp));
-            ADD_ELEM("pass_opp2_dist_proj_to_opp", convertor_angle(candidates[1].dist_opp_proj));
+            ADD_ELEM("pass_opp2_dist_proj_to_opp", convertor_dist(candidates[1].dist_opp_proj));
             ADD_ELEM("pass_opp2_dist_proj_to_kicker", convertor_dist(candidates[1].dist_self_to_opp_proj));
-            ADD_ELEM("pass_opp2_open_angle", convertor_dist(candidates[1].open_angle));
+            ADD_ELEM("pass_opp2_open_angle", convertor_angle(candidates[1].open_angle));
             if (candidates[1].opp_body_diff != invalid_data_)
                 ADD_ELEM("pass_opp2_dist_diffbody", convertor_angle(candidates[1].opp_body_diff));
             else
@@ -1202,9 +1202,9 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
             dlog.addText(Logger::BLOCK, "###### add opp angle pass second");
             #endif
             ADD_ELEM("pass_opp3_dist", convertor_dist(candidates[2].dist_self_to_opp));
-            ADD_ELEM("pass_opp3_dist_proj_to_opp", convertor_angle(candidates[2].dist_opp_proj));
+            ADD_ELEM("pass_opp3_dist_proj_to_opp", convertor_dist(candidates[2].dist_opp_proj));
             ADD_ELEM("pass_opp3_dist_proj_to_kicker", convertor_dist(candidates[2].dist_self_to_opp_proj));
-            ADD_ELEM("pass_opp3_open_angle", convertor_dist(candidates[2].open_angle));
+            ADD_ELEM("pass_opp3_open_angle", convertor_angle(candidates[2].open_angle));
             if (candidates[2].opp_body_diff != invalid_data_)
                 ADD_ELEM("pass_opp3_dist_diffbody", convertor_angle(candidates[2].opp_body_diff));
             else
