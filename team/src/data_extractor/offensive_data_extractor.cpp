@@ -41,7 +41,7 @@ OffensiveDataExtractor::~OffensiveDataExtractor() {
 OffensiveDataExtractor::Option::Option() {
     cycle = true; //
     ball_pos = true;
-    ball_vel = false;
+    ball_vel = true;
     ball_kicker_pos = true;
     offside_count = true;
     side = NONE;
@@ -55,17 +55,17 @@ OffensiveDataExtractor::Option::Option() {
     pos = BOTH;
     relativePos = BOTH;
     polarPos = BOTH;
-    vel = NONE;
-    polarVel = NONE;
+    vel = BOTH;
+    polarVel = BOTH;
     pos_counts = BOTH;
-    vel_counts = NONE;
-    body_counts = NONE;
+    vel_counts = BOTH;
+    body_counts = BOTH;
     isKicker = TM;
     isGhost = TM;
     openAnglePass = TM;
     nearestOppDist = TM;
     polarGoalCenter = TM;
-    openAngleGoal = NONE;
+    openAngleGoal = TM;
     in_offside = TM;
     dribleAngle = NONE;
     nDribleAngle = 12;
@@ -74,7 +74,7 @@ OffensiveDataExtractor::Option::Option() {
     output_worldMode = NONE_FULLSTATE;
     playerSortMode = X;
     kicker_first = false;
-    use_convertor = false;
+    use_convertor = true;
 }
 
 
@@ -89,7 +89,7 @@ void OffensiveDataExtractor::init_file(DEState &state) {
     time(&rawtime);
     timeinfo = localtime(&rawtime);
 
-    std::string dir = "/home/nader/workspace/robo/cyrus/data/";
+    std::string dir = "/data1/aref/2d/data_yushan_pass_pred/";
     strftime(buffer, sizeof(buffer), "%Y-%m-%d-%H-%M-%S", timeinfo);
     std::string str(buffer);
     std::string rand_name = std::to_string(SamplePlayer::player_port);

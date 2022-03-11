@@ -231,7 +231,7 @@ SamplePlayer::initImpl( CmdLineParser & cmd_parser )
     }
 
     OffensiveDataExtractor::active = config().dataExtract();
-    bhv_unmarkes::load_dnn();
+    //bhv_unmarkes::load_dnn();
 
     return true;
 }
