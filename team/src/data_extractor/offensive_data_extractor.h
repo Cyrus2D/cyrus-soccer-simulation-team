@@ -201,5 +201,29 @@ public:
     ODEPolar(rcsc::Vector2D p);
 };
 
+class ODEOpenAngle {
+public:
+    double dist_self_to_opp;
+    double dist_self_to_opp_proj;
+    double dist_opp_proj;
+    double open_angle;
+    double opp_body_diff;
+
+    ODEOpenAngle(){};
+    ODEOpenAngle(
+        double _dist_self_to_opp,
+        double _dist_self_to_opp_proj,
+        double _dist_opp_proj,
+        double _open_angle,
+        double _opp_body_diff
+    ) {
+        dist_self_to_opp = _dist_self_to_opp;
+        dist_self_to_opp_proj = _dist_self_to_opp_proj;
+        dist_opp_proj = _dist_opp_proj;
+        open_angle = _open_angle;
+        opp_body_diff = _opp_body_diff;
+    };
+};
+
 
 #endif //CYRUS_OffensiveDataExtractor_H

@@ -203,15 +203,20 @@ std::string OffensiveDataExtractor::get_header() {
         if (option.openAnglePass == TM || option.openAnglePass == BOTH) {
             header += "p_l_" + std::to_string(i) + "_pass_dist,";
             header += "p_l_" + std::to_string(i) + "_pass_opp1_dist,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp1_angle,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp1_dist_line,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp1_dist_proj,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp1_dist_proj_to_opp,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp1_dist_proj_to_kicker,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp1_open_angle,";
             header += "p_l_" + std::to_string(i) + "_pass_opp1_dist_diffbody,";
             header += "p_l_" + std::to_string(i) + "_pass_opp2_dist,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp2_angle,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp2_dist_line,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp2_dist_proj,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp2_dist_proj_to_opp,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp2_dist_proj_to_kicker,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp2_open_angle,";
             header += "p_l_" + std::to_string(i) + "_pass_opp2_dist_diffbody,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp3_dist,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp3_dist_proj_to_opp,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp3_dist_proj_to_kicker,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp3_open_angle,";
+            header += "p_l_" + std::to_string(i) + "_pass_opp3_dist_diffbody,";
         }
         if (option.nearestOppDist == TM || option.nearestOppDist == BOTH){
             header += "p_l_" + std::to_string(i) + "_near1_opp_dist,";
@@ -1059,6 +1064,7 @@ void OffensiveDataExtractor::update_for_shoot(const rcsc::PlayerAgent *agent, rc
 //    ADD_ELEM("desc", 4);
 //    fout << std::endl;
 }
+
 void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state, ODEDataSide side) {
     Vector2D ball_pos = state.ball().pos();
     Vector2D tm_pos = player->pos();
@@ -1085,6 +1091,11 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
             ADD_ELEM("pass_opp2_dist_line", invalid_data_);
             ADD_ELEM("pass_opp2_dist_proj", invalid_data_);
             ADD_ELEM("pass_opp2_dist_diffbody", invalid_data_);
+            ADD_ELEM("pass_opp3_dist", invalid_data_);
+            ADD_ELEM("pass_opp3_angle", invalid_data_);
+            ADD_ELEM("pass_opp3_dist_line", invalid_data_);
+            ADD_ELEM("pass_opp3_dist_proj", invalid_data_);
+            ADD_ELEM("pass_opp3_dist_diffbody", invalid_data_);
         }
         if (option.nearestOppDist == side || option.nearestOppDist == BOTH){
             #ifdef ODEDebug
@@ -1101,14 +1112,14 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
     }
     std::vector<std::pair<double, double>> opp_dist_angle;
     std::vector<std::pair<double, double>> opp_dist_body_diff;
-    std::vector<std::pair<double, double>> opp_pass_angle_dist;
-    std::vector<std::pair<double, double>> opp_pass_projection;
-    std::vector<std::pair<double, double>> opp_pass_projection_bodydiff;
+    std::vector<ODEOpenAngle> candidates;
     for (const auto& opp: state.opponents()) {
+        ODEOpenAngle candid;
         #ifdef ODEDebug
         dlog.addText(Logger::BLOCK, "######want to check opp %d", opp->unum());
         #endif
         if (!opp->pos().isValid()) continue;
+        candid.dist_self_to_opp = opp->pos().dist(ball_pos);
         opp_dist_angle.push_back(std::make_pair(opp->pos().dist(ball_pos), (opp->pos() - ball_pos).th().degree()));
         if (opp->bodyValid())
             opp_dist_body_diff.push_back(std::make_pair(opp->pos().dist(ball_pos), ((ball_pos - opp->pos()).th() - opp->body()).abs()));
@@ -1118,33 +1129,38 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
         #ifdef ODEDebug
         dlog.addText(Logger::BLOCK, "######check opp %d in %.1f,%.1f, diff:%.1f", opp->unum(), opp->pos().x, opp->pos().y, diff.degree());
         #endif
-        if (diff.abs() > 50)
+        if (diff.abs() > 60)
             continue;
-        if (opp->pos().dist(ball_pos) > tm_pos.dist(ball_pos) + 1.0)
+        if (opp->pos().dist(ball_pos) > tm_pos.dist(ball_pos) + 5.0)
             continue;
-        opp_pass_angle_dist.push_back(std::make_pair(diff.abs(), opp->distFromBall()));
+        candid.open_angle = diff.abs();
         Vector2D proj_pos = Line2D(ball_pos, tm_pos).projection(opp->pos());
-        opp_pass_projection.push_back(std::make_pair(proj_pos.dist(opp->pos()), proj_pos.dist(ball_pos)));
+        candid.dist_opp_proj = proj_pos.dist(opp->pos());
+        candid.dist_self_to_opp_proj = proj_pos.dist(state.kicker()->pos());
         if (opp->bodyValid())
-            opp_pass_projection_bodydiff.push_back(std::make_pair(proj_pos.dist(opp->pos()), ((proj_pos - opp->pos()).th() - opp->body()).abs()));
+            candid.opp_body_diff = ((proj_pos - opp->pos()).th() - opp->body()).abs();
         else
-            opp_pass_projection_bodydiff.push_back(std::make_pair(proj_pos.dist(opp->pos()), invalid_data_));
+            candid.opp_body_diff = invalid_data_;
+        candidates.push_back(candid);
+
     }
     if (option.openAnglePass == side || option.openAnglePass == BOTH) {
+        auto open_angle_sorter = [](ODEOpenAngle *p1, ODEOpenAngle *p2) -> bool {
+            return p1->open_angle < p2->open_angle;
+        };
+        std::sort(candidates.begin(), candidates.end(), open_angle_sorter);
+
         ADD_ELEM("pass_dist", convertor_dist(ball_pos.dist(tm_pos)));
-        std::sort(opp_pass_angle_dist.begin(), opp_pass_angle_dist.end());
-        std::sort(opp_pass_projection.begin(), opp_pass_projection.end());
-        std::sort(opp_pass_projection_bodydiff.begin(), opp_pass_projection_bodydiff.end());
-        if (opp_pass_angle_dist.size() >= 1){
+        if (candidates.size() >= 1){
             #ifdef ODEDebug
             dlog.addText(Logger::BLOCK, "###### add opp angle pass first");
             #endif
-            ADD_ELEM("pass_opp1_dist", convertor_dist(opp_pass_angle_dist[0].second));
-            ADD_ELEM("pass_opp1_angle", convertor_angle(opp_pass_angle_dist[0].first));
-            ADD_ELEM("pass_opp1_dist_line", convertor_dist(opp_pass_projection[0].first));
-            ADD_ELEM("pass_opp1_dist_proj", convertor_dist(opp_pass_projection[0].second));
-            if (opp_pass_projection_bodydiff[0].second != invalid_data_)
-                ADD_ELEM("pass_opp1_dist_diffbody", convertor_angle(opp_pass_projection_bodydiff[0].second));
+            ADD_ELEM("pass_opp1_dist", convertor_dist(candidates[0].dist_self_to_opp));
+            ADD_ELEM("pass_opp1_dist_proj_to_opp", convertor_angle(candidates[0].dist_opp_proj));
+            ADD_ELEM("pass_opp1_dist_proj_to_kicker", convertor_dist(candidates[0].dist_self_to_opp_proj));
+            ADD_ELEM("pass_opp1_open_angle", convertor_dist(candidates[0].open_angle));
+            if (candidates[0].opp_body_diff != invalid_data_)
+                ADD_ELEM("pass_opp1_dist_diffbody", convertor_angle(candidates[0].opp_body_diff));
             else
                 ADD_ELEM("pass_opp1_dist_diffbody", invalid_data_);
         }
@@ -1158,15 +1174,18 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
             ADD_ELEM("pass_opp1_dist_proj", invalid_data_);
             ADD_ELEM("pass_opp1_dist_diffbody", invalid_data_);
         }
-        if (opp_pass_angle_dist.size() >= 2){
+        if (candidates.size() >= 2){
             #ifdef ODEDebug
             dlog.addText(Logger::BLOCK, "###### add opp angle pass second");
             #endif
-            ADD_ELEM("pass_opp2_dist", convertor_dist(opp_pass_angle_dist[1].second));
-            ADD_ELEM("pass_opp2_angle", convertor_angle(opp_pass_angle_dist[1].first));
-            ADD_ELEM("pass_opp2_dist_line", convertor_dist(opp_pass_projection[1].first));
-            ADD_ELEM("pass_opp2_dist_proj", convertor_dist(opp_pass_projection[1].second));
-            ADD_ELEM("pass_opp2_dist_diffbody", convertor_angle(opp_pass_projection_bodydiff[1].second));
+            ADD_ELEM("pass_opp2_dist", convertor_dist(candidates[1].dist_self_to_opp));
+            ADD_ELEM("pass_opp2_dist_proj_to_opp", convertor_angle(candidates[1].dist_opp_proj));
+            ADD_ELEM("pass_opp2_dist_proj_to_kicker", convertor_dist(candidates[1].dist_self_to_opp_proj));
+            ADD_ELEM("pass_opp2_open_angle", convertor_dist(candidates[1].open_angle));
+            if (candidates[1].opp_body_diff != invalid_data_)
+                ADD_ELEM("pass_opp2_dist_diffbody", convertor_angle(candidates[1].opp_body_diff));
+            else
+                ADD_ELEM("pass_opp2_dist_diffbody", invalid_data_);
         }
         else{
             #ifdef ODEDebug
@@ -1177,6 +1196,29 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
             ADD_ELEM("pass_opp2_dist_line", invalid_data_);
             ADD_ELEM("pass_opp2_dist_proj", invalid_data_);
             ADD_ELEM("pass_opp2_dist_diffbody", invalid_data_);
+        }
+        if (candidates.size() >= 3){
+            #ifdef ODEDebug
+            dlog.addText(Logger::BLOCK, "###### add opp angle pass second");
+            #endif
+            ADD_ELEM("pass_opp3_dist", convertor_dist(candidates[2].dist_self_to_opp));
+            ADD_ELEM("pass_opp3_dist_proj_to_opp", convertor_angle(candidates[2].dist_opp_proj));
+            ADD_ELEM("pass_opp3_dist_proj_to_kicker", convertor_dist(candidates[2].dist_self_to_opp_proj));
+            ADD_ELEM("pass_opp3_open_angle", convertor_dist(candidates[2].open_angle));
+            if (candidates[2].opp_body_diff != invalid_data_)
+                ADD_ELEM("pass_opp3_dist_diffbody", convertor_angle(candidates[2].opp_body_diff));
+            else
+                ADD_ELEM("pass_opp3_dist_diffbody", invalid_data_);
+        }
+        else{
+            #ifdef ODEDebug
+            dlog.addText(Logger::BLOCK, "###### add opp angle pass second invalid");
+            #endif
+            ADD_ELEM("pass_opp3_dist", invalid_data_);
+            ADD_ELEM("pass_opp3_angle", invalid_data_);
+            ADD_ELEM("pass_opp3_dist_line", invalid_data_);
+            ADD_ELEM("pass_opp3_dist_proj", invalid_data_);
+            ADD_ELEM("pass_opp3_dist_diffbody", invalid_data_);
         }
     }
     if (option.nearestOppDist == side || option.nearestOppDist == BOTH){
