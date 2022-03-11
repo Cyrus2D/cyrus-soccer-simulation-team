@@ -664,7 +664,7 @@ bool bhv_unmarkes::execute(PlayerAgent * agent) {
     dlog.addText(Logger::POSITIONING,"I can unmark");
     #endif
     vector<unmark_passer> passers;
-    vector<unmark_passer> passers_dnn = update_passer_dnn(wm, agent);
+    vector<unmark_passer> passers_dnn;
     vector<unmark_passer> passers_simple = update_passer(wm);
     if (!passers_dnn.empty()){
         for (auto p: passers_dnn)
