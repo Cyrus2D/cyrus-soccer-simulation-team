@@ -977,6 +977,11 @@ void OffensiveDataExtractor::add_null_player(int unum, ODEDataSide side) {
         ADD_ELEM("pass_opp2_dist_line", invalid_data_);
         ADD_ELEM("pass_opp2_dist_proj", invalid_data_);
         ADD_ELEM("pass_opp2_dist_diffbody", invalid_data_);
+        ADD_ELEM("pass_opp2_dist", invalid_data_);
+        ADD_ELEM("pass_opp2_angle", invalid_data_);
+        ADD_ELEM("pass_opp2_dist_line", invalid_data_);
+        ADD_ELEM("pass_opp2_dist_proj", invalid_data_);
+        ADD_ELEM("pass_opp2_dist_diffbody", invalid_data_);
     }
     if (option.nearestOppDist == side || option.nearestOppDist == BOTH){
         ADD_ELEM("opp1_dist", invalid_data_);
