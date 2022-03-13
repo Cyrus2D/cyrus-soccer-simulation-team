@@ -112,7 +112,7 @@ def get_col_x(header_name_to_num):
         cols.append(['p_l_' + str(p) + '_body', -1])
         cols.append(['p_l_' + str(p) + '_pos_count', -1])
         if use_all_data:
-            cols.append(['p_l_' + str(p) + '_face', -1])
+            # cols.append(['p_l_' + str(p) + '_face', -1])
             cols.append(['p_l_' + str(p) + '_vel_count', -1])
             cols.append(['p_l_' + str(p) + '_body_count', -1])
         cols.append(['p_l_' + str(p) + '_pos_x', -1])
@@ -133,15 +133,21 @@ def get_col_x(header_name_to_num):
         cols.append(['p_l_' + str(p) + '_is_ghost', -1])
         cols.append(['p_l_' + str(p) + '_pass_dist', -1])
         cols.append(['p_l_' + str(p) + '_pass_opp1_dist', -1])
-        cols.append(['p_l_' + str(p) + '_pass_opp1_angle', -1])
-        cols.append(['p_l_' + str(p) + '_pass_opp1_dist_line', -1])
-        cols.append(['p_l_' + str(p) + '_pass_opp1_dist_proj', -1])
+        cols.append(['p_l_' + str(p) + '_pass_opp1_dist_proj_to_opp', -1])
+        cols.append(['p_l_' + str(p) + '_pass_opp1_dist_proj_to_kicker', -1])
+        cols.append(['p_l_' + str(p) + '_pass_opp1_open_angle', -1])
         cols.append(['p_l_' + str(p) + '_pass_opp1_dist_diffbody', -1])
         cols.append(['p_l_' + str(p) + '_pass_opp2_dist', -1])
-        cols.append(['p_l_' + str(p) + '_pass_opp2_angle', -1])
-        cols.append(['p_l_' + str(p) + '_pass_opp2_dist_line', -1])
-        cols.append(['p_l_' + str(p) + '_pass_opp2_dist_proj', -1])
+        cols.append(['p_l_' + str(p) + '_pass_opp2_dist_proj_to_opp', -1])
+        cols.append(['p_l_' + str(p) + '_pass_opp2_dist_proj_to_kicker', -1])
+        cols.append(['p_l_' + str(p) + '_pass_opp2_open_angle', -1])
         cols.append(['p_l_' + str(p) + '_pass_opp2_dist_diffbody', -1])
+        cols.append(['p_l_' + str(p) + '_pass_opp3_dist', -1])
+        cols.append(['p_l_' + str(p) + '_pass_opp3_dist_proj_to_opp', -1])
+        cols.append(['p_l_' + str(p) + '_pass_opp3_dist_proj_to_kicker', -1])
+        cols.append(['p_l_' + str(p) + '_pass_opp3_open_angle', -1])
+        cols.append(['p_l_' + str(p) + '_pass_opp3_dist_diffbody', -1])
+
         if use_all_data:
             cols.append(['p_l_' + str(p) + '_near1_opp_dist', -1])
             cols.append(['p_l_' + str(p) + '_near1_opp_angle', -1])
@@ -151,6 +157,7 @@ def get_col_x(header_name_to_num):
             cols.append(['p_l_' + str(p) + '_near2_opp_diffbody', -1])
             cols.append(['p_l_' + str(p) + '_angle_goal_center_r', -1])
             cols.append(['p_l_' + str(p) + '_angle_goal_center_t', -1])
+            cols.append(['p_l_' + str(p) + '_open_goal_angle', -1])
 
     for p in range(1, 16):
         cols.append(['p_r_' + str(p) + '_unum', -1])
@@ -167,7 +174,7 @@ def get_col_x(header_name_to_num):
         cols.append(['p_r_' + str(p) + '_body', -1])
         cols.append(['p_r_' + str(p) + '_pos_count', -1])
         if use_all_data:
-            cols.append(['p_r_' + str(p) + '_face', -1])
+            # cols.append(['p_r_' + str(p) + '_face', -1])
             cols.append(['p_r_' + str(p) + '_vel_count', -1])
             cols.append(['p_r_' + str(p) + '_body_count', -1])
         cols.append(['p_r_' + str(p) + '_pos_x', -1])
@@ -183,7 +190,7 @@ def get_col_x(header_name_to_num):
             cols.append(['p_r_' + str(p) + '_vel_y', -1])
             cols.append(['p_r_' + str(p) + '_vel_r', -1])
             cols.append(['p_r_' + str(p) + '_vel_t', -1])
-        cols.append(['p_r_' + str(p) + '_is_ghost', -1])
+        # cols.append(['p_r_' + str(p) + '_is_ghost', -1])
 
     for c in range(len(cols)):
         cols[c][1] = header_name_to_num[cols[c][0]]
@@ -226,9 +233,9 @@ def read_file(file_path):
     line_number = 0
     for line in lines[1:]:
         line_number += 1
-        row = line.split(',')[:-1]
+        row = line.split(',')
         if len(row) != len(header):
-            print('error in line', line_number, len(row))
+            print('error in line', line_number, len(row), len(header))
             continue
         f_row = []
         for r in row:

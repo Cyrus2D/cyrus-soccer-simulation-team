@@ -51,3 +51,8 @@ team/src/8
 team/src/9
 team/src/am--include-marker
 *.pyc
+*.h5
+*.v2
+*.profile-empty
+*.pb
+script/data_extractor/res
