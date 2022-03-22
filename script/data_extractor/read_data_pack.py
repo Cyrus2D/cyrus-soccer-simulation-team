@@ -215,7 +215,8 @@ class ReadDataPack:
         print('file_numbers', len(l))
         files = []
         f_number = 0
-        file_counts = len(l) if self.counts_file else self.counts_file
+        file_counts = len(l) if not self.counts_file else self.counts_file
+        print(file_counts)
         for f in l[:file_counts]:
             if f.endswith('csv'):
                 files.append([os.path.join(path, f), f_number])

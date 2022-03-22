@@ -49,7 +49,8 @@ rdp.processes_number = 100
 rdp.pack_number = 20
 rdp.use_cluster = True
 rdp.counts_file = None
-rdp.input_data_path = 'data_yushan_pass_pred'
+#rdp.input_data_path = 'data_yushan_pass_pred'
+rdp.input_data_path = f'/data1/aref/2d/data_yushan_pass_pred/'
 
 for setting_number in range(24):
     setting = settings[setting_number]

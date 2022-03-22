@@ -268,7 +268,7 @@ def read_files(path):
     print('file_numbers', len(l))
     files = []
     f_number = 0
-    file_counts = len(l) if counts_file else counts_file
+    file_counts = len(l) if not counts_file else counts_file
     for f in l[:file_counts]:
         if f.endswith('csv'):
             files.append([os.path.join(path, f), f_number])
@@ -384,9 +384,9 @@ if use_cluster:
 
     history = network.fit(train_datas, train_labels, epochs=epochs, batch_size=batch_size, callbacks=my_call_back,
                           validation_data=(test_datas, test_labels))
-    res = network.predict(test_datas)
-    for i in range(len(test_datas)):
-        print(test_labels[i], res[i])
+    #res = network.predict(test_datas)
+    #for i in range(len(test_datas)):
+    #    print(test_labels[i], res[i])
     history_dict = history.history
     print(history_dict)
     loss_values = history_dict['loss']
