@@ -1,0 +1,259 @@
+import keras.callbacks
+from keras import layers, models, activations, losses, metrics, optimizers
+import matplotlib.pyplot as plt
+from numpy import array, random
+import numpy as np
+from keras.utils import to_categorical
+import keras.backend as K
+import tensorflow as tf
+from keras import regularizers
+import sys
+import multiprocessing
+import os
+import pathlib
+
+
+setting_number = int(sys.argv[1])
+ 
+settings = [
+            ['data_yushan_pass_pred', 'imp_data', 'index', 'bigdnn'],
+                ['data_yushan_pass_pred', 'all_data', 'index', 'bigdnn'],
+                ]
+setting = settings[setting_number]
+print(setting)
+data_name = setting[0]
+input_data_path = f'/data1/aref/2d/{data_name}/'
+output_path = f'./res/{setting_number}'
+run_name = f'{setting[0]}-{setting[1]}-{setting[2]}'
+pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
+data_label = setting[2]
+use_all_data = True if setting[1] == 'all_data' else False
+use_big_dnn = True if setting[3] == 'bigdnn' else False
+k_best = 1
+use_pass = False
+print(run_name)
+use_cluster = True
+processes_number = 100
+pack_number = 10
+
+ read_file(file_path):
+    file = open(file_path[0], 'r')
+    lines = file.readlines()[:]
+    header = lines[0].split(',')[:-1]
+    header_name_to_num = {}
+    out_cat_number = 0
+    counter = 0
+    for h in header:
+        header_name_to_num[h] = counter
+        if h == 'out_category':
+            out_cat_number = counter
+        counter += 1
+    rows = []
+    line_number = 0
+    for line in lines[1:]:
+        line_number += 1
+        row = line.split(',')[:-1]
+        if len(row) != len(header):
+            print('error in line', line_number, len(row))
+            continue
+        f_row = []
+        for r in row:
+            f_row.append(float(r))
+        if use_pass:
+            if f_row[out_cat_number] >= 2.0:
+                rows.append(f_row)
+        else:
+            rows.append(f_row)
+    return header_name_to_num, rows
+
+
+def read_files_pack(files):
+    a_pool = multiprocessing.Pool(processes=processes_number)
+    result = a_pool.map(read_file, files)
+    header = result[0][0]
+    rows = []
+    for r in result:
+        rows += r[1]
+
+    return header, rows
+
+
+def read_files(path):
+    l = os.listdir(path)
+    print(path)
+    print('file_numbers', len(l))
+    files = []
+    f_number = 0
+    for f in l[:10]:
+        if f.endswith('csv'):
+            files.append([os.path.join(path, f), f_number])
+            f_number += 1
+    print(f_number)
+    all_data_x = None
+    all_data_y = None
+    for p in range(pack_number):
+        header_name_to_num, rows = read_files_pack(files[int(f_number / pack_number * p): int(f_number / pack_number * (p + 1))])
+        all_data = array(rows)
+        del rows
+        cols = get_col_x(header_name_to_num)
+        array_cols = array(cols)
+        del cols
+        data_x = all_data[:, array_cols[:]]
+
+        cols_numb_y = get_col_y(header_name_to_num)
+        array_cols_numb_y = array(cols_numb_y)
+        del cols_numb_y
+        data_y = (all_data[:, array_cols_numb_y[:]])
+        if not use_cluster:
+            data_y[:, 0] /= 3.0
+            data_y[:, 1] += 180.0
+            data_y[:, 1] /= 360.0
+        del all_data
+        if all_data_x is None:
+            all_data_x = data_x
+        else:
+            all_data_x = np.concatenate((all_data_x, data_x), axis=0)
+        if all_data_y is None:
+            all_data_y = data_y
+        else:
+            all_data_y = np.concatenate((all_data_y, data_y), axis=0)
+        print(f'{(p + 1) / pack_number * 100}% processed', all_data_x.shape, all_data_y.shape, data_x.shape, data_y.shape)
+    return all_data_x, all_data_y
+
+
+data_x, data_y = read_files(input_data_path)
+data_size = data_x.shape[0]
+train_size = int(data_size * 0.8)
+
+randomize = np.arange(data_size)
+np.random.shuffle(randomize)
+X = data_x[randomize]
+del data_x
+Y = data_y[randomize]
+del data_y
+train_datas = X[:train_size]
+train_labels = Y[:train_size]
+test_datas = X[train_size + 1:]
+test_labels = Y[train_size + 1:]
+del X
+del Y
+
+if use_cluster:
+    train_labels = to_categorical(train_labels, num_classes=12)
+    test_labels = to_categorical(test_labels, num_classes=12)
+    print(train_datas.shape, train_labels.shape)
+    print(test_datas.shape, test_labels.shape)
+    network = models.Sequential()
+    if use_big_dnn:
+        network.add(layers.Dense(350, activation=activations.relu, input_shape=(train_datas.shape[1],)))
+        #network.add(layers.Dense(256, activation=activations.relu))
+        network.add(layers.Dense(250, activation=activations.relu))
+    else:
+        network.add(layers.Dense(64, activation=activations.relu, input_shape=(train_datas.shape[1],)))
+        network.add(layers.Dense(32, activation=activations.relu))
+    network.add(
+        layers.Dense(train_labels.shape[1], activation=activations.softmax))
+
+
+    def accuracy(y_true, y_pred):
+        y_true = K.cast(y_true, y_pred.dtype)
+        y_true = K.argmax(y_true)
+        # y_pred1 = K.argmax(y_pred)
+        res = K.in_top_k(y_pred, y_true, k_best)
+        return res
+
+    def accuracy2(y_true, y_pred):
+        y_true = K.cast(y_true, y_pred.dtype)
+        y_true = K.argmax(y_true)
+        # y_pred1 = K.argmax(y_pred)
+        res = K.in_top_k(y_pred, y_true, 2)
+        return res
+
+    my_call_back = [
+        keras.callbacks.ModelCheckpoint(filepath=output_path +  '/' + run_name + '-best_model.{epoch:02d}-{val_accuracy:.3f}-{val_accuracy2:.3f}.h5', save_best_only=True, monitor='val_accuracy', mode='max'),
+        keras.callbacks.TensorBoard(log_dir=output_path)
+    ]
+    network.compile(optimizer=optimizers.Adam(learning_rate=0.0001), loss=losses.categorical_crossentropy,
+                    metrics=[accuracy, accuracy2])
+    print(train_datas.shape, train_labels.shape)
+    print(test_datas.shape, test_labels.shape)
+    history = network.fit(train_datas, train_labels, epochs=100, batch_size=64, callbacks=my_call_back,
+                          validation_data=(test_datas, test_labels))
+    res = network.predict(test_datas)
+    for i in range(len(test_datas)):
+        print(test_labels[i], res[i])
+    history_dict = history.history
+    print(history_dict)
+    loss_values = history_dict['loss']
+    val_loss_values = history_dict['val_loss']
+    acc_values = history_dict['accuracy']
+    val_acc_values = history_dict['val_accuracy']
+    epochs = range(len(loss_values))
+    plt.figure(1)
+    plt.subplot(211)
+    plt.plot(epochs, loss_values, 'r--', label='Training loss')
+    plt.plot(epochs, val_loss_values, 'b--', label='Validation loss')
+    plt.title("train/test loss")
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.subplot(212)
+    plt.plot(epochs, acc_values, 'r--', label='Training mean_squared_error')
+    plt.plot(epochs, val_acc_values, '--', label='Validation mean_squared_error')
+    plt.title("train/test acc")
+    plt.xlabel('Epochs')
+    plt.ylabel('Acc')
+    plt.legend()
+    plt.savefig(os.path.join(output_path, 'fig_' + run_name + '.png'))
+    network.save(os.path.join(output_path, 'net_' + run_name + '.h5'))
+    file = open(os.path.join(output_path, 'history_' + run_name), 'w')
+    file.write(str(history_dict))
+    file.close()
+    file = open(os.path.join(output_path, 'best_' + run_name), 'w')
+    file.write(str(max(val_acc_values)))
+    file.close()
+
+else:
+    print(train_datas.shape, train_labels.shape)
+    print(test_datas.shape, test_labels.shape)
+    network = models.Sequential()
+    network.add(layers.Dense(512, activation=activations.relu, input_shape=(train_datas.shape[1],)))
+    network.add(layers.Dense(256, activation=activations.relu))
+    network.add(layers.Dense(64, activation=activations.relu))
+    network.add(layers.Dense(train_labels.shape[1], activation=activations.sigmoid))
+
+    network.compile(optimizer=optimizers.Adam(learning_rate=0.001), loss=losses.mse, metrics=[metrics.mse])
+    history = network.fit(train_datas, train_labels, epochs=100, batch_size=32,
+                          validation_data=(test_datas, test_labels))
+
+    history_dict = history.history
+
+    loss_values = history_dict['loss']
+    val_loss_values = history_dict['val_loss']
+    acc_values = history_dict['mean_squared_error']
+    val_acc_values = history_dict['val_mean_squared_error']
+
+    epochs = range(len(loss_values))
+    plt.figure(1)
+    plt.subplot(211)
+    plt.plot(epochs, loss_values, 'r--', label='Training loss')
+    plt.plot(epochs, val_loss_values, 'b--', label='Validation loss')
+    plt.title("train/test loss")
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.subplot(212)
+    plt.plot(epochs, acc_values, 'r--', label='Training mean_squared_error')
+    plt.plot(epochs, val_acc_values, '--', label='Validation mean_squared_error')
+    plt.title("train/test acc")
+    plt.xlabel('Epochs')
+    plt.ylabel('Acc')
+    plt.legend()
+    plt.savefig(run_name)
+    network.save(run_name + '.h5')
+    file = open('history_' + run_name, 'w')
+    file.write(str(history_dict))
+    file.close()
+    file = open('best_' + run_name, 'w')
+    file.write(str(max(val_acc_values)))
+    file.close()
