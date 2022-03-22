@@ -16,8 +16,30 @@ import pathlib
 setting_number = int(sys.argv[1])
 
 settings = [
-    ['data_yushan_pass_pred', 'imp_data', 'index', 'bigdnn'],
-    ['data_yushan_pass_pred', 'all_data', 'index', 'bigdnn'],
+    ['data_yushan_pass_pred', 'imp_data', 'index', 0, 64],
+    ['data_yushan_pass_pred', 'imp_data', 'index', 1, 64],
+    ['data_yushan_pass_pred', 'imp_data', 'index', 2, 64],
+    ['data_yushan_pass_pred', 'imp_data', 'index', 3, 64],
+    ['data_yushan_pass_pred', 'imp_data', 'index', 4, 64],
+    ['data_yushan_pass_pred', 'imp_data', 'index', 5, 64],
+    ['data_yushan_pass_pred', 'all_data', 'index', 0, 64],
+    ['data_yushan_pass_pred', 'all_data', 'index', 1, 64],
+    ['data_yushan_pass_pred', 'all_data', 'index', 2, 64],
+    ['data_yushan_pass_pred', 'all_data', 'index', 3, 64],
+    ['data_yushan_pass_pred', 'all_data', 'index', 4, 64],
+    ['data_yushan_pass_pred', 'all_data', 'index', 5, 64],
+    ['data_yushan_pass_pred', 'imp_data', 'index', 0, 1024],
+    ['data_yushan_pass_pred', 'imp_data', 'index', 1, 1024],
+    ['data_yushan_pass_pred', 'imp_data', 'index', 2, 1024],
+    ['data_yushan_pass_pred', 'imp_data', 'index', 3, 1024],
+    ['data_yushan_pass_pred', 'imp_data', 'index', 4, 1024],
+    ['data_yushan_pass_pred', 'imp_data', 'index', 5, 1024],
+    ['data_yushan_pass_pred', 'all_data', 'index', 0, 1024],
+    ['data_yushan_pass_pred', 'all_data', 'index', 1, 1024],
+    ['data_yushan_pass_pred', 'all_data', 'index', 2, 1024],
+    ['data_yushan_pass_pred', 'all_data', 'index', 3, 1024],
+    ['data_yushan_pass_pred', 'all_data', 'index', 4, 1024],
+    ['data_yushan_pass_pred', 'all_data', 'index', 5, 1024],
 ]
 setting = settings[setting_number]
 print(setting)
@@ -27,14 +49,25 @@ output_path = f'./res/{setting_number}'
 run_name = f'{setting[0]}-{setting[1]}-{setting[2]}'
 pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
 data_label = setting[2]
+dnn_sizes = {
+    0: 'very_big',
+    1: 'big',
+    2: 'normal',
+    3: 'small',
+    4: 'very_small',
+    5: 'to_small_to_big',
+}
 use_all_data = True if setting[1] == 'all_data' else False
-use_big_dnn = True if setting[3] == 'bigdnn' else False
+dnn_size = dnn_sizes[setting[3]]
 k_best = 1
 use_pass = False
 print(run_name)
 use_cluster = True
 processes_number = 100
 pack_number = 20
+epochs = 300
+batch_size = setting[4]
+counts_file = None
 
 
 def get_col_x(header_name_to_num):
@@ -44,10 +77,10 @@ def get_col_x(header_name_to_num):
     cols.append(['ball_pos_y', -1])
     cols.append(['ball_pos_r', -1])
     cols.append(['ball_pos_t', -1])
-    cols.append(['ball_kicker_x', -1])
-    cols.append(['ball_kicker_y', -1])
-    cols.append(['ball_kicker_r', -1])
-    cols.append(['ball_kicker_t', -1])
+    # cols.append(['ball_kicker_x', -1])
+    # cols.append(['ball_kicker_y', -1])
+    # cols.append(['ball_kicker_r', -1])
+    # cols.append(['ball_kicker_t', -1])
     if use_all_data:
         cols.append(['ball_vel_x', -1])
         cols.append(['ball_vel_y', -1])
@@ -81,11 +114,11 @@ def get_col_x(header_name_to_num):
         #    cols.append(['p_l_' + str(p) + '_player_type_size', -1])
         #    cols.append(['p_l_' + str(p) + '_player_type_speed_max', -1])
         cols.append(['p_l_' + str(p) + '_body', -1])
-        cols.append(['p_l_' + str(p) + '_pos_count', -1])
-        if use_all_data:
+        # cols.append(['p_l_' + str(p) + '_pos_count', -1])
+        # if use_all_data:
             # cols.append(['p_l_' + str(p) + '_face', -1])
-            cols.append(['p_l_' + str(p) + '_vel_count', -1])
-            cols.append(['p_l_' + str(p) + '_body_count', -1])
+            # cols.append(['p_l_' + str(p) + '_vel_count', -1])
+            # cols.append(['p_l_' + str(p) + '_body_count', -1])
         cols.append(['p_l_' + str(p) + '_pos_x', -1])
         cols.append(['p_l_' + str(p) + '_pos_y', -1])
         cols.append(['p_l_' + str(p) + '_pos_r', -1])
@@ -119,16 +152,16 @@ def get_col_x(header_name_to_num):
         cols.append(['p_l_' + str(p) + '_pass_opp3_open_angle', -1])
         cols.append(['p_l_' + str(p) + '_pass_opp3_dist_diffbody', -1])
 
-        if use_all_data:
-            cols.append(['p_l_' + str(p) + '_near1_opp_dist', -1])
-            cols.append(['p_l_' + str(p) + '_near1_opp_angle', -1])
-            cols.append(['p_l_' + str(p) + '_near1_opp_diffbody', -1])
-            cols.append(['p_l_' + str(p) + '_near2_opp_dist', -1])
-            cols.append(['p_l_' + str(p) + '_near2_opp_angle', -1])
-            cols.append(['p_l_' + str(p) + '_near2_opp_diffbody', -1])
-            cols.append(['p_l_' + str(p) + '_angle_goal_center_r', -1])
-            cols.append(['p_l_' + str(p) + '_angle_goal_center_t', -1])
-            cols.append(['p_l_' + str(p) + '_open_goal_angle', -1])
+        # if use_all_data:
+        cols.append(['p_l_' + str(p) + '_near1_opp_dist', -1])
+        cols.append(['p_l_' + str(p) + '_near1_opp_angle', -1])
+        cols.append(['p_l_' + str(p) + '_near1_opp_diffbody', -1])
+        cols.append(['p_l_' + str(p) + '_near2_opp_dist', -1])
+        cols.append(['p_l_' + str(p) + '_near2_opp_angle', -1])
+        cols.append(['p_l_' + str(p) + '_near2_opp_diffbody', -1])
+        cols.append(['p_l_' + str(p) + '_angle_goal_center_r', -1])
+        cols.append(['p_l_' + str(p) + '_angle_goal_center_t', -1])
+        cols.append(['p_l_' + str(p) + '_open_goal_angle', -1])
 
     for p in range(1, 16):
         cols.append(['p_r_' + str(p) + '_unum', -1])
@@ -143,11 +176,11 @@ def get_col_x(header_name_to_num):
         #    cols.append(['p_r_' + str(p) + '_player_type_size', -1])
         #    cols.append(['p_r_' + str(p) + '_player_type_speed_max', -1])
         cols.append(['p_r_' + str(p) + '_body', -1])
-        cols.append(['p_r_' + str(p) + '_pos_count', -1])
-        if use_all_data:
+        # cols.append(['p_r_' + str(p) + '_pos_count', -1])
+        # if use_all_data:
             # cols.append(['p_r_' + str(p) + '_face', -1])
-            cols.append(['p_r_' + str(p) + '_vel_count', -1])
-            cols.append(['p_r_' + str(p) + '_body_count', -1])
+            # cols.append(['p_r_' + str(p) + '_vel_count', -1])
+            # cols.append(['p_r_' + str(p) + '_body_count', -1])
         cols.append(['p_r_' + str(p) + '_pos_x', -1])
         cols.append(['p_r_' + str(p) + '_pos_y', -1])
         cols.append(['p_r_' + str(p) + '_pos_r', -1])
@@ -235,7 +268,8 @@ def read_files(path):
     print('file_numbers', len(l))
     files = []
     f_number = 0
-    for f in l[:]:
+    file_counts = len(l) if counts_file else counts_file
+    for f in l[:file_counts]:
         if f.endswith('csv'):
             files.append([os.path.join(path, f), f_number])
             f_number += 1
@@ -297,16 +331,29 @@ if use_cluster:
     print(train_datas.shape, train_labels.shape)
     print(test_datas.shape, test_labels.shape)
     network = models.Sequential()
-    if use_big_dnn:
+    if dnn_size == 'very_big':
+        network.add(layers.Dense(512, activation=activations.relu, input_shape=(train_datas.shape[1],)))
+        network.add(layers.Dense(256, activation=activations.relu))
+        network.add(layers.Dense(128, activation=activations.relu))
+        network.add(layers.Dense(64, activation=activations.relu))
+    elif dnn_size == 'big':
         network.add(layers.Dense(350, activation=activations.relu, input_shape=(train_datas.shape[1],)))
-        # network.add(layers.Dense(256, activation=activations.relu))
         network.add(layers.Dense(250, activation=activations.relu))
-    else:
+    elif dnn_size == 'normal':
+        network.add(layers.Dense(128, activation=activations.relu, input_shape=(train_datas.shape[1],)))
+        network.add(layers.Dense(64, activation=activations.relu))
+        network.add(layers.Dense(32, activation=activations.relu))
+    elif dnn_size == 'small':
         network.add(layers.Dense(64, activation=activations.relu, input_shape=(train_datas.shape[1],)))
         network.add(layers.Dense(32, activation=activations.relu))
-    network.add(
-        layers.Dense(train_labels.shape[1], activation=activations.softmax))
-
+    elif dnn_size == 'very_small':
+        network.add(layers.Dense(32, activation=activations.relu, input_shape=(train_datas.shape[1],)))
+        network.add(layers.Dense(16, activation=activations.relu))
+    elif dnn_size == 'to_small_to_big':
+        network.add(layers.Dense(64, activation=activations.relu, input_shape=(train_datas.shape[1],)))
+        network.add(layers.Dense(128, activation=activations.relu))
+        network.add(layers.Dense(64, activation=activations.relu))
+    network.add(layers.Dense(train_labels.shape[1], activation=activations.softmax))
 
     def accuracy(y_true, y_pred):
         y_true = K.cast(y_true, y_pred.dtype)
@@ -334,7 +381,8 @@ if use_cluster:
                     metrics=[accuracy, accuracy2])
     print(train_datas.shape, train_labels.shape)
     print(test_datas.shape, test_labels.shape)
-    history = network.fit(train_datas, train_labels, epochs=100, batch_size=64, callbacks=my_call_back,
+
+    history = network.fit(train_datas, train_labels, epochs=epochs, batch_size=batch_size, callbacks=my_call_back,
                           validation_data=(test_datas, test_labels))
     res = network.predict(test_datas)
     for i in range(len(test_datas)):
