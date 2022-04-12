@@ -1125,7 +1125,7 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
         #endif
         if (!opp->pos().isValid()) continue;
         candid.dist_self_to_opp = opp->pos().dist(ball_pos);
-        opp_dist_angle.push_back(std::make_pair(opp->pos().dist(ball_pos), (opp->pos() - ball_pos).th().degree()));
+        opp_dist_angle.push_back(std::make_pair(opp->pos().dist(tm_pos), (opp->pos() - tm_pos).th().degree()));
         if (opp->bodyValid())
             opp_dist_body_diff.push_back(std::make_pair(opp->pos().dist(ball_pos), ((ball_pos - opp->pos()).th() - opp->body()).abs()));
         else
