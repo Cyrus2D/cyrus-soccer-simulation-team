@@ -13,33 +13,11 @@ import multiprocessing
 import os
 import pathlib
 
-setting_number = int(sys.argv[1])
+setting_number = -1 if len(sys.argv) == 1 else int(sys.argv[1])
 
 settings = [
-    ['data_yushan_pass_pred', 'imp_data', 'index', 0, 64],
-    ['data_yushan_pass_pred', 'imp_data', 'index', 1, 64],
     ['data_yushan_pass_pred', 'imp_data', 'index', 2, 64],
-    ['data_yushan_pass_pred', 'imp_data', 'index', 3, 64],
-    ['data_yushan_pass_pred', 'imp_data', 'index', 4, 64],
-    ['data_yushan_pass_pred', 'imp_data', 'index', 5, 64],
-    ['data_yushan_pass_pred', 'imp_data', 'index', 0, 1024],
-    ['data_yushan_pass_pred', 'imp_data', 'index', 1, 1024],
-    ['data_yushan_pass_pred', 'imp_data', 'index', 2, 1024],
-    ['data_yushan_pass_pred', 'imp_data', 'index', 3, 1024],
-    ['data_yushan_pass_pred', 'imp_data', 'index', 4, 1024],
-    ['data_yushan_pass_pred', 'imp_data', 'index', 5, 1024],
-    ['data_yushan_pass_pred', 'all_data', 'index', 0, 64],
-    ['data_yushan_pass_pred', 'all_data', 'index', 1, 64],
     ['data_yushan_pass_pred', 'all_data', 'index', 2, 64],
-    ['data_yushan_pass_pred', 'all_data', 'index', 3, 64],
-    ['data_yushan_pass_pred', 'all_data', 'index', 4, 64],
-    ['data_yushan_pass_pred', 'all_data', 'index', 5, 64],
-    ['data_yushan_pass_pred', 'all_data', 'index', 0, 1024],
-    ['data_yushan_pass_pred', 'all_data', 'index', 1, 1024],
-    ['data_yushan_pass_pred', 'all_data', 'index', 2, 1024],
-    ['data_yushan_pass_pred', 'all_data', 'index', 3, 1024],
-    ['data_yushan_pass_pred', 'all_data', 'index', 4, 1024],
-    ['data_yushan_pass_pred', 'all_data', 'index', 5, 1024],
 ]
 from read_data_pack import ReadDataPack
 rdp = ReadDataPack()
@@ -49,14 +27,12 @@ rdp.processes_number = 100
 rdp.pack_number = 20
 rdp.use_cluster = True
 rdp.counts_file = None
-#rdp.input_data_path = 'data_yushan_pass_pred'
-rdp.input_data_path = f'/data1/aref/2d/data_yushan_pass_pred/'
+rdp.input_data_path = f'/data1/nader/workspace/robo/pass_pred_yushan/'
 
-for setting_number in range(24):
+for setting_number in range(len(settings)):
     setting = settings[setting_number]
     print(setting)
     data_name = setting[0]
-    input_data_path = f'/data1/aref/2d/{data_name}/'
     output_path = f'./res/{setting_number}'
     run_name = f'{setting[0]}-{setting[1]}-{setting[2]}'
     pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
@@ -145,9 +121,6 @@ for setting_number in range(24):
 
         history = network.fit(train_datas, train_labels, epochs=epochs, batch_size=batch_size, callbacks=my_call_back,
                               validation_data=(test_datas, test_labels))
-        res = network.predict(test_datas)
-        for i in range(len(test_datas)):
-            print(test_labels[i], res[i])
         history_dict = history.history
         print(history_dict)
         loss_values = history_dict['loss']

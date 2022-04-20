@@ -30,11 +30,11 @@ class ReadDataPack:
         # cols.append(['ball_kicker_y', -1])
         # cols.append(['ball_kicker_r', -1])
         # cols.append(['ball_kicker_t', -1])
-        if self.use_all_data:
-            cols.append(['ball_vel_x', -1])
-            cols.append(['ball_vel_y', -1])
-            cols.append(['ball_vel_r', -1])
-            cols.append(['ball_vel_t', -1])
+        # if self.use_all_data:
+        #     cols.append(['ball_vel_x', -1])
+        #     cols.append(['ball_vel_y', -1])
+        #     cols.append(['ball_vel_r', -1])
+        #     cols.append(['ball_vel_t', -1])
         cols.append(['offside_count', -1])
         # for i in range(12):
         #     cols.append(['drible_angle_0', -1])
@@ -95,11 +95,12 @@ class ReadDataPack:
             cols.append(['p_l_' + str(p) + '_pass_opp2_dist_proj_to_kicker', -1])
             cols.append(['p_l_' + str(p) + '_pass_opp2_open_angle', -1])
             cols.append(['p_l_' + str(p) + '_pass_opp2_dist_diffbody', -1])
-            cols.append(['p_l_' + str(p) + '_pass_opp3_dist', -1])
-            cols.append(['p_l_' + str(p) + '_pass_opp3_dist_proj_to_opp', -1])
-            cols.append(['p_l_' + str(p) + '_pass_opp3_dist_proj_to_kicker', -1])
-            cols.append(['p_l_' + str(p) + '_pass_opp3_open_angle', -1])
-            cols.append(['p_l_' + str(p) + '_pass_opp3_dist_diffbody', -1])
+            if self.use_all_data:
+                cols.append(['p_l_' + str(p) + '_pass_opp3_dist', -1])
+                cols.append(['p_l_' + str(p) + '_pass_opp3_dist_proj_to_opp', -1])
+                cols.append(['p_l_' + str(p) + '_pass_opp3_dist_proj_to_kicker', -1])
+                cols.append(['p_l_' + str(p) + '_pass_opp3_open_angle', -1])
+                cols.append(['p_l_' + str(p) + '_pass_opp3_dist_diffbody', -1])
 
             # if use_all_data:
             cols.append(['p_l_' + str(p) + '_near1_opp_dist', -1])
@@ -108,8 +109,9 @@ class ReadDataPack:
             cols.append(['p_l_' + str(p) + '_near2_opp_dist', -1])
             cols.append(['p_l_' + str(p) + '_near2_opp_angle', -1])
             cols.append(['p_l_' + str(p) + '_near2_opp_diffbody', -1])
-            cols.append(['p_l_' + str(p) + '_angle_goal_center_r', -1])
-            cols.append(['p_l_' + str(p) + '_angle_goal_center_t', -1])
+            if self.use_all_data:
+                cols.append(['p_l_' + str(p) + '_angle_goal_center_r', -1])
+                cols.append(['p_l_' + str(p) + '_angle_goal_center_t', -1])
             cols.append(['p_l_' + str(p) + '_open_goal_angle', -1])
 
         for p in range(1, 16):
