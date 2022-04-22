@@ -76,11 +76,11 @@ class ReadDataPack:
             cols.append(['p_l_' + str(p) + '_kicker_y', -1])
             cols.append(['p_l_' + str(p) + '_kicker_r', -1])
             cols.append(['p_l_' + str(p) + '_kicker_t', -1])
-            if self.use_all_data:
-                cols.append(['p_l_' + str(p) + '_vel_x', -1])
-                cols.append(['p_l_' + str(p) + '_vel_y', -1])
-                cols.append(['p_l_' + str(p) + '_vel_r', -1])
-                cols.append(['p_l_' + str(p) + '_vel_t', -1])
+#            if self.use_all_data:
+ #               cols.append(['p_l_' + str(p) + '_vel_x', -1])
+  #              cols.append(['p_l_' + str(p) + '_vel_y', -1])
+   #             cols.append(['p_l_' + str(p) + '_vel_r', -1])
+    #            cols.append(['p_l_' + str(p) + '_vel_t', -1])
             cols.append(['p_l_' + str(p) + '_in_offside', -1])
             cols.append(['p_l_' + str(p) + '_is_kicker', -1])
             cols.append(['p_l_' + str(p) + '_is_ghost', -1])
@@ -106,9 +106,10 @@ class ReadDataPack:
             cols.append(['p_l_' + str(p) + '_near1_opp_dist', -1])
             cols.append(['p_l_' + str(p) + '_near1_opp_angle', -1])
             cols.append(['p_l_' + str(p) + '_near1_opp_diffbody', -1])
-            cols.append(['p_l_' + str(p) + '_near2_opp_dist', -1])
-            cols.append(['p_l_' + str(p) + '_near2_opp_angle', -1])
-            cols.append(['p_l_' + str(p) + '_near2_opp_diffbody', -1])
+            if self.use_all_data:
+                cols.append(['p_l_' + str(p) + '_near2_opp_dist', -1])
+                cols.append(['p_l_' + str(p) + '_near2_opp_angle', -1])
+                cols.append(['p_l_' + str(p) + '_near2_opp_diffbody', -1])
             if self.use_all_data:
                 cols.append(['p_l_' + str(p) + '_angle_goal_center_r', -1])
                 cols.append(['p_l_' + str(p) + '_angle_goal_center_t', -1])
@@ -140,11 +141,11 @@ class ReadDataPack:
             cols.append(['p_r_' + str(p) + '_kicker_y', -1])
             cols.append(['p_r_' + str(p) + '_kicker_r', -1])
             cols.append(['p_r_' + str(p) + '_kicker_t', -1])
-            if self.use_all_data:
-                cols.append(['p_r_' + str(p) + '_vel_x', -1])
-                cols.append(['p_r_' + str(p) + '_vel_y', -1])
-                cols.append(['p_r_' + str(p) + '_vel_r', -1])
-                cols.append(['p_r_' + str(p) + '_vel_t', -1])
+     #       if self.use_all_data:
+      #          cols.append(['p_r_' + str(p) + '_vel_x', -1])
+       #         cols.append(['p_r_' + str(p) + '_vel_y', -1])
+        #        cols.append(['p_r_' + str(p) + '_vel_r', -1])
+         #       cols.append(['p_r_' + str(p) + '_vel_t', -1])
             # cols.append(['p_r_' + str(p) + '_is_ghost', -1])
 
         for c in range(len(cols)):

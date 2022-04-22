@@ -16,8 +16,8 @@ import pathlib
 setting_number = -1 if len(sys.argv) == 1 else int(sys.argv[1])
 
 settings = [
-    ['data_yushan_pass_pred', 'imp_data', 'index', 2, 64],
-    ['data_yushan_pass_pred', 'all_data', 'index', 2, 64],
+    ['pass_pred_yushan', 'imp_data', 'index', 2, 64],
+    ['pass_pred_yushan', 'all_data', 'index', 2, 64],
 ]
 from read_data_pack import ReadDataPack
 rdp = ReadDataPack()
