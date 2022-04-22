@@ -13,6 +13,8 @@ import multiprocessing
 import os
 import pathlib
 
+
+root_out = 'res'
 setting_number = -1 if len(sys.argv) == 1 else int(sys.argv[1])
 
 settings = [
@@ -33,7 +35,7 @@ for setting_number in range(len(settings)):
     setting = settings[setting_number]
     print(setting)
     data_name = setting[0]
-    output_path = f'./res/{setting_number}'
+    output_path = f'./{root_out}/{setting_number}'
     run_name = f'{setting[0]}-{setting[1]}-{setting[2]}'
     pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
     data_label = setting[2]
@@ -48,14 +50,10 @@ for setting_number in range(len(settings)):
     use_all_data = True if setting[1] == 'all_data' else False
     dnn_size = dnn_sizes[setting[3]]
     k_best = 1
-    use_pass = False
     print(run_name)
     use_cluster = True
-    processes_number = 100
-    pack_number = 20
     epochs = 300
     batch_size = setting[4]
-    counts_file = None
     rdp.read_and_separate_data(use_all_data)
     train_datas = rdp.train_datas
     train_labels = rdp.train_labels
