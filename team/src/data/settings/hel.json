@@ -20,7 +20,10 @@
 				"DribblePosCountMaxBehindOpp":4
 			},
 	"OffensiveMove":{
-				"Is9BrokeOffside":false
+				"Is9BrokeOffside":false,
+				"UnmarkingAlgorithms": ["main", "voronoi"],
+				"MainUnmarkPassPredictionDNN": "",
+				"UseUnmarkPassPredictionDNN": false
 			},
 	"DefenseMove": {
 				"PassBlock":false,
