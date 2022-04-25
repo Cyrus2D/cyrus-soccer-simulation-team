@@ -15,6 +15,22 @@
 #include <rcsc/player/player_agent.h>
 using namespace std;
 using namespace rcsc;
+class pass_prob {
+public:
+    double prob = 0.0;
+    int pass_sender = 0;
+    int pass_getter = 0;
+
+    pass_prob(double prob, int pass_sender, int pass_getter)
+            : prob(prob), pass_sender(pass_sender), pass_getter(pass_getter)
+    {
+    }
+
+    static bool ProbCmp(pass_prob const &a, pass_prob const &b)
+    {
+        return a.prob < b.prob;
+    }
+};
 class unmark_passer {
 public:
 	int unum = 0;
@@ -153,7 +169,7 @@ public:
     static void load_dnn();
     vector<unmark_passer> update_passer_dnn_writer(const WorldModel & wm, PlayerAgent * agent);
     vector<unmark_passer> update_passer_dnn(const WorldModel & wm, PlayerAgent * agent);
-    vector< pair< double, pair<int, int>>> predict_pass(vector<double> & features, vector<int> ignored_player, int kicker);
+    vector<pass_prob> predict_pass(vector<double> & features, vector<int> ignored_player, int kicker);
 	void create_targets(const WorldModel & wm);
 	void evaluate_targets(const WorldModel & wm, vector<unmark_passer> passer);
 	void update_best_unmark(const WorldModel & wm);

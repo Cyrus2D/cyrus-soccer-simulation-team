@@ -39,10 +39,10 @@ OffensiveDataExtractor::~OffensiveDataExtractor() {
 
 
 OffensiveDataExtractor::Option::Option() {
-    cycle = true; //
+    cycle = false; //
     ball_pos = true;
-    ball_vel = true;
-    ball_kicker_pos = true;
+    ball_kicker_pos = false;
+    ball_vel = false;
     offside_count = true;
     side = NONE;
     unum = BOTH;
@@ -55,18 +55,18 @@ OffensiveDataExtractor::Option::Option() {
     pos = BOTH;
     relativePos = BOTH;
     polarPos = BOTH;
-    vel = BOTH;
-    polarVel = BOTH;
-    pos_counts = BOTH;
-    vel_counts = BOTH;
-    body_counts = BOTH;
+    vel = NONE;
+    polarVel = NONE;
+    pos_counts = NONE;
+    vel_counts = NONE;
+    body_counts = NONE;
+    in_offside = TM;
     isKicker = TM;
     isGhost = TM;
     openAnglePass = TM;
     nearestOppDist = TM;
-    polarGoalCenter = TM;
+    polarGoalCenter = NONE;
     openAngleGoal = TM;
-    in_offside = TM;
     dribleAngle = NONE;
     nDribleAngle = 12;
     history_size = 0;
@@ -89,7 +89,7 @@ void OffensiveDataExtractor::init_file(DEState &state) {
     time(&rawtime);
     timeinfo = localtime(&rawtime);
 
-    std::string dir = "/data1/aref/2d/data_yushan_pass_pred/";
+    std::string dir = "/home/nader/workspace/robo/cyrus/team/data/";
     strftime(buffer, sizeof(buffer), "%Y-%m-%d-%H-%M-%S", timeinfo);
     std::string str(buffer);
     std::string rand_name = std::to_string(SamplePlayer::player_port);
@@ -195,7 +195,6 @@ std::string OffensiveDataExtractor::get_header() {
             header += "p_l_" + std::to_string(i) + "_vel_r,";
             header += "p_l_" + std::to_string(i) + "_vel_t,";
         }
-
         if (option.isKicker == TM || option.isKicker == BOTH)
             header += "p_l_" + std::to_string(i) + "_is_kicker,";
         if (option.isGhost == TM || option.isGhost == BOTH)
@@ -212,19 +211,11 @@ std::string OffensiveDataExtractor::get_header() {
             header += "p_l_" + std::to_string(i) + "_pass_opp2_dist_proj_to_kicker,";
             header += "p_l_" + std::to_string(i) + "_pass_opp2_open_angle,";
             header += "p_l_" + std::to_string(i) + "_pass_opp2_dist_diffbody,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp3_dist,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp3_dist_proj_to_opp,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp3_dist_proj_to_kicker,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp3_open_angle,";
-            header += "p_l_" + std::to_string(i) + "_pass_opp3_dist_diffbody,";
         }
         if (option.nearestOppDist == TM || option.nearestOppDist == BOTH){
             header += "p_l_" + std::to_string(i) + "_near1_opp_dist,";
             header += "p_l_" + std::to_string(i) + "_near1_opp_angle,";
             header += "p_l_" + std::to_string(i) + "_near1_opp_diffbody,";
-            header += "p_l_" + std::to_string(i) + "_near2_opp_dist,";
-            header += "p_l_" + std::to_string(i) + "_near2_opp_angle,";
-            header += "p_l_" + std::to_string(i) + "_near2_opp_diffbody,";
         }
         if (option.polarGoalCenter == TM || option.polarGoalCenter == BOTH) {
             header += "p_l_" + std::to_string(i) + "_angle_goal_center_r,";
@@ -322,11 +313,10 @@ std::string OffensiveDataExtractor::get_header() {
             header += "p_r_" + std::to_string(i) + "_pass_angle,";
             header += "p_r_" + std::to_string(i) + "_pass_dist,";
         }
-        if (option.nearestOppDist == OPP || option.nearestOppDist == BOTH){
+        if (option.nearestOppDist == OPP || option.nearestOppDist == BOTH) {
             header += "p_r_" + std::to_string(i) + "_near1_opp_dist,";
             header += "p_r_" + std::to_string(i) + "_near1_opp_angle,";
-            header += "p_r_" + std::to_string(i) + "_near2_opp_dist,";
-            header += "p_r_" + std::to_string(i) + "_near2_opp_angle,";
+            header += "p_r_" + std::to_string(i) + "_near1_opp_diffbody,";
         }
         if (option.polarGoalCenter == OPP || option.polarGoalCenter == BOTH) {
             header += "p_r_" + std::to_string(i) + "_angle_coal_center_r,";
@@ -554,18 +544,18 @@ void OffensiveDataExtractor::extract_ball(DEState &state) {
     #endif
     if (option.ball_pos){
         if (state.ball().posValid()) {
-            ADD_ELEM("p_x", convertor_x(state.ball().pos().x));
-            ADD_ELEM("p_y", convertor_y(state.ball().pos().y));
-            ADD_ELEM("p_r", convertor_dist(state.ball().pos().r()));
-            ADD_ELEM("p_t", convertor_angle(state.ball().pos().th().degree()));
+            ADD_ELEM("ball_pos_x", convertor_x(state.ball().pos().x));
+            ADD_ELEM("ball_pos_y", convertor_y(state.ball().pos().y));
+            ADD_ELEM("ball_pos_r", convertor_dist(state.ball().pos().r()));
+            ADD_ELEM("ball_pos_t", convertor_angle(state.ball().pos().th().degree()));
             #ifdef ODEDebug
             dlog.addText(Logger::BLOCK, "##add ball pos x y r t");
             #endif
         } else {
-            ADD_ELEM("p_x", invalid_data_);
-            ADD_ELEM("p_y", invalid_data_);
-            ADD_ELEM("p_r", invalid_data_);
-            ADD_ELEM("p_t", invalid_data_);
+            ADD_ELEM("ball_pos_x", invalid_data_);
+            ADD_ELEM("ball_pos_y", invalid_data_);
+            ADD_ELEM("ball_pos_r", invalid_data_);
+            ADD_ELEM("ball_pos_t", invalid_data_);
             #ifdef ODEDebug
             dlog.addText(Logger::BLOCK, "##@add ball invalid pos x y r t");
             #endif
@@ -573,18 +563,18 @@ void OffensiveDataExtractor::extract_ball(DEState &state) {
     }
     if (option.ball_kicker_pos){
         if (state.ball().rposValid()){
-            ADD_ELEM("kicker_x", convertor_dist_x(state.ball().rpos().x));
-            ADD_ELEM("kicker_y", convertor_dist_y(state.ball().rpos().y));
-            ADD_ELEM("kicker_r", convertor_dist(state.ball().rpos().r()));
-            ADD_ELEM("kicker_t", convertor_angle(state.ball().rpos().th().degree()));
+            ADD_ELEM("ball_kicker_x", convertor_dist_x(state.ball().rpos().x));
+            ADD_ELEM("ball_kicker_y", convertor_dist_y(state.ball().rpos().y));
+            ADD_ELEM("ball_kicker_r", convertor_dist(state.ball().rpos().r()));
+            ADD_ELEM("ball_kicker_t", convertor_angle(state.ball().rpos().th().degree()));
             #ifdef ODEDebug
             dlog.addText(Logger::BLOCK, "##add ball rpos x y r t");
             #endif
         }else{
-            ADD_ELEM("kicker_x", invalid_data_);
-            ADD_ELEM("kicker_y", invalid_data_);
-            ADD_ELEM("kicker_r", invalid_data_);
-            ADD_ELEM("kicker_t", invalid_data_);
+            ADD_ELEM("ball_kicker_x", invalid_data_);
+            ADD_ELEM("ball_kicker_y", invalid_data_);
+            ADD_ELEM("ball_kicker_r", invalid_data_);
+            ADD_ELEM("ball_kicker_t", invalid_data_);
             #ifdef ODEDebug
             dlog.addText(Logger::BLOCK, "##@add ball invalid rpos x y r t");
             #endif
@@ -592,18 +582,18 @@ void OffensiveDataExtractor::extract_ball(DEState &state) {
     }
     if (option.ball_vel){
         if (state.ball().velValid()) {
-            ADD_ELEM("v_x", convertor_bvx(state.ball().vel().x));
-            ADD_ELEM("v_y", convertor_bvy(state.ball().vel().y));
-            ADD_ELEM("v_r", convertor_bv(state.ball().vel().r()));
-            ADD_ELEM("v_t", convertor_angle(state.ball().vel().th().degree()));
+            ADD_ELEM("ball_vel_x", convertor_bvx(state.ball().vel().x));
+            ADD_ELEM("ball_vel_y", convertor_bvy(state.ball().vel().y));
+            ADD_ELEM("ball_vel_r", convertor_bv(state.ball().vel().r()));
+            ADD_ELEM("ball_vel_t", convertor_angle(state.ball().vel().th().degree()));
             #ifdef ODEDebug
             dlog.addText(Logger::BLOCK, "##add ball vel x y r t");
             #endif
         } else {
-            ADD_ELEM("v_x", invalid_data_);
-            ADD_ELEM("v_y", invalid_data_);
-            ADD_ELEM("v_r", invalid_data_);
-            ADD_ELEM("v_t", invalid_data_);
+            ADD_ELEM("ball_vel_x", invalid_data_);
+            ADD_ELEM("ball_vel_y", invalid_data_);
+            ADD_ELEM("ball_vel_r", invalid_data_);
+            ADD_ELEM("ball_vel_t", invalid_data_);
             #ifdef ODEDebug
             dlog.addText(Logger::BLOCK, "##@add ball invalid vel x y r t");
             #endif
@@ -977,19 +967,11 @@ void OffensiveDataExtractor::add_null_player(int unum, ODEDataSide side) {
         ADD_ELEM("pass_opp2_dist_line", invalid_data_);
         ADD_ELEM("pass_opp2_dist_proj", invalid_data_);
         ADD_ELEM("pass_opp2_dist_diffbody", invalid_data_);
-        ADD_ELEM("pass_opp2_dist", invalid_data_);
-        ADD_ELEM("pass_opp2_angle", invalid_data_);
-        ADD_ELEM("pass_opp2_dist_line", invalid_data_);
-        ADD_ELEM("pass_opp2_dist_proj", invalid_data_);
-        ADD_ELEM("pass_opp2_dist_diffbody", invalid_data_);
     }
     if (option.nearestOppDist == side || option.nearestOppDist == BOTH){
         ADD_ELEM("opp1_dist", invalid_data_);
         ADD_ELEM("opp1_angle", invalid_data_);
         ADD_ELEM("opp1_diffbody", invalid_data_);
-        ADD_ELEM("opp2_dist", invalid_data_);
-        ADD_ELEM("opp2_angle", invalid_data_);
-        ADD_ELEM("opp2_diffbody", invalid_data_);
     }
 
     if (option.polarGoalCenter == side || option.polarGoalCenter == BOTH) {
@@ -1096,11 +1078,6 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
             ADD_ELEM("pass_opp2_dist_line", invalid_data_);
             ADD_ELEM("pass_opp2_dist_proj", invalid_data_);
             ADD_ELEM("pass_opp2_dist_diffbody", invalid_data_);
-            ADD_ELEM("pass_opp3_dist", invalid_data_);
-            ADD_ELEM("pass_opp3_angle", invalid_data_);
-            ADD_ELEM("pass_opp3_dist_line", invalid_data_);
-            ADD_ELEM("pass_opp3_dist_proj", invalid_data_);
-            ADD_ELEM("pass_opp3_dist_diffbody", invalid_data_);
         }
         if (option.nearestOppDist == side || option.nearestOppDist == BOTH){
             #ifdef ODEDebug
@@ -1109,9 +1086,6 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
             ADD_ELEM("opp1_dist", invalid_data_);
             ADD_ELEM("opp1_angle", invalid_data_);
             ADD_ELEM("opp1_diffbody", invalid_data_);
-            ADD_ELEM("opp2_dist", invalid_data_);
-            ADD_ELEM("opp2_angle", invalid_data_);
-            ADD_ELEM("opp2_diffbody", invalid_data_);
         }
         return;
     }
@@ -1202,29 +1176,6 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
             ADD_ELEM("pass_opp2_dist_proj", invalid_data_);
             ADD_ELEM("pass_opp2_dist_diffbody", invalid_data_);
         }
-        if (candidates.size() >= 3){
-            #ifdef ODEDebug
-            dlog.addText(Logger::BLOCK, "###### add opp angle pass second");
-            #endif
-            ADD_ELEM("pass_opp3_dist", convertor_dist(candidates[2].dist_self_to_opp));
-            ADD_ELEM("pass_opp3_dist_proj_to_opp", convertor_dist(candidates[2].dist_opp_proj));
-            ADD_ELEM("pass_opp3_dist_proj_to_kicker", convertor_dist(candidates[2].dist_self_to_opp_proj));
-            ADD_ELEM("pass_opp3_open_angle", convertor_angle(candidates[2].open_angle));
-            if (candidates[2].opp_body_diff != invalid_data_)
-                ADD_ELEM("pass_opp3_dist_diffbody", convertor_angle(candidates[2].opp_body_diff));
-            else
-                ADD_ELEM("pass_opp3_dist_diffbody", invalid_data_);
-        }
-        else{
-            #ifdef ODEDebug
-            dlog.addText(Logger::BLOCK, "###### add opp angle pass second invalid");
-            #endif
-            ADD_ELEM("pass_opp3_dist", invalid_data_);
-            ADD_ELEM("pass_opp3_angle", invalid_data_);
-            ADD_ELEM("pass_opp3_dist_line", invalid_data_);
-            ADD_ELEM("pass_opp3_dist_proj", invalid_data_);
-            ADD_ELEM("pass_opp3_dist_diffbody", invalid_data_);
-        }
     }
     if (option.nearestOppDist == side || option.nearestOppDist == BOTH){
         std::sort(opp_dist_angle.begin(), opp_dist_angle.end());
@@ -1247,25 +1198,6 @@ void OffensiveDataExtractor::extract_pass_angle(DEPlayer *player, DEState &state
             ADD_ELEM("opp1_dist", invalid_data_);
             ADD_ELEM("opp1_angle", invalid_data_);
             ADD_ELEM("opp1_diffbody", invalid_data_);
-        }
-        if (opp_dist_angle.size() >= 2){
-            #ifdef ODEDebug
-            dlog.addText(Logger::BLOCK, "###### add opp pass dist second");
-            #endif
-            ADD_ELEM("opp2_dist", convertor_dist(opp_dist_angle[1].first));
-            ADD_ELEM("opp2_angle", convertor_angle(opp_dist_angle[1].second));
-            if (opp_dist_body_diff[1].second != invalid_data_)
-                ADD_ELEM("opp2_diffbody", convertor_angle(opp_dist_body_diff[1].second));
-            else
-                ADD_ELEM("opp2_diffbody", invalid_data_);
-        }
-        else{
-            #ifdef ODEDebug
-            dlog.addText(Logger::BLOCK, "###### add opp pass dist second invalid");
-            #endif
-            ADD_ELEM("opp2_dist", invalid_data_);
-            ADD_ELEM("opp2_angle", invalid_data_);
-            ADD_ELEM("opp2_diffbody", invalid_data_);
         }
     }
 }
@@ -1319,9 +1251,9 @@ void OffensiveDataExtractor::extract_pos(DEPlayer *player, DEState &state, ODEDa
         }
         if (option.in_offside == side || option.in_offside == BOTH) {
             if (player->pos().x > state.offsideLineX()) {
-                ADD_ELEM("pos_offside", 1);
+                ADD_ELEM("in_offside", 1);
             } else {
-                ADD_ELEM("pos_offside", 0);
+                ADD_ELEM("in_offside", 0);
             }
         }
     }else{
@@ -1340,7 +1272,7 @@ void OffensiveDataExtractor::extract_pos(DEPlayer *player, DEState &state, ODEDa
             ADD_ELEM("kicker_t", invalid_data_);
         }
         if (option.in_offside == side || option.in_offside == BOTH) {
-            ADD_ELEM("pos_offside", invalid_data_);
+            ADD_ELEM("in_offside", invalid_data_);
         }
     }
 }

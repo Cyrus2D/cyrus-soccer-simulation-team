@@ -41,6 +41,9 @@ public:
     OffensiveMoveSetting(){}
     OffensiveMoveSetting(Value & value);
     bool mIs9BrokeOffside = false;
+    vector<string> mUnmarkingAlgorithms;
+    string mMainUnmarkPassPredictionDNN;
+    bool mUseUnmarkPassPredictionDNN = false;
 };
 
 class DefenseMoveSetting{

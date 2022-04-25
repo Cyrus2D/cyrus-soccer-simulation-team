@@ -170,29 +170,40 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
                     amIneartm = false;
                 }
             }
-
-            if (FieldAnalyzer::isYushan(wm)
-                || FieldAnalyzer::isMT(wm)
-                || FieldAnalyzer::isHelius(wm)
-                || FieldAnalyzer::isOxsy(wm))
-            {
-                if (bhv_unmarkes().execute(agent)) {
-                    return true;
+            for (auto & u: Setting::i()->mOffensiveMove->mUnmarkingAlgorithms){
+                if (u == "main"){
+                    if (bhv_unmarkes().execute(agent)) {
+                        return true;
+                    }
+                }else if (u == "2019"){
+                    if (bhv_unmarkes_2019().execute(agent)) {
+                        return true;
+                    }
+                }else if (u == "voronoi"){
+                    if (bhv_unmark_voronoi().execute(agent)) {
+                        return true;
+                    }
                 }
             }
-            else
-            {
-                if (bhv_unmarkes_2019().execute(agent)) {
-                    return true;
-                }
-            }
-            if (bhv_unmark_voronoi().execute(agent)) {
-                return true;
-            }
-
+//            if (FieldAnalyzer::isYushan(wm)
+//                || FieldAnalyzer::isMT(wm)
+//                || FieldAnalyzer::isHelius(wm)
+//                || FieldAnalyzer::isOxsy(wm))
+//            {
+//                if (bhv_unmarkes().execute(agent)) {
+//                    return true;
+//                }
+//            }
+//            else
+//            {
+//                if (bhv_unmarkes_2019().execute(agent)) {
+//                    return true;
+//                }
+//            }
+//            if (bhv_unmark_voronoi().execute(agent)) {
+//                return true;
+//            }
         }
-
-
 
     /*--------------------------------------------------------*/
     // chase ball

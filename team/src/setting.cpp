@@ -66,6 +66,18 @@ OffensiveMoveSetting::OffensiveMoveSetting(Value &value)
     {
         mIs9BrokeOffside = value["Is9BrokeOffside"].GetBool();
     }
+    if(value.HasMember("UnmarkingAlgorithms"))
+    {
+        for (SizeType i = 0; i < value["UnmarkingAlgorithms"].GetArray().Size(); i++){
+            mUnmarkingAlgorithms.emplace_back(value["UnmarkingAlgorithms"].GetArray()[i].GetString());
+        }
+    }
+    if(value.HasMember("MainUnmarkPassPredictionDNN")){
+        mMainUnmarkPassPredictionDNN = value["MainUnmarkPassPredictionDNN"].GetString();
+        if(value.HasMember("UseUnmarkPassPredictionDNN")){
+            mUseUnmarkPassPredictionDNN = value["UseUnmarkPassPredictionDNN"].GetBool();
+        }
+    }
 }
 
 DefenseMoveSetting::DefenseMoveSetting(Value & value){

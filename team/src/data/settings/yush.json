@@ -20,7 +20,10 @@
 				"DribblePosCountMaxBehindOpp":4
 			},
 	"OffensiveMove":{
-				"Is9BrokeOffside":false
+				"Is9BrokeOffside":false,
+				"UnmarkingAlgorithms": ["main", "voronoi"],
+				"MainUnmarkPassPredictionDNN": "./data/deep/pass_prediction_yushan_w_w.txt",
+				"UseUnmarkPassPredictionDNN": true
 			},
 	"DefenseMove": {
 				"PassBlock":false,
