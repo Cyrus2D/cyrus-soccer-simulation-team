@@ -118,10 +118,12 @@ PLAYERHEADERS = \
 
 DATAEXTRACTORSOURCE = \
     data_extractor/offensive_data_extractor.cpp \
+    data_extractor/offensive_data_extractor_v1.cpp \
     data_extractor/DEState.cpp
 
 DATAEXTRACTORHEADERS = \
     data_extractor/offensive_data_extractor.h \
+    data_extractor/offensive_data_extractor_v1.h \
     data_extractor/DEState.h
 
 CHAINACTIONSOURCES = \
