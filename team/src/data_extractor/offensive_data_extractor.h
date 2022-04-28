@@ -34,7 +34,7 @@ enum ODEPlayerSortMode {
 };
 
 class OffensiveDataExtractor {
-private:
+public:
     struct Option {
     public:
         bool cycle;
@@ -77,7 +77,7 @@ private:
         bool kicker_first;
         bool use_convertor;
         int history_size;
-        Option();
+        Option(){}
     };
 
 private:
@@ -92,6 +92,7 @@ public:
 
     ~OffensiveDataExtractor();
     Option option;
+    void setOptions();
     void update(const rcsc::PlayerAgent *agent,
                 const CooperativeAction &action,
                 bool update_shoot=false);

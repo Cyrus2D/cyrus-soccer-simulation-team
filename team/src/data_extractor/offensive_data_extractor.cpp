@@ -32,51 +32,50 @@ std::vector<std::vector<int>> OffensiveDataExtractor::history_body_count;
 
 OffensiveDataExtractor::OffensiveDataExtractor() :
         last_update_cycle(-1) {
+    setOptions();
 }
 
 OffensiveDataExtractor::~OffensiveDataExtractor() {
 }
 
-
-OffensiveDataExtractor::Option::Option() {
-    cycle = false; //
-    ball_pos = true;
-    ball_kicker_pos = false;
-    ball_vel = false;
-    offside_count = true;
-    side = NONE;
-    unum = BOTH;
-    type = NONE;
-    body = BOTH;
-    face = NONE;
-    tackling = NONE;
-    kicking = NONE;
-    card = NONE;
-    pos = BOTH;
-    relativePos = BOTH;
-    polarPos = BOTH;
-    vel = NONE;
-    polarVel = NONE;
-    pos_counts = NONE;
-    vel_counts = NONE;
-    body_counts = NONE;
-    in_offside = TM;
-    isKicker = TM;
-    isGhost = TM;
-    openAnglePass = TM;
-    nearestOppDist = TM;
-    polarGoalCenter = NONE;
-    openAngleGoal = TM;
-    dribleAngle = NONE;
-    nDribleAngle = 12;
-    history_size = 0;
-    input_worldMode = NONE_FULLSTATE;
-    output_worldMode = NONE_FULLSTATE;
-    playerSortMode = X;
-    kicker_first = false;
-    use_convertor = true;
+void OffensiveDataExtractor::setOptions(){
+    option.cycle = false; //
+    option.ball_pos = true;
+    option.ball_kicker_pos = false;
+    option.ball_vel = false;
+    option.offside_count = true;
+    option.side = NONE;
+    option.unum = BOTH;
+    option.type = NONE;
+    option.body = BOTH;
+    option.face = NONE;
+    option.tackling = NONE;
+    option.kicking = NONE;
+    option.card = NONE;
+    option.pos = BOTH;
+    option.relativePos = BOTH;
+    option.polarPos = BOTH;
+    option.vel = NONE;
+    option.polarVel = NONE;
+    option.pos_counts = NONE;
+    option.vel_counts = NONE;
+    option.body_counts = NONE;
+    option.in_offside = TM;
+    option.isKicker = TM;
+    option.isGhost = TM;
+    option.openAnglePass = TM;
+    option.nearestOppDist = TM;
+    option.polarGoalCenter = NONE;
+    option.openAngleGoal = TM;
+    option.dribleAngle = NONE;
+    option.nDribleAngle = 12;
+    option.history_size = 0;
+    option.input_worldMode = NONE_FULLSTATE;
+    option.output_worldMode = NONE_FULLSTATE;
+    option.playerSortMode = X;
+    option.kicker_first = false;
+    option.use_convertor = true;
 }
-
 
 void OffensiveDataExtractor::init_file(DEState &state) {
     #ifdef ODEDebug
