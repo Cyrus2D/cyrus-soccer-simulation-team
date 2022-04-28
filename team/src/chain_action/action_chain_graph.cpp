@@ -30,7 +30,7 @@
 #include "../strategy.h"
 #include "hold_ball.h"
 #include "../setting.h"
-#include "../data_extractor/offensive_data_extractor.h"
+#include "../data_extractor/offensive_data_extractor_v1.h"
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/common/server_param.h>
@@ -421,9 +421,9 @@ ActionChainGraph::calculateResult( const PlayerAgent* agent)
 
 //    ActionStatePair *first_layer = M_best_chain.begin().base();
 //    DataExtractor::i().update(agent, first_layer);
-    if (!M_best_chain_pass.empty()){
+    if (!M_best_chain_pass.empty() && OffensiveDataExtractor::active){
         ActionStatePair *first_layer = M_best_chain_pass.begin().base();
-        OffensiveDataExtractor::i().update(agent, first_layer->action());
+        OffensiveDataExtractorV1::i().update(agent, first_layer->action());
     }
 
 
