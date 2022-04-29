@@ -114,7 +114,8 @@ PLAYERHEADERS = \
 	sample_field_evaluator.h \
 	sample_player.h \
 	setting.h \
-    strategy.h
+  strategy.h \
+  debugs.h
 
 DATAEXTRACTORSOURCE = \
     data_extractor/offensive_data_extractor.cpp \
