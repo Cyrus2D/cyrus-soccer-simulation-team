@@ -695,47 +695,42 @@ double calc_danger_eval_for_target(const WorldModel & wm,Vector2D target,int spe
     int opp_score = ( wm.ourSide() == LEFT
                       ? wm.gameMode().scoreRight()
                       : wm.gameMode().scoreLeft() );
-    double aray[16] = { 40, 35, 25, 15, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0 };
-    double def[16] = { 50, 40, 35, 20, 18, 16, 10, 5, 4, 3, 0, 0, 0, 0, 0, 0 };
-    double cen[16] = { 50, 40, 35, 15, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0 };
-    double cen_gld[16] = { 50, 40, 35, 30, 15, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0 };
-    double forw_out_[16] = { 10, 8, 5, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    double forw_pen_[16] = { 20, 10, 8, 5, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    double forw_pen_helios[16] = { 10, 7, 5, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    double forw_pen_oxsy[16] = { 30, 25, 20, 15, 12, 10, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-    for(int i = 0;i<16;i++){
+    double value[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+//    double def[16] = { 50, 40, 35, 20, 18, 16, 10, 5, 4, 3, 0, 0, 0, 0, 0, 0 };
+//    double cen[16] = { 50, 40, 35, 15, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0 };
+//    double cen_gld[16] = { 50, 40, 35, 30, 15, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0 };
+//    double forw_out_[16] = { 10, 8, 5, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+//    double forw_pen_[16] = { 20, 10, 8, 5, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+//    double forw_pen_helios[16] = { 10, 7, 5, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+//    double forw_pen_oxsy[16] = { 30, 25, 20, 15, 12, 10, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+    for(int i = 0;i < 15; i++){
         if(wm.ball().pos().x < -20){
-            aray[i] = def[i];
+            value[i] = Setting::i()->mChainAction->mDangerEvalBack[i];
         }else if(wm.ball().pos().x < 20){
-            if(FieldAnalyzer::isGLD(wm))
-                aray[i] = cen_gld[i];
-            else
-                aray[i] = cen[i];
-        }else{
-            if(target.x > 35 && target.absY() < 15)
-                aray[i] = forw_out_[i];
-            else{
-                if (FieldAnalyzer::isOxsy(wm) ||
-                    FieldAnalyzer::isAlice(wm) ||
-                    FieldAnalyzer::isYushan(wm) ||
-                    FieldAnalyzer::isJyo(wm))
-                {
-                    aray[i] = forw_pen_oxsy[i];
-                }
-                else if (FieldAnalyzer::isHelius(wm)){
-                    aray[i] = forw_pen_helios[i];
-                }
-                else{
-                    aray[i] = forw_pen_oxsy[i];
-//                    aray[i] = forw_pen_[i];
-                }
-            }
+            value[i] = Setting::i()->mChainAction->mDangerEvalMid[i];
+        }else if(target.x > 35 && target.absY() < 15){
+            value[i] = Setting::i()->mChainAction->mDangerEvalPenalty[i];
+        }else {
+            value[i] = Setting::i()->mChainAction->mDangerEvalForward[i];
+//            if (FieldAnalyzer::isOxsy(wm) ||
+//                FieldAnalyzer::isAlice(wm) ||
+//                FieldAnalyzer::isYushan(wm) ||
+//                FieldAnalyzer::isJyo(wm))
+//            {
+//                aray[i] = forw_pen_oxsy[i];
+//            }
+//            else if (FieldAnalyzer::isHelius(wm)){
+//                aray[i] = forw_pen_helios[i];
+//            }
+//            else{
+//                aray[i] = forw_pen_oxsy[i];
+//            }
         }
     }
     double dist_opp_target = opp_min_dist(wm,target) /*- spend*/;
     if(dist_opp_target>10)
         dist_opp_target = 10;
-    double d = aray[(int)dist_opp_target];;
+    double d = value[(int)dist_opp_target];;
     if(target.x > 45 && target.absY() < 10)
         d/=5.0;
     return d;

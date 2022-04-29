@@ -28,6 +28,43 @@ ChainActionSetting::ChainActionSetting(Value & value){
     {
         mDribblePosCountMaxBehindOpp = value["DribblePosCountMaxBehindOpp"].GetInt();
     }
+
+    if(value.HasMember("DangerEvalBack")){
+        for (size_t i = 0; i < value["DangerEvalBack"].GetArray().Size(); i += 1){
+            mDangerEvalBack.push_back(value["DangerEvalBack"].GetArray()[i].GetDouble());
+        }
+    }else{
+        double default_value[15] = { 50, 40, 35, 20, 18, 16, 10, 5, 4, 3, 0, 0, 0, 0, 0};
+        for (auto &v: default_value)
+            mDangerEvalBack.push_back(v);
+    }
+    if(value.HasMember("DangerEvalMid")){
+        for (size_t i = 0; i < value["DangerEvalMid"].GetArray().Size(); i += 1){
+            mDangerEvalMid.push_back(value["DangerEvalMid"].GetArray()[i].GetDouble());
+        }
+    }else{
+        double default_value[15] = { 50, 40, 35, 15, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0};
+        for (auto &v: default_value)
+            mDangerEvalMid.push_back(v);
+    }
+    if(value.HasMember("DangerEvalForward")){
+        for (size_t i = 0; i < value["DangerEvalForward"].GetArray().Size(); i += 1){
+            mDangerEvalForward.push_back(value["DangerEvalForward"].GetArray()[i].GetDouble());
+        }
+    }else{
+        double default_value[15] = { 30, 25, 20, 15, 12, 10, 3, 0, 0, 0, 0, 0, 0, 0, 0};
+        for (auto &v: default_value)
+            mDangerEvalForward.push_back(v);
+    }
+    if(value.HasMember("DangerEvalPenalty")){
+        for (size_t i = 0; i < value["DangerEvalPenalty"].GetArray().Size(); i += 1){
+            mDangerEvalPenalty.push_back(value["DangerEvalPenalty"].GetArray()[i].GetDouble());
+        }
+    }else{
+        double default_value[15] = { 10, 8, 5, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        for (auto &v: default_value)
+            mDangerEvalPenalty.push_back(v);
+    }
 }
 
 StrategySetting::StrategySetting(Value & value){
@@ -79,7 +116,10 @@ DefenseMoveSetting::DefenseMoveSetting(Value & value){
         for (SizeType i = 0; i < value["StaticOffensiveOpp"].GetArray().Size(); i++){
             mStaticOffensiveOpp.push_back(value["StaticOffensiveOpp"].GetArray()[i].GetInt());
         }
-
+    }else{
+        mStaticOffensiveOpp.push_back(9);
+        mStaticOffensiveOpp.push_back(10);
+        mStaticOffensiveOpp.push_back(11);
     }
     if(value.HasMember("MidTh_BackInMark")){
         mMidTh_BackInMark = value["MidTh_BackInMark"].GetBool();

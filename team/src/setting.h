@@ -20,6 +20,10 @@ public:
     double mDribblePosCountZ = 0.8;
     int mDribblePosCountMaxFrontOpp = 8;
     int mDribblePosCountMaxBehindOpp = 4;
+    vector<double> mDangerEvalBack;
+    vector<double> mDangerEvalMid;
+    vector<double> mDangerEvalForward;
+    vector<double> mDangerEvalPenalty;
 };
 
 class StrategySetting{
