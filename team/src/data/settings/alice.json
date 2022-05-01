@@ -17,7 +17,11 @@
 				"UseShootSafe":false,
 				"DribblePosCountZ":0.8,
 				"DribblePosCountMaxFrontOpp":5,
-				"DribblePosCountMaxBehindOpp":2
+				"DribblePosCountMaxBehindOpp":2,
+				"DangerEvalBack": [50, 40, 35, 20, 18, 16, 10, 5, 4, 3, 0, 0, 0, 0, 0],
+				"DangerEvalMid": [50, 40, 35, 15, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0],
+				"DangerEvalForward": [30, 25, 20, 15, 12, 10, 3, 0, 0, 0, 0, 0, 0, 0, 0],
+				"DangerEvalPenalty": [10, 8, 5, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 			},
 	"OffensiveMove":{
 				"Is9BrokeOffside":false,
