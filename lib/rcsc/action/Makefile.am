@@ -15,6 +15,7 @@ librcsc_action_la_SOURCES = \
 	body_dribble2008.cpp \
 	body_go_to_point2009.cpp \
 	body_go_to_point2010.cpp \
+	body_go_to_point.cpp \
 	body_go_to_point_dodge.cpp \
 	body_hold_ball2008.cpp \
 	body_intercept2009.cpp \
