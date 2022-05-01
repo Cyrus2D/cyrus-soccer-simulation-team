@@ -322,7 +322,7 @@ bool IntentionReceive::gotoIntercept( rcsc::PlayerAgent * agent, rcsc::Vector2D 
             //            agent->setNeckAction( new Neck_TurnToBallOrScan() );
             //            return true;
         }else{
-            if(!Body_GoToPoint2010(target,0.5,100).execute(agent)){
+            if(!Body_GoToPoint(target,0.5,100).execute(agent)){
                 agent->debugClient().addMessage("gi3");
                 Body_TurnToAngle((target - selfpos).th()).execute(agent);
             }else{
