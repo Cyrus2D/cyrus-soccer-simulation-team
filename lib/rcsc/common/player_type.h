@@ -78,16 +78,16 @@ private:
 
     // if player's dprate & effort is not enough,
     // player never reach player_speed_max
-    double M_real_speed_max;
+    std::vector<double> M_real_speed_max;
 
     double M_player_speed_max2; // squared value
-    double M_real_speed_max2;   // squared value
+    std::vector<double> M_real_speed_max2;   // squared value
 
     //! dash cycles to reach max speed
     int M_cycles_to_reach_max_speed;
 
     //! distance table by continuous dashes from the velocity 0.
-    std::vector< double > M_dash_distance_table;
+    std::vector< std::vector<double> > M_dash_distance_table;
 
     // stamina cconsumption table by continuous dashes
     //std::vector< double > M_stamina_table;
@@ -349,9 +349,14 @@ public:
       \return reachable speed max
      */
     const
-    double & realSpeedMax() const
+    double & realSpeedMax(AngleDeg dash_dir=AngleDeg::INVALIDATED) const
       {
-          return M_real_speed_max;
+          if (!dash_dir.isValid())
+              dash_dir = AngleDeg(0);
+          double dash_dir_deg = dash_dir.abs();
+          dash_dir_deg /= 10.0;
+          int dash_dir_step = static_cast<int>(std::round(dash_dir_deg));
+          return M_real_speed_max.at(dash_dir_step);
       }
 
     /*!
@@ -369,9 +374,14 @@ public:
       \return squared real speed max
      */
     const
-    double & realSpeedMax2() const
+    double & realSpeedMax2(AngleDeg dash_dir=AngleDeg::INVALIDATED) const
       {
-          return M_real_speed_max2;
+          if (!dash_dir.isValid())
+              dash_dir = AngleDeg(0);
+          double dash_dir_deg = dash_dir.abs();
+          dash_dir_deg /= 10.0;
+          int dash_dir_step = static_cast<int>(std::round(dash_dir_deg));
+          return M_real_speed_max2.at(dash_dir_step);
       }
 
     /*!
@@ -379,7 +389,7 @@ public:
       \return const reference to the distance table container
      */
     const
-    std::vector< double > & dashDistanceTable() const
+    std::vector< std::vector<double> > & dashDistanceTable() const
       {
           return M_dash_distance_table;
       }
@@ -437,7 +447,7 @@ public:
       \param dash_dist distance to reach
       \return estimated cycles to reach
     */
-    int cyclesToReachDistance( const double & dash_dist ) const;
+    int cyclesToReachDistance( const double & dash_dist, AngleDeg dash_dir=AngleDeg::INVALIDATED ) const;
     ////////////////////////////////////////////////
     /*!
       \brief check if this type player can over player_speed_max

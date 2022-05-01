@@ -57,7 +57,7 @@ bool bhv_block::do_tackle_block(PlayerAgent *agent) {
         }
         return Body_TurnToPoint(opponentPos).execute(agent);
     }
-    my_inertia += Vector2D::polar2vector(wm.self().playerType().dashDistanceTable()[1], myDir);
+    my_inertia += Vector2D::polar2vector(wm.self().playerType().dashDistanceTable()[0][1], myDir);
     const double tackleProb = calc_tackle_prob(opponentPos, my_inertia, myDir);
     if (tackleProb < 0.7) {
         dlog.addText(Logger::BLOCK, "low tackle prob! %.2f", tackleProb);

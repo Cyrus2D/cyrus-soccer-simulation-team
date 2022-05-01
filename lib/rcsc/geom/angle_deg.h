@@ -67,6 +67,8 @@ public:
     static const double DEG2RAD;
     //! constant variable to convert RADIAN to DEGREE.
     static const double RAD2DEG;
+    static const double ERROR_VALUE;
+    static const AngleDeg INVALIDATED;
 
     //! default constructor.
     AngleDeg()
@@ -82,7 +84,8 @@ public:
     AngleDeg( const double & deg )
         : M_degree( deg )
       {
-          normalize();
+          if (M_degree != ERROR_VALUE)
+            normalize();
       }
 
     /*!
@@ -97,6 +100,10 @@ public:
           return normalize();
       }
 
+    bool isValid() const
+    {
+        return ( ( M_degree != ERROR_VALUE ) );
+    }
 private:
     /*!
       \brief normalize the value to [-180, 180].

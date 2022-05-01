@@ -51,7 +51,9 @@ const double AngleDeg::PI = M_PI;
 const double AngleDeg::TWO_PI = M_PI * 2.0;
 const double AngleDeg::DEG2RAD = M_PI / 180.0;
 const double AngleDeg::RAD2DEG = 180.0 / M_PI;
+const double AngleDeg::ERROR_VALUE = std::numeric_limits< double >::max();
 
+const AngleDeg AngleDeg::INVALIDATED( AngleDeg::ERROR_VALUE );
 /*-------------------------------------------------------------------*/
 /*!
 
