@@ -588,7 +588,7 @@ bool bhv_block::do_block_pass(PlayerAgent *agent)
         }
     }
     Vector2D block_pos(pass_line.getX(block_pos_y),block_pos_y);
-    Body_GoToPoint2010(block_pos, 0.5, 100, 2, 1, false, 15).execute(agent);
+    Body_GoToPoint(block_pos, 0.5, 100, 2, 1, false, 15).execute(agent);
     Bhv_BasicMove::set_def_neck_with_ball(agent, start_drible, wm.interceptTable()->fastestOpponent(), wm.self().unum());
 
     agent->debugClient().addMessage("block pass");
@@ -630,7 +630,7 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
         }
         if (!move){
             if (wm.interceptTable()->opponentReachCycle() > 5){
-                if (Body_GoToPoint2010(target, 0.5, dash_power, 1.2,1,false, 15).execute(agent)){
+                if (Body_GoToPoint(target, 0.5, dash_power, 1.2,1,false, 15).execute(agent)){
                     agent->debugClient().addMessage("BGP5");
                 }else{
                     agent->debugClient().addMessage("Turn5");

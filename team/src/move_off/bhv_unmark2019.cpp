@@ -473,7 +473,7 @@ bool bhv_unmark_2019::execute(PlayerAgent * agent) {
 //			cout << "UNMARkiiiNG<<endl";
 		}
 //		agent->doPointto(target_pos.x, target_pos.y);
-		Body_GoToPoint2010(target_pos, 0.3, dash_power).execute(agent);
+		Body_GoToPoint(target_pos, 0.3, dash_power).execute(agent);
 //		Bhv_BasicMove().ofensive_body_go_to_point(agent, target_pos, 0.3,
 //				dash_power);
 	} else if (abs(target_body - wm.self().body().degree()) > 10

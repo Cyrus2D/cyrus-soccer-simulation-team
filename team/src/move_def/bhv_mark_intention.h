@@ -225,7 +225,7 @@ public:
                 dash_power = 100;
             if (wm.interceptTable()->fastestOpponent()->pos().dist(target_pos) < 5)
                 dash_power = 100;
-            return Body_GoToPoint2010(target_pos, dist_thr, dash_power).execute(agent);
+            return Body_GoToPoint(target_pos, dist_thr, dash_power).execute(agent);
         } else if (self_pos.dist(Vector2D(-52.0, 0.0)) < 25.0) {
             agent->debugClient().addMessage("KOSSHER");
             agent->doDash(100, (target_pos - self_pos).th() - wm.self().body());

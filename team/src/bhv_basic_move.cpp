@@ -561,7 +561,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
         if (!tm_drible && !tm_pass) {
             if (self_min <= 1) {
                 if (!Body_Intercept2009(false, face).execute(agent)){
-                    if (!Body_GoToPoint2010(wm.ball().inertiaPoint(1), 0.1, 100).execute(agent)){
+                    if (!Body_GoToPoint(wm.ball().inertiaPoint(1), 0.1, 100).execute(agent)){
                         Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                     }
                 }
@@ -573,7 +573,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                     if (self_min < opp_min + dif) {
                         if (self_min <= opp_min) {
                             if (!Body_Intercept2009(false, face).execute(agent)){
-                                if (!Body_GoToPoint2010(wm.ball().inertiaPoint(self_min), 0.1, 100).execute(agent)){
+                                if (!Body_GoToPoint(wm.ball().inertiaPoint(self_min), 0.1, 100).execute(agent)){
                                     Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                                 }
                             }
@@ -584,7 +584,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                                 return true;
                             }
                             Vector2D opp_target = wm.ball().inertiaPoint(opp_min);
-                            if (!Body_GoToPoint2010(opp_target, 0.5, 100).execute(agent)) {
+                            if (!Body_GoToPoint(opp_target, 0.5, 100).execute(agent)) {
                                 Body_TurnToPoint(face).execute(agent);
                             }
                             agent->debugClient().addMessage("Intercept->B");
@@ -600,7 +600,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                     if (self_min < opp_min + dif) {
                         if (self_min <= opp_min) {
                             if (!Body_Intercept2009(false, face).execute(agent)){
-                                if (!Body_GoToPoint2010(wm.ball().inertiaPoint(1), 0.1, 100).execute(agent)){
+                                if (!Body_GoToPoint(wm.ball().inertiaPoint(1), 0.1, 100).execute(agent)){
                                     Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                                 }
                             }
@@ -611,7 +611,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                                 return true;
                             }
                             Vector2D opp_target = wm.ball().inertiaPoint(opp_min);
-                            if (!Body_GoToPoint2010(opp_target, 0.5, 100).execute(agent)) {
+                            if (!Body_GoToPoint(opp_target, 0.5, 100).execute(agent)) {
                                 Body_TurnToPoint(face).execute(agent);
                             }
                             agent->debugClient().addMessage("Intercept->D");
@@ -628,7 +628,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
     } else {
         if (self_min <= 1) {
             if (!Body_Intercept2009(false).execute(agent)){
-                if (!Body_GoToPoint2010(wm.ball().inertiaPoint(1), 0.1, 100).execute(agent)){
+                if (!Body_GoToPoint(wm.ball().inertiaPoint(1), 0.1, 100).execute(agent)){
                     Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                 }
             }
@@ -638,7 +638,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
         } else if (self_min <= mate_min && self_min < opp_min + 3) {
             if (self_min <= opp_min) {
                 if (!Body_Intercept2009(false).execute(agent)){
-                    if (!Body_GoToPoint2010(wm.ball().inertiaPoint(1), 0.1, 100).execute(agent)){
+                    if (!Body_GoToPoint(wm.ball().inertiaPoint(1), 0.1, 100).execute(agent)){
                         Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                     }
                 }
@@ -1002,7 +1002,7 @@ bool go_to_goal(PlayerAgent *agent) {
                 }
             }
 
-            if (!Body_GoToPoint2010(tar, 1.5, 100, 2, 1, false, 20).execute(agent)) {
+            if (!Body_GoToPoint(tar, 1.5, 100, 2, 1, false, 20).execute(agent)) {
                 if (self_pos.dist(tar) < 1.0 && wm.interceptTable()->opponentReachCycle() <= 1 &&
                         wm.self().body().abs() > 80 && wm.self().body().abs() < 100) {
                     agent->doDash(100, (tar - wm.self().pos()).th() - wm.self().body());

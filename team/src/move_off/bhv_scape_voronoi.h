@@ -40,7 +40,7 @@ bool go_to_target(PlayerAgent * agent, Vector2D target){
     double dash_power = 100;//Strategy::i().get_normal_dash_power(wm);
 
     double angle_thr = 20;
-    if(!Body_GoToPoint2010(target, 1, dash_power,1.2,3,false,20).execute(agent)){
+    if(!Body_GoToPoint(target, 1, dash_power,1.2,3,false,20).execute(agent)){
         if(wm.self().body().abs() < 15){
             agent->doDash(100);
         }else{
@@ -120,7 +120,7 @@ public:
         agent->debugClient().addMessage("voronoi inten");
 
         go_to_target(agent, M_target_point);
-        //        if(Body_GoToPoint2010(M_target_point,0.5,100).execute(agent)){
+        //        if(Body_GoToPoint(M_target_point,0.5,100).execute(agent)){
         //            agent->debugClient().setTarget(M_target_point);
         //            Bhv_BasicMove().offense_set_neck_action(agent);
         //            M_last_ex_time = agent->world().time().cycle();

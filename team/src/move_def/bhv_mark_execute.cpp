@@ -93,7 +93,7 @@ bool bhv_mark_execute::defenseGoBack(PlayerAgent *agent){
         if (target.dist(self_pos) < 1.0)
             return false;
         agent->debugClient().addMessage("goBack");
-        if(!Body_GoToPoint2010(target, 1.0, 100, 1.3, 1, false, 20).execute(agent)){
+        if(!Body_GoToPoint(target, 1.0, 100, 1.3, 1, false, 20).execute(agent)){
             Body_TurnToPoint(target).execute(agent);
         }
         agent->setNeckAction(new Neck_TurnToBall());
@@ -410,7 +410,7 @@ void bhv_mark_execute::th_mark_move(PlayerAgent * agent, Target targ, double das
     }
     dlog.addText(Logger::MARK, "Body Go To Point to (%.1f,%.1f) thr:%.1f power %.1f", target_pos.x, target_pos.y, dist_thr, dash_power);
     agent->debugClient().addMessage("mark:move:BGD (%.1f,%.1f) %.1f", target_pos.x, target_pos.y, dash_power);
-    if(Body_GoToPoint2010(target_pos, dist_thr, dash_power, 1.3, 1, false, 15).execute(agent)){
+    if(Body_GoToPoint(target_pos, dist_thr, dash_power, 1.3, 1, false, 15).execute(agent)){
         dlog.addText(Logger::MARK, "ran go to point");
     }else{
         dlog.addText(Logger::MARK, "did not run go to point");
@@ -500,15 +500,15 @@ void bhv_mark_execute::lead_mark_move(PlayerAgent * agent, Target targ, double d
     double angle_thr = 15.0;
     if (self_pos.dist(target_pos) > 2.0)
         angle_thr = 20.0;
-//    Body_GoToPoint2010( const Vector2D & point,
+//    Body_GoToPoint( const Vector2D & point,
 //    const double & dist_thr,
 //    const double & max_dash_power,
 //    const double & dash_speed = -1.0,
 //    const int cycle = 100,
 //    const bool save_recovery = true,
 //    const double & dir_thr = 15.0 )
-    if(Body_GoToPoint2010(target_pos, dist_thr, dash_power, 100, false, angle_thr).execute(agent)){
-//    if(Body_GoToPoint2010(target_pos, dist_thr, dash_power).execute(agent)){
+    if(Body_GoToPoint(target_pos, dist_thr, dash_power, 100, false, angle_thr).execute(agent)){
+//    if(Body_GoToPoint(target_pos, dist_thr, dash_power).execute(agent)){
         agent->debugClient().addMessage("mark:move:BGD (%.1f,%.1f) %.1f", targ.pos.x, targ.pos.y, dash_power);
         dlog.addText(Logger::MARK, "ran go to point");
     }else{
@@ -557,7 +557,7 @@ void bhv_mark_execute::other_mark_move(PlayerAgent * agent, Target targ, double 
     }
 
     dlog.addText(Logger::MARK, "Body Go To Point to (%.1f,%.1f) thr:%.1f power %.1f", target_pos.x, target_pos.y, dist_thr, dash_power);
-    if(Body_GoToPoint2010(target_pos, dist_thr, dash_power).execute(agent)){
+    if(Body_GoToPoint(target_pos, dist_thr, dash_power).execute(agent)){
         dlog.addText(Logger::MARK, "ran go to point");
     }else{
         dlog.addText(Logger::MARK, "did not run go to point");

@@ -286,7 +286,7 @@ bool bhv_scape::run_last_scape(PlayerAgent * agent){
 //		dlog.addCircle(Logger::POSITIONING,last_new_scape.M_first_target,1,0,258);
 		//		agent->debugClient().addCircle(last_new_scape.M_first_target,2);
 		agent->debugClient().addMessage("scape to (%.1f,%.1f)",last_new_scape.M_first_target.x,last_new_scape.M_first_target.y);
-		Body_GoToPoint2010(last_new_scape.M_first_target,0.1,100).execute(agent);
+		Body_GoToPoint(last_new_scape.M_first_target,0.1,100).execute(agent);
 
 //		agent->doPointto(last_new_scape.M_first_target.x,last_new_scape.M_first_target.y);
 
@@ -361,7 +361,7 @@ bool bhv_scape::run_last_scape(PlayerAgent * agent){
 //		if(Bhv_BasicMove().off_gotopoint(agent,ts[witch_t],0.5,100)){
 //
 //		}
-//		else Body_GoToPoint2010(ts[witch_t],0.5,100).execute(agent);
+//		else Body_GoToPoint(ts[witch_t],0.5,100).execute(agent);
 //		agent->doPointto(ts[witch_t].x,ts[witch_t].y);
 //		agent->setNeckAction( new Neck_TurnToBallOrScan() );
 //		return true;

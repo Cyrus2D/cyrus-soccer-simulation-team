@@ -67,7 +67,7 @@ bool go_to_target(PlayerAgent * agent, Vector2D target, unmark_type type){
     double angle_thr = 20;
     if(mate_min <= 2 && !FieldAnalyzer::isHelius(wm))
         angle_thr = 90;
-    if(!Body_GoToPoint2010(target, 0.5, dash_power,1.2,3,false,20).execute(agent)){
+    if(!Body_GoToPoint(target, 0.5, dash_power,1.2,3,false,20).execute(agent)){
         if(self_pos.dist(Vector2D(52,0)) < 15){
             Body_TurnToAngle( (ball_pos - self_pos).th()).execute(agent);
         }else{
@@ -160,7 +160,7 @@ public:
         agent->debugClient().addMessage("voronoi inten");
 
         go_to_target(agent, M_target_point, M_type);
-        //        if(Body_GoToPoint2010(M_target_point,0.5,100).execute(agent)){
+        //        if(Body_GoToPoint(M_target_point,0.5,100).execute(agent)){
         //            agent->debugClient().setTarget(M_target_point);
         //            Bhv_BasicMove().offense_set_neck_action(agent);
         //            M_last_ex_time = agent->world().time().cycle();

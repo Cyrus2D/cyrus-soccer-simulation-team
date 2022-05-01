@@ -428,6 +428,6 @@ bool cyrus_offensive_move::off_gotopoint(PlayerAgent *agent, Vector2D target, do
         }
 
     }
-    return Body_GoToPoint2010(target, distthr, power).execute(agent);
+    return Body_GoToPoint(target, distthr, power).execute(agent);
 }
 

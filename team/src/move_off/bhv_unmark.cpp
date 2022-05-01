@@ -482,7 +482,7 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
         agent->debugClient().addCircle(target_pos, 0.3);
         agent->debugClient().setTarget(target_pos);
         dlog.addCircle(Logger::POSITIONING, target_pos, 0.1, 255,0,0, true);
-        Body_GoToPoint2010(new_target, 0.3, dash_power).execute(agent);
+        Body_GoToPoint(new_target, 0.3, dash_power).execute(agent);
     }
     else if (abs(target_body - wm.self().body().degree()) > 10
              || !ServerParam::i().theirPenaltyArea().contains(target_pos)) {
