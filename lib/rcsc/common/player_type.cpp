@@ -414,7 +414,7 @@ PlayerType::initAdditionalParams()
         StaminaModel stamina_model;
         stamina_model.init( *this );
         double reach_dist = 0.0;
-        accel = SP.maxDashPower() * effortMax() * dashRate(effortMax(), angle);
+	accel = SP.maxDashPower() * effortMax() * ServerParam::i().dashDirRate( angle ) * dashPowerRate();
         // see also soccer_math.h
         M_real_speed_max.push_back(accel / ( 1.0 - playerDecay() )); // sum inf geom series
         if ( M_real_speed_max.back() > playerSpeedMax() )
@@ -430,8 +430,8 @@ PlayerType::initAdditionalParams()
             if ( speed + accel > realSpeedMax(AngleDeg(angle)) )
             {
                 accel = playerSpeedMax() - speed;
-                dash_power = std::min( SP.maxDashPower(),
-                                       accel / ( dashPowerRate() * stamina_model.effort() ) );
+		                dash_power = std::min( SP.maxDashPower(),
+                                       accel / ( effortMax() * ServerParam::i().dashDirRate( angle ) * dashPowerRate() ) );
             }
 
             speed += accel;
