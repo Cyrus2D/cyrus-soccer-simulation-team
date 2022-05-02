@@ -684,6 +684,24 @@ PlayerType::cyclesToReachDistance( const double & dash_dist, AngleDeg dash_dir) 
     return cycle;
 }
 
+double PlayerType::reachDistance( const int & cycle, AngleDeg dash_dir ) const{
+    if (cycle <= 0)
+        return 0.0;
+    if (!dash_dir.isValid())
+        dash_dir = AngleDeg(0);
+    double dash_dir_deg = dash_dir.abs();
+    dash_dir_deg /= 10.0;
+    int dash_dir_step = static_cast<int>(std::round(dash_dir_deg));
+    if (M_dash_distance_table.at(dash_dir_step).size() >= cycle){
+        return M_dash_distance_table.at(dash_dir_step).at(cycle - 1);
+    }
+    double last_distance = 0.0;
+    if (!M_dash_distance_table.at(dash_dir_step).empty())
+        last_distance = M_dash_distance_table.at(dash_dir_step).back();
+    int rest_cycle = cycle - M_dash_distance_table.at(dash_dir_step).size();
+    double rest_dist = realSpeedMax(dash_dir) * static_cast<double>(rest_cycle);
+    return rest_dist + last_distance;
+}
 /*-------------------------------------------------------------------*/
 /*!
 

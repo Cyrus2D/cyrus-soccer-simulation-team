@@ -448,6 +448,7 @@ public:
       \return estimated cycles to reach
     */
     int cyclesToReachDistance( const double & dash_dist, AngleDeg dash_dir=AngleDeg::INVALIDATED ) const;
+    double reachDistance( const int & cycle, AngleDeg dash_dir=AngleDeg::INVALIDATED ) const;
     ////////////////////////////////////////////////
     /*!
       \brief check if this type player can over player_speed_max
