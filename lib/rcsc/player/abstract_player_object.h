@@ -467,14 +467,15 @@ public:
                            Vector2D predict_pos = Vector2D::INVALIDATED,
                            Vector2D predict_vel = Vector2D::INVALIDATED,
                            double safe_dist_thr = 0,
-                           AngleDeg predict_body = -179.999) const {
+                           AngleDeg predict_body = AngleDeg::INVALIDATED,
+                           bool check_omni=false) const {
 
         //    	update_opps_pos(wm);
         if(!predict_pos.isValid())
             predict_pos = pos();
         if(!predict_vel.isValid())
             predict_vel = vel();
-        if(predict_body.degree() == -179.999 || predict_body == -179.999)
+        if(!predict_body.isValid())
             predict_body = body();
         int reach_cycle_kick = 1000;
         int reach_cycle_tackle = 1000;
@@ -497,9 +498,9 @@ public:
         if (check_tackle)
             reach_cycle_tackle = cycles_to_cut_ball_direct_tackle(wm, ball_pos,
                                                                   max_cycle, direct_tackle_dash_cycle, direct_tackle_turn_cycle,direct_tackle_view_cycle,predict_pos,predict_vel,predict_body);
-//        if (max_cycle <= 5){
-//            reach_cycle_omni = cycles_to_cut_ball_omni_kick(wm, ball_pos,
-//                                                              max_cycle, omni_kick_dash_cycle, omni_kick_turn_cycle,omni_kick_view_cycle,predict_pos,predict_vel,predict_body,safe_dist_thr);
+        if (max_cycle <= 5 && check_omni)
+            reach_cycle_omni = cycles_to_cut_ball_omni_kick(wm, ball_pos,
+                                                              max_cycle, omni_kick_dash_cycle, omni_kick_turn_cycle,omni_kick_view_cycle,predict_pos,predict_vel,predict_body,safe_dist_thr);
 //        }
         //    		if(opp_type[opponent->unum()]!=-1){
         //    			reach_cycle_omni = predictOpponentReachStep_omni(wm,opponent,ball_pos,cycle,opp_min_dif_cycle);
@@ -511,7 +512,7 @@ public:
         dash_cycle = direct_kick_dash_cycle;
         turn_cycle = direct_kick_turn_cycle;
         view_cycle = direct_kick_view_cycle;
-        if (reach_cycle_omni < opp_reach_cycle){
+        if (reach_cycle_omni < opp_reach_cycle && check_omni){
             opp_reach_cycle = reach_cycle_omni;
             dash_cycle = omni_kick_dash_cycle;
             turn_cycle = omni_kick_turn_cycle;
@@ -533,14 +534,15 @@ public:
                            int & view_cycle,
                            Vector2D predict_pos = Vector2D::INVALIDATED,
                            Vector2D predict_vel = Vector2D::INVALIDATED,
-                           AngleDeg predict_body = -179.999) const {
+                           AngleDeg predict_body = AngleDeg::INVALIDATED,
+                           bool check_omni=false) const {
 
         //    	update_opps_pos(wm);
         if(!predict_pos.isValid())
             predict_pos = pos();
         if(!predict_vel.isValid())
             predict_vel = vel();
-        if(predict_body.degree() == -179.999 || predict_body == -179.999)
+        if(!predict_body.isValid())
             predict_body = body();
         int reach_cycle_kick = 1000;
         int reach_cycle_tackle = 1000;
@@ -564,18 +566,18 @@ public:
             reach_cycle_tackle = cycles_to_cut_ball_direct_tackle(wm, ball_pos,
                                                                   max_cycle, direct_tackle_dash_cycle, direct_tackle_turn_cycle,direct_tackle_view_cycle,predict_pos,predict_vel,predict_body);
         //    		if(opp_type[opponent->unum()]!=-1){
-//        if (max_cycle <= 5) {
-//            reach_cycle_omni = cycles_to_cut_ball_omni_kick(wm, ball_pos,
-//                                                            max_cycle, omni_kick_dash_cycle, omni_kick_turn_cycle,
-//                                                            omni_kick_view_cycle, predict_pos, predict_vel,
-//                                                            predict_body, 0);
+        if (max_cycle <= 5 && check_omni)
+            reach_cycle_omni = cycles_to_cut_ball_omni_kick(wm, ball_pos,
+                                                            max_cycle, omni_kick_dash_cycle, omni_kick_turn_cycle,
+                                                            omni_kick_view_cycle, predict_pos, predict_vel,
+                                                            predict_body, 0);
 //        }
 //        dlog.addText(Logger::DRIBBLE,"ck:%d %d %d,ct:%d %d %d",reach_cycle_kick,direct_kick_dash_cycle,direct_kick_turn_cycle,reach_cycle_tackle,direct_tackle_dash_cycle,direct_tackle_turn_cycle);
         int opp_reach_cycle = reach_cycle_kick;
         dash_cycle = direct_kick_dash_cycle;
         turn_cycle = direct_kick_turn_cycle;
         view_cycle = direct_kick_view_cycle;
-        if (reach_cycle_omni < opp_reach_cycle){
+        if (reach_cycle_omni < opp_reach_cycle && check_omni){
             opp_reach_cycle = reach_cycle_omni;
             dash_cycle = omni_kick_dash_cycle;
             turn_cycle = omni_kick_turn_cycle;
@@ -914,15 +916,15 @@ public:
 
     }
     int cycles_to_cut_ball_omni_kick(const WorldModel & wm,
-                                       const Vector2D & ball_pos,
-                                       const int cycle,
-                                       int & dash_cycle,
-                                       int & turn_cycle,
-                                       int & view_cycle,
-                                       Vector2D predict_pos,
-                                       Vector2D predict_vel,
-                                       AngleDeg predict_body,
-                                       double safe_dist_thr) const{
+                                     const Vector2D & ball_pos,
+                                     const int cycle,
+                                     int & dash_cycle,
+                                     int & turn_cycle,
+                                     int & view_cycle,
+                                     Vector2D predict_pos,
+                                     Vector2D predict_vel,
+                                     AngleDeg predict_body,
+                                     double safe_dist_thr) const{
         static const Rect2D penalty_area(
                 Vector2D(ServerParam::i().theirPenaltyAreaLineX(),
                          -ServerParam::i().penaltyAreaHalfWidth()),
@@ -937,24 +939,78 @@ public:
                 goalie() && penalty_area.contains(ball_pos) ?
                 SP.catchableArea() : ptype->kickableArea());
 
-        for(double dir = -180; dir < 180; dir+=45){
+        int final_step = 1000;
+        for(double dir = -180; dir < 180; dir += 30.0){
+            double dash_dir_deg = AngleDeg(dir).abs();
+            dash_dir_deg /= 10.0;
+            int dash_dir_step = static_cast<int>(std::round(dash_dir_deg));
             AngleDeg dash_angle = predict_body + AngleDeg(dir);
-            double dash_rate = ptype->dashPowerRate() * SP.dashDirRate( dir );
-            Vector2D accel = Vector2D::polar2vector(100 * dash_rate, dash_angle);
-            for (int c = 1; c <= 2 && c < cycle; c++){
+            for (int c = 1; c <= 2 && c <= cycle; c++){
+                double move = ptype->dashDistanceTable()[dash_dir_step][c - 1];
                 Vector2D opp_pos = predict_pos;
                 Vector2D inertia_pos = ptype->inertiaPoint(opp_pos,predict_vel,c);
-                inertia_pos += (accel*c);
+                inertia_pos += (Vector2D::polar2vector(move, dash_angle));
                 if(inertia_pos.dist(ball_pos) < control_area){
-                    view_cycle = 1;
-                    turn_cycle = 0;
-                    dash_cycle = c;
-                    return turn_cycle + dash_cycle + view_cycle;
+                    int n_step = 1 + 0 + c;
+                    if (c == 1){
+                        view_cycle = 1;
+                        turn_cycle = 0;
+                        dash_cycle = c;
+                        return n_step;
+                    }
+                    if (n_step < final_step){
+                        view_cycle = 1;
+                        turn_cycle = 0;
+                        dash_cycle = c;
+                        final_step = n_step;
+                    }
                 }
             }
         }
-        return 1000;
+        return final_step;
     }
+//    int cycles_to_cut_ball_omni_kick(const WorldModel & wm,
+//                                       const Vector2D & ball_pos,
+//                                       const int cycle,
+//                                       int & dash_cycle,
+//                                       int & turn_cycle,
+//                                       int & view_cycle,
+//                                       Vector2D predict_pos,
+//                                       Vector2D predict_vel,
+//                                       AngleDeg predict_body,
+//                                       double safe_dist_thr) const{
+//        static const Rect2D penalty_area(
+//                Vector2D(ServerParam::i().theirPenaltyAreaLineX(),
+//                         -ServerParam::i().penaltyAreaHalfWidth()),
+//                Size2D(ServerParam::i().penaltyAreaLength(),
+//                       ServerParam::i().penaltyAreaWidth()));
+//
+//        const ServerParam & SP = ServerParam::i();
+//
+//        const PlayerType * ptype = playerTypePtr();
+//
+//        double control_area = (
+//                goalie() && penalty_area.contains(ball_pos) ?
+//                SP.catchableArea() : ptype->kickableArea());
+//
+//        for(double dir = -180; dir < 180; dir+=45){
+//            AngleDeg dash_angle = predict_body + AngleDeg(dir);
+//            double dash_rate = ptype->dashPowerRate() * SP.dashDirRate( dir );
+//            Vector2D accel = Vector2D::polar2vector(100 * dash_rate, dash_angle);
+//            for (int c = 1; c <= 2 && c < cycle; c++){
+//                Vector2D opp_pos = predict_pos;
+//                Vector2D inertia_pos = ptype->inertiaPoint(opp_pos,predict_vel,c);
+//                inertia_pos += (accel*c);
+//                if(inertia_pos.dist(ball_pos) < control_area){
+//                    view_cycle = 1;
+//                    turn_cycle = 0;
+//                    dash_cycle = c;
+//                    return turn_cycle + dash_cycle + view_cycle;
+//                }
+//            }
+//        }
+//        return 1000;
+//    }
 };
 
 }
