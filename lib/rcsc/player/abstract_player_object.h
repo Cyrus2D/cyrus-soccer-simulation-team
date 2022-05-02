@@ -619,7 +619,7 @@ public:
         double target_dist = opp_pos.dist(ball_pos);
         double dash_dist = iner_pos.dist(ball_pos) - safe_dist_thr;
 
-        bool back_dash = true;
+        bool back_dash = false;
         double next_body_angle = predict_body.degree();
         int n_turn = predict_player_turn_cycle_direct_kick(ptype, predict_body,
                                                            predict_vel.r(), target_dist, (ball_pos - opp_pos).th(),
