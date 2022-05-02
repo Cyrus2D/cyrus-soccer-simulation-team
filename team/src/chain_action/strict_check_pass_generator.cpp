@@ -1830,7 +1830,8 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
                                                                          view_step,
                                                                          opp_pos,
                                                                          opp_vel,
-                                                                         safe_dist_thr);
+                                                                         safe_dist_thr, true);
+
         int bonus_step = 0;
         if (opponent.player_->isTackling()) {
             bonus_step = -5; // Magic Number
