@@ -531,9 +531,10 @@ IntentionNormalDribble::doTurn( PlayerAgent * agent )
     AngleDeg target_angle = ( M_target_point - my_inertia ).th();
     if(M_desc.compare("shortBackDribble") == 0){
         target_angle += AngleDeg(180.0);
-        if(target_angle.degree() > 360.0){
-            target_angle = target_angle - AngleDeg(360.0);
-        }
+        target_angle = AngleDeg(target_angle);
+//        if(target_angle.degree() > 360.0){
+//            target_angle = target_angle - AngleDeg(360.0);
+//        }
     }else if(M_desc.compare("shortDribbleAdvance") == 0){
         target_angle = M_dash_angle;
     }
@@ -597,7 +598,8 @@ IntentionNormalDribble::doDash( PlayerAgent * agent )
 
     Vector2D dash_accel = Vector2D::polar2vector( accel_mag, wm.self().body() );
     if(M_desc.compare("shortBackDribble")==0){
-        dash_accel = Vector2D::polar2vector( accel_mag, AngleDeg(wm.self().body().degree() + 180 ));
+        accel_mag = ServerParam::i().maxDashPower() * wm.self().playerType().effortMax() * ServerParam::i().dashDirRate( (M_target_point - wm.self().pos()).th().degree() ) * wm.self().playerType().dashPowerRate();
+        dash_accel = Vector2D::polar2vector( accel_mag, AngleDeg((M_target_point - wm.self().pos()).th() ));
         dlog.addText(Logger::DRIBBLE,"change dash accel for back,r:%.1f,d:%.1f",dash_accel.r(),dash_accel.th().degree());
     }
 
@@ -647,7 +649,7 @@ IntentionNormalDribble::doDash( PlayerAgent * agent )
                       __FILE__": (doDash) next Y difference is over. y_diff = %f ballnex=(%.2f,%.2f) body=%.2f selfnext(%.1f,%.1f)",
                       ball_next_rel.absY(),ball_next.x,ball_next.y,wm.self().body().degree(),my_next.x,my_next.y );
         if(M_desc.compare("shortBackDribble")==0){
-            agent->doDash( -dash_power,(M_target_point - wm.self().pos()).th() + AngleDeg(180.0) - wm.self().body() );
+            agent->doDash( dash_power,(M_target_point - wm.self().pos()).th() - wm.self().body() );
             return true;
             this->clear();
             return false;
@@ -697,7 +699,7 @@ IntentionNormalDribble::doDash( PlayerAgent * agent )
                   __FILE__": (doDash) power=%.1f  accel_mag=%.2f",
                   dash_power, accel_mag );
     if(M_desc.compare("shortBackDribble")==0){
-        agent->doDash( -dash_power );
+        agent->doDash( dash_power, (M_target_point - wm.self().pos()).th() - wm.self().body());
     }
     else{
         agent->doDash( dash_power );

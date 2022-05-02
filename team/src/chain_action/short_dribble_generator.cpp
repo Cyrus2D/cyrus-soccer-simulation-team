@@ -218,23 +218,23 @@ ShortDribbleGenerator::createCourses( const WorldModel & wm )
     const PlayerType & ptype = wm.self().playerType();
 
     const double my_first_speed = wm.self().vel().r();
-    for ( int a = -5; a <= 5; ++a )
+    for ( int a = -2; a <= 2; ++a )
     {
-        AngleDeg dash_angle = wm.self().body() + ( angle_step * a );
+        AngleDeg dash_angle = wm.self().body() - AngleDeg(180.0) + ( angle_step * a );
 
         //
         // angle filter
         //
 
-        if ( dash_angle.abs() > 90.0 )
-        {
-#ifdef DEBUG_PRINT
-            dlog.addText( Logger::DRIBBLE,
-                          __FILE__": (createTargetPoints) canceled(1) dash_angle=%.1f",
-                          dash_angle.degree() );
-#endif
-            continue;
-        }
+//        if ( dash_angle.abs() > 90.0 )
+//        {
+//#ifdef DEBUG_PRINT
+//            dlog.addText( Logger::DRIBBLE,
+//                          __FILE__": (createTargetPoints) canceled(1) dash_angle=%.1f",
+//                          dash_angle.degree() );
+//#endif
+////            continue;
+//        }
 
         if ( M_first_ball_pos.x < -25.0 )
         {
@@ -367,7 +367,7 @@ ShortDribbleGenerator::simulateKickTurnBackDashes(  const WorldModel & wm,
 
     const Vector2D trap_rel
             = Vector2D::polar2vector( ptype.playerSize() + ptype.kickableMargin() * 0.1 + SP.ballSize(),
-                                      -dash_angle );
+                                      dash_angle );
 
     const double max_x = ( SP.keepawayMode()
                            ? SP.keepawayLength() * 0.5 - 1.5
@@ -776,15 +776,15 @@ ShortDribbleGenerator::createSelfBackCache( const WorldModel & wm,
 
     stamina_model.simulateWaits( ptype, 1 + n_turn );
 
-    const Vector2D unit_vec = Vector2D::polar2vector( 1.0, dash_angle + AngleDeg(180.0) );
+    const Vector2D unit_vec = Vector2D::polar2vector( 1.0, dash_angle);
 
     for ( int i = 0; i < n_dash; ++i )
     {
         double available_stamina = std::max( 0.0,
                                              stamina_model.stamina() - SP.recoverDecThrValue() - 300.0 );
         double dash_power = std::min( available_stamina, SP.maxDashPower() );
-        Vector2D dash_accel = unit_vec.setLengthVector( dash_power * ptype.dashPowerRate() * stamina_model.effort() );
 
+        Vector2D dash_accel = unit_vec.setLengthVector( SP.maxDashPower() * ptype.effortMax() * ServerParam::i().dashDirRate( 180.0 ) * ptype.dashPowerRate() );
         my_vel += dash_accel;
         my_pos += my_vel;
         my_vel *= ptype.playerDecay();
