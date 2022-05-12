@@ -9,7 +9,7 @@ echo " All rights reserved."
 echo "******************************************************************"
 
 
-LIBPATH=/usr/local/cyruslib/lib
+LIBPATH=./cyruslib/lib
 if [ x"$LIBPATH" != x ]; then
   if [ x"$LD_LIBRARY_PATH" = x ]; then
     LD_LIBRARY_PATH=$LIBPATH
