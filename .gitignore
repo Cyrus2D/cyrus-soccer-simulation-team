@@ -1,4 +1,5 @@
-
+lib/rcsc/action/body_go_to_point.lo
+team/src/cyruslib/
 .vscode/settings.json
 lib/rcsc/param/am--include-marker
 lib/autom4te.cache/output.2
