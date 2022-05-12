@@ -1,1 +1,3 @@
-./configure --with-librcsc=/usr/local/cyruslib
+HERE=`pwd`
+path=${HERE}/src/cyruslib
+./configure --with-librcsc=${path}
