@@ -292,7 +292,7 @@ bool cyrus_offensive_move::pers_scap(PlayerAgent *agent) {
     {
     }else
         return false;
-    return false;
+//    return false;
     Vector2D homePos = Strategy::i().getPosition(num);
     if (wm.self().unum() > 8 && ball.x < 30 && ball.x > -10 && me.dist(homePos) < 8 &&
             wm.self().pos().x < max_x - 0.5 &&
@@ -355,7 +355,7 @@ bool cyrus_offensive_move::BackFromOffside(PlayerAgent *agent) {
             && homePos.x > max_x - 4
             && wm.self().body().abs() < 20.0 && mate_min < opp_min
             && self_min > mate_min) {
-        agent->doDash(-100, 0.0);
+        agent->doDash(100, 180.0);
         if (wm.existKickableOpponent() && wm.ball().distFromSelf() < 18.0)
             agent->setNeckAction(new Neck_TurnToBall());
         else
@@ -364,7 +364,7 @@ bool cyrus_offensive_move::BackFromOffside(PlayerAgent *agent) {
         return true;
     }
 
-    if (self_pos.x > max_x - 0.5
+    if (self_pos.x > max_x - 1.0
             && (wm.self().stamina() > 4000 || (mate_min < opp_min))) {
         if (off_gotopoint(agent, Vector2D(self_pos.x - 10.0, self_pos.y), 0.5, ServerParam::i().maxDashPower())) {
 
