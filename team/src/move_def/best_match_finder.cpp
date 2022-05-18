@@ -7,10 +7,9 @@
 #include <algorithm>
 #include <math.h>
 #include <rcsc/common/logger.h>
-
+#include "../debugs.h"
 using namespace rcsc;
 
-#define DEBUG_PRINT
 
 void BestMatchFinder::fun(vector<vector<int> > &tasks_best_agents,
                           vector<size_t> &sorted_tasks,
@@ -42,7 +41,7 @@ void BestMatchFinder::fun(vector<vector<int> > &tasks_best_agents,
         }
         actions_cost_pointer += e;
     }
-    #ifdef DEBUG_PRINT
+    #ifdef DEBUG_MARK_MATCH_FINDER
     log_str << "actions:opp:tm, ...";
     for (int i = 0; i < actions.size(); i++) {
         log_str << sorted_tasks[i] << ":" << actions[i] << ", ";
@@ -78,7 +77,7 @@ void BestMatchFinder::fun(vector<vector<int> > &tasks_best_agents,
 
 pair<vector<int>, double>
 BestMatchFinder::find_best_dec(double mark_eval[12][12], vector<size_t> agents, vector<size_t> tasks) {
-    #ifdef DEBUG_PRINT
+    #ifdef DEBUG_MARK_MATCH_FINDER
     dlog.addText(Logger::MARK, "tmm agents count: %d", agents.size());
     for (int i = 0; i < agents.size(); i++) {
         dlog.addText(Logger::MARK, "agents:%d", agents[i]);
@@ -93,7 +92,7 @@ BestMatchFinder::find_best_dec(double mark_eval[12][12], vector<size_t> agents, 
     vector<vector<int> > tasks_best_agents;
     for (int o = 0; o < tasks.size(); o++) {
         int task = tasks[o];
-        #ifdef DEBUG_PRINT
+        #ifdef DEBUG_MARK_MATCH_FINDER
         dlog.addText(Logger::MARK, "task danger=> id:%d , unum:%d", o, task);
         #endif
         tasks_best_agents.push_back(vector<int>());
@@ -108,7 +107,7 @@ BestMatchFinder::find_best_dec(double mark_eval[12][12], vector<size_t> agents, 
             if (task_costs[i].first == 1000)
                 break;
             tasks_best_agents[tasks_best_agents.size() - 1].push_back(task_costs[i].second);
-            #ifdef DEBUG_PRINT
+            #ifdef DEBUG_MARK_MATCH_FINDER
             dlog.addText(Logger::MARK, "agent%d:%d , eval:%.2f", i, task_costs[i].second, task_costs[i].first);
             #endif
             if (i == task_costs.size() - 1)
@@ -116,7 +115,7 @@ BestMatchFinder::find_best_dec(double mark_eval[12][12], vector<size_t> agents, 
         }
         tasks_best_agents[tasks_best_agents.size() - 1].push_back(0);
     }
-    #ifdef DEBUG_PRINT
+    #ifdef DEBUG_MARK_MATCH_FINDER
     for (int i = 0; i < tasks_best_agents.size(); i++) {
         dlog.addText(Logger::MARK, "task:%d", tasks[i]);
         for (int j = 0; j < tasks_best_agents[i].size(); j++) {
@@ -131,7 +130,7 @@ BestMatchFinder::find_best_dec(double mark_eval[12][12], vector<size_t> agents, 
     double best_actions_cost = 10000000;
     fun(tasks_best_agents, tasks, action, 0, mark_eval, best_actions_cost, best_actions);
 
-    #ifdef DEBUG_PRINT
+    #ifdef DEBUG_MARK_MATCH_FINDER
     dlog.addText(Logger::MARK, "best action:");
     for (int i = 0; i < best_actions.size(); i++) {
         dlog.addText(Logger::MARK, "----%d", best_actions[i]);

@@ -17,6 +17,7 @@
 #include <rcsc/player/world_model.h>
 #include "../setting.h"
 #include <rcsc/common/logger.h>
+#include "../debugs.h"
 
 //tackle block
 bool bhv_block::do_tackle_block(PlayerAgent *agent) {
@@ -60,14 +61,20 @@ bool bhv_block::do_tackle_block(PlayerAgent *agent) {
     my_inertia += Vector2D::polar2vector(wm.self().playerType().dashDistanceTable()[0][1], myDir);
     const double tackleProb = calc_tackle_prob(opponentPos, my_inertia, myDir);
     if (tackleProb < 0.7) {
+        #ifdef DEBUG_BLOCK
         dlog.addText(Logger::BLOCK, "low tackle prob! %.2f", tackleProb);
+        #endif
         return false;
     }
     if (((dribleDir + 180.0) - idealDir).abs() > 30.0 and my_inertia.dist(opponentPos) > 2.0) {
+        #ifdef DEBUG_BLOCK
         dlog.addText(Logger::BLOCK, "not safe to dash!");
+        #endif
         return false;
     }
+    #ifdef DEBUG_BLOCK
     dlog.addText(Logger::BLOCK, "decided to go for tackle! Dash => tp = %.2f", tackleProb);
+    #endif
     Bhv_BasicMove::set_def_neck_with_ball(agent, opponentPos, wm.interceptTable()->fastestOpponent(), wm.self().unum());
     return agent->doDash(wm.self().getSafetyDashPower(100.0));
 }
@@ -411,7 +418,9 @@ void bhv_block::get_start_dribble(const WorldModel &wm, Vector2D &start_dribble,
         }
     }
     start_dribble = inertia_ball_pos;
+    #ifdef DEBUG_BLOCK
     dlog.addCircle(Logger::BLOCK, start_dribble, 0.5, 255,0,0,true);
+    #endif
     cycle = oppCycles;
     return;
 
@@ -442,8 +451,10 @@ void bhv_block::block_cycle(const WorldModel &wm, int unum, int &cycle, Vector2D
     double best_angle = get_dribble_angle(wm, start_drible);
     double dribble_speed = 0.8;
     Sector2D dribble_sector(start_drible, 0, 20, best_angle - 20, best_angle + 20);
+    #ifdef DEBUG_BLOCK
     dlog.addLine(Logger::BLOCK, start_drible, start_drible + Vector2D::polar2vector(20, best_angle - 20));
     dlog.addLine(Logger::BLOCK, start_drible, start_drible + Vector2D::polar2vector(20, best_angle + 20));
+    #endif
     bool is_tm_in_dribble_sector = false;
     for (int i = 2; i <= 11; i++){
         const AbstractPlayerObject * tm = wm.ourPlayer(i);
@@ -478,7 +489,7 @@ void bhv_block::block_cycle(const WorldModel &wm, int unum, int &cycle, Vector2D
         if (dash_step <= drible_step) {
             target = ball;
             cycle = drible_step;
-            if (debug) {
+            #ifdef DEBUG_BLOCK
                 dlog.addCircle(Logger::BLOCK, ball, 0.2, 0, 0, 255);
                 char num[8];
                 snprintf(num, 8, "%d", drible_step);
@@ -486,10 +497,10 @@ void bhv_block::block_cycle(const WorldModel &wm, int unum, int &cycle, Vector2D
                 snprintf(num2, 8, "%d", dash_step);
                 dlog.addMessage(Logger::BLOCK, ball - Vector2D(0, 1), num);
                 dlog.addMessage(Logger::BLOCK, ball - Vector2D(0, 2), num2);
-            }
+            #endif
             return;
         } else {
-            if (debug) {
+            #ifdef DEBUG_BLOCK
                 dlog.addCircle(Logger::BLOCK, ball, 0.2, 255, 0, 0);
                 char num[8];
                 snprintf(num, 8, "%d", drible_step);
@@ -497,7 +508,7 @@ void bhv_block::block_cycle(const WorldModel &wm, int unum, int &cycle, Vector2D
                 snprintf(num2, 8, "%d", dash_step);
                 dlog.addMessage(Logger::BLOCK, ball - Vector2D(0, 1), num);
                 dlog.addMessage(Logger::BLOCK, ball - Vector2D(0, 2), num2);
-            }
+            #endif
         }
     }
     cycle = 1000;
@@ -513,7 +524,9 @@ bool bhv_block::do_block_pass(PlayerAgent *agent)
 
     if(start_drible.x > -25 || start_drible.absY() < 15)
     {
+        #ifdef DEBUG_BLOCK
         dlog.addText(Logger::BLOCK, "block pass: return false: out of area");
+        #endif
         return false;
     }
     bool opp_near_goal = false;
@@ -531,7 +544,9 @@ bool bhv_block::do_block_pass(PlayerAgent *agent)
     }
     if(!opp_near_goal)
     {
+        #ifdef DEBUG_BLOCK
         dlog.addText(Logger::BLOCK, "block pass: return false: opponent not found near goal");
+        #endif
         return false;
     }
 
@@ -549,7 +564,9 @@ bool bhv_block::do_block_pass(PlayerAgent *agent)
     }
     if(tm_near_goal)
     {
+        #ifdef DEBUG_BLOCK
         dlog.addText(Logger::BLOCK, "block pass: return false: teammate found near goal");
+        #endif
         return false;
     }
     Vector2D pass_tar(-43.0, 0.0);
@@ -557,24 +574,34 @@ bool bhv_block::do_block_pass(PlayerAgent *agent)
     Line2D pass_line(pass_tar, start_drible);
     AngleDeg sector_angle1 = pass_ang - 20;
     AngleDeg sector_angle2 = pass_ang + 20;
+    #ifdef DEBUG_BLOCK
     dlog.addText(Logger::BLOCK, "sec1:%.1f sec2:%.1f", sector_angle1.degree(), sector_angle2.degree());
+    #endif
     if(sector_angle1.degree() > sector_angle2.degree())
         swap(sector_angle1, sector_angle2);
     Sector2D pass_sector(start_drible, 0, start_drible.dist(pass_tar), sector_angle1, sector_angle2);
+    #ifdef DEBUG_BLOCK
     dlog.addSector(Logger::BLOCK, pass_sector, 0,0,255);
+    #endif
     if(pass_sector.contains(wm.self().pos()))
     {
+        #ifdef DEBUG_BLOCK
         dlog.addText(Logger::BLOCK, "block pass: return false: I'm in pass sector");
+        #endif
         return false;
     }
     if(start_drible.dist(wm.self().pos()) < 3)
     {
+        #ifdef DEBUG_BLOCK
         dlog.addText(Logger::BLOCK, "block pass: return false: I'm near start drible");
+        #endif
         return false;
     }
     if(wm.self().pos().x < start_drible.x)
     {
+        #ifdef DEBUG_BLOCK
         dlog.addText(Logger::BLOCK, "block pass: return false: I'm back of start drible");
+        #endif
         return false;
     }
     double block_pos_y = wm.self().pos().y;
@@ -593,9 +620,11 @@ bool bhv_block::do_block_pass(PlayerAgent *agent)
 
     agent->debugClient().addMessage("block pass");
     agent->debugClient().setTarget(block_pos);
+    #ifdef DEBUG_BLOCK
     dlog.addText(Logger::BLOCK, "block pass: execute: (%.1f, %.1f)", block_pos.x, block_pos.y);
     dlog.addCircle(Logger::BLOCK, block_pos,0.5,255,0,0,true);
     dlog.addText(Logger::ACTION, "PassBlock Executed");
+    #endif
     return true;
 }
 bool bhv_block::execute(rcsc::PlayerAgent *agent) {

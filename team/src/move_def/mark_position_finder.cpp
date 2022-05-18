@@ -5,6 +5,7 @@
 #include "mark_position_finder.h"
 #include "../chain_action/field_analyzer.h"
 #include <rcsc/geom.h>
+#include "../debugs.h"
 using namespace rcsc;
 Target
 MarkPositionFinder::getLeadProjectionMarkTarget(int tmUnum, int oppUnum, const WorldModel &wm) {
@@ -119,12 +120,16 @@ MarkPositionFinder::getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldMo
     }
 
     if(abs(tm_def_hpos_x - tm_def_pos_x) < 2){
-        if(debug)dlog.addText(Logger::MARK,"abs(tm_def_hpos_x - tm_def_pos_x) < 2");
+        #ifdef DEBUG_POSITION_FINDER
+        dlog.addText(Logger::MARK,"abs(tm_def_hpos_x - tm_def_pos_x) < 2");
+        #endif
         tm_def_hpos_x = tm_def_pos_x;
         double dist_to_opp = 2;
         if(opp_min <= 2)
             dist_to_opp = 3;
-        if(debug)dlog.addText(Logger::MARK,"A");
+        #ifdef DEBUG_POSITION_FINDER
+        dlog.addText(Logger::MARK,"A");
+        #endif
         double dist_backward = 5;
         if(ball_inertia.x > tm_def_pos_x + 15){
             if((ball_inertia - target.pos).th().abs() < 30){
@@ -162,13 +167,19 @@ MarkPositionFinder::getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldMo
         }
     }
     else if(tm_def_hpos_x > tm_def_pos_x){         //D  H   --->
-        if(debug)dlog.addText(Logger::MARK,"tm_def_pos_x < tm_def_hpos_x");
-        if(debug)dlog.addText(Logger::MARK,"can pass now:%d opp near offside:%.1f", opp_can_pass_now, opp_near_offside_line_x);
+        #ifdef DEBUG_POSITION_FINDER
+        dlog.addText(Logger::MARK,"tm_def_pos_x < tm_def_hpos_x");
+        dlog.addText(Logger::MARK,"can pass now:%d opp near offside:%.1f", opp_can_pass_now, opp_near_offside_line_x);
+        #endif
         if(opp_can_pass_now && opp_near_offside_line_x < 1000){
-            if(debug)dlog.addText(Logger::MARK,"back of opp");
+            #ifdef DEBUG_POSITION_FINDER
+            dlog.addText(Logger::MARK,"back of opp");
+            #endif
             target.pos.x = opp_near_offside_line_x - 1;
         }else{
-            if(debug)dlog.addText(Logger::MARK,"go forward step step, tm tired:%d tm tired x:%.1f defpos x:%.1f", tm_is_tired, tm_tired_x, tm_def_pos_x);
+            #ifdef DEBUG_POSITION_FINDER
+            dlog.addText(Logger::MARK,"go forward step step, tm tired:%d tm tired x:%.1f defpos x:%.1f", tm_is_tired, tm_tired_x, tm_def_pos_x);
+            #endif
             target.pos.x = tm_def_pos_x;
             //agar opp posht defline bood va dalil defline bazikon khaste bood kheili az bazikone khaste fasele namigirim
             if (!tm_is_tired || tm_tired_x > tm_def_pos_x - 1){
@@ -181,7 +192,9 @@ MarkPositionFinder::getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldMo
             }
         }
         if(target.pos.x < -36){
-            if(debug)dlog.addText(Logger::MARK,"go forward step step targx < -36, tm tired:%d tm tired x:%.1f defpos x:%.1f", tm_is_tired, tm_tired_x, tm_def_pos_x);
+            #ifdef DEBUG_POSITION_FINDER
+            dlog.addText(Logger::MARK,"go forward step step targx < -36, tm tired:%d tm tired x:%.1f defpos x:%.1f", tm_is_tired, tm_tired_x, tm_def_pos_x);
+            #endif
             target.pos.x = tm_def_pos_x;
             //agar opp posht defline bood va dalil defline bazikon khaste bood kheili az bazikone khaste fasele namigirim
             if (!tm_is_tired || tm_tired_x > tm_def_pos_x - 1){
@@ -215,13 +228,19 @@ MarkPositionFinder::getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldMo
         if(target.pos.x < tm_def_hpos_x){        //O  H  D
             target.pos.x = tm_def_hpos_x;
             target.pos.y += std::min((ball_inertia.y - target.pos.y) / 10.0, 3.0);
-            if(debug)dlog.addText(Logger::MARK,"F");
+            #ifdef DEBUG_POSITION_FINDER
+            dlog.addText(Logger::MARK,"F");
+            #endif
         }else if(target.pos.x < tm_def_pos_x){   //H  O  D
             target.pos.x = std::max(tm_def_hpos_x, target.pos.x - 2);
-            if(debug)dlog.addText(Logger::MARK,"G");
+            #ifdef DEBUG_POSITION_FINDER
+            dlog.addText(Logger::MARK,"G");
+            #endif
         }else{                              //H  D  O
             target.pos.x = std::min(std::max(tm_def_hpos_x, target.pos.x - 2),tm_def_hpos_x + 3);
-            if(debug)dlog.addText(Logger::MARK,"H");
+            #ifdef DEBUG_POSITION_FINDER
+            dlog.addText(Logger::MARK,"H");
+            #endif
         }
         double zy = 7.0;
         if(ball_inertia.x < -17 && ball_inertia.absY() < 25 && target.pos.absY() < 15 && abs(target.pos.y - ball_inertia.y) < 20)

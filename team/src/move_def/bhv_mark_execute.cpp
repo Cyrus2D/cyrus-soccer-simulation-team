@@ -17,6 +17,7 @@
 #include <rcsc/action/body_turn_to_ball.h>
 #include <rcsc/action/neck_turn_to_ball.h>
 #include <ctime>
+#include "../debugs.h"
 
 using namespace std;
 using namespace rcsc;
@@ -31,7 +32,9 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
 //        return true;
 //    }
     if (wm.interceptTable()->fastestOpponent() == NULL || wm.interceptTable()->fastestOpponent()->unum() < 1) {
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, "Cant Mark fastest opp not found");
+        #endif
         return false;
     }
 
@@ -50,7 +53,9 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
         }
     }
     else {
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, "no one to mark and %d is blocker", blocked);
+        #endif
         if (!blocked &&
             !(ball_inertia.x > -20 && Strategy::i().self_Line() == Strategy::PostLine::back)) {
             if (bhv_block::who_is_blocker(wm) == wm.self().unum()) {
@@ -143,11 +148,12 @@ bool bhv_mark_execute::defenseBeInBack(PlayerAgent *agent){
     target_point.x = min(target_point.x, Strategy::i().getPosition(wm.self().unum()).x);
     double dist_thr = wm.ball().distFromSelf() * 0.1;
     if (dist_thr < 1.0) dist_thr = 1.0;
-
+    #ifdef DEBUG_MARK_EXECUTE
     dlog.addText(Logger::TEAM,
                  __FILE__": Mark new target=(%.1f %.1f) dist_thr=%.2f",
                  target_point.x, target_point.y,
                  dist_thr);
+    #endif
     double dash_power = Strategy::get_normal_dash_power(wm);
     agent->debugClient().addMessage("be in back", dash_power);
     agent->debugClient().setTarget(target_point);
@@ -188,7 +194,9 @@ bool bhv_mark_execute::do_tackle(PlayerAgent *agent) {
 }
 
 bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType marktype) {
+    #ifdef DEBUG_MARK_EXECUTE
     dlog.addText(Logger::MARK, ">>>>run_mark for opp %d", mark_unum);
+    #endif
     const WorldModel &wm = agent->world();
     const AbstractPlayerObject *opp = wm.theirPlayer(mark_unum);
     Target target;
@@ -196,7 +204,9 @@ bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType mark
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_cycle);
 
     if (wm.theirPlayer(mark_unum) == NULL || wm.theirPlayer(mark_unum)->unum() < 1){
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, ">>>>cancel mark, fastest opp is null", mark_unum);
+        #endif
         return false;
     }
 
@@ -211,15 +221,18 @@ bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType mark
 
     if (marktype == MarkType::Block) {
         want_block = true;
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, ">>>> Block execute");
+        #endif
         if (bhv_block().execute(agent)) {
             agent->debugClient().addMessage("block in mark");
             return true;
         }
         agent->debugClient().addMessage("cant block in mark");
     }
-
+    #ifdef DEBUG_MARK_EXECUTE
     dlog.addCircle(Logger::MARK, target.pos, 1.0, 100, 0, 100);
+    #endif
     agent->debugClient().addCircle(target.pos, 1.0);
     agent->debugClient().addMessage("mark %d %s %d", mark_unum,
                                     markTypeString(marktype).c_str());
@@ -230,16 +243,22 @@ bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType mark
         int blockCycle;
         bhv_block::block_cycle(wm, blocker, blockCycle, blockTarget, true);
         target.pos.x = std::min(blockTarget.x, target.pos.x);
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, ">>>> Change target because of back_to_def, target:(0.1f, 0.1f)", target.pos.x,
                      target.pos.y);
+        #endif
     }
     if (want_block) {
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, ">>>> Want Block but cant!!");
+        #endif
         return false;
     }
 
     agent->debugClient().addLine(wm.self().pos(), target.pos);
+    #ifdef DEBUG_MARK_EXECUTE
     dlog.addText(Logger::MARK, "mark target (%.2f,%.2f)", target.pos.x, target.pos.y);
+    #endif
     if(wm.gameMode().type() != GameMode::PlayOn){
         target.pos = change_position_set_play(wm, target.pos);
     }
@@ -266,8 +285,10 @@ void bhv_mark_execute::set_mark_target_thr(const WorldModel & wm,
             dist_thr = z_thr;
             if (ball_inertia.dist(target.pos) < 30 && opp->vel().r() > 0.1)
                 dist_thr = 0.5;
+            #ifdef DEBUG_MARK_EXECUTE
             dlog.addText(Logger::MARK, ">>>> LeadProj, target:(%.1f, %.1f) distthr=%.1f", target.pos.x, target.pos.y,
                          dist_thr);
+            #endif
             break;
         }
         case MarkType::LeadNearMark: {
@@ -275,8 +296,10 @@ void bhv_mark_execute::set_mark_target_thr(const WorldModel & wm,
                                                                opp->unum(), wm);
             double z_thr = std::max(1.0, ball_inertia.dist(target.pos) * 0.1);
             dist_thr = 0.5 * z_thr;
+            #ifdef DEBUG_MARK_EXECUTE
             dlog.addText(Logger::MARK, ">>>> LeadNear, target:(0.1f, 0.1f) distthr=%.1f", target.pos.x, target.pos.y,
                          dist_thr);
+            #endif
             break;
         }
         case MarkType::ThMark: {
@@ -286,8 +309,10 @@ void bhv_mark_execute::set_mark_target_thr(const WorldModel & wm,
             dist_thr = 0.5 * z_thr;
             if (ball_inertia.x > 25 && dist_thr < 2.0)
                 dist_thr = 2.0;
+            #ifdef DEBUG_MARK_EXECUTE
             dlog.addText(Logger::MARK, ">>>> ThMark, target:(0.1f, 0.1f) distthr=%.1f", target.pos.x, target.pos.y,
                          dist_thr);
+            #endif
             break;
         }
         case MarkType::DangerMark: {
@@ -297,12 +322,16 @@ void bhv_mark_execute::set_mark_target_thr(const WorldModel & wm,
             if (wm.gameMode().type() != GameMode::PlayOn){
                 dist_thr *= 1.5;
             }
+            #ifdef DEBUG_MARK_EXECUTE
             dlog.addText(Logger::MARK, ">>>> DangerMark, target:(0.1f, 0.1f) distthr=%.1f", target.pos.x, target.pos.y,
                          dist_thr);
+            #endif
             break;
         }
         case MarkType::Goal_keep: {
+            #ifdef DEBUG_MARK_EXECUTE
             dlog.addText(Logger::MARK, "keep goal in mark");
+            #endif
             break;
         }
         default:
@@ -313,7 +342,9 @@ void bhv_mark_execute::set_mark_target_thr(const WorldModel & wm,
     }
 }
 bool bhv_mark_execute::do_move_mark(PlayerAgent *agent, Target targ, double dist_thr, MarkType marktype, int opp_unum) {
+    #ifdef DEBUG_MARK_EXECUTE
     dlog.addText(Logger::MARK, ">>>>do_move_mark");
+    #endif
     const WorldModel &wm = agent->world();
     Vector2D target_pos = targ.pos;
     Vector2D self_pos = wm.self().pos();
@@ -321,25 +352,33 @@ bool bhv_mark_execute::do_move_mark(PlayerAgent *agent, Target targ, double dist
 
     if (self_pos.dist(target_pos) < dist_thr && targ.th.degree() != 1000) {
         if (Body_TurnToAngle(targ.th).execute(agent)) {
+            #ifdef DEBUG_MARK_EXECUTE
             dlog.addText(Logger::MARK, "turn in mark move %.2f",
                          targ.th.degree());
+            #endif
             agent->debugClient().addMessage("mark:move:turn %.1f", targ.th.degree());
             return true;
         }
     }
 
     if (marktype == MarkType::ThMark) {
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, ">>>>ThMark");
+        #endif
         double dash_power = th_mark_power(agent, opp_pos, target_pos);
         th_mark_move(agent, targ, dash_power, dist_thr);
     }
     else if (marktype == MarkType::LeadProjectionMark || marktype == MarkType::LeadNearMark) {
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, ">>>>is LeadProj or LeadNear mark");
+        #endif
         double dash_power = lead_mark_power(agent, opp_pos, target_pos);
         lead_mark_move(agent, targ, dash_power, dist_thr, marktype, opp_pos);
     }
     else {
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, ">>>>is other mark");
+        #endif
         double dash_power = other_mark_power(agent, opp_pos, target_pos);
         other_mark_move(agent, targ, dash_power, dist_thr);
     }
@@ -394,27 +433,38 @@ void bhv_mark_execute::th_mark_move(PlayerAgent * agent, Target targ, double das
     int opp_min_cycle = wm.interceptTable()->opponentReachCycle();
     if (self_pos.dist(target_pos) < 1) {
         if (body_dif < 20 && self_pos.dist(target_pos) < dist_thr / 2.0) {
+            #ifdef DEBUG_MARK_EXECUTE
             dlog.addText(Logger::MARK, ">>>>do Dash A");
+            #endif
             agent->debugClient().addMessage("mark:move:Adash (%.1f,%.1f) %.1f", target_pos.x, target_pos.y, dash_power);
             agent->doDash(dash_power, (target_pos - (wm.self().pos() + wm.self().vel())).th() - wm.self().body());
             return;
         }
     }
     else if (self_pos.dist(target_pos) < dist_thr + 2 && opp_min_cycle > 3) {
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, ">>>>do Dash B");
+        #endif
         if (body_dif < 20) {
             agent->debugClient().addMessage("mark:move:Bdash (%.1f,%.1f) %.1f", target_pos.x, target_pos.y, dash_power);
             agent->doDash(dash_power, (target_pos - (wm.self().pos() + wm.self().vel())).th() - wm.self().body());
             return;
         }
     }
-    dlog.addText(Logger::MARK, "Body Go To Point to (%.1f,%.1f) thr:%.1f power %.1f", target_pos.x, target_pos.y, dist_thr, dash_power);
     agent->debugClient().addMessage("mark:move:BGD (%.1f,%.1f) %.1f", target_pos.x, target_pos.y, dash_power);
+    #ifdef DEBUG_MARK_EXECUTE
+    dlog.addText(Logger::MARK, "Body Go To Point to (%.1f,%.1f) thr:%.1f power %.1f", target_pos.x, target_pos.y, dist_thr, dash_power);
+    #endif
     if(Body_GoToPoint(target_pos, dist_thr, dash_power, 1.3, 1, false, 15).execute(agent)){
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, "ran go to point");
+        #endif
     }else{
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, "did not run go to point");
+        #endif
     }
+
 }
 
 double bhv_mark_execute::lead_mark_power(PlayerAgent * agent, Vector2D opp_pos, Vector2D target_pos){
@@ -462,13 +512,16 @@ void bhv_mark_execute::lead_mark_move(PlayerAgent * agent, Target targ, double d
         AngleDeg dir = (target_pos - self_pos).th() - wm.self().body();
         if ((target_pos.dist(wm.self().pos()) < 1 || (abs(dir.degree()) < 10 && abs(dir.degree()) > 170)) &&
             agent->doDash(100, dir)) {
+            #ifdef DEBUG_MARK_EXECUTE
             dlog.addText(Logger::MARK, "Do Dash A");
+            #endif
             agent->debugClient().addMessage("mark:move:dash (%.1f,%.1f) %.1f", targ.pos.x, targ.pos.y, 100.0);
             return;
         }
     }
-
+    #ifdef DEBUG_MARK_EXECUTE
     dlog.addText(Logger::MARK, "Mark:Body Go To Point to (%.1f,%.1f) thr:%.1f power %.1f", target_pos.x, target_pos.y, dist_thr, dash_power);
+    #endif
     if(mark_type == MarkType::LeadNearMark){
         bool am_i_near = false;
         Line2D ball_opp_line = Line2D(ball_inertia, opp_pos);
@@ -486,12 +539,16 @@ void bhv_mark_execute::lead_mark_move(PlayerAgent * agent, Target targ, double d
 
             if(ball_opp_line.dist(self_pos) < 5){
                 target_pos = ball_inertia;
+                #ifdef DEBUG_MARK_EXECUTE
                 dlog.addText(Logger::MARK, "##target pos change to ball!!!");
+                #endif
             }
         }
         if(ball_opp_line.dist(self_pos) > 5 && Segment2D(ball_inertia, target_pos).projection(self_pos).isValid()){
             target_pos = Segment2D(ball_inertia, target_pos).projection(self_pos);
+            #ifdef DEBUG_MARK_EXECUTE
             dlog.addText(Logger::MARK, "##target pos change to proj!!!");
+            #endif
         }
     }
     Segment2D opp_ball_seg(ball_inertia, opp_pos);
@@ -510,9 +567,13 @@ void bhv_mark_execute::lead_mark_move(PlayerAgent * agent, Target targ, double d
     if(Body_GoToPoint(target_pos, dist_thr, dash_power, 100, false, angle_thr).execute(agent)){
 //    if(Body_GoToPoint(target_pos, dist_thr, dash_power).execute(agent)){
         agent->debugClient().addMessage("mark:move:BGD (%.1f,%.1f) %.1f", targ.pos.x, targ.pos.y, dash_power);
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, "ran go to point");
+        #endif
     }else{
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, "did not run go to point");
+        #endif
     }
 }
 
@@ -551,17 +612,25 @@ void bhv_mark_execute::other_mark_move(PlayerAgent * agent, Target targ, double 
         AngleDeg dir = (target_pos - self_pos).th() - wm.self().body();
         if ((target_pos.dist(wm.self().pos()) < 1 || (abs(dir.degree()) < 10 && abs(dir.degree()) > 170)) &&
             agent->doDash(100, dir)) {
+            #ifdef DEBUG_MARK_EXECUTE
             dlog.addText(Logger::MARK, "Do Dash A");
+            #endif
             return;
         }
     }
-
+    #ifdef DEBUG_MARK_EXECUTE
     dlog.addText(Logger::MARK, "Body Go To Point to (%.1f,%.1f) thr:%.1f power %.1f", target_pos.x, target_pos.y, dist_thr, dash_power);
+    #endif
     if(Body_GoToPoint(target_pos, dist_thr, dash_power).execute(agent)){
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, "ran go to point");
+        #endif
     }else{
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, "did not run go to point");
+        #endif
     }
+
 }
 
 bool bhv_mark_execute::back_to_def(PlayerAgent *agent) {
@@ -573,8 +642,10 @@ bool bhv_mark_execute::back_to_def(PlayerAgent *agent) {
     if (wm.gameMode().type() != GameMode::PlayOn)
         return false;
     if (home_pos.x < self_pos.x - 2) {
+        #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, "backtodef and ballpos (%d,%d) , homeposx: %d and defx: %d",
                      ball_pos.x, ball_pos.y, home_pos.x, def_line_x);
+        #endif
         if (ball_pos.x > -35 && home_pos.x < def_line_x - 5) {
             if (self_pos.dist(home_pos) > 5) {
                 return true;

@@ -13,12 +13,10 @@
 #include <vector>
 #include <sstream>
 #include "../setting.h"
-
+#include "../debugs.h"
 using namespace std;
 using namespace rcsc;
 
-
-#define DEBUG_PRINT
 
 std::string markTypeString(MarkType mark_type) {
     switch (mark_type) {
@@ -56,33 +54,33 @@ BhvMarkDecisionGreedy::getMarkTargets(PlayerAgent *agent, MarkType &mark_type, i
 
     switch (markDecision(wm)) {
         case MarkDec::AntiDef:
-            #ifdef DEBUG_PRINT
+            #ifdef DEBUG_MARK_DECISION_GREEDY
             dlog.addText(Logger::MARK, "**MarkDec select MarkDec::AntiDef");
             #endif
             antiDefMarkDecision(wm, mark_type, mark_unum, blocked);
             break;
         case MarkDec::MidMark:
-            #ifdef DEBUG_PRINT
+            #ifdef DEBUG_MARK_DECISION_GREEDY
             dlog.addText(Logger::MARK, "**MarkDec select MarkDec::MidMark");
             #endif
             midMarkDecision(agent, mark_type, mark_unum, blocked);
             break;
         case MarkDec::GoalMark:
-            #ifdef DEBUG_PRINT
+            #ifdef DEBUG_MARK_DECISION_GREEDY
             dlog.addText(Logger::MARK, "**MarkDec select MarkDec::GoalMark");
             #endif
             goalMarkDecision(agent, mark_type, mark_unum, blocked);
             break;
         case MarkDec::JustBlock:
             if (bhv_block::who_is_blocker(wm) == wm.self().unum()) {
-                #ifdef DEBUG_PRINT
+                #ifdef DEBUG_MARK_DECISION_GREEDY
                 dlog.addText(Logger::MARK, "**MarkDec select MarkDec::JustBlock");
                 #endif
                 mark_type = MarkType::Block;
                 mark_unum = wm.interceptTable()->fastestOpponent()->unum();
             }
             else {
-                #ifdef DEBUG_PRINT
+                #ifdef DEBUG_MARK_DECISION_GREEDY
                 dlog.addText(Logger::MARK, "**MarkDec select MarkDec::JustBlock But Self is not Blocker");
                 #endif
                 mark_type = MarkType(0);
@@ -90,7 +88,7 @@ BhvMarkDecisionGreedy::getMarkTargets(PlayerAgent *agent, MarkType &mark_type, i
             }
             break;
         default:
-            #ifdef DEBUG_PRINT
+            #ifdef DEBUG_MARK_DECISION_GREEDY
             dlog.addText(Logger::MARK, "**MarkDec select None");
             #endif
             mark_type = MarkType(0);
@@ -154,7 +152,7 @@ MarkDec BhvMarkDecisionGreedy::markDecision(const WorldModel &wm) {
     }
     def_line_x = wm.ourDefenseLineX();
 
-    #ifdef DEBUG_PRINT
+    #ifdef DEBUG_MARK_DECISION_GREEDY
     dlog.addText(Logger::MARK, "**WM.DefLine:%.1f, DefX:%0.1, HDefX:%0.1, OffX:%.1f, HOffX:%.1f, TmX:%.1f, HTmX:%.1f",
                  def_line_x, tm_pos_x_avg, tm_hpos_x_avg, tm_defense_pos_x_avg, tm_defense_hpos_x_avg,
                  tm_offense_pos_x_avg, tm_offense_hpos_x_avg);
@@ -162,36 +160,36 @@ MarkDec BhvMarkDecisionGreedy::markDecision(const WorldModel &wm) {
 
     if (def_line_x < 0 && def_line_x < min_our_def_pos_x) {
         def_line_x = min_our_def_pos_x;
-        #ifdef DEBUG_PRINT
+        #ifdef DEBUG_MARK_DECISION_GREEDY
         dlog.addText(Logger::MARK, "DefLine Changed to %.1f", def_line_x);
         #endif
     }
 
     def_line_x = std::min(def_line_x, wm.ball().inertiaPoint(2).x);
-    #ifdef DEBUG_PRINT
+    #ifdef DEBUG_MARK_DECISION_GREEDY
     dlog.addText(Logger::MARK, "DefLine Changed to %.1f", def_line_x);
     #endif
     if (wm.interceptTable()->opponentReachCycle() < 10) {
-        #ifdef DEBUG_PRINT
+        #ifdef DEBUG_MARK_DECISION_GREEDY
         dlog.addText(Logger::MARK, "TmDefH changed to deflinx to %.1f", def_line_x);
         #endif
         tm_defense_hpos_x_avg = def_line_x;
     }
     if (ball_inertia.x > 30 && !Strategy::i().isDefSit(wm, wm.self().unum())) {
-        #ifdef DEBUG_PRINT
+        #ifdef DEBUG_MARK_DECISION_GREEDY
         dlog.addText(Logger::MARK, "MarkDec::AntiDef");
         #endif
         return MarkDec::NoDec;
     }
 
     if (ball_inertia.x > Setting::i()->mDefenseMove->mStartMidMark) {
-        #ifdef DEBUG_PRINT
+        #ifdef DEBUG_MARK_DECISION_GREEDY
         dlog.addText(Logger::MARK, "MarkDec::MidMark_A");
         #endif
         return MarkDec::MidMark;
     }
     else {
-        #ifdef DEBUG_PRINT
+        #ifdef DEBUG_MARK_DECISION_GREEDY
         dlog.addText(Logger::MARK, "MarkDec::GoalMark");
         #endif
         return MarkDec::GoalMark;
@@ -241,18 +239,24 @@ vector<size_t> BhvMarkDecisionGreedy::getOppOffensive(const WorldModel &wm, bool
                     OppOff2OffsideLine = 10;
             }
             if (OppPos.x > wm.ourDefenseLineX() + OppOff2OffsideLine) {
+                #ifdef DEBUG_MARK_DECISION_GREEDY
                 dlog.addText(Logger::MARK, "%d is not Offense Opp x=%.1f, dl=%.1f, m=%.1f", o, OppPos.x,
                              wm.ourDefenseLineX(), OppOff2OffsideLine);
+                #endif
                 fastest_blocked = false;
             }
             if (OppPos.x > ball_inertia.x + 8 && OppPos.x > 15) {
+                #ifdef DEBUG_MARK_DECISION_GREEDY
                 dlog.addText(Logger::MARK, "%d is not Offense Opp x=%.1f, bx=%.1f, m=%.1f", o, OppPos.x,
                              ball_inertia.x);
+                #endif
                 fastest_blocked = false;
             }
             if (fastest_blocked) {
                 offensive_opps.push_back(o);
+                #ifdef DEBUG_MARK_DECISION_GREEDY
                 dlog.addText(Logger::MARK, "%d is Offense Opp Fastest", o);
+                #endif
                 continue;
             }
         }
@@ -278,18 +282,24 @@ vector<size_t> BhvMarkDecisionGreedy::getOppOffensive(const WorldModel &wm, bool
                 OppOff2OffsideLine /= 3.0;
 
             if (OppPos.x > wm.ourDefenseLineX() + OppOff2OffsideLine) {
+                #ifdef DEBUG_MARK_DECISION_GREEDY
                 dlog.addText(Logger::MARK, "%d is not Offense Opp x=%.1f, dl=%.1f, m=%.1f", o, OppPos.x,
                              wm.ourDefenseLineX(), OppOff2OffsideLine);
+                #endif
                 continue;
             }
             if (OppPos.x > ball_inertia.x + 8 && OppPos.x > 15) {
+                #ifdef DEBUG_MARK_DECISION_GREEDY
                 dlog.addText(Logger::MARK, "%d is not Offense Opp x=%.1f, bx=%.1f, m=%.1f", o, OppPos.x,
                              ball_inertia.x);
+                #endif
                 continue;
             }
             if (OppPos.x > ball_inertia.x + 10) {
+                #ifdef DEBUG_MARK_DECISION_GREEDY
                 dlog.addText(Logger::MARK, "%d is not Offense Opp x=%.1f, bx=%.1f, m=%.1f B", o, OppPos.x,
                              ball_inertia.x);
+                #endif
                 continue;
             }
             if (!fastest_blocked) {
@@ -299,7 +309,9 @@ vector<size_t> BhvMarkDecisionGreedy::getOppOffensive(const WorldModel &wm, bool
 
 
         offensive_opps.push_back(o);
+        #ifdef DEBUG_MARK_DECISION_GREEDY
         dlog.addText(Logger::MARK, "%d is Offense Opp", o);
+        #endif
         opp_offense_number++;
     }
     return offensive_opps;

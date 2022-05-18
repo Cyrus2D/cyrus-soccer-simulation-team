@@ -7,4 +7,16 @@
 
 #define DEBUG_UNMARK
 
+//#define DEBUG_MARK_MATCH_FINDER
+//
+//#define DEBUG_BLOCK
+//
+//#define DEBUG_MARK_DECISION_GREEDY
+//
+//#define DEBUG_MARK_DECISIONS
+//
+//#define DEBUG_MARK_EXECUTE
+//
+//#define DEBUG_POSITION_FINDER
+
 #endif //TEAM_DEBUGS_H
