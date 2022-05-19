@@ -663,9 +663,9 @@ void OffensiveDataExtractor::extract_players(DEState &state) {
 std::vector<DEPlayer *> OffensiveDataExtractor::sort_players(DEState &state) {
     static int cycle = 0;
     static std::vector<DEPlayer *> tms;
-    if (state.wm().time().cycle() == cycle){
-        return tms;
-    }
+//    if (state.wm().time().cycle() == cycle){
+//        return tms;
+//    }
     cycle = state.wm().time().cycle();
     tms.clear();
 //    std::vector<const DEPlayer *> tms;
@@ -728,9 +728,9 @@ std::vector<DEPlayer *> OffensiveDataExtractor::sort_players(DEState &state) {
 std::vector<DEPlayer *> OffensiveDataExtractor::sort_players2(DEState &state) {
     static int cycle = 0;
     static std::vector<DEPlayer *> tms;
-    if (state.wm().time().cycle() == cycle){
-        return tms;
-    }
+//    if (state.wm().time().cycle() == cycle){
+//        return tms;
+//    }
     auto unum_sort = [](DEPlayer *p1, DEPlayer *p2) -> bool {
         return p1->unum() < p2->unum();
     };
@@ -797,9 +797,9 @@ std::vector<DEPlayer *> OffensiveDataExtractor::sort_players2(DEState &state) {
 std::vector<DEPlayer *> OffensiveDataExtractor::sort_players3(DEState &state) {
     static int cycle = 0;
     static std::vector<DEPlayer *> tms;
-    if (state.wm().time().cycle() == cycle){
-        return tms;
-    }
+//    if (state.wm().time().cycle() == cycle){
+//        return tms;
+//    }
     #ifdef ODEDebug
     dlog.addText(Logger::BLOCK, "start sorter player 3");
     #endif

@@ -16,7 +16,7 @@ public:
         static bool load_dnn = false;
         if(!load_dnn){
             load_dnn = true;
-        pass_prediction->ReadFromKeras("/home/nader/workspace/robo/cyrus/team/src/data/deep/pass_prediction_yushan_w_w.txt");
+        pass_prediction->ReadFromKeras("data/deep/pass_prediction_yushan_w_w.txt");
 //            pass_prediction->ReadFromKeras(Setting::i()->mOffensiveMove->mMainUnmarkPassPredictionDNN);
         }
     }
@@ -58,11 +58,6 @@ public:
             }
         }
         auto features = OffensiveDataExtractor::i().get_data(state);
-        int xx = 0;
-        for (auto &f : features){
-            dlog.addText(Logger::PLAN, "%d, %.2f", xx, f);
-            xx+= 1;
-        }
         auto passes = predict_pass(features, ignored_player, wm.self().unum());
         int next_target_unum = 0;
         if (!passes.empty()){
@@ -75,17 +70,25 @@ public:
 
         return next_target_unum;
     }
-    bool can_see_position(PlayerAgent * agent, const WorldModel & wm, Vector2D & target){
+    bool can_see_position(PlayerAgent * agent, const WorldModel & wm, Vector2D & target, double neck_angle=-360){
         Vector2D self_pos = wm.self().pos();
         AngleDeg self_body = agent->effector().queuedNextMyBody();
         const double next_view_width = agent->effector().queuedNextViewWidth().width();
         bool can_see = false;
-        if ((self_body - (target - self_pos).th()).abs() < next_view_width * 0.5 + 85.0){
-            can_see = true;
+        if (neck_angle <=-360){
+            if ((self_body - (target - self_pos).th()).abs() < next_view_width * 0.5 + 85.0){
+                can_see = true;
+            }
+        }else{
+            if ((neck_angle - (target - self_pos).th()).abs() < next_view_width * 0.5 - 5.0){
+                can_see = true;
+            }
         }
+
         return can_see;
     }
     bool pass_predictor_neck(rcsc::PlayerAgent * agent){
+        dlog.addText(Logger::PLAN, "pass_predictor_neck");
         const WorldModel &wm = agent->world();
         int next_target_unum = next_receiver(wm);
         if (next_target_unum == 0)
@@ -146,27 +149,25 @@ public:
         bool should_see_ball = false;
         if (ball_pos_count > 2 || ball_vel_count > 2)
             should_see_ball = true;
-        bool can_see_ball = false;
-        if (can_see_position(agent, wm, ball_pos)){
-            can_see_ball = true;
-        }
         if (wm.self().isKickable())
             should_see_ball = false;
-
+        dlog.addText(Logger::ANALYZER, "Find Best Neck, next neck %.1f", next_view_width);
         double best_neck = -90;
         double best_eval = 0;
         for (double neck = -90; neck <= 90; neck += 10){
+
             bool can_neck_see_ball = false;
             bool can_neck_see_tm = false;
             bool can_neck_see_opp = false;
             double next_neck = (self_body + AngleDeg(neck)).degree();
-            if (((ball_iner - self_pos).th() - AngleDeg(next_neck)).abs() < next_view_width)
+
+            if (((ball_iner - self_pos).th() - AngleDeg(next_neck)).abs() < next_view_width / 2.0 - 5.0)
                 can_neck_see_ball = true;
             if (opp_pos.isValid()){
-                if (((opp_pos - self_pos).th() - AngleDeg(next_neck)).abs() < next_view_width)
+                if (((opp_pos - self_pos).th() - AngleDeg(next_neck)).abs() < next_view_width / 2.0 - 5.0)
                     can_neck_see_opp = true;
             }
-            if (((next_target - self_pos).th() - AngleDeg(next_neck)).abs() < next_view_width)
+            if (((next_target - self_pos).th() - AngleDeg(next_neck)).abs() < next_view_width / 2.0 - 5.0)
                 can_neck_see_tm = true;
             double eval = 0;
             if (can_neck_see_ball && should_see_ball)
@@ -183,8 +184,9 @@ public:
                 eval += 3;
             if (eval > best_eval){
                 best_eval = eval;
-                best_neck = neck;
+                best_neck = next_neck;
             }
+            dlog.addText(Logger::ANALYZER, ">>>>> Angle %.1f %.1f %d B%d T%d(%d) O%d(%d) E%.1f", neck, next_neck, next_target_unum, can_neck_see_ball, can_neck_see_tm, next_target_unum, can_neck_see_opp, danger_opp, eval);
         }
         if (best_eval > 0){
             agent->setNeckAction(new Neck_TurnToPoint(self_pos + Vector2D::polar2vector(10, best_neck)));

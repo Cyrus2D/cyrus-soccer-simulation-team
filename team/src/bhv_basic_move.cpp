@@ -421,10 +421,8 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
     const int mate_min = wm.interceptTable()->teammateReachCycle();
     const int opp_min = wm.interceptTable()->opponentReachCycle();
 
-    NextPassPredictor().next_receiver(wm);
     auto intercept_tackle_info = bhv_tackle_intercept::intercept_cycle(wm);
     int cycle_intercept_tackle = intercept_tackle_info.first;
-
 
     {
         int self_tackle_min = wm.interceptTable()->selfReachCycleTackle();
@@ -435,7 +433,6 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
         dlog.addCircle(Logger::INTERCEPT, balliner_tackle,0.5,255,255,255, true);
         dlog.addCircle(Logger::INTERCEPT, balltackle,0.25,255,0,0, true);
     }
-
 
     Vector2D tm_catch_ball = wm.ball().inertiaPoint(std::min(self_min, mate_min));
     if (tm_catch_ball.x < -52.5) {
