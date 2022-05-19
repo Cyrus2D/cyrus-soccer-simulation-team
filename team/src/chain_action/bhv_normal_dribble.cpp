@@ -61,6 +61,7 @@
 #include <rcsc/player/say_message_builder.h>
 #include "../bhv_basic_move.h"
 #include "bhv_pass_kick_find_receiver.h"
+#include "../neck/next_pass_predictor.h"
 
 //#define DEBUG_PRINT
 
@@ -369,7 +370,8 @@ IntentionNormalDribble::execute( PlayerAgent * agent )
                       __FILE__": (intention:execute) default turn_neck scan field" );
         agent->debugClient().addMessage( "NeckScan" );
 //        agent->setNeckAction( new Neck_TurnToBallOrScan( 0 ) );
-        Bhv_BasicMove().set_off_neck_with_ball(agent);
+        if (!NextPassPredictor().pass_predictor_neck(agent))
+            Bhv_BasicMove().set_off_neck_with_ball(agent);
     }
     else
     {

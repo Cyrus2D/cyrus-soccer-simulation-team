@@ -411,7 +411,8 @@ bool Bhv_BasicMove::set_off_neck_with_ball(PlayerAgent *agent) {
     return true;
 
 }
-
+#include "neck/next_pass_predictor.h"
+DeepNueralNetwork * NextPassPredictor::pass_prediction = new DeepNueralNetwork();
 bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
     const WorldModel &wm = agent->world();
     /*--------------------------------------------------------*/
@@ -420,6 +421,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
     const int mate_min = wm.interceptTable()->teammateReachCycle();
     const int opp_min = wm.interceptTable()->opponentReachCycle();
 
+    NextPassPredictor().next_receiver(wm);
     auto intercept_tackle_info = bhv_tackle_intercept::intercept_cycle(wm);
     int cycle_intercept_tackle = intercept_tackle_info.first;
 
@@ -565,7 +567,8 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                         Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                     }
                 }
-                set_off_neck_with_ball(agent);
+                if (!NextPassPredictor().pass_predictor_neck(agent))
+                    set_off_neck_with_ball(agent);
                 agent->debugClient().addMessage("Intercept->Z");
                 return true;
             } else if (self_min <= 3) {
@@ -589,7 +592,8 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                             }
                             agent->debugClient().addMessage("Intercept->B");
                         }
-                        set_off_neck_with_ball(agent);
+                        if (!NextPassPredictor().pass_predictor_neck(agent))
+                            set_off_neck_with_ball(agent);
                         return true;
                     } else {
                         use_tackle_intercept = true;
@@ -616,7 +620,8 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                             }
                             agent->debugClient().addMessage("Intercept->D");
                         }
-                        set_off_neck_with_ball(agent);
+                        if (!NextPassPredictor().pass_predictor_neck(agent))
+                            set_off_neck_with_ball(agent);
                         return true;
                     } else {
                         use_tackle_intercept = true;
@@ -632,7 +637,8 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                     Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                 }
             }
-            set_off_neck_with_ball(agent);
+            if (!NextPassPredictor().pass_predictor_neck(agent))
+                set_off_neck_with_ball(agent);
             agent->debugClient().addMessage("Intercept->Y");
             return true;
         } else if (self_min <= mate_min && self_min < opp_min + 3) {
@@ -660,7 +666,8 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
             //                Body_Intercept2009(false).execute(agent);
             //                agent->debugClient().addMessage("Intercept->F");
             //            }
-            set_off_neck_with_ball(agent);
+            if (!NextPassPredictor().pass_predictor_neck(agent))
+                set_off_neck_with_ball(agent);
             return true;
         } else if (self_min <= mate_min) {
             use_tackle_intercept = true;

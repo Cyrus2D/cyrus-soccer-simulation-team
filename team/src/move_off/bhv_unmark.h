@@ -30,6 +30,11 @@ public:
     {
         return a.prob < b.prob;
     }
+
+    static bool ProbCmpBiggestFirst(pass_prob const &a, pass_prob const &b)
+    {
+        return a.prob > b.prob;
+    }
 };
 class unmark_passer {
 public:
