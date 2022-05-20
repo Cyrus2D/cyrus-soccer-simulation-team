@@ -278,8 +278,7 @@ IntentionReceive::execute( PlayerAgent * agent )
     }
 
 
-    if (!NextPassPredictor().pass_predictor_neck(agent))
-        Bhv_BasicMove().set_off_neck_with_ball(agent);
+    Bhv_BasicMove().set_off_neck_with_ball(agent);
     if(prepass_received)
         SampleCommunication().saySelf(agent);
 

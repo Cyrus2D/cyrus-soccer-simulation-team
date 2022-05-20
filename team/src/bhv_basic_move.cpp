@@ -187,6 +187,8 @@ bool Bhv_BasicMove::set_def_neck_with_ball(PlayerAgent *agent, Vector2D targetPo
 }
 
 bool Bhv_BasicMove::set_off_neck_with_ball(PlayerAgent *agent) {
+    if (NextPassPredictor().pass_predictor_neck(agent))
+        return
     const WorldModel &wm = agent->world();
     Vector2D next_target = Vector2D::INVALIDATED;
     int self_min = wm.interceptTable()->selfReachCycle();
@@ -564,8 +566,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                         Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                     }
                 }
-                if (!NextPassPredictor().pass_predictor_neck(agent))
-                    set_off_neck_with_ball(agent);
+                set_off_neck_with_ball(agent);
                 agent->debugClient().addMessage("Intercept->Z");
                 return true;
             } else if (self_min <= 3) {
@@ -589,8 +590,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                             }
                             agent->debugClient().addMessage("Intercept->B");
                         }
-                        if (!NextPassPredictor().pass_predictor_neck(agent))
-                            set_off_neck_with_ball(agent);
+                        set_off_neck_with_ball(agent);
                         return true;
                     } else {
                         use_tackle_intercept = true;
@@ -617,8 +617,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                             }
                             agent->debugClient().addMessage("Intercept->D");
                         }
-                        if (!NextPassPredictor().pass_predictor_neck(agent))
-                            set_off_neck_with_ball(agent);
+                        set_off_neck_with_ball(agent);
                         return true;
                     } else {
                         use_tackle_intercept = true;
@@ -634,8 +633,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                     Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                 }
             }
-            if (!NextPassPredictor().pass_predictor_neck(agent))
-                set_off_neck_with_ball(agent);
+            set_off_neck_with_ball(agent);
             agent->debugClient().addMessage("Intercept->Y");
             return true;
         } else if (self_min <= mate_min && self_min < opp_min + 3) {
@@ -663,8 +661,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
             //                Body_Intercept2009(false).execute(agent);
             //                agent->debugClient().addMessage("Intercept->F");
             //            }
-            if (!NextPassPredictor().pass_predictor_neck(agent))
-                set_off_neck_with_ball(agent);
+            set_off_neck_with_ball(agent);
             return true;
         } else if (self_min <= mate_min) {
             use_tackle_intercept = true;

@@ -370,8 +370,7 @@ IntentionNormalDribble::execute( PlayerAgent * agent )
                       __FILE__": (intention:execute) default turn_neck scan field" );
         agent->debugClient().addMessage( "NeckScan" );
 //        agent->setNeckAction( new Neck_TurnToBallOrScan( 0 ) );
-        if (!NextPassPredictor().pass_predictor_neck(agent))
-            Bhv_BasicMove().set_off_neck_with_ball(agent);
+        Bhv_BasicMove().set_off_neck_with_ball(agent);
     }
     else
     {
