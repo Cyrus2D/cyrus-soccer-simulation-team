@@ -63,8 +63,10 @@
 #include <rcsc/player/abstract_player_object.h>
 #include "neck/neck_offensive_intercept_neck.h"
 #include "move_off/bhv_offensive_move.h"
-
+#include "neck/next_pass_predictor.h"
 using namespace rcsc;
+
+DeepNueralNetwork * NextPassPredictor::pass_prediction = new DeepNueralNetwork();
 
 bool Bhv_BasicMove::set_def_neck_with_ball(PlayerAgent *agent, Vector2D targetPoint, const AbstractPlayerObject *opp,
                                            int blocker) {
@@ -413,8 +415,7 @@ bool Bhv_BasicMove::set_off_neck_with_ball(PlayerAgent *agent) {
     return true;
 
 }
-#include "neck/next_pass_predictor.h"
-DeepNueralNetwork * NextPassPredictor::pass_prediction = new DeepNueralNetwork();
+
 bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
     const WorldModel &wm = agent->world();
     /*--------------------------------------------------------*/
