@@ -188,25 +188,28 @@ bool Bhv_BasicMove::set_def_neck_with_ball(PlayerAgent *agent, Vector2D targetPo
     return true;
 }
 
+#include "neck/neck_decision.h"
 bool Bhv_BasicMove::set_off_neck_with_ball(PlayerAgent *agent) {
+    NeckDecisionWithBall().setNeck(agent);
+    return true;
     if (NextPassPredictor().pass_predictor_neck(agent))
         return true;
     const WorldModel &wm = agent->world();
     Vector2D next_target = Vector2D::INVALIDATED;
     int self_min = wm.interceptTable()->selfReachCycle();
     int ball_pos_count = wm.ball().posCount();
-    int ball_pos_count_s = wm.ball().seenPosCount();
     int ball_vel_count = wm.ball().velCount();
-    int ball_vel_count_s = wm.ball().seenVelCount();
     Vector2D ball_pos = wm.ball().inertiaPoint(self_min);
-    Vector2D self_pos = wm.self().pos();
+    Vector2D self_pos = agent->effector().queuedNextSelfPos();
     AngleDeg self_body = agent->effector().queuedNextMyBody();
     dlog.addText(Logger::ROLE, "next body %.1f", self_body.degree());
-    int min_ball_count = std::min(std::min(ball_pos_count, ball_pos_count_s),
-                                  std::min(ball_vel_count, ball_vel_count_s));
+    int min_ball_count = std::min(ball_pos_count, ball_vel_count);
     AngleDeg ball_angle = (ball_pos - self_pos).th();
     Vector2D ball_iner = wm.ball().inertiaPoint(self_min);
     const double next_view_width = agent->effector().queuedNextViewWidth().width();
+
+
+
     bool should_see_ball = false;
     if (min_ball_count > 2 || ball_vel_count > 2)
         should_see_ball = true;
@@ -387,7 +390,8 @@ bool Bhv_BasicMove::set_off_neck_with_ball(PlayerAgent *agent) {
                     }
                 }
             }
-        } else {
+        }
+        else {
             for (int i = 0; i < targs.size(); i++) {
                 AngleDeg targ_angle = (targs[i].first - self_pos).th();
                 if (targ_angle.isWithin(min_see, max_see)) {
