@@ -99,14 +99,12 @@ public:
         int ball_vel_count = wm.ball().velCount();
         Vector2D ball_pos = wm.ball().inertiaPoint(self_min);
         const AbstractPlayerObject * tm = wm.ourPlayer(next_target_unum);
+        if (tm == nullptr or tm->unum() < 1)
+            return false;
         Vector2D next_target = tm->pos();
         bool should_see_tm = true;
-        bool can_see_tm = false;
         if (tm->posCount() == 0)
             should_see_tm = false;
-        if (can_see_position(agent, wm, next_target)){
-            can_see_tm = true;
-        }
         int danger_opp = 0;
         double danger_opp_eval = -1;
         for(auto & opp: wm.theirPlayers()){
