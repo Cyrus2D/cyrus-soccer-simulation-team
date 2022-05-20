@@ -190,7 +190,7 @@ bool Bhv_BasicMove::set_def_neck_with_ball(PlayerAgent *agent, Vector2D targetPo
 
 bool Bhv_BasicMove::set_off_neck_with_ball(PlayerAgent *agent) {
     if (NextPassPredictor().pass_predictor_neck(agent))
-        return
+        return;
     const WorldModel &wm = agent->world();
     Vector2D next_target = Vector2D::INVALIDATED;
     int self_min = wm.interceptTable()->selfReachCycle();
