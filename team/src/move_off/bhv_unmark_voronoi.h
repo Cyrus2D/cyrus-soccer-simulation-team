@@ -23,7 +23,7 @@
 #include <rcsc/action/body_turn_to_point.h>
 #include <rcsc/common/audio_memory.h>
 #include <rcsc/common/say_message_parser.h>
-
+#include "../neck/neck_decision.h"
 using namespace std;
 using namespace rcsc;
 
@@ -87,7 +87,7 @@ bool go_to_target(PlayerAgent * agent, Vector2D target, unmark_type type){
         }
     }
     agent->debugClient().setTarget(target);
-    Bhv_BasicMove().set_off_neck_with_ball(agent);
+    NeckDecisionWithBall().setNeck(agent);
     return true;
 
 }

@@ -62,6 +62,7 @@
 #include "../bhv_basic_move.h"
 #include "bhv_pass_kick_find_receiver.h"
 #include "../neck/next_pass_predictor.h"
+#include "../neck/neck_decision.h"
 
 //#define DEBUG_PRINT
 
@@ -369,8 +370,7 @@ IntentionNormalDribble::execute( PlayerAgent * agent )
         dlog.addText( Logger::DRIBBLE,
                       __FILE__": (intention:execute) default turn_neck scan field" );
         agent->debugClient().addMessage( "NeckScan" );
-//        agent->setNeckAction( new Neck_TurnToBallOrScan( 0 ) );
-        Bhv_BasicMove().set_off_neck_with_ball(agent);
+        NeckDecisionWithBall().setNeck(agent);
     }
     else
     {
@@ -887,8 +887,7 @@ Bhv_NormalDribble::execute( PlayerAgent * agent )
     }
     if ( ! M_neck_action )
     {
-        Bhv_BasicMove().set_off_neck_with_ball(agent);
-//        agent->setNeckAction( new Neck_ScanField() );
+        NeckDecisionWithBall().setNeck(agent);
     }
     else
     {

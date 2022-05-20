@@ -64,6 +64,7 @@
 #include "neck/neck_offensive_intercept_neck.h"
 #include "move_off/bhv_offensive_move.h"
 #include "neck/next_pass_predictor.h"
+#include "neck/neck_decision.h"
 using namespace rcsc;
 
 DeepNueralNetwork * NextPassPredictor::pass_prediction = new DeepNueralNetwork();
@@ -186,238 +187,6 @@ bool Bhv_BasicMove::set_def_neck_with_ball(PlayerAgent *agent, Vector2D targetPo
         agent->setNeckAction(new Neck_TurnToBallOrScan(1));
     }
     return true;
-}
-
-#include "neck/neck_decision.h"
-bool Bhv_BasicMove::set_off_neck_with_ball(PlayerAgent *agent) {
-    NeckDecisionWithBall().setNeck(agent);
-    return true;
-    if (NextPassPredictor().pass_predictor_neck(agent))
-        return true;
-    const WorldModel &wm = agent->world();
-    Vector2D next_target = Vector2D::INVALIDATED;
-    int self_min = wm.interceptTable()->selfReachCycle();
-    int ball_pos_count = wm.ball().posCount();
-    int ball_vel_count = wm.ball().velCount();
-    Vector2D ball_pos = wm.ball().inertiaPoint(self_min);
-    Vector2D self_pos = agent->effector().queuedNextSelfPos();
-    AngleDeg self_body = agent->effector().queuedNextMyBody();
-    dlog.addText(Logger::ROLE, "next body %.1f", self_body.degree());
-    int min_ball_count = std::min(ball_pos_count, ball_vel_count);
-    AngleDeg ball_angle = (ball_pos - self_pos).th();
-    Vector2D ball_iner = wm.ball().inertiaPoint(self_min);
-    const double next_view_width = agent->effector().queuedNextViewWidth().width();
-
-
-
-    bool should_see_ball = false;
-    if (min_ball_count > 2 || ball_vel_count > 2)
-        should_see_ball = true;
-    bool can_see_ball = false;
-    if ((self_body - ball_angle).abs() < next_view_width * 0.5 + 85){
-        dlog.addText(Logger::ROLE,"can see ball");
-        can_see_ball = true;
-    }
-    if (wm.self().isKickable())
-        should_see_ball = false;
-    dlog.addText(Logger::ROLE, "start set off neck");
-    if (should_see_ball)
-        dlog.addText(Logger::ROLE, "**should see ball");
-    std::vector<std::pair<Vector2D, double> > targs;
-    const ActionChainGraph &chain_graph = ActionChainHolder::i().graph();
-    const CooperativeAction &first_action = chain_graph.getFirstAction();
-    const std::vector<ActionStatePair> &path = chain_graph.getAllChain();
-    bool shoot_is_best = false;
-    Vector2D shoot_tar = Vector2D::INVALIDATED;
-    if(wm.ball().pos().dist(Vector2D(52,0)) < 20){
-        shoot_tar = Bhv_StrictCheckShoot(0).get_best_shoot(wm);
-        shoot_is_best = true;
-    }
-    bool find_action = false;
-    bool find_pass = false;
-    if (self_min <= 3) {
-        if(shoot_is_best){
-            next_target = shoot_tar;
-            targs.push_back(make_pair(shoot_tar, 10));
-        }
-        for (int i = 0; i < path.size() && !find_pass; i++) {
-            find_action = true;
-
-            if (path.at(i).action().category() == CooperativeAction::Shoot) {
-                dlog.addText(Logger::ROLE, "**next action is Shoot");
-                next_target = first_action.targetPoint();
-                targs.push_back(make_pair(next_target, 10));
-                if (wm.getOpponentGoalie() != NULL && wm.getOpponentGoalie()->unum() > 0)
-                    targs.push_back(make_pair(wm.getOpponentGoalie()->pos(), 10));
-                break;
-            }
-
-            if (path.at(i).action().category() == CooperativeAction::Dribble) {
-                dlog.addText(Logger::ROLE, "**next action is Dribble");
-                next_target = first_action.targetPoint();
-                targs.push_back(make_pair(next_target, 5));
-                for (int i = 0; i < wm.opponentsFromBall().size() && i <= 2; i++) {
-                    targs.push_back(make_pair(wm.opponentsFromBall().at(i)->pos(), (3 - i) * 3));
-                }
-                break;
-            }
-
-            if (path.at(i).action().category() == CooperativeAction::Hold) {
-                dlog.addText(Logger::ROLE, "**next action is Hold");
-                for (int i = 0; i < wm.opponentsFromBall().size() && i <= 2; i++) {
-                    targs.push_back(make_pair(wm.opponentsFromBall().at(i)->pos(), (3 - i) * 3));
-                }
-                break;
-            }
-
-            if (path.at(i).action().category() == CooperativeAction::Pass) {
-                dlog.addText(Logger::ROLE, "**next action is Pass");
-                next_target = first_action.targetPoint();
-                targs.push_back(make_pair(next_target, 10));
-                Vector2D start_ball = ball_iner;
-                if (i >= 1) {
-                    start_ball = path[i - 1].state().ball().pos();
-                }
-                Sector2D pass_sec(start_ball, 0, next_target.dist(ball_pos) + 5, (next_target - ball_pos).th() - 20,
-                                  (next_target - ball_pos).th() + 20);
-                for (int i = 0; i < wm.opponentsFromBall().size(); i++) {
-                    if (pass_sec.contains(wm.opponentsFromBall().at(i)->pos())) {
-                        targs.push_back(make_pair(wm.opponentsFromBall().at(i)->pos(), (self_min <= 1 ? 20 : 10)));
-                    }
-                }
-                find_pass = true;
-                break;
-            }
-
-
-            if (path[i].state().ballHolderUnum() != wm.self().unum())
-                find_pass = true;
-        }
-
-    }
-
-    if (ball_iner.x > 30 && ball_iner.absY() > 15) {
-        next_target = Vector2D(40, 0);
-        targs.push_back(make_pair(next_target, (find_action ? 3 : 5)));
-        if (FieldAnalyzer::isFRA(wm)) {
-            next_target = Vector2D(52, 0);
-            targs.push_back(make_pair(next_target, (find_action ? 10 : 10)));
-        }
-    } else if (ball_iner.x > 30 && ball_iner.absY() < 15) {
-        if (wm.getOpponentGoalie() != NULL && wm.getOpponentGoalie()->unum() > 0) {
-            if (wm.getOpponentGoalie()->seenPosCount() > 2) {
-                next_target = wm.getOpponentGoalie()->pos();
-                targs.push_back(make_pair(next_target, 5));
-            }
-        } else {
-            if (wm.dirCount((Vector2D(52, 5) - self_pos).th()) > 1) {
-                targs.push_back(make_pair(Vector2D(52, 5), 5));
-            }
-            if (wm.dirCount((Vector2D(52, -5) - self_pos).th()) > 1) {
-                targs.push_back(make_pair(Vector2D(52, -5), 5));
-            }
-            next_target = Vector2D(52, 0);
-            targs.push_back(make_pair(next_target, 8));
-        }
-        for (int i = 0; i < wm.opponentsFromBall().size(); i++) {
-            if (wm.opponentsFromBall().at(i)->pos().x > 46 && wm.opponentsFromBall().at(i)->pos().absY() < 7) {
-                targs.push_back(make_pair(wm.opponentsFromBall().at(i)->pos(), 8));
-            }
-        }
-    }
-
-    for (size_t i = 0; i < wm.opponentsFromBall().size() && i <= 2; i++) {
-        targs.push_back(make_pair(wm.opponentsFromBall().at(i)->pos(), (3 - i) * (find_action ? 1 : 2)));
-    }
-    for (size_t i = 0; i < wm.teammatesFromBall().size() && i <= 3; i++) {
-        targs.push_back(make_pair(wm.teammatesFromBall().at(i)->pos(), (4 - i) * (find_action ? 1 : 1.5)));
-    }
-
-    if (ball_pos.x > 30) {
-        if (ball_pos.y > 20) {
-            targs.push_back(make_pair(Vector2D(45, 10), (find_action ? 2 : 3)));
-            targs.push_back(make_pair(Vector2D(30, 12), (find_action ? 2 : 3)));
-        } else if (ball_pos.y < -20) {
-            targs.push_back(make_pair(Vector2D(45, -10), (find_action ? 2 : 3)));
-            targs.push_back(make_pair(Vector2D(30, -12), (find_action ? 2 : 3)));
-            targs.push_back(make_pair(Vector2D(40, -15), (find_action ? 2 : 3)));
-        } else {
-            targs.push_back(make_pair(Vector2D(45, 0), (find_action ? 2 : 3)));
-            targs.push_back(make_pair(Vector2D(30, 0), (find_action ? 2 : 3)));
-        }
-    } else if (ball_pos.x > -15) {
-        targs.push_back(make_pair(Vector2D(30, -25), (find_action ? 2 : 3)));
-        targs.push_back(make_pair(Vector2D(30, -15), (find_action ? 2 : 3)));
-        targs.push_back(make_pair(Vector2D(30, +15), (find_action ? 2 : 3)));
-        targs.push_back(make_pair(Vector2D(30, +25), (find_action ? 2 : 3)));
-    } else {
-        targs.push_back(make_pair(Vector2D(-10, -25), (find_action ? 2 : 4)));
-        targs.push_back(make_pair(Vector2D(-10, -15), (find_action ? 2 : 4)));
-        targs.push_back(make_pair(Vector2D(-10, +15), (find_action ? 2 : 4)));
-    }
-
-    for(auto & tar: targs){
-        dlog.addText(Logger::ROLE, "targ:%.1f %.1f", tar.first.x, tar.first.y);
-    }
-
-    double best_neck = -1000;
-    double best_eval = 0;
-    for (double neck = self_body.degree() - 90; neck <= self_body.degree() + 90; neck += 10) {
-        AngleDeg min_see(neck - next_view_width / 2.0 + 5);
-        AngleDeg max_see = (neck + next_view_width / 2.0 - 5);
-        dlog.addText(Logger::ROLE, "angle:%.1f, min:%.1f, max:%.1f", neck, min_see.degree(), max_see.degree());
-        double eval = 0;
-        if (should_see_ball) {
-            if (can_see_ball) {
-                if (ball_angle.isWithin(min_see, max_see)) {
-                    dlog.addText(Logger::ROLE, "can see ball");
-                    for (int i = 0; i < targs.size(); i++) {
-                        AngleDeg targ_angle = (targs[i].first - self_pos).th();
-                        if (targ_angle.isWithin(min_see, max_see)) {
-                            double e = wm.dirCount(targ_angle) * targs[i].second;
-                            dlog.addText(Logger::ROLE, "--(%.1f,%.1f):%.1f", targs[i].first.x, targs[i].first.y, e);
-                            eval += e;
-                        }
-                    }
-                }
-            } else {
-                for (int i = 0; i < targs.size(); i++) {
-                    AngleDeg targ_angle = (targs[i].first - self_pos).th();
-                    if (targ_angle.isWithin(min_see, max_see)) {
-                        double e = wm.dirCount(targ_angle) * targs[i].second;
-                        dlog.addText(Logger::ROLE, "--(%.1f,%.1f):%.1f", targs[i].first.x, targs[i].first.y, e);
-                        eval += e;
-                    }
-                }
-            }
-        }
-        else {
-            for (int i = 0; i < targs.size(); i++) {
-                AngleDeg targ_angle = (targs[i].first - self_pos).th();
-                if (targ_angle.isWithin(min_see, max_see)) {
-                    double e = wm.dirCount(targ_angle) * targs[i].second;
-                    dlog.addText(Logger::ROLE, "--(%.1f,%.1f):%.1f", targs[i].first.x, targs[i].first.y, e);
-                    eval += e;
-                }
-            }
-        }
-        dlog.addText(Logger::ROLE, "eV:%.1f", eval);
-        if (eval > best_eval) {
-            best_eval = eval;
-            best_neck = neck;
-        }
-    }
-
-    if (best_eval != 0) {
-        dlog.addLine(Logger::WORLD, wm.self().pos(), self_pos + Vector2D::polar2vector(30, best_neck), 255, 0, 0);
-        agent->setNeckAction(new Neck_TurnToPoint(self_pos + Vector2D::polar2vector(10, best_neck)));
-    } else if (should_see_ball && can_see_ball) {
-        agent->setNeckAction(new Neck_TurnToBall());
-    } else {
-        agent->setNeckAction(new Neck_TurnToBallOrScan(1));
-    }
-    return true;
-
 }
 
 bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
@@ -571,7 +340,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                         Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                     }
                 }
-                set_off_neck_with_ball(agent);
+                NeckDecisionWithBall().setNeck(agent);
                 agent->debugClient().addMessage("Intercept->Z");
                 return true;
             } else if (self_min <= 3) {
@@ -595,7 +364,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                             }
                             agent->debugClient().addMessage("Intercept->B");
                         }
-                        set_off_neck_with_ball(agent);
+                        NeckDecisionWithBall().setNeck(agent);
                         return true;
                     } else {
                         use_tackle_intercept = true;
@@ -621,8 +390,9 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                                 Body_TurnToPoint(face).execute(agent);
                             }
                             agent->debugClient().addMessage("Intercept->D");
+
                         }
-                        set_off_neck_with_ball(agent);
+                        NeckDecisionWithBall().setNeck(agent);
                         return true;
                     } else {
                         use_tackle_intercept = true;
@@ -638,7 +408,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                     Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                 }
             }
-            set_off_neck_with_ball(agent);
+            NeckDecisionWithBall().setNeck(agent);
             agent->debugClient().addMessage("Intercept->Y");
             return true;
         } else if (self_min <= mate_min && self_min < opp_min + 3) {
@@ -666,7 +436,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
             //                Body_Intercept2009(false).execute(agent);
             //                agent->debugClient().addMessage("Intercept->F");
             //            }
-            set_off_neck_with_ball(agent);
+            NeckDecisionWithBall().setNeck(agent);
             return true;
         } else if (self_min <= mate_min) {
             use_tackle_intercept = true;

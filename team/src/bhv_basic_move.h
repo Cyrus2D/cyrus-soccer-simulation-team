@@ -54,7 +54,6 @@ public:
     int blockDecision(rcsc::PlayerAgent * agent);
     bool pers_scap(PlayerAgent * agent);
     bool voro_unmark(PlayerAgent * agent);
-    bool set_off_neck_with_ball(PlayerAgent * agent);
     static bool set_def_neck_with_ball(PlayerAgent * agent, Vector2D targetPoint, const AbstractPlayerObject* opp, int blocker);
 };
 

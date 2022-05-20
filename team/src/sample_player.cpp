@@ -84,6 +84,7 @@
 Setting * Setting::instance = nullptr;
 #include <rcsc/param/param_map.h>
 #include <rcsc/param/cmd_line_parser.h>
+#include "neck/neck_decision.h"
 
 #include <iostream>
 #include <sstream>
@@ -872,8 +873,7 @@ SamplePlayer::doHeardPassReceive()
                                               prepass_received) );
     if(prepass_received)
         SampleCommunication().saySelf(this);
-    Bhv_BasicMove().set_off_neck_with_ball(this);
-//        this->setNeckAction( new Neck_TurnToBall() );
+    NeckDecisionWithBall().setNeck(this);
 
     return true;
 }

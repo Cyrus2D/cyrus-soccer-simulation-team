@@ -54,6 +54,7 @@
 #include "bhv_basic_move.h"
 #include "move_def/bhv_tackle_intercept.h"
 #include "neck/next_pass_predictor.h"
+#include "neck/neck_decision.h"
 
 using namespace rcsc;
 
@@ -277,8 +278,7 @@ IntentionReceive::execute( PlayerAgent * agent )
         IntentionReceive::gotoIntercept(agent,M_target_point);
     }
 
-
-    Bhv_BasicMove().set_off_neck_with_ball(agent);
+    NeckDecisionWithBall().setNeck(agent);
     if(prepass_received)
         SampleCommunication().saySelf(agent);
 
