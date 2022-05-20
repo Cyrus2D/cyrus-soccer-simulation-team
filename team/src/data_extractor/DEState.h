@@ -278,17 +278,19 @@ public:
                 dlog.addText(Logger::BLOCK, "## tm %d side %d %s", p->unum(), p->side(), p);
         }
         #endif
-        int fastest_unum = wm.interceptTable()->fastestTeammate()->unum();
+        int fastest_unum = -1;
+        if (wm.interceptTable()->fastestTeammate() != nullptr)
+                fastest_unum = wm.interceptTable()->fastestTeammate()->unum();
         int tm_reach = wm.interceptTable()->teammateReachCycle();
         int self_reach = wm.interceptTable()->selfReachCycle();
         if (self_reach <= tm_reach){
             M_kicker_unum = wm.self().unum();
             M_kicker_player = M_known_teammates[wm.self().unum()];
-        }else{
+        }else if (fastest_unum > 0){
             M_kicker_unum = fastest_unum;
             M_kicker_player = M_known_teammates[fastest_unum];
-        }
-        if (M_kicker_unum == -1){
+        }else{
+            M_kicker_unum = -1;
             M_kicker_player = nullptr;
         }
     }
