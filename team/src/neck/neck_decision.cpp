@@ -11,12 +11,14 @@
 #include <rcsc/action/neck_turn_to_point.h>
 #include <rcsc/action/neck_turn_to_ball.h>
 #include <rcsc/action/neck_turn_to_ball_or_scan.h>
+#include "next_pass_predictor.h"
 
 bool NeckDecisionWithBall::setNeck(PlayerAgent *agent) {
     const WorldModel & wm = agent->world();
     init(agent);
     addShootTargets(wm);
     addChainTargets(wm);
+    addPredictorTargets(wm);
     addHandyPlayerTargets(wm);
     addHandyTargets(wm);
     neckEvaluator(wm);
@@ -59,56 +61,127 @@ void NeckDecisionWithBall::addChainTargets(const WorldModel & wm){
     if (M_self_min > 3)
         return;
     M_find_action_by_chain = false;
-    bool find_pass = false;
-    for (int i = 0; i < path.size() && !find_pass; i++) {
+    int length = path.size();
+    length = 1;
+    for (int i = 0; i < length; i++) {
+        auto action_state = path.at(i);
         M_find_action_by_chain = true;
+        double z = 1.0 / static_cast<double>(i + 1);
         if (path.at(i).action().category() == CooperativeAction::Shoot) {
             dlog.addText(Logger::ROLE, "**next action is Shoot");
-            auto next_target = first_action.targetPoint();
-            addTarget(next_target, 10);
+            auto next_target = action_state.action().targetPoint();
+            addTarget(next_target, 10 * z);
             if (wm.getOpponentGoalie() != nullptr && wm.getOpponentGoalie()->unum() > 0)
-                addTarget(wm.getOpponentGoalie()->pos(), 10);
-            break;
+                addTarget(wm.getOpponentGoalie()->pos(), 10.0 * z);
         }
 
         if (path.at(i).action().category() == CooperativeAction::Dribble) {
             dlog.addText(Logger::ROLE, "**next action is Dribble");
-            auto next_target = first_action.targetPoint();
-            addTarget(next_target, 5);
-            for (int i = 0; i < wm.opponentsFromBall().size() && i <= 2; i++) {
-                addTarget(wm.opponentsFromBall().at(i)->pos(), (3 - i) * 3);
+            auto next_target = action_state.action().targetPoint();
+            addTarget(next_target, 5 * z);
+            Vector2D start_pos = M_ball_inertia;
+            if (i > 0)
+                start_pos = path.at(i - 1).action().targetPoint();
+            vector<Vector2D> opp_positions;
+            getDribblingOppDanger(wm, start_pos, next_target, opp_positions);
+            for (int i = 0; i < opp_positions.size() && i <= 2; i++) {
+                addTarget(opp_positions.at(i), (3 - i) * 3 * z);
             }
-            break;
         }
 
         if (path.at(i).action().category() == CooperativeAction::Hold) {
             dlog.addText(Logger::ROLE, "**next action is Hold");
             for (int i = 0; i < wm.opponentsFromBall().size() && i <= 2; i++) {
-                addTarget(wm.opponentsFromBall().at(i)->pos(), (3 - i) * 3);
+                if (wm.opponentsFromBall().at(i)->pos().dist(M_ball_inertia) - min(5, wm.opponentsFromBall().at(i)->posCount()) > 5.0)
+                    break;
+                addTarget(wm.opponentsFromBall().at(i)->pos(), (3 - i) * 3 * z);
             }
-            break;
         }
 
         if (path.at(i).action().category() == CooperativeAction::Pass) {
             dlog.addText(Logger::ROLE, "**next action is Pass");
-            auto next_target = first_action.targetPoint();
-            addTarget(next_target, 10);
-            Vector2D start_ball = M_ball_inertia;
-            if (i >= 1) {
-                start_ball = path[i - 1].state().ball().pos();
+            auto next_target = action_state.action().targetPoint();
+            addTarget(next_target, 10 * z);
+            Vector2D start_pos = M_ball_inertia;
+            if (i >= 1)
+                start_pos = path[i - 1].state().ball().pos();
+            vector<Vector2D> opp_positions;
+            getPassingOppDanger(wm, start_pos, next_target, opp_positions);
+            for (int i = 0; i < opp_positions.size() && i <= 2; i++) {
+                addTarget(opp_positions.at(i), (M_self_min <= 1 ? 20 : 10) * z);
             }
-            Sector2D pass_sec(start_ball, 0, next_target.dist(M_ball_inertia) + 5, (next_target - M_ball_inertia).th() - 20,
-                              (next_target - M_ball_inertia).th() + 20);
-            for (int i = 0; i < wm.opponentsFromBall().size(); i++) {
-                if (pass_sec.contains(wm.opponentsFromBall().at(i)->pos())) {
-                    addTarget(wm.opponentsFromBall().at(i)->pos(), (M_self_min <= 1 ? 20 : 10));
-                }
-            }
-            find_pass = true;
-            break;
         }
-        if (path[i].state().ballHolderUnum() != wm.self().unum())
-            find_pass = true;
+    }
+}
+
+void NeckDecisionWithBall::addPredictorTargets(const WorldModel & wm){
+    auto next_candidates = NextPassPredictor().nextReceiverCandidates(wm);
+    if (next_candidates.empty())
+        return;
+    Vector2D start_pos = M_ball_inertia;
+    for (int i = 0; i < next_candidates.size() && i < 2; i++){
+        Vector2D target = next_candidates.at(i);
+        addTarget(target, 20);
+        vector<Vector2D> opp_positions;
+        getPassingOppDanger(wm, start_pos, target, opp_positions);
+        for (int i = 0; i < opp_positions.size() && i <= 1; i++) {
+            addTarget(opp_positions.at(i), (M_self_min <= 1 ? 20 : 10));
+        }
+    }
+}
+
+bool vectorDoubleVectorSorter(const pair<double, Vector2D> &a,  const pair<double, Vector2D> &b)
+{
+    return (a.first < b.first);
+}
+
+void NeckDecisionWithBall::getDribblingOppDanger(const WorldModel & wm,
+                                                 Vector2D & start,
+                                                 Vector2D & target,
+                                                 vector<Vector2D> & opp_positions){
+    vector<pair<double, Vector2D> > positions_eval;
+    double dribble_dist = start.dist(target);
+    Segment2D dribble_segment(start, target);
+    for (auto & opp: wm.opponentsFromBall()) {
+        if (opp == nullptr || opp->unum() < 1)
+            continue;
+        Vector2D pos = opp->pos();
+        double opp_dist = dribble_segment.dist(pos);
+        if (opp_dist - static_cast<double>(min(8, opp->posCount())) > dribble_dist + 5.0)
+            continue;
+        positions_eval.push_back(make_pair(opp_dist - static_cast<double>(opp->posCount()), pos));
+    }
+    sort(positions_eval.begin(), positions_eval.end(), vectorDoubleVectorSorter);
+    for (auto & e_p: positions_eval){
+        opp_positions.push_back(e_p.second);
+        if (opp_positions.size() == 3)
+            break;
+    }
+}
+
+void NeckDecisionWithBall::getPassingOppDanger(const WorldModel & wm,
+                                               Vector2D & start,
+                                               Vector2D & target,
+                                               vector<Vector2D> & opp_positions){
+    vector<pair<double, Vector2D> > positions_eval;
+    Sector2D pass_sec(start,
+                      0,
+                      target.dist(start) + 5,
+                      (target - start).th() - 25,
+                      (target - start).th() + 25);
+    for (int i = 0; i < wm.opponentsFromBall().size(); i++) {
+        Vector2D pos = wm.opponentsFromBall().at(i)->pos();
+        double diff_angle = ((pos - start).th() - (target - start).th()).abs();
+        if (pass_sec.contains(pos)) {
+            positions_eval.push_back(make_pair(diff_angle / max(1.0, pos.dist(start)), pos));
+        }
+    }
+
+    sort(positions_eval.begin(), positions_eval.end(), vectorDoubleVectorSorter);
+    for (auto & e_p: positions_eval){
+        opp_positions.push_back(e_p.second);
+        if (opp_positions.size() == 3)
+            break;
     }
 }
 

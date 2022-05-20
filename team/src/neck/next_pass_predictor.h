@@ -41,6 +41,36 @@ public:
         std::sort(predict.begin(), predict.end(), pass_prob::ProbCmpBiggestFirst);
         return predict;
     }
+    vector<Vector2D> nextReceiverCandidates(const WorldModel &wm){
+        vector<Vector2D> res;
+        DEState state = DEState(wm);
+
+        int fastest_tm = wm.self().unum();
+        int tm_reach_cycle = wm.interceptTable()->selfReachCycle();
+        if (!state.updateKicker(fastest_tm, wm.ball().inertiaPoint(tm_reach_cycle)))
+            return res;
+
+        vector<int> ignored_player;
+        string ignored = "";
+        for (int i = 1; i <= 11; i++){
+            if (wm.ourPlayer(i) == nullptr || wm.ourPlayer(i)->unum() < 1 || not wm.ourPlayer(i)->pos().isValid() || wm.self().unum() == i){
+                ignored_player.push_back(i);
+                ignored += std::to_string(i) + ",";
+            }
+        }
+        auto features = OffensiveDataExtractor::i().get_data(state);
+        auto passes = predict_pass(features, ignored_player, wm.self().unum());
+        if (passes.empty())
+            return res;
+
+        for (auto &p: passes){
+            int tm_unum = p.pass_getter;
+            if (p.prob > 0.3 || res.size() == 0)
+                res.push_back(wm.ourPlayer(tm_unum)->pos());
+            dlog.addText(Logger::POSITIONING, "%d %.3f", p.pass_getter, p.prob);
+        }
+        return res;
+    }
     int next_receiver(const WorldModel &wm){
         DEState state = DEState(wm);
 

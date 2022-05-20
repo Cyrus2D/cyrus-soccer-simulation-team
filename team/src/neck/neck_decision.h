@@ -33,11 +33,19 @@ private:
     }
     void addShootTargets(const WorldModel & wm);
     void addChainTargets(const WorldModel & wm);
+    void addPredictorTargets(const WorldModel & wm);
     void addHandyTargets(const WorldModel & wm);
     void addHandyPlayerTargets(const WorldModel & wm);
     void neckEvaluator(const WorldModel & wm);
     void execute(PlayerAgent * agent);
-
+    void getDribblingOppDanger(const WorldModel & wm,
+                               Vector2D & start,
+                               Vector2D & target,
+                               vector<Vector2D> & opp_positions);
+    void getPassingOppDanger(const WorldModel & wm,
+                               Vector2D & start,
+                               Vector2D & target,
+                               vector<Vector2D> & opp_positions);
     int M_self_min;
     int M_ball_pos_count;
     int M_ball_vel_count;
