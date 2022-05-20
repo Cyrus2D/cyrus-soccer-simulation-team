@@ -61,7 +61,7 @@ using namespace rcsc;
 size_t ActionChainGraph::DEFAULT_MAX_CHAIN_LENGTH = 3;
 size_t ActionChainGraph::DEFAULT_MAX_EVALUATE_LIMIT = 2000;
 
-std::vector< std::pair< Vector2D, double > > ActionChainGraph::S_evaluated_points;
+std::vector< SimpleActionValue > ActionChainGraph::S_evaluated_points;
 
 
 namespace {
@@ -81,6 +81,7 @@ inline
 void
 debug_paint_evaluate_color( const Vector2D & pos,
                             const double & value,
+                            const int & index,
                             const double & min,
                             const double & max )
 {
@@ -100,7 +101,7 @@ debug_paint_evaluate_color( const Vector2D & pos,
     //               "(paint) (%.2f %.2f) eval=%f -> %d %d %d",
     //               pos.x, pos.y, value, r, g, b );
     char str[16];
-    snprintf( str, 16, "%lf", value );
+    snprintf( str, 16, "%d,%.1f", index, value );
     dlog.addMessage( Logger::ACTION_CHAIN,
                      pos, str, "#ffffff" );
     dlog.addRect( Logger::ACTION_CHAIN,
@@ -491,13 +492,10 @@ ActionChainGraph::calculateResult( const PlayerAgent* agent)
     {
         double min_eval = +std::numeric_limits< double >::max();
         double max_eval = -std::numeric_limits< double >::max();
-        const std::vector< std::pair< Vector2D, double > >::const_iterator end = S_evaluated_points.end();
-        for ( std::vector< std::pair< Vector2D, double > >::const_iterator it = S_evaluated_points.begin();
-              it != end;
-              ++it )
+        for ( auto & it: S_evaluated_points)
         {
-            if ( min_eval > it->second ) min_eval = it->second;
-            if ( max_eval < it->second ) max_eval = it->second;
+            if ( min_eval > it.eval ) min_eval = it.eval;
+            if ( max_eval < it.eval ) max_eval = it.eval;
         }
 
         if ( std::fabs( min_eval - max_eval ) < 1.0e-5 )
@@ -505,11 +503,9 @@ ActionChainGraph::calculateResult( const PlayerAgent* agent)
             max_eval = min_eval + 1.0e-5;
         }
 
-        for ( std::vector< std::pair< Vector2D, double > >::const_iterator it = S_evaluated_points.begin();
-              it != end;
-              ++it )
+        for ( auto & it: S_evaluated_points)
         {
-            debug_paint_evaluate_color( it->first, it->second, min_eval, max_eval );
+            debug_paint_evaluate_color( it.target, it.eval, it.index, min_eval, max_eval);
         }
     }
     #endif
@@ -592,7 +588,7 @@ ActionChainGraph::doSearch( const WorldModel & wm,
     write_chain_log( wm, M_chain_count, path, max_ev );
 #endif
 #ifdef DEBUG_PAINT_EVALUATED_POINTS
-    S_evaluated_points.push_back( std::pair< Vector2D, double >( state.ball().pos(), max_ev ) );
+    S_evaluated_points.push_back( SimpleActionValue(state.ball().pos(), max_ev,  -1) );
 #endif
     ++ (*n_evaluated);
 
@@ -637,7 +633,7 @@ ActionChainGraph::doSearch( const WorldModel & wm,
         write_chain_log( wm, M_chain_count, candidate_result, ev );
 #endif
 #ifdef DEBUG_PAINT_EVALUATED_POINTS
-        S_evaluated_points.push_back( std::pair< Vector2D, double >( it->state().ball().pos(), ev ) );
+        S_evaluated_points.push_back( SimpleActionValue(it->state().ball().pos(), ev, it->action().index() ) );
 #endif
         if ( ev > max_ev )
         {
@@ -846,8 +842,7 @@ ActionChainGraph::calculateResultBestFirstSearch( const WorldModel & wm,
     write_chain_log( wm, M_chain_count, empty_path, current_evaluation );
     #endif
     #ifdef DEBUG_PAINT_EVALUATED_POINTS
-    S_evaluated_points.push_back( std::pair< Vector2D, double >
-                                  ( current_state.ball().pos(), current_evaluation ) );
+    S_evaluated_points.push_back( SimpleActionValue( current_state.ball().pos(), current_evaluation, -1 ) );
     #endif
     M_best_chain = empty_path;
     M_best_chain_danger = empty_path;
@@ -1055,8 +1050,7 @@ ActionChainGraph::calculateResultBestFirstSearch( const WorldModel & wm,
             ++(*n_evaluated);
 
             #ifdef DEBUG_PAINT_EVALUATED_POINTS
-            S_evaluated_points.push_back( std::pair< Vector2D, double >
-                                          ( it->state().ball().pos(), ev ) );
+            S_evaluated_points.push_back( SimpleActionValue( it->state().ball().pos(), ev, it->action().index() ) );
             #endif
 
 

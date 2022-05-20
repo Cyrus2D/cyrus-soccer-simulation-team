@@ -51,6 +51,17 @@ class WorldModel;
 class CooperativeAction;
 class PredictState;
 
+class SimpleActionValue{
+public:
+    rcsc::Vector2D target;
+    double eval;
+    int index;
+    SimpleActionValue(rcsc::Vector2D target_, double eval_, int index_=0){
+        this->target = target_;
+        this->eval = eval_;
+        this->index = index_;
+    }
+};
 class ActionChainGraph {
 public:
 
@@ -71,7 +82,7 @@ private:
 	unsigned long M_max_chain_length;
 	long M_max_evaluate_limit;
 
-	static std::vector< std::pair< rcsc::Vector2D, double > > S_evaluated_points;
+	static std::vector< SimpleActionValue > S_evaluated_points;
 
 private:
 
