@@ -16,7 +16,7 @@ public:
         static bool load_dnn = false;
         if(!load_dnn){
             load_dnn = true;
-        pass_prediction->ReadFromKeras("data/deep/pass_prediction_yushan_w_w.txt");
+        pass_prediction->ReadFromKeras("data/deep/pass_prediction_yushan_w_fw.txt");
 //            pass_prediction->ReadFromKeras(Setting::i()->mOffensiveMove->mMainUnmarkPassPredictionDNN);
         }
     }

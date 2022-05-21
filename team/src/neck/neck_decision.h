@@ -60,6 +60,7 @@ private:
     bool M_can_see_ball;
     vector<ObserveTargetEval> M_target;
     bool M_find_action_by_chain;
+    vector<Vector2D> M_predictor_targets;
     AngleDeg M_best_neck;
     double M_best_eval;
 
