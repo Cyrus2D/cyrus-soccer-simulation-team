@@ -19,10 +19,10 @@ bool NeckDecisionWithBall::setNeck(PlayerAgent *agent, NeckDecisionType type) {
     init(agent);
     switch (type) {
         case intercept:
-        case unmarking:
         case dribbling:
             advancedWithBall(agent);
             break;
+        case unmarking:
         case chain_action:
         case offensive_move:
             simpleWithBall(agent);
