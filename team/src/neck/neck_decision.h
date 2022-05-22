@@ -20,11 +20,25 @@ public:
         eval = eval_;
     }
 };
+
+enum NeckDecisionType{
+    intercept,
+    passing,
+    dribbling,
+    unmarking,
+    chain_action,
+    offensive_move,
+    chain_action_first
+};
+
 class NeckDecisionWithBall{
 public:
-    bool setNeck(PlayerAgent * agent);
+    bool setNeck(PlayerAgent * agent, NeckDecisionType type);
 private:
     void init(PlayerAgent *agent);
+    void advancedWithBall(PlayerAgent *agent);
+    void simpleWithBall(PlayerAgent *agent);
+    void neckToReceiver(PlayerAgent *agent);
     void addTarget(ObserveTargetEval target){
         M_target.push_back(target);
     }
@@ -63,6 +77,11 @@ private:
     vector<Vector2D> M_predictor_targets;
     AngleDeg M_best_neck;
     double M_best_eval;
+    bool M_use_pass_predictor;
+    bool M_use_pass_predictor_if_chain_find_pass;
+    bool M_ignore_chain_pass_target_for_predictor;
+    bool M_ignore_chain_pass_target_for_predictor_dist;
+
 
 };
 #endif //SRC_NECK_DECISION_H

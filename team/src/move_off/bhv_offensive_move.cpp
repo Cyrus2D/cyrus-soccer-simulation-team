@@ -12,7 +12,7 @@
 #include "bhv_unmark_voronoi.h"
 #include "bhv_scape_voronoi.h"
 #include "../setting.h"
-
+#include "../neck/neck_decision.h"
 #include <rcsc/geom/voronoi_diagram.h>
 #include <rcsc/action/neck_turn_to_ball_or_scan.h>
 #include <rcsc/action/neck_turn_to_low_conf_teammate.h>
@@ -93,7 +93,7 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
              && target_point.x < 40 ){
             target_point.x = wm.offsideLineX() + 10;
             Body_GoToPoint(target_point, 3, 100).execute(agent);
-            (*basicMove).offense_set_neck_action(agent);
+            NeckDecisionWithBall().setNeck(agent, NeckDecisionType::offensive_move);
             dlog.addText(Logger::ACTION, "Go to offside to Broke it");
             agent->debugClient().addMessage("BrokeOffside");
             return true;
@@ -267,8 +267,7 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
         agent->doTurn(0.0);
         //		Body_TurnToBall().execute( agent );
     }
-
-    (*basicMove).offense_set_neck_action(agent);
+    NeckDecisionWithBall().setNeck(agent, NeckDecisionType::offensive_move);
     SampleCommunication().sayUnmark(agent);
     return true;
 }
@@ -372,7 +371,7 @@ bool cyrus_offensive_move::BackFromOffside(PlayerAgent *agent) {
             Body_GoToPoint(Vector2D(self_pos.x - 10.0, self_pos.y), 0.5,
                            ServerParam::i().maxDashPower()).execute(agent);
         }
-        (*basicMove).offense_set_neck_action(agent);
+        NeckDecisionWithBall().setNeck(agent, NeckDecisionType::offensive_move);
         agent->debugClient().addMessage("back goto");
         return true;
     }

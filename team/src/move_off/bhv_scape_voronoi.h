@@ -50,7 +50,7 @@ bool go_to_target(PlayerAgent * agent, Vector2D target){
     }
     agent->debugClient().addMessage("voro scape");
     agent->debugClient().setTarget(target);
-    NeckDecisionWithBall().setNeck(agent);
+    NeckDecisionWithBall().setNeck(agent, NeckDecisionType::unmarking);
 //    agent->doPointto(target.x,target.y);
     return true;
 

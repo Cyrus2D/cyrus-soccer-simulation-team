@@ -370,7 +370,7 @@ IntentionNormalDribble::execute( PlayerAgent * agent )
         dlog.addText( Logger::DRIBBLE,
                       __FILE__": (intention:execute) default turn_neck scan field" );
         agent->debugClient().addMessage( "NeckScan" );
-        NeckDecisionWithBall().setNeck(agent);
+        NeckDecisionWithBall().setNeck(agent, NeckDecisionType::dribbling);
     }
     else
     {
@@ -887,7 +887,7 @@ Bhv_NormalDribble::execute( PlayerAgent * agent )
     }
     if ( ! M_neck_action )
     {
-        NeckDecisionWithBall().setNeck(agent);
+        NeckDecisionWithBall().setNeck(agent, NeckDecisionType::dribbling);
     }
     else
     {

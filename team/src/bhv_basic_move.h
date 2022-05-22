@@ -44,7 +44,6 @@ public:
     bool execute(rcsc::PlayerAgent * agent);
     bool intercept_plan(rcsc::PlayerAgent * agent, bool from_block = false);
     bool TurnToTackle(rcsc::PlayerAgent * agent);
-    void offense_set_neck_action(rcsc::PlayerAgent * agent);
     static vector<int> who_goto_goal(PlayerAgent *agent);
     bool DefSitPlan(rcsc::PlayerAgent * agent);
     bool OffSitPlan(rcsc::PlayerAgent * agent);

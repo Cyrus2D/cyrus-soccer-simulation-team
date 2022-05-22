@@ -873,7 +873,7 @@ SamplePlayer::doHeardPassReceive()
                                               prepass_received) );
     if(prepass_received)
         SampleCommunication().saySelf(this);
-    NeckDecisionWithBall().setNeck(this);
+    NeckDecisionWithBall().setNeck(this, NeckDecisionType::intercept);
 
     return true;
 }

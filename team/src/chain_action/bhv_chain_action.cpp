@@ -35,7 +35,7 @@
 #include "action_state_pair.h"
 #include "field_analyzer.h"
 #include "../data_extractor/offensive_data_extractor.h"
-
+#include "../neck/neck_decision.h"
 #include "bhv_pass_kick_find_receiver.h"
 #include "bhv_normal_dribble.h"
 #include "body_force_shoot.h"
@@ -216,7 +216,7 @@ Bhv_ChainAction::execute( PlayerAgent * agent )
          && FieldAnalyzer::isHelius(agent->world()))
     {
         Body_ClearBall().execute( agent );
-        Bhv_BasicMove().offense_set_neck_action(agent);
+        NeckDecisionWithBall().setNeck(agent, NeckDecisionType::chain_action);
         return true;
     }
 
@@ -228,7 +228,7 @@ Bhv_ChainAction::execute( PlayerAgent * agent )
                 && wm.opponentsFromBall().front()->pos().dist(wm.ball().pos()) < 5)
         {
             Body_ClearBall().execute( agent );
-            Bhv_BasicMove().offense_set_neck_action(agent);
+            NeckDecisionWithBall().setNeck(agent, NeckDecisionType::chain_action);
             return true;
         }
     }
@@ -244,7 +244,7 @@ Bhv_ChainAction::execute( PlayerAgent * agent )
 	ActionChainGraph::debug_send_chain( agent, M_chain_graph.getAllChain() );
 
 	const Vector2D goal_pos = SP.theirTeamGoalPos();
-	agent->setNeckAction( new Neck_TurnToReceiver( M_chain_graph ) );
+    NeckDecisionWithBall().setNeck(agent, NeckDecisionType::chain_action_first);
 
 	switch ( first_action.category() ) {
 	case CooperativeAction::Shoot:
@@ -374,8 +374,7 @@ bool Bhv_ChainAction::hold_ball(PlayerAgent *agent)
         if(wm.opponentsFromBall().size() > 0){
             if(wm.opponentsFromBall().front()->distFromBall() < 4){
                 Body_ClearBall().execute( agent );
-                Bhv_BasicMove().offense_set_neck_action(agent);
-        //			agent->setNeckAction( new Neck_ScanField() );
+                NeckDecisionWithBall().setNeck(agent, NeckDecisionType::chain_action);
                 return true;
             }
         }
@@ -392,15 +391,13 @@ bool Bhv_ChainAction::hold_ball(PlayerAgent *agent)
         Vector2D self_next = wm.self().inertiaPoint(1);
         Vector2D target = self_next + Vector2D::polar2vector(0.3,(self_next - face).th());
         if(Body_HoldBall2008(true,face, target).execute( agent )){
-            //			agent->setNeckAction( new Neck_ScanField() );
-                    Bhv_BasicMove().offense_set_neck_action(agent);
-                    return true;
+            NeckDecisionWithBall().setNeck(agent, NeckDecisionType::chain_action);
+            return true;
         }
     }else{
         if(Body_HoldBall2008(true,face).execute( agent )){
-            //			agent->setNeckAction( new Neck_ScanField() );
-                    Bhv_BasicMove().offense_set_neck_action(agent);
-                    return true;
+            NeckDecisionWithBall().setNeck(agent, NeckDecisionType::chain_action);
+            return true;
         }
     }
 
@@ -416,8 +413,7 @@ bool Bhv_ChainAction::hold_ball(PlayerAgent *agent)
             }else{
                 Body_StopBall().execute(agent);
                 stopballtime = holdballtime;
-                Bhv_BasicMove().offense_set_neck_action(agent);
-//					agent->setNeckAction( new Neck_ScanField() );
+                NeckDecisionWithBall().setNeck(agent, NeckDecisionType::chain_action);
                 return true;
             }
         }
@@ -433,8 +429,7 @@ bool Bhv_ChainAction::hold_ball(PlayerAgent *agent)
         holdballtime = wm.time().cycle();
         Body_HoldBall().execute( agent );
     }
-    Bhv_BasicMove().offense_set_neck_action(agent);
-//		agent->setNeckAction( new Neck_ScanField() );
+    NeckDecisionWithBall().setNeck(agent, NeckDecisionType::chain_action);
     return true;
 }
 

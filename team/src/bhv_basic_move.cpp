@@ -340,7 +340,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                         Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                     }
                 }
-                NeckDecisionWithBall().setNeck(agent);
+                NeckDecisionWithBall().setNeck(agent, NeckDecisionType::intercept);
                 agent->debugClient().addMessage("Intercept->Z");
                 return true;
             } else if (self_min <= 3) {
@@ -364,7 +364,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                             }
                             agent->debugClient().addMessage("Intercept->B");
                         }
-                        NeckDecisionWithBall().setNeck(agent);
+                        NeckDecisionWithBall().setNeck(agent, NeckDecisionType::intercept);
                         return true;
                     } else {
                         use_tackle_intercept = true;
@@ -392,7 +392,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                             agent->debugClient().addMessage("Intercept->D");
 
                         }
-                        NeckDecisionWithBall().setNeck(agent);
+                        NeckDecisionWithBall().setNeck(agent, NeckDecisionType::intercept);
                         return true;
                     } else {
                         use_tackle_intercept = true;
@@ -408,7 +408,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                     Body_TurnToPoint(wm.ball().inertiaPoint(1)).execute(agent);
                 }
             }
-            NeckDecisionWithBall().setNeck(agent);
+            NeckDecisionWithBall().setNeck(agent, NeckDecisionType::intercept);
             agent->debugClient().addMessage("Intercept->Y");
             return true;
         } else if (self_min <= mate_min && self_min < opp_min + 3) {
@@ -436,7 +436,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
             //                Body_Intercept2009(false).execute(agent);
             //                agent->debugClient().addMessage("Intercept->F");
             //            }
-            NeckDecisionWithBall().setNeck(agent);
+            NeckDecisionWithBall().setNeck(agent, NeckDecisionType::intercept);
             return true;
         } else if (self_min <= mate_min) {
             use_tackle_intercept = true;
@@ -463,25 +463,6 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
     //    }
     return false;
 
-}
-
-void Bhv_BasicMove::offense_set_neck_action(PlayerAgent *agent) {
-    const WorldModel &wm = agent->world();
-    if (wm.existKickableOpponent()
-            && wm.ball().distFromSelf() < 18.0) {
-        agent->setNeckAction(new Neck_TurnToBall());
-    } else {
-        agent->setNeckAction(new Neck_TurnToBallOrScan());
-    }
-    return;
-
-
-    //	const WorldModel & wm = agent->world();
-    if (wm.ball().posCount() >= 3) {
-        agent->setNeckAction(new Neck_TurnToBall());
-    } else {
-        agent->setNeckAction(new Neck_TurnToBallOrScan(2));
-    }
 }
 
 bool

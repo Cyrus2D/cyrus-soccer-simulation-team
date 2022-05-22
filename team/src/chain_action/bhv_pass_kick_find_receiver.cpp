@@ -39,7 +39,7 @@
 #include "action_chain_graph.h"
 #include "field_analyzer.h"
 #include "../data_extractor/offensive_data_extractor.h"
-
+#include "../neck/neck_decision.h"
 #include "neck_turn_to_receiver.h"
 
 #include <rcsc/action/bhv_scan_field.h>
@@ -379,7 +379,7 @@ Bhv_PassKickFindReceiver::execute( PlayerAgent * agent )
 					pass.targetPoint(),
 					pass.targetPoint() ).execute( agent );
             doSayPrePass( agent, pass );
-			agent->setNeckAction( new Neck_TurnToReceiver( M_chain_graph ) );
+            NeckDecisionWithBall().setNeck(agent, NeckDecisionType::passing);
 			return true;
 		}
 	}
@@ -438,7 +438,7 @@ Bhv_PassKickFindReceiver::doPassKick( PlayerAgent * agent,
 				pass.firstBallSpeed() * 0.96,
 				3 ).execute( agent );
 	}
-	agent->setNeckAction( new Neck_TurnToReceiver( M_chain_graph ) );
+    NeckDecisionWithBall().setNeck(agent, NeckDecisionType::passing);
     if(!say_pass){
         if(pass.kickCount() == 1)
             doSayPass( agent, pass );
@@ -669,7 +669,7 @@ Bhv_PassKickFindReceiver::doKeepBall( rcsc::PlayerAgent * agent,
 			+ ball_vel * ServerParam::i().ballDecay() );
 
 	agent->doKick( kick_power, kick_angle );
-	agent->setNeckAction( new Neck_TurnToReceiver( M_chain_graph ) );
+    NeckDecisionWithBall().setNeck(agent, NeckDecisionType::passing);
 
 	//
 	// set turn intention
@@ -978,7 +978,7 @@ Bhv_PassKickFindReceiver::doTurnBodyNeckToReceiver( PlayerAgent * agent,
 
 	Body_TurnToPoint( best_point ).execute( agent );
 	doSayPass( agent, pass );
-	agent->setNeckAction( new Neck_TurnToReceiver( M_chain_graph ) );
+    NeckDecisionWithBall().setNeck(agent, NeckDecisionType::passing);
 
 	return true;
 }

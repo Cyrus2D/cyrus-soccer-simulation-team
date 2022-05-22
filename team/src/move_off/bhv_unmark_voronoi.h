@@ -87,7 +87,7 @@ bool go_to_target(PlayerAgent * agent, Vector2D target, unmark_type type){
         }
     }
     agent->debugClient().setTarget(target);
-    NeckDecisionWithBall().setNeck(agent);
+    NeckDecisionWithBall().setNeck(agent, NeckDecisionType::unmarking);
     return true;
 
 }

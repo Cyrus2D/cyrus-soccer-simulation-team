@@ -278,7 +278,7 @@ IntentionReceive::execute( PlayerAgent * agent )
         IntentionReceive::gotoIntercept(agent,M_target_point);
     }
 
-    NeckDecisionWithBall().setNeck(agent);
+    NeckDecisionWithBall().setNeck(agent, NeckDecisionType::intercept);
     if(prepass_received)
         SampleCommunication().saySelf(agent);
 

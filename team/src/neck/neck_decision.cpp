@@ -12,10 +12,31 @@
 #include <rcsc/action/neck_turn_to_ball.h>
 #include <rcsc/action/neck_turn_to_ball_or_scan.h>
 #include "next_pass_predictor.h"
+#include "../chain_action/neck_turn_to_receiver.h"
 
-bool NeckDecisionWithBall::setNeck(PlayerAgent *agent) {
-    const WorldModel & wm = agent->world();
+
+bool NeckDecisionWithBall::setNeck(PlayerAgent *agent, NeckDecisionType type) {
     init(agent);
+    switch (type) {
+        case intercept:
+        case unmarking:
+        case dribbling:
+            advancedWithBall(agent);
+            break;
+        case chain_action:
+        case offensive_move:
+            simpleWithBall(agent);
+            break;
+        case passing:
+        case chain_action_first:
+            neckToReceiver(agent);
+            break;
+    }
+    return true;
+}
+
+void NeckDecisionWithBall::advancedWithBall(PlayerAgent *agent){
+    const WorldModel & wm = agent->world();
     addShootTargets(wm);
     addPredictorTargets(wm);
     addChainTargets(wm);
@@ -23,9 +44,22 @@ bool NeckDecisionWithBall::setNeck(PlayerAgent *agent) {
     addHandyTargets(wm);
     neckEvaluator(wm);
     execute(agent);
-    return true;
 }
 
+void NeckDecisionWithBall::simpleWithBall(PlayerAgent *agent) {
+    const WorldModel &wm = agent->world();
+    if (wm.existKickableOpponent()
+        && wm.ball().distFromSelf() < 18.0) {
+        agent->setNeckAction(new Neck_TurnToBall());
+    } else {
+        agent->setNeckAction(new Neck_TurnToBallOrScan());
+    }
+}
+
+void NeckDecisionWithBall::neckToReceiver(PlayerAgent *agent) {
+    const ActionChainGraph &chain_graph = ActionChainHolder::i().graph();
+    agent->setNeckAction( new Neck_TurnToReceiver( chain_graph ) );
+}
 void NeckDecisionWithBall::init(PlayerAgent *agent){
     const WorldModel & wm = agent->world();
     M_self_min = wm.interceptTable()->selfReachCycle();
@@ -44,6 +78,10 @@ void NeckDecisionWithBall::init(PlayerAgent *agent){
         dlog.addText(Logger::ROLE,"can see ball");
         M_can_see_ball = true;
     }
+    M_use_pass_predictor = false;
+    M_use_pass_predictor_if_chain_find_pass = false;
+    M_ignore_chain_pass_target_for_predictor = true;
+    M_ignore_chain_pass_target_for_predictor_dist = true;
 }
 
 void NeckDecisionWithBall::addShootTargets(const WorldModel & wm){
@@ -111,14 +149,17 @@ void NeckDecisionWithBall::addChainTargets(const WorldModel & wm){
         }
 
         if (path.at(i).action().category() == CooperativeAction::Pass) {
+            if (M_ignore_chain_pass_target_for_predictor && M_predictor_targets.size() > 0)
+                continue;
             auto next_target = action_state.action().targetPoint();
             bool is_near_to_predictor_targets = false;
-            for (auto & predictor_target: M_predictor_targets){
-                if (predictor_target.dist(next_target) < 5.0){
-                    is_near_to_predictor_targets = true;
-                    break;
+            if (M_ignore_chain_pass_target_for_predictor_dist)
+                for (auto & predictor_target: M_predictor_targets){
+                    if (predictor_target.dist(next_target) < 5.0){
+                        is_near_to_predictor_targets = true;
+                        break;
+                    }
                 }
-            }
             if (!is_near_to_predictor_targets){
                 addTarget(next_target, 10.0 * z);
                 dlog.addText(Logger::ROLE, "##### Add Pass (%.1f, %.1f) %.1f", next_target.x, next_target.y, 10.0 * z);
@@ -138,6 +179,16 @@ void NeckDecisionWithBall::addChainTargets(const WorldModel & wm){
 }
 
 void NeckDecisionWithBall::addPredictorTargets(const WorldModel & wm){
+    if (!M_use_pass_predictor)
+        return;
+    const ActionChainGraph &chain_graph = ActionChainHolder::i().graph();
+    const std::vector<ActionStatePair> &path = chain_graph.getAllChain();
+    if (M_use_pass_predictor_if_chain_find_pass){
+        if (path.size() == 0)
+            return;
+        if (path.front().action().category() != CooperativeAction::Pass)
+            return;
+    }
     auto next_candidates = NextPassPredictor().nextReceiverCandidates(wm);
     if (next_candidates.empty())
         return;
@@ -145,7 +196,7 @@ void NeckDecisionWithBall::addPredictorTargets(const WorldModel & wm){
     for (int i = 0; i < next_candidates.size() && i < 2; i++){
         Vector2D target = next_candidates.at(i);
         addTarget(target, 20);
-        dlog.addText(Logger::ROLE, "##### Add Pass Predictor (%.1f, %.1f) %.1f", target.x, target.y, 20.0);
+        dlog.addText(Logger::ROLE, "##### Add Pass Predictor (%.1f, %.1f) %.1f", target.x, target.y, 10.0);
         M_predictor_targets.push_back(target);
         vector<Vector2D> opp_positions;
         getPassingOppDanger(wm, start_pos, target, opp_positions);
@@ -306,7 +357,6 @@ void NeckDecisionWithBall::neckEvaluator(const WorldModel & wm){
         AngleDeg max_see = (neck + M_next_view_width / 2.0 - 5);
         dlog.addText(Logger::ROLE, ">> ##%d Angle:%.1f, min:%.1f, max:%.1f", angle_index, neck, min_see.degree(), max_see.degree());
         double eval = 0;
-        std::cout<<M_target.size()<<std::endl;
         for (auto & target: M_target) {
             AngleDeg target_angle = (target.target - M_self_pos).th();
             if (target_angle.isWithin(min_see, max_see)) {
