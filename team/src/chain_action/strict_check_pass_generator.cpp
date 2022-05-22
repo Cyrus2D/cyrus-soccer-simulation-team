@@ -1841,6 +1841,8 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
         int pos_count = opponent.player_->posCount();
         int body_count_effect = body_count - pos_count;
         int pos_count_effect = std::min(8, pos_count);
+        if (FieldAnalyzer::isYushan(wm))
+            pos_count_effect = std::min(5, pos_count);
         if (body_count_effect > 2)
             body_count_effect = 2;
 
@@ -1853,10 +1855,9 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
             || FieldAnalyzer::isFRA(wm))
             count_effect = 0.9;
         double c_count_effect = 0.5;
-        if ((M_pass_type == 'T' && receive_point.x > wm.offsideLineX() + 5) || receive_point.x > wm.offsideLineX() + 10){
+        if ((M_pass_type == 'T' && receive_point.x > wm.offsideLineX() - 5) || receive_point.x > wm.offsideLineX() + 10){
             if (FieldAnalyzer::isHelius(wm)
                 || FieldAnalyzer::isMT(wm)
-                || FieldAnalyzer::isYushan(wm)
                 || FieldAnalyzer::isOxsy(wm)
                 || FieldAnalyzer::isFRA(wm))
             {
@@ -1872,12 +1873,12 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
             else
             {
                 if(receive_point.x > wm.offsideLineX() + 10){
-                    count_effect = 0.5;
-                    c_count_effect = 0.15;
+                    count_effect = 0.4;
+                    c_count_effect = 0.2;
                 }
                 else{
-                    count_effect = 0.6;
-                    c_count_effect = 0.2;
+                    count_effect = 0.5;
+                    c_count_effect = 0.3;
                 }
             }
         }
