@@ -89,13 +89,15 @@ NECK = \
 	neck/neck_default_intercept_neck.cpp \
 	neck/neck_offensive_intercept_neck.cpp \
 	neck/view_tactical.cpp \
-	neck/neck_decision.cpp
+	neck/neck_decision.cpp \
+	neck/next_pass_predictor.cpp
 
 NECKH = \
 	neck/neck_default_intercept_neck.h \
 	neck/neck_offensive_intercept_neck.h \
 	neck/view_tactical.h \
-	neck/neck_decision.h
+	neck/neck_decision.h \
+	neck/next_pass_predictor.h
 
 PLAYERSOURCES = \
 	bhv_basic_move.cpp \

@@ -67,7 +67,6 @@
 #include "neck/neck_decision.h"
 using namespace rcsc;
 
-DeepNueralNetwork * NextPassPredictor::pass_prediction = new DeepNueralNetwork();
 
 bool Bhv_BasicMove::set_def_neck_with_ball(PlayerAgent *agent, Vector2D targetPoint, const AbstractPlayerObject *opp,
                                            int blocker) {
