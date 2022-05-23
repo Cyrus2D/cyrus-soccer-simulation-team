@@ -78,10 +78,10 @@ void NeckDecisionWithBall::init(PlayerAgent *agent){
         dlog.addText(Logger::ROLE,"can see ball");
         M_can_see_ball = true;
     }
-    M_use_pass_predictor = false;
-    M_use_pass_predictor_if_chain_find_pass = false;
-    M_ignore_chain_pass_target_for_predictor = true;
-    M_ignore_chain_pass_target_for_predictor_dist = true;
+    M_use_pass_predictor = true;
+    M_use_pass_predictor_if_chain_find_pass =false;
+    M_ignore_chain_pass_target_for_predictor = false;
+    M_ignore_chain_pass_target_for_predictor_dist = false;
 }
 
 void NeckDecisionWithBall::addShootTargets(const WorldModel & wm){
@@ -180,6 +180,8 @@ void NeckDecisionWithBall::addChainTargets(const WorldModel & wm){
 
 void NeckDecisionWithBall::addPredictorTargets(const WorldModel & wm){
     if (!M_use_pass_predictor)
+        return;
+    if (M_self_min > 3)
         return;
     const ActionChainGraph &chain_graph = ActionChainHolder::i().graph();
     const std::vector<ActionStatePair> &path = chain_graph.getAllChain();
