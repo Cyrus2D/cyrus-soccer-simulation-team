@@ -44,7 +44,7 @@ class NeckSetting{
 public:
     NeckSetting(){}
     NeckSetting(Value & value);
-    string mPredictionDNNPath;
+    string mPredictionDNNPath = "";
     bool mUsePredictionDNN = false;
     bool mUsePPIfChain =false;
     bool mIgnoreChainPass = false;
@@ -121,6 +121,7 @@ public:
     Setting(){
         mStrategySetting = new StrategySetting();
         mChainAction = new ChainActionSetting();
+        mNeck = new NeckSetting();
         mOffensiveMove = new OffensiveMoveSetting();
         mDefenseMove = new DefenseMoveSetting();
     }
