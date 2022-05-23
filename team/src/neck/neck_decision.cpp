@@ -13,6 +13,7 @@
 #include <rcsc/action/neck_turn_to_ball_or_scan.h>
 #include "next_pass_predictor.h"
 #include "../chain_action/neck_turn_to_receiver.h"
+#include "../debugs.h"
 
 
 bool NeckDecisionWithBall::setNeck(PlayerAgent *agent, NeckDecisionType type) {
@@ -75,7 +76,9 @@ void NeckDecisionWithBall::init(PlayerAgent *agent){
     M_should_check_ball = (M_ball_vel_count > 2 || M_ball_pos_count > 2) ? true : false;
     M_can_see_ball = false;
     if ((M_self_body - M_ball_angle).abs() < M_next_view_width * 0.5 + 85){
+        #ifdef DEBUG_NECK_DECISION
         dlog.addText(Logger::ROLE,"can see ball");
+        #endif
         M_can_see_ball = true;
     }
     M_use_pass_predictor = true;
@@ -89,7 +92,9 @@ void NeckDecisionWithBall::addShootTargets(const WorldModel & wm){
         return;
     Vector2D shoot_tar = Bhv_StrictCheckShoot(0).get_best_shoot(wm);
     if (shoot_tar.isValid() && M_self_min <= 3){
+        #ifdef DEBUG_NECK_DECISION
         dlog.addText(Logger::ROLE, ">>Add shoot target (.1f, .1f) 10.0", shoot_tar.x, shoot_tar.y);
+        #endif
         addTarget(shoot_tar, 10.0);
     }
 
@@ -101,23 +106,31 @@ void NeckDecisionWithBall::addChainTargets(const WorldModel & wm){
     const std::vector<ActionStatePair> &path = chain_graph.getAllChain();
     if (M_self_min > 3)
         return;
+    #ifdef DEBUG_NECK_DECISION
     dlog.addText(Logger::ROLE, ">>Add Chain Targets");
+    #endif
     M_find_action_by_chain = false;
     int length = path.size();
     length = 1;
     for (int i = 0; i < length; i++) {
+        #ifdef DEBUG_NECK_DECISION
         dlog.addText(Logger::ROLE, "#### Level %d", i);
+        #endif
         auto action_state = path.at(i);
         M_find_action_by_chain = true;
         double z = 1.0 / static_cast<double>(i + 1);
         if (path.at(i).action().category() == CooperativeAction::Shoot) {
             auto next_target = action_state.action().targetPoint();
             addTarget(next_target, 10.0 * z);
+            #ifdef DEBUG_NECK_DECISION
             dlog.addText(Logger::ROLE, "##### Add Shoot (%.1f, %.1f) %.1f", next_target.x, next_target.y, 10.0 * z);
+            #endif
             if (wm.getOpponentGoalie() != nullptr && wm.getOpponentGoalie()->unum() > 0){
                 auto opp_pos = wm.getOpponentGoalie()->pos();
                 addTarget(opp_pos, 10.0 * z);
+                #ifdef DEBUG_NECK_DECISION
                 dlog.addText(Logger::ROLE, "##### Add Shoot Goalie(%.1f, %.1f) %.1f", opp_pos.x, opp_pos.y, 10.0 * z);
+                #endif
             }
 
         }
@@ -125,7 +138,9 @@ void NeckDecisionWithBall::addChainTargets(const WorldModel & wm){
         if (path.at(i).action().category() == CooperativeAction::Dribble) {
             auto next_target = action_state.action().targetPoint();
             addTarget(next_target, 5 * z);
+            #ifdef DEBUG_NECK_DECISION
             dlog.addText(Logger::ROLE, "##### Add Dribble (%.1f, %.1f) %.1f", next_target.x, next_target.y, 5.0 * z);
+            #endif
             Vector2D start_pos = M_ball_inertia;
             if (i > 0)
                 start_pos = path.at(i - 1).action().targetPoint();
@@ -133,7 +148,9 @@ void NeckDecisionWithBall::addChainTargets(const WorldModel & wm){
             getDribblingOppDanger(wm, start_pos, next_target, opp_positions);
             for (int i = 0; i < opp_positions.size() && i <= 2; i++) {
                 addTarget(opp_positions.at(i), (3.0 - i) * 3.0 * z);
+                #ifdef DEBUG_NECK_DECISION
                 dlog.addText(Logger::ROLE, "##### Add Dribble Opp (%.1f, %.1f) %.1f", opp_positions.at(i).x, opp_positions.at(i).y, (3.0 - i) * 3.0 * z);
+                #endif
             }
         }
 
@@ -144,7 +161,9 @@ void NeckDecisionWithBall::addChainTargets(const WorldModel & wm){
                     break;
                 auto opp_pos = wm.opponentsFromBall().at(i)->pos();
                 addTarget(opp_pos, (3.0 - i) * 3.0 * z);
+                #ifdef DEBUG_NECK_DECISION
                 dlog.addText(Logger::ROLE, "##### Add Hold Opp (%.1f, %.1f) %.1f", opp_pos.x, opp_pos.y, (3.0 - i) * 3.0 * z);
+                #endif
             }
         }
 
@@ -162,7 +181,9 @@ void NeckDecisionWithBall::addChainTargets(const WorldModel & wm){
                 }
             if (!is_near_to_predictor_targets){
                 addTarget(next_target, 10.0 * z);
+                #ifdef DEBUG_NECK_DECISION
                 dlog.addText(Logger::ROLE, "##### Add Pass (%.1f, %.1f) %.1f", next_target.x, next_target.y, 10.0 * z);
+                #endif
                 Vector2D start_pos = M_ball_inertia;
                 if (i >= 1)
                     start_pos = path[i - 1].state().ball().pos();
@@ -171,7 +192,9 @@ void NeckDecisionWithBall::addChainTargets(const WorldModel & wm){
                 for (int i = 0; i < opp_positions.size() && i <= 2; i++) {
                     auto opp_pos = opp_positions.at(i);
                     addTarget(opp_pos, (M_self_min <= 1 ? 20.0 : 10.0) * z);
+                    #ifdef DEBUG_NECK_DECISION
                     dlog.addText(Logger::ROLE, "##### Add Pass Opp (%.1f, %.1f) %.1f", opp_pos.x, opp_pos.y, (M_self_min <= 1 ? 20.0 : 10.0) * z);
+                    #endif
                 }
             }
         }
@@ -198,14 +221,18 @@ void NeckDecisionWithBall::addPredictorTargets(const WorldModel & wm){
     for (int i = 0; i < next_candidates.size() && i < 2; i++){
         Vector2D target = next_candidates.at(i);
         addTarget(target, 20);
+        #ifdef DEBUG_NECK_DECISION
         dlog.addText(Logger::ROLE, "##### Add Pass Predictor (%.1f, %.1f) %.1f", target.x, target.y, 10.0);
+        #endif
         M_predictor_targets.push_back(target);
         vector<Vector2D> opp_positions;
         getPassingOppDanger(wm, start_pos, target, opp_positions);
         for (int i = 0; i < opp_positions.size() && i <= 1; i++) {
             auto opp_pos = opp_positions.at(i);
             addTarget(opp_pos, (M_self_min <= 1 ? 20.0 : 10.0));
+            #ifdef DEBUG_NECK_DECISION
             dlog.addText(Logger::ROLE, "##### Add Pass Predictor Opp (%.1f, %.1f) %.1f", opp_pos.x, opp_pos.y, (M_self_min <= 1 ? 20.0 : 10.0));
+            #endif
         }
     }
 }
@@ -339,10 +366,12 @@ void NeckDecisionWithBall::neckEvaluator(const WorldModel & wm){
         if (target.eval > max_target_eval)
             max_target_eval = target.eval;
     }
+    #ifdef DEBUG_NECK_DECISION
     for (auto & target: M_target){
         dlog.addCircle(Logger::PLAN, target.target, max(0.2, 3 * target.eval / max(max_target_eval, 0.1)), 0, 0, 255,
                        true);
     }
+    #endif
     struct neckEval{
         int index; double eval; double neck_angle;
         neckEval(int index_, double eval_, double neck_angle_){
@@ -353,11 +382,15 @@ void NeckDecisionWithBall::neckEvaluator(const WorldModel & wm){
     };
     vector<neckEval> evals;
     int angle_index = 0;
+    #ifdef DEBUG_NECK_DECISION
     dlog.addText(Logger::PLAN, "My Next Body: %.1f", M_self_body.degree());
+    #endif
     for (double neck = M_self_body.degree() - 90.0; neck <= M_self_body.degree() + 90.0; neck += 10.0) {
         AngleDeg min_see(neck - M_next_view_width / 2.0 + 5);
         AngleDeg max_see = (neck + M_next_view_width / 2.0 - 5);
+        #ifdef DEBUG_NECK_DECISION
         dlog.addText(Logger::ROLE, ">> ##%d Angle:%.1f, min:%.1f, max:%.1f", angle_index, neck, min_see.degree(), max_see.degree());
+        #endif
         double eval = 0;
         for (auto & target: M_target) {
             AngleDeg target_angle = (target.target - M_self_pos).th();
@@ -368,16 +401,18 @@ void NeckDecisionWithBall::neckEvaluator(const WorldModel & wm){
                     e *= 0.1;
                 else
                     e *= static_cast<double>(dir_count);
-
+                #ifdef DEBUG_NECK_DECISION
                 dlog.addText(Logger::ROLE, "------(%.1f,%.1f):%.1f", target.target.x, target.target.y, e);
+                #endif
                 eval += e;
             }
         }
         if (M_should_check_ball && M_can_see_ball)
             if (!M_ball_angle.isWithin(min_see, max_see))
                 eval = -1;
-
+        #ifdef DEBUG_NECK_DECISION
         dlog.addText(Logger::ROLE, "##%d eV:%.1f", angle_index, eval);
+        #endif
         if (eval > M_best_eval) {
             M_best_eval = eval;
             M_best_neck = AngleDeg(neck);
@@ -388,23 +423,35 @@ void NeckDecisionWithBall::neckEvaluator(const WorldModel & wm){
     if (M_best_eval > 0)
         for (auto & n_e: evals){
             Vector2D tmp = Vector2D::polar2vector(n_e.eval / M_best_eval * 20.0, n_e.neck_angle);
+            #ifdef DEBUG_NECK_DECISION
             dlog.addLine(Logger::ROLE, M_self_pos, M_self_pos + tmp, 0, 0, 255);
+            #endif
         }
+    #ifdef DEBUG_NECK_DECISION
     dlog.addText(Logger::ROLE, "Best Neck: %.1f", M_best_neck.degree());
+    #endif
 }
 
 void NeckDecisionWithBall::execute(PlayerAgent * agent){
     const WorldModel & wm = agent->world();
+    #ifdef DEBUG_NECK_DECISION
     dlog.addText(Logger::PLAN, "Set neck execute");
+    #endif
     if (M_best_neck.isValid()) {
+        #ifdef DEBUG_NECK_DECISION
         dlog.addLine(Logger::PLAN, M_self_pos, M_self_pos + Vector2D::polar2vector(10, M_best_neck), 255, 0, 0);
         dlog.addText(Logger::PLAN, "Set neck to %.1f", M_best_neck.degree());
+        #endif
         agent->setNeckAction(new Neck_TurnToPoint(M_self_pos + Vector2D::polar2vector(10, M_best_neck)));
     } else if (M_should_check_ball && M_can_see_ball) {
+        #ifdef DEBUG_NECK_DECISION
         dlog.addText(Logger::PLAN, "Set neck turn to ball");
+        #endif
         agent->setNeckAction(new Neck_TurnToBall());
     } else {
+        #ifdef DEBUG_NECK_DECISION
         dlog.addText(Logger::PLAN, "Set neck scan");
         agent->setNeckAction(new Neck_TurnToBallOrScan(1));
+        #endif
     }
 }

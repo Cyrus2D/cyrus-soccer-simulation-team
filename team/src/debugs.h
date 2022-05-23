@@ -19,4 +19,6 @@
 //
 //#define DEBUG_POSITION_FINDER
 
+//#define DEBUG_NECK_DECISION
+
 #endif //TEAM_DEBUGS_H
