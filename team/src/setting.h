@@ -40,6 +40,17 @@ public:
     bool mIsGoalForward = false;
 };
 
+class NeckSetting{
+public:
+    NeckSetting(){}
+    NeckSetting(Value & value);
+    string mPredictionDNNPath;
+    bool mUsePredictionDNN = false;
+    bool mUsePPIfChain =false;
+    bool mIgnoreChainPass = false;
+    bool mIgnoreChainPassByDist = false;
+};
+
 class OffensiveMoveSetting{
 public:
     OffensiveMoveSetting(){}
@@ -126,6 +137,7 @@ public:
     bool mSeted = false;
     StrategySetting * mStrategySetting;
     ChainActionSetting * mChainAction;
+    NeckSetting * mNeck;
     OffensiveMoveSetting * mOffensiveMove;
     DefenseMoveSetting * mDefenseMove;
 };

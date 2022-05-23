@@ -14,6 +14,7 @@
 #include "next_pass_predictor.h"
 #include "../chain_action/neck_turn_to_receiver.h"
 #include "../debugs.h"
+#include "../setting.h"
 
 
 bool NeckDecisionWithBall::setNeck(PlayerAgent *agent, NeckDecisionType type) {
@@ -81,10 +82,10 @@ void NeckDecisionWithBall::init(PlayerAgent *agent){
         #endif
         M_can_see_ball = true;
     }
-    M_use_pass_predictor = true;
-    M_use_pass_predictor_if_chain_find_pass =false;
-    M_ignore_chain_pass_target_for_predictor = false;
-    M_ignore_chain_pass_target_for_predictor_dist = false;
+    M_use_pass_predictor = Setting::i()->mNeck->mUsePredictionDNN;
+    M_use_pass_predictor_if_chain_find_pass = Setting::i()->mNeck->mUsePPIfChain;
+    M_ignore_chain_pass_target_for_predictor = Setting::i()->mNeck->mIgnoreChainPass;
+    M_ignore_chain_pass_target_for_predictor_dist = Setting::i()->mNeck->mIgnoreChainPassByDist;
 }
 
 void NeckDecisionWithBall::addShootTargets(const WorldModel & wm){

@@ -97,6 +97,20 @@ StrategySetting::StrategySetting(Value & value){
     }
 }
 
+NeckSetting::NeckSetting(Value &value)
+{
+    if(value.HasMember("PredictionDNNPath"))
+        mPredictionDNNPath = value["PredictionDNNPath"].GetString();
+    if (value.HasMember("UsePredictionDNN"))
+        mUsePredictionDNN = value["UsePredictionDNN"].GetBool();
+    if (value.HasMember("UsePPIfChain"))
+        mUsePPIfChain = value["UsePPIfChain"].GetBool();
+    if (value.HasMember("IgnoreChainPass"))
+        mIgnoreChainPass = value["IgnoreChainPass"].GetBool();
+    if (value.HasMember("IgnoreChainPassByDist"))
+        mIgnoreChainPassByDist = value["IgnoreChainPassByDist"].GetBool();
+}
+
 OffensiveMoveSetting::OffensiveMoveSetting(Value &value)
 {
     if(value.HasMember("Is9BrokeOffside"))
@@ -308,6 +322,10 @@ void Setting::ReadJson(){
     if(d.HasMember("ChainAction")){
         delete mChainAction;
         mChainAction = new ChainActionSetting(d["ChainAction"]);
+    }
+    if(d.HasMember("Neck")){
+        delete mNeck;
+        mNeck = new NeckSetting(d["Neck"]);
     }
     if(d.HasMember("OffensiveMove")){
         delete mOffensiveMove;

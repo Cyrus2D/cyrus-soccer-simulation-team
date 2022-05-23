@@ -8,6 +8,7 @@
 #include "../setting.h"
 #include "../data_extractor/DEState.h"
 #include "../data_extractor/offensive_data_extractor.h"
+#include "../setting.h"
 
 class NextPassPredictor {
 public:
@@ -16,8 +17,7 @@ public:
         static bool load_dnn = false;
         if(!load_dnn){
             load_dnn = true;
-        pass_prediction->ReadFromKeras("data/deep/pass_prediction_yushan_w_fw.txt");
-//            pass_prediction->ReadFromKeras(Setting::i()->mOffensiveMove->mMainUnmarkPassPredictionDNN);
+            pass_prediction->ReadFromKeras(Setting::i()->mNeck->mPredictionDNNPath);
         }
     }
     vector<pass_prob> predict_pass(vector<double> & features, vector<int> ignored_player, int kicker){
