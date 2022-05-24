@@ -114,7 +114,7 @@ bool RoleGoalie::execute(PlayerAgent * agent) {
 		if (wm.gameMode().type() != rcsc::GameMode::PlayOn)
 			isDanger = false;
 
-		if (wm.time().cycle() - dangerCycle > 33)
+		if (wm.time().cycle() - dangerCycle > 33 && wm.ball().vel().r() > 1.0)
 			isDanger = false;
 
 		if (wm.existKickableOpponent() || wm.existKickableTeammate())
@@ -127,6 +127,7 @@ bool RoleGoalie::execute(PlayerAgent * agent) {
 					+ ServerParam::i().catchBanCycle()
 			&& agent->world().ball().distFromSelf()
 					< ServerParam::i().catchableArea() - 0.05
+            && ((wm.ball().pos() - wm.self().pos()).th() - wm.self().body()).abs() < 90
 			&& our_penalty.contains(agent->world().ball().pos())) {
 
 		Vector2D nearestTmmPos = Vector2D(100, 100);
