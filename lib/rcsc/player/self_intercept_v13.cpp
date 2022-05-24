@@ -949,29 +949,29 @@ SelfInterceptV13::predictShortStep( const int max_cycle,
                       control_area - 0.4 );
 #endif
         int tmp_cache_size = tmp_cache.size();
-        predictTurnDashShort( cycle, ball_pos, control_area, save_recovery, true, // back dash
-                              std::max( 0.1, ptype.playerSize() + 0.1 ),
-                              tmp_cache );
-        if(tmp_cache_size == tmp_cache.size()){
-#ifdef DEBUG_PRINT_SHORT_STEP
-            dlog.addText( Logger::INTERCEPT,
-                          ">>>>>>>> turn dash back, turn_margin_dist=%f",
-                          std::max( 0.1, control_area - control_area_buf ) );
-#endif
-            predictTurnDashShort( cycle, ball_pos, control_area, save_recovery, true, // back dash
-                                  ptype.playerSize() + 0.3,
-                                  tmp_cache );
-            if(tmp_cache_size == tmp_cache.size()){
-#ifdef DEBUG_PRINT_SHORT_STEP
-            dlog.addText( Logger::INTERCEPT,
-                          ">>>>>>>> turn dash back, turn_margin_dist=%f",
-                          std::max( 0.1, control_area - control_area_buf ) );
-#endif
-            predictTurnDashShort( cycle, ball_pos, control_area, save_recovery, true, // back dash
-                                  control_area - 0.3,
-                                  tmp_cache );
-            }
-        }
+//        predictTurnDashShort( cycle, ball_pos, control_area, save_recovery, true, // back dash
+//                              std::max( 0.1, ptype.playerSize() + 0.1 ),
+//                              tmp_cache );
+//        if(tmp_cache_size == tmp_cache.size()){
+//#ifdef DEBUG_PRINT_SHORT_STEP
+//            dlog.addText( Logger::INTERCEPT,
+//                          ">>>>>>>> turn dash back, turn_margin_dist=%f",
+//                          std::max( 0.1, control_area - control_area_buf ) );
+//#endif
+//            predictTurnDashShort( cycle, ball_pos, control_area, save_recovery, true, // back dash
+//                                  ptype.playerSize() + 0.3,
+//                                  tmp_cache );
+//            if(tmp_cache_size == tmp_cache.size()){
+//#ifdef DEBUG_PRINT_SHORT_STEP
+//            dlog.addText( Logger::INTERCEPT,
+//                          ">>>>>>>> turn dash back, turn_margin_dist=%f",
+//                          std::max( 0.1, control_area - control_area_buf ) );
+//#endif
+//            predictTurnDashShort( cycle, ball_pos, control_area, save_recovery, true, // back dash
+//                                  control_area - 0.3,
+//                                  tmp_cache );
+//            }
+//        }
 
 
 #ifdef DEBUG_PRINT_SHORT_STEP
@@ -982,8 +982,8 @@ SelfInterceptV13::predictShortStep( const int max_cycle,
         {
             predictOmniDashShort( cycle, ball_pos, control_area, save_recovery, false, // forward dash
                                   tmp_cache );
-            predictOmniDashShort( cycle, ball_pos, control_area, save_recovery, true, // back dash
-                                  tmp_cache );
+//            predictOmniDashShort( cycle, ball_pos, control_area, save_recovery, true, // back dash
+//                                  tmp_cache );
         }
 
         //
@@ -2115,12 +2115,12 @@ SelfInterceptV13::predictTurnCycle( const int cycle,
     */
     ///////////////////////////////////////////////////
     // check back dash possibility
-    if ( canBackDashChase( cycle, target_dist, angle_diff ) )
-    {
-        *back_dash = true;
-        *dash_angle += 180.0;
-        angle_diff = 180.0 - angle_diff;
-    }
+//    if ( canBackDashChase( cycle, target_dist, angle_diff ) )
+//    {
+//        *back_dash = true;
+//        *dash_angle += 180.0;
+//        angle_diff = 180.0 - angle_diff;
+//    }
 
 #ifdef DEBUG_PRINT_LONG_STEP_LEVEL_2
     dlog.addText( Logger::INTERCEPT,
