@@ -2879,7 +2879,8 @@ PlayerAgent::doDash( const double & power,
                   << " Now Tackle expire period" << std::endl;
         return false;
     }
-
+    if (power < 0)
+        std::cout<<"ERRRRRRRRRRRRRRRRRR"<<this->world().self().unum()<<" "<<this->world().time().cycle()<<std::endl;
     M_effector.setDash( power, rel_dir );
     return true;
 }
