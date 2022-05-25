@@ -1160,18 +1160,17 @@ SelfInterceptV13::predictTurnCycleShort( const int cycle,
         double my_speed = self.vel().r();
         while ( body_line.dist(ball_pos) > dist_thr || self_ball.x < 0 )
         {
-            angle_diff -= ptype.effectiveTurn( max_moment, my_speed );
+            AngleDeg tmp = ptype.effectiveTurn( max_moment, my_speed );
+            angle_diff -= tmp.degree();
             my_speed *= ptype.playerDecay();
             ++n_turn;
-            AngleDeg tmp = ptype.effectiveTurn( max_moment, my_speed );
-            if(angle_diff < 0){
-                tmp += angle_diff;
+            if(angle_diff <= 0){
                 angle_diff = 0;
+                body_angle = target_angle;
+                break;
             }
             body_angle += (turn_to_right?tmp:-tmp);
             body_line = Line2D(self.pos(),body_angle);
-            if(angle_diff == 0)
-                break;
         }
     }
 
