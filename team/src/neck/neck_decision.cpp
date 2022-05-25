@@ -103,7 +103,6 @@ void NeckDecisionWithBall::addShootTargets(const WorldModel & wm){
 
 void NeckDecisionWithBall::addChainTargets(const WorldModel & wm){
     const ActionChainGraph &chain_graph = ActionChainHolder::i().graph();
-    const CooperativeAction &first_action = chain_graph.getFirstAction();
     const std::vector<ActionStatePair> &path = chain_graph.getAllChain();
     if (M_self_min > 3)
         return;
@@ -112,7 +111,7 @@ void NeckDecisionWithBall::addChainTargets(const WorldModel & wm){
     #endif
     M_find_action_by_chain = false;
     int length = path.size();
-    length = 1;
+    length = std::min(length, 1);
     for (int i = 0; i < length; i++) {
         #ifdef DEBUG_NECK_DECISION
         dlog.addText(Logger::ROLE, "#### Level %d", i);

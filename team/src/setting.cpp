@@ -29,6 +29,10 @@ ChainActionSetting::ChainActionSetting(Value & value){
         mDribblePosCountMaxBehindOpp = value["DribblePosCountMaxBehindOpp"].GetInt();
     }
 
+    mDangerEvalBack.clear();
+    mDangerEvalMid.clear();
+    mDangerEvalForward.clear();
+    mDangerEvalPenalty.clear();
     if(value.HasMember("DangerEvalBack")){
         for (size_t i = 0; i < value["DangerEvalBack"].GetArray().Size(); i += 1){
             mDangerEvalBack.push_back(value["DangerEvalBack"].GetArray()[i].GetDouble());

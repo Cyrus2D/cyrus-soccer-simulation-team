@@ -237,7 +237,8 @@ Bhv_ChainAction::execute( PlayerAgent * agent )
 		return true;
 	}
 
-
+    if (M_chain_graph.getAllChain().empty())
+        return false;
 	const CooperativeAction & first_action = M_chain_graph.getFirstAction();
     agent->debugClient().setTarget(first_action.targetPoint());
 //    dlog.addCircle(Logger::ACTION_CHAIN,first_action.targetPoint(),0.1,150,150,0,false);
