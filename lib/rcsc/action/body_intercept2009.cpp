@@ -74,7 +74,7 @@ Body_Intercept2009::execute( PlayerAgent * agent )
     const InterceptTable * table = wm.interceptTable();
 
     /////////////////////////////////////////////
-    if ( table->selfReachCycleTackle() > 100 )
+    if ( table->selfReachCycle() > 100 )
     {
         Vector2D final_point = wm.ball().inertiaFinalPoint();
         agent->debugClient().setTarget( final_point );
@@ -130,7 +130,7 @@ Body_Intercept2009::execute( PlayerAgent * agent )
     {
         Vector2D my_inertia = wm.self().inertiaPoint( best_intercept.reachCycle() );
         AngleDeg target_angle = ( target_point - my_inertia ).th();
-        if ( best_intercept.dashPower() < 0.0 )
+        if ( best_intercept.dashAngle().abs() > 179 )
         {
             // back dash
             target_angle -= 180.0;
@@ -1409,7 +1409,7 @@ Body_Intercept2009::doInertiaDash( PlayerAgent * agent,
     target_rel.rotate( - wm.self().body() );
 
     AngleDeg accel_angle = wm.self().body();
-    if ( info.dashPower() < 0.0 ) accel_angle += 180.0;
+    if ( info.dashAngle().abs() > 179.0 ) accel_angle += 180.0;
 
     Vector2D ball_vel = wm.ball().vel() * std::pow( ServerParam::i().ballDecay(),
                                                     info.reachCycle() );
