@@ -343,7 +343,6 @@ ActionChainGraph::calculateResult( const PlayerAgent* agent)
     M_chain_count = 0;
     M_best_chain_count = 0;
 
-
     //
     // best first
     //
@@ -401,7 +400,8 @@ ActionChainGraph::calculateResult( const PlayerAgent* agent)
                 add_hold_to_result(wm);
             }
         }
-    }else{
+    }
+    else{
         #ifdef ACTION_CHAIN_DEBUG
         dlog.addText(Logger::ACTION_CHAIN, ">>>> select best from safe > choose better action");
         #endif
@@ -783,6 +783,8 @@ bool ActionChainGraph::is_anti_offense(const WorldModel & wm){
     for(int i = 0;i<number_in_off;i++){
         sum_x += oppx[i];
     }
+    if (number_in_off == 0)
+        return false;
     double avg_x = sum_x / (double)number_in_off;
     Vector2D ball_pos = wm.ball().pos();
     if(avg_x < ball_pos.x - 25)
@@ -808,7 +810,6 @@ ActionChainGraph::calculateResultBestFirstSearch( const WorldModel & wm,
     if(wm.self().isKickable())
         if(is_anti_offense(wm))
             use_danger_eval = false;
-
     //
     // create priority queue
     //
@@ -829,8 +830,8 @@ ActionChainGraph::calculateResultBestFirstSearch( const WorldModel & wm,
     }
     if(wm.countOpponentsIn(Circle2D(wm.ball().pos(),2.0),3,true) > 0)
         current_evaluation -= 20;
-
     double danger_eval = calc_danger_eval_for_target(wm,current_state.ball().pos(),0);
+
     if(use_danger_eval)
         current_evaluation -= danger_eval;
 

@@ -241,31 +241,33 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
         }
         if(!shoot_is_best){
             const ActionChainGraph &chain_graph = ActionChainHolder::i().graph();
-            const CooperativeAction &first_action = chain_graph.getFirstAction();
-            switch (first_action.category()) {
-            case CooperativeAction::Shoot: {
-                next_pass = Vector2D(52, 0);
-                face = first_action.targetPoint();
-                break;
-            }
+            if (!chain_graph.getAllChain().empty()){
+                const CooperativeAction &first_action = chain_graph.getFirstAction();
+                switch (first_action.category()) {
+                    case CooperativeAction::Shoot: {
+                        next_pass = Vector2D(52, 0);
+                        face = first_action.targetPoint();
+                        break;
+                    }
 
-            case CooperativeAction::Dribble: {
-                face = first_action.targetPoint();
-                break;
-            }
+                    case CooperativeAction::Dribble: {
+                        face = first_action.targetPoint();
+                        break;
+                    }
 
-            case CooperativeAction::Hold: {
-                break;
-            }
+                    case CooperativeAction::Hold: {
+                        break;
+                    }
 
-            case CooperativeAction::Pass: {
-                face = first_action.targetPoint();
-                next_pass = first_action.targetPoint();
-                if (self_min == 1) {
-                    Bhv_PassKickFindReceiver(chain_graph).doSayPrePass(agent, first_action);
+                    case CooperativeAction::Pass: {
+                        face = first_action.targetPoint();
+                        next_pass = first_action.targetPoint();
+                        if (self_min == 1) {
+                            Bhv_PassKickFindReceiver(chain_graph).doSayPrePass(agent, first_action);
+                        }
+                        break;
+                    }
                 }
-                break;
-            }
             }
         }
     }

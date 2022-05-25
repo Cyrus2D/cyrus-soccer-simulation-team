@@ -12,7 +12,28 @@ using namespace std;
 using namespace rapidjson;
 class ChainActionSetting{
 public:
-    ChainActionSetting(){}
+    ChainActionSetting(){
+        {
+            double default_value[15] = { 50, 40, 35, 20, 18, 16, 10, 5, 4, 3, 0, 0, 0, 0, 0};
+            for (auto &v: default_value)
+                mDangerEvalBack.push_back(v);
+        }
+        {
+            double default_value[15] = { 50, 40, 35, 15, 5, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0};
+            for (auto &v: default_value)
+                mDangerEvalMid.push_back(v);
+        }
+        {
+            double default_value[15] = { 30, 25, 20, 15, 12, 10, 3, 0, 0, 0, 0, 0, 0, 0, 0};
+            for (auto &v: default_value)
+                mDangerEvalForward.push_back(v);
+        }
+        {
+            double default_value[15] = { 10, 8, 5, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            for (auto &v: default_value)
+                mDangerEvalPenalty.push_back(v);
+        }
+    }
     ChainActionSetting(Value & value);
     int mChainDeph = 2;
     int mChainNodeNumber = 2000;
