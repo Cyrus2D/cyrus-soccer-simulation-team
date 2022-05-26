@@ -861,6 +861,37 @@ SelfInterceptV13::getOneStepDashPower( const Vector2D & next_ball_rel,
 /*!
 
  */
+
+bool InterceptSorter::operator()(InterceptInfo const& a, InterceptInfo const& b) const {
+    if ( a.ballDist() < safety_ball_dist
+         && b.ballDist() < safety_ball_dist )
+    {
+        if ( a.turnCycle() > b.turnCycle() )
+        {
+            return false;
+        }
+        else if ( a.turnCycle() == b.turnCycle()
+                  && a.stamina() < b.stamina() )
+        {
+            return false;
+        }
+    }
+    else
+    {
+        //if ( ( best->ballDist() > danger_ball_dist
+        //     || ( best->turnCycle() > 0
+        //          && best->turnCycle() >= it->turnCycle() ) )
+        if ( a.turnCycle() >= b.turnCycle()
+             && ( a.ballDist() > b.ballDist()
+                  || ( std::fabs( a.ballDist() - b.ballDist() ) < 0.001
+                       && a.stamina() < b.stamina() ) ) )
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 void
 SelfInterceptV13::predictShortStep( const int max_cycle,
                                     const bool save_recovery,
@@ -889,6 +920,9 @@ SelfInterceptV13::predictShortStep( const int max_cycle,
 
     Vector2D ball_pos = ball.inertiaPoint( min_cycle - 1 );
     Vector2D ball_vel = ball.vel() * std::pow( SP.ballDecay(), min_cycle - 1 );
+    #ifdef DEBUG_PRINT_SHORT_STEP
+        dlog.addText( Logger::INTERCEPT, "################ predictShortStep ################");
+    #endif
 
     for ( int cycle = min_cycle; cycle <= max_loop; ++cycle )
     {
@@ -898,13 +932,10 @@ SelfInterceptV13::predictShortStep( const int max_cycle,
         ball_vel *= SP.ballDecay();
 
 #ifdef DEBUG_PRINT_SHORT_STEP
-        dlog.addText( Logger::INTERCEPT,
-                      "--------- cycle %d  -----------", cycle );
-        dlog.addText( Logger::INTERCEPT,
-                      "(predictShortStep) cycle %d: bpos(%.3f, %.3f) bvel(%.3f, %.3f)",
-                      cycle,
-                      ball_pos.x, ball_pos.y,
-                      ball_vel.x, ball_vel.y );
+        dlog.addText( Logger::INTERCEPT, "-------------------------------");
+        dlog.addText( Logger::INTERCEPT, "# CYCLE %d bpos(%.2f, %.2f) bvel(%.2f, %.2f) bvel(r %.2f th %.2f)",
+                      cycle, ball_pos.x, ball_pos.y,
+                      ball_vel.x, ball_vel.y, ball_vel.r(), ball_vel.th().degree());
 
 #endif
         const bool goalie_mode
@@ -920,69 +951,42 @@ SelfInterceptV13::predictShortStep( const int max_cycle,
         {
 #ifdef DEBUG_PRINT_SHORT_STEP
             dlog.addText( Logger::INTERCEPT,
-                          "(predictShortStep) too far." );
+                          "# NOK: To Far" );
 #endif
             continue;
         }
 
-#ifdef DEBUG_PRINT_SHORT_STEP
-        dlog.addText( Logger::INTERCEPT,
-                      ">>>>>>>> turn dash forward, turn_margin_dist=%f",
-                      control_area - 0.4 );
-#endif
         double min_dist_to_player = ptype.playerSize() + SP.ballSize() + 0.05;
         predictTurnDashShort( cycle, ball_pos, control_area, save_recovery, false, // forward dash
                               std::max( min_dist_to_player, control_area - 0.4 ),
                               tmp_cache );
-
-#ifdef DEBUG_PRINT_SHORT_STEP
-        dlog.addText( Logger::INTERCEPT,
-                      ">>>>>>>> turn dash forward, turn_margin_dist=%f",
-                      control_area - 0.1 );
-#endif
         predictTurnDashShort( cycle, ball_pos, control_area, save_recovery, false, // forward dash
                               std::max( min_dist_to_player, control_area - control_area_buf ),
                               tmp_cache );
 
-#ifdef DEBUG_PRINT_SHORT_STEP
-        dlog.addText( Logger::INTERCEPT,
-                      ">>>>>>>> turn dash back, turn_margin_dist=%f",
-                      control_area - 0.4 );
-#endif
-        int tmp_cache_size = tmp_cache.size();
+        auto tmp_cache_size = tmp_cache.size();
         predictTurnDashShort( cycle, ball_pos, control_area, save_recovery, true, // back dash
                               min_dist_to_player,
                               tmp_cache );
+        predictTurnDashShort( cycle, ball_pos, control_area, save_recovery, true, // back dash
+                      std::max( min_dist_to_player, control_area - 0.4 ),
+                      tmp_cache );
         if(tmp_cache_size == tmp_cache.size()){
-#ifdef DEBUG_PRINT_SHORT_STEP
-            dlog.addText( Logger::INTERCEPT,
-                          ">>>>>>>> turn dash back, turn_margin_dist=%f",
-                          std::max( min_dist_to_player, control_area - 0.4 ) );
-#endif
-            predictTurnDashShort( cycle, ball_pos, control_area, save_recovery, true, // back dash
-                                  std::max( min_dist_to_player, control_area - 0.4 ),
-                                  tmp_cache );
-            if(tmp_cache_size == tmp_cache.size()){
-#ifdef DEBUG_PRINT_SHORT_STEP
-            dlog.addText( Logger::INTERCEPT,
-                          ">>>>>>>> turn dash back, turn_margin_dist=%f",
-                          std::max( min_dist_to_player, control_area - control_area_buf ) );
-#endif
-            predictTurnDashShort( cycle, ball_pos, control_area, save_recovery, true, // back dash
+                predictTurnDashShort( cycle, ball_pos, control_area, save_recovery, true, // back dash
                                   std::max( min_dist_to_player, control_area - control_area_buf ),
                                   tmp_cache );
-            }
         }
 
 
-#ifdef DEBUG_PRINT_SHORT_STEP
-        dlog.addText( Logger::INTERCEPT,
-                      ">>>>>>>> omni dash forward" );
-#endif
+
         if ( cycle <= 5 )
         {
-            predictOmniDashShort( cycle, ball_pos, control_area, save_recovery, false, // forward dash
-                                  tmp_cache );
+            #ifdef DEBUG_PRINT_SHORT_STEP
+            dlog.addText( Logger::INTERCEPT,
+                          ">>>>>>>> omni dash forward" );
+            #endif
+//            predictOmniDashShort( cycle, ball_pos, control_area, save_recovery, false, // forward dash
+//                                  tmp_cache );
 //            predictOmniDashShort( cycle, ball_pos, control_area, save_recovery, true, // back dash
 //                                  tmp_cache );
         }
@@ -1001,71 +1005,16 @@ SelfInterceptV13::predictShortStep( const int max_cycle,
                                                   ptype.playerSize() + SP.ballSize() + ptype.kickableMargin() * 0.4 );
 #ifdef DEBUG_PRINT_SHORT_STEP
         dlog.addText( Logger::INTERCEPT,
-                      "decide best interception. size=%d safety_ball_dist=%.3f",
-                      tmp_cache.size(), safety_ball_dist );
+                "# All Short Result size %d safety_ball_dist=%.2f",
+                      cycle, tmp_cache.size(), safety_ball_dist );
+        for (auto & intercept: tmp_cache){
+            dlog.addText(Logger::INTERCEPT, "__ cycle %d\t turn %d\t dash %d\t power %.1f\t dash angle %.1f\t ballDist %.1f",
+                         intercept.reachCycle(), intercept.turnCycle(), intercept.dashCycle(), intercept.dashPower(), intercept.dashAngle().degree(), intercept.ballDist());
+        }
 #endif
+        std::sort(tmp_cache.begin(), tmp_cache.end(), InterceptSorter(safety_ball_dist));
 
         const InterceptInfo * best = &(tmp_cache.front());
-#ifdef DEBUG_PRINT_SHORT_STEP
-        dlog.addText( Logger::INTERCEPT,
-                      "____ turn=%d dash=%d power=%.1f dir=%.1f ball_dist=%.3f stamina=%.1f",
-                      best->turnCycle(), best->dashCycle(),
-                      best->dashPower(), best->dashAngle().degree(),
-                      best->ballDist(), best->stamina() );
-#endif
-
-        const std::vector< InterceptInfo >::iterator end = tmp_cache.end();
-        std::vector< InterceptInfo >::iterator it = tmp_cache.begin();
-        ++it;
-        for ( ; it != end; ++it )
-        {
-#ifdef DEBUG_PRINT_SHORT_STEP
-            dlog.addText( Logger::INTERCEPT,
-                          "____ turn=%d dash=%d power=%.1f dir=%.1f ball_dist=%.3f stamina=%.1f",
-                          it->turnCycle(), it->dashCycle(),
-                          it->dashPower(), it->dashAngle().degree(),
-                          it->ballDist(), it->stamina() );
-#endif
-            if ( best->ballDist() < safety_ball_dist
-                 && it->ballDist() < safety_ball_dist )
-            {
-                if ( best->turnCycle() > it->turnCycle() )
-                {
-                    best = &(*it);
-#ifdef DEBUG_PRINT_SHORT_STEP
-                    dlog.addText( Logger::INTERCEPT,
-                                  "--> updated(1)" );
-#endif
-                }
-                else if ( best->turnCycle() == it->turnCycle()
-                          && best->stamina() < it->stamina() )
-                {
-                    best = &(*it);
-#ifdef DEBUG_PRINT_SHORT_STEP
-                    dlog.addText( Logger::INTERCEPT,
-                                  "--> updated(2)" );
-#endif
-                }
-            }
-            else
-            {
-                //if ( ( best->ballDist() > danger_ball_dist
-                //     || ( best->turnCycle() > 0
-                //          && best->turnCycle() >= it->turnCycle() ) )
-                if ( best->turnCycle() >= it->turnCycle()
-                     && ( best->ballDist() > it->ballDist()
-                          || ( std::fabs( best->ballDist() - it->ballDist() ) < 0.001
-                               && best->stamina() < it->stamina() ) ) )
-                {
-                    best = &(*it);
-#ifdef DEBUG_PRINT_SHORT_STEP
-                    dlog.addText( Logger::INTERCEPT,
-                                  "--> updated(3)" );
-#endif
-                }
-            }
-        }
-
 #ifdef DEBUG_PRINT_SHORT_STEP
         dlog.addText( Logger::INTERCEPT,
                       "<<<<< Register best cycle=%d(t=%d d=%d) my_pos=(%.2f %.2f) ball_dist=%.3f stamina=%.1f",
@@ -1093,6 +1042,11 @@ SelfInterceptV13::predictTurnDashShort( const int cycle,
                                         const double & turn_margin_control_area,
                                         std::vector< InterceptInfo > & self_cache ) const
 {
+    #ifdef DEBUG_PRINT_SHORT_STEP
+        dlog.addText(Logger::INTERCEPT, "## Predict Turn Dash Short");
+        dlog.addText(Logger::INTERCEPT, "## Cycle %d bpos(%.1f,%.1f) ctrl(%.2f) save %d back %d turn margin ctrl %.1f",
+                     cycle, ball_pos.x, ball_pos.y, control_area, save_recovery, back_dash, turn_margin_control_area);
+    #endif
     AngleDeg dash_angle = M_world.self().body();
     int n_turn = predictTurnCycleShort( cycle, ball_pos, control_area, back_dash,
                                         turn_margin_control_area,
@@ -1101,7 +1055,7 @@ SelfInterceptV13::predictTurnDashShort( const int cycle,
     {
 #ifdef DEBUG_PRINT_SHORT_STEP
         dlog.addText( Logger::INTERCEPT,
-                      "(predictShortStep_cycle=%d) turn=%d over",
+                "## Cycle %d turn=%d NOK: over",
                       cycle, n_turn );
 #endif
         return;
@@ -1154,69 +1108,47 @@ SelfInterceptV13::predictTurnCycleShort( const int cycle,
     if ( (( target_angle - (body_angle + 1) ).abs()) > (( target_angle - (body_angle -1) ).abs()))
         turn_to_right = false;
     Line2D body_line = Line2D(self.pos(),body_angle);
-    Vector2D self_ball = ball_pos - self.pos();
-    self_ball.rotate(-body_angle);
-    if ( body_line.dist(ball_pos) > dist_thr || self_ball.x < 0 )
+    #ifdef DEBUG_PRINT_SHORT_STEP
+        dlog.addText(Logger::INTERCEPT, "### Turn body angle %.1f target angle %.1f dif %.1f margin %.1f to right %d",
+                     body_angle.degree(), target_angle.degree(), angle_diff, turn_margin, turn_to_right);
+    #endif
+    if ( angle_diff > turn_margin )
     {
         double my_speed = self.vel().r();
-        while ( body_line.dist(ball_pos) > dist_thr || self_ball.x < 0 )
+        while ( angle_diff > turn_margin )
         {
             AngleDeg tmp = ptype.effectiveTurn( max_moment, my_speed );
             angle_diff -= tmp.degree();
             my_speed *= ptype.playerDecay();
             ++n_turn;
-            if(angle_diff <= 0){
-                angle_diff = 0;
-                body_angle = target_angle;
-                break;
-            }
-            body_angle += (turn_to_right?tmp:-tmp);
-            body_line = Line2D(self.pos(),body_angle);
         }
     }
 
-    //    if ( angle_diff > turn_margin )
-    //    {
-    //        double my_speed = self.vel().r();
-    //        while ( angle_diff > turn_margin )
-    //        {
-    //            angle_diff -= ptype.effectiveTurn( max_moment, my_speed );
-    //            my_speed *= ptype.playerDecay();
-    //            ++n_turn;
-    //        }
-    //    }
-
-    *result_dash_angle = body_angle;
-    //    if ( n_turn > 0 )
-    //    {
-    //        angle_diff = std::max( 0.0, angle_diff );
-    //        if ( ( target_angle - body_angle ).degree() > 0.0 )
-    //        {
-    //            *result_dash_angle = target_angle - angle_diff;
-    //        }
-    //        else
-    //        {
-    //            *result_dash_angle = target_angle + angle_diff;
-    //        }
-    //    }
+    if ( n_turn > 0 )
+    {
+        angle_diff = std::max( 0.0, angle_diff );
+        if ( ( target_angle - body_angle ).degree() > 0.0 )
+        {
+            *result_dash_angle = target_angle - angle_diff;
+        }
+        else
+        {
+            *result_dash_angle = target_angle + angle_diff;
+        }
+    }
+    else{
+        *result_dash_angle = body_angle;
+    }
 
 #ifdef DEBUG_PRINT_SHORT_STEP
-    dlog.addText( Logger::INTERCEPT,
-                  "%d (predictTurnCycleShort) turn=%d",
-                  cycle, n_turn );
-    dlog.addText( Logger::INTERCEPT,
-                  "%d _______"
-                  " turn_margin=%.1f"
-                  " turn_moment=%.1f"
-                  " first_angle_diff=%.1f"
-                  " final_angle_diff=%.1f"
-                  " dash_angle=%.1f",
-                  cycle,
-                  turn_margin,
-                  ( *result_dash_angle - body_angle ).degree(),
-                  ( target_angle - body_angle ).degree(),
-                  angle_diff,
-                  result_dash_angle->degree() );
+    dlog.addText(Logger::INTERCEPT, "### > TurnC %d TotalTurn %.1f FirstDiff %.1f FinalDiff %.1f GDashAngle %.1f BDashAngle %.1f Line0Dist %.2f",
+                 n_turn,
+                 ( *result_dash_angle - body_angle ).degree(),
+                 ( target_angle - body_angle ).degree(),
+                 angle_diff,
+                 result_dash_angle->degree(),
+                 0.0,
+                 Line2D(inertia_pos, *result_dash_angle).dist(ball_pos));
 #endif
 
     return n_turn;
@@ -1230,12 +1162,16 @@ void
 SelfInterceptV13::predictDashCycleShort( const int cycle,
                                          const int n_turn,
                                          const Vector2D & ball_pos,
-                                         const AngleDeg & dash_angle,
+                                         const AngleDeg & body_angle_after_turn,
                                          const double & control_area,
                                          const bool save_recovery,
                                          const bool back_dash,
                                          std::vector< InterceptInfo > & self_cache ) const
 {
+    #ifdef DEBUG_PRINT_SHORT_STEP
+        dlog.addText(Logger::INTERCEPT, "### Dash Cycle %d NTurn %d bpos(%.1f,%.1f) BodyAfterTurn %.1f ctrl %.1f save %d back %d",
+                     cycle, n_turn, ball_pos.x, ball_pos.y, body_angle_after_turn.degree(), control_area, save_recovery, back_dash);
+    #endif
     const ServerParam & SP = ServerParam::i();
     const SelfObject & self = M_world.self();
     const PlayerType & ptype = self.playerType();
@@ -1259,16 +1195,15 @@ SelfInterceptV13::predictDashCycleShort( const int cycle,
         tmp_stamina.simulateWaits( ptype, cycle - n_turn );
 #ifdef DEBUG_PRINT_SHORT_STEP
         dlog.addText( Logger::INTERCEPT,
-                      "%d  **OK** (predictDashCycleShort) can reach. turn=%d dash=0.",
-                      cycle, n_turn );
-        dlog.addText( Logger::INTERCEPT,
-                      "%d _____________________"
-                      " bpos(%.1f %.1f) my_inertia=(%.1f %.1f) dist=%.3f stamina=%.1f",
-                      cycle,
+                      "### >> bpos(%.1f %.1f) myInertia(%.1f %.1f) dist %.2f stamina %.1f",
                       ball_pos.x, ball_pos.y,
                       my_inertia.x, my_inertia.y,
                       my_final_pos.dist( ball_pos ),
                       tmp_stamina.stamina() );
+        dlog.addText( Logger::INTERCEPT,
+                "### >> OK: can reach. turn=%d dash=0.",
+                      cycle, n_turn );
+
 #endif
         self_cache.push_back( InterceptInfo( InterceptInfo::NORMAL,
                                              n_turn, cycle - n_turn,
@@ -1279,36 +1214,27 @@ SelfInterceptV13::predictDashCycleShort( const int cycle,
     }
 
     const AngleDeg target_angle = ( ball_pos - my_inertia ).th();
-    if ( ( target_angle - dash_angle ).abs() > 90.0 )
+    if ((target_angle - body_angle_after_turn ).abs() > 90.0 )
     {
 #ifdef DEBUG_PRINT_SHORT_STEP
         dlog.addText( Logger::INTERCEPT,
-                      "%d XXX (predictDashCycleShort) turn=%d.",
-                      cycle, n_turn );
-        dlog.addText( Logger::INTERCEPT,
-                      "%d ____________________"
-                      " (target_angle(%.1f) - dash_angle(%.1f)) > 90",
-                      cycle,
-                      target_angle.degree(), dash_angle.degree() );
+                "### >> NOK: target_angle %.1f - dash_angle %.1f > 90",
+                      target_angle.degree(), body_angle_after_turn.degree() );
 #endif
         return;
     }
 
 
-    const Vector2D accel_unit = Vector2D::polar2vector( 1.0, dash_angle );
+    const Vector2D accel_unit = Vector2D::polar2vector(1.0, body_angle_after_turn );
     double first_dash_power = 0.0;
 
     for ( int n_dash = 1; n_dash <= max_dash; ++n_dash )
     {
-#if 0
-        dlog.addText( Logger::INTERCEPT,
-                      "__ dash %d: max_dash=%d", n_dash, max_dash );
-#endif
-        Vector2D ball_rel = ( ball_pos - my_pos ).rotatedVector( -dash_angle );
+        Vector2D ball_rel = ( ball_pos - my_pos ).rotatedVector( -body_angle_after_turn );
         double first_speed = calc_first_term_geom_series( ball_rel.x,
                                                           ptype.playerDecay(),
                                                           max_dash - n_dash + 1 );
-        Vector2D rel_vel = my_vel.rotatedVector( -dash_angle );
+        Vector2D rel_vel = my_vel.rotatedVector( -body_angle_after_turn );
         double required_accel = first_speed - rel_vel.x;
         double dash_power = required_accel / ( ptype.dashRate( stamina_model.effort() ) );
         if ( back_dash ) dash_power = required_accel / ( ptype.dashRate( stamina_model.effort(), 180.0) );
@@ -1316,17 +1242,8 @@ SelfInterceptV13::predictDashCycleShort( const int cycle,
         double available_stamina = ( save_recovery
                                      ? std::max( 0.0, stamina_model.stamina() - recover_dec_thr )
                                      : stamina_model.stamina() + ptype.extraStamina() );
-        //double dash_power = 0.0;
-//        if ( back_dash )
-//        {
-//            dash_power = bound( SP.maxDashPower(), dash_power, 0.0 );
-//            dash_power = std::max( dash_power, available_stamina * -0.5 );
-//        }
-//        else
-        {
-            dash_power = bound( 0.0, dash_power, SP.maxDashPower() );
-            dash_power = std::min( available_stamina, dash_power );
-        }
+        dash_power = bound( 0.0, dash_power, SP.maxDashPower() );
+        dash_power = std::min( available_stamina, dash_power );
 
         if ( n_dash == 1 )
         {
@@ -1343,17 +1260,17 @@ SelfInterceptV13::predictDashCycleShort( const int cycle,
         my_vel *= ptype.playerDecay();
 
         stamina_model.simulateDash( ptype, dash_power );
-
-#if 0
+        #ifdef DEBUG_PRINT_SHORT_STEP
+        #if 1
         dlog.addText( Logger::INTERCEPT,
-                      "____ pos=(%.2f %.2f) vel=(%.2f %.2f)r=%.3f th=%.1f",
+                "##### pos(%.2f %.2f) vel(%.2f %.2f) vel(r %.2f th%.1f) firstSpeed %.2f required accel %.2f used accel %.2f power %.1f dist %.1f",
                       my_pos.x, my_pos.y,
                       my_vel.x, my_vel.y,
-                      my_vel.r(), my_vel.th().degree() );
-        dlog.addText( Logger::INTERCEPT,
-                      "____ required first_speed=%.3f accel=%.3f dash_power=%.1f",
-                      first_speed, required_accel, dash_power );
-#endif
+                      my_vel.r(), my_vel.th().degree(),
+                      first_speed, required_accel, accel.r(), dash_power,
+                      my_pos.dist(ball_pos));
+        #endif
+        #endif
     }
 
 
@@ -1366,62 +1283,33 @@ SelfInterceptV13::predictDashCycleShort( const int cycle,
                                      : InterceptInfo::NORMAL );
 #ifdef DEBUG_PRINT_SHORT_STEP
         dlog.addText( Logger::INTERCEPT,
-                      "%d **OK** (predictDashCycleShort) controllable turn=%d dash=%d",
-                      cycle, n_turn, cycle - n_turn );
-        dlog.addText( Logger::INTERCEPT,
-                      "%d __"
-                      " bpos(%.1f %.1f) my_pos=(%.1f %.1f) ball_dist=%.3f"
-                      " first_dash_power=%.1f stamina=%.1f",
-                      cycle,
+                "### >> OK cycle %d turn %d dash %d"
+                    " bpos(%.1f %.1f) mypos(%.1f %.1f) ball_dist %.2f"
+                    " first_dash_power %.1f stamina%.1f",
+                      cycle, n_turn, cycle - n_turn,
                       ball_pos.x, ball_pos.y,
                       my_pos.x, my_pos.y,
                       my_pos.dist( ball_pos ),
-                      first_dash_power, stamina_model.stamina() );
-        dlog.addText( Logger::INTERCEPT,
-                      "%d __"
-                      " first_dash_power=%.1f stamina=%.1f",
-                      cycle,
-                      first_dash_power, stamina_model.stamina() );
+                      first_dash_power, stamina_model.stamina());
 #endif
-        if (back_dash){
-            self_cache.push_back( InterceptInfo( mode, n_turn, cycle - n_turn,
-                                                 first_dash_power, 180.0,
-                                                 my_pos,
-                                                 my_pos.dist( ball_pos ),
-                                                 stamina_model.stamina() ) );
-        }else{
-            self_cache.push_back( InterceptInfo( mode, n_turn, cycle - n_turn,
-                                                 first_dash_power, 0.0,
-                                                 my_pos,
-                                                 my_pos.dist( ball_pos ),
-                                                 stamina_model.stamina() ) );
-        }
-
-        return;
+        self_cache.push_back( InterceptInfo( mode, n_turn, cycle - n_turn,
+                                             first_dash_power, (back_dash ? 180.0 : 0.0),
+                                             my_pos,
+                                             my_pos.dist( ball_pos ),
+                                             stamina_model.stamina() ) );
     }
+    else{
+        #ifdef DEBUG_PRINT_SHORT_STEP
+            dlog.addText( Logger::INTERCEPT,
+                          "### >> NOK cycle %d turn %d dash %d"
+                          " bpos(%.1f %.1f) mypos(%.1f %.1f) ball_dist %.2f",
+                          cycle, n_turn, cycle - n_turn,
+                          ball_pos.x, ball_pos.y,
+                          my_pos.x, my_pos.y,
+                          my_pos.dist( ball_pos ));
+        #endif
 
-#ifdef DEBUG_PRINT_SHORT_STEP
-    dlog.addText( Logger::INTERCEPT,
-                  "%d XXX (predictDashCycleShort) turn=%d dash=%d.",
-                  cycle, n_turn, max_dash );
-    dlog.addText( Logger::INTERCEPT,
-                  "%d __ bpos(%.2f %.2f) mypos=(%.2f %.2f)",
-                  cycle,
-                  ball_pos.x, ball_pos.y,
-                  my_pos.x, my_pos.y );
-    dlog.addText( Logger::INTERCEPT,
-                  "%d __ ball_dist=%.3f control_area=%.3f(real:%.3f buf=%.3f",
-                  cycle,
-                  my_pos.dist( ball_pos ),
-                  control_area - control_area_buf,
-                  control_area,
-                  control_area_buf );
-    dlog.addText( Logger::INTERCEPT,
-                  "%d __ my_dash_move=%.3f first_ball_dist=%.3f",
-                  cycle,
-                  self.pos().dist( my_pos ),
-                  self.pos().dist( ball_pos ) );
-#endif
+    }
 }
 
 /*-------------------------------------------------------------------*/
