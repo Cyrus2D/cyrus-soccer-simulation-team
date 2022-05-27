@@ -273,7 +273,8 @@ SelfInterceptTackle::predictNoDash( std::vector< InterceptInfo > & self_cache ) 
                          0.0, 0.0,
                          my_next,
                          self.inertiaPoint(1).dist(ball_next),
-                         stamina_model.stamina() );
+                         stamina_model.stamina(),
+                        std::string("NoDashTackle"));
     tmp.setTackle();
     self_cache.push_back( tmp );
 #ifdef DEBUG_PRINT_ONE_STEP
@@ -497,7 +498,8 @@ SelfInterceptTackle::predictOneDashAdjust( const AngleDeg & dash_angle,
     *info = InterceptInfo( mode, 0, 1, dash_power, dash_dir,
                            my_pos,
                            my_pos.dist( ball_next ),
-                           stamina_model.stamina() );
+                           stamina_model.stamina(),
+                           std::string("OneDashTackle"));
     (*info).setTackle();
 #ifdef DEBUG_PRINT_ONE_STEP
     dlog.addText( Logger::INTERCEPT,
@@ -787,7 +789,8 @@ SelfInterceptTackle::predictDashCycleShort( const int cycle,
                          0.0, 0.0,
                          my_final_pos,
                          my_final_pos.dist( ball_pos ),
-                         tmp_stamina.stamina() );
+                         tmp_stamina.stamina(),
+                           std::string("ShortTackle"));
         tmp.setTackle();
         self_cache.push_back( tmp );
     }
@@ -889,7 +892,8 @@ SelfInterceptTackle::predictDashCycleShort( const int cycle,
                          first_dash_power, 0.0,
                          my_pos,
                          my_pos.dist( ball_pos ),
-                         stamina_model.stamina() );
+                         stamina_model.stamina(),
+                           std::string("ShortTackle"));
         tmp.setTackle();
         self_cache.push_back( tmp );
         return;
@@ -1135,7 +1139,8 @@ SelfInterceptTackle::predictOmniDashShort( const int cycle,
                              first_dash_power, dir,
                              my_pos,
                              my_pos.dist( ball_pos ),
-                             stamina_model.stamina() );
+                             stamina_model.stamina(),
+                               std::string("OmniTackle"));
             tmp.setTackle();
             self_cache.push_back( tmp );
         }
@@ -1499,7 +1504,8 @@ SelfInterceptTackle::predictFinal( const int max_cycle,
                                          ServerParam::i().maxDashPower(), 0.0,
                                          ball_final_pos,
                                          0.0,
-                                         stamina_model.stamina() ) );
+                                         stamina_model.stamina(),
+                                         std::string("FinalTackle")) );
 }
 
 /*-------------------------------------------------------------------*/
@@ -1877,7 +1883,8 @@ SelfInterceptTackle::canReachAfterDash( const int n_turn,
                                first_dash_power, 0.0,
                                my_final_pos,
                                my_final_pos.dist( ball_pos ),
-                               stamina_model.stamina() );
+                               stamina_model.stamina(),
+                               std::string("DashTackle"));
             tmp.setTackle();
             self_cache.push_back( tmp );
             return true;
@@ -1941,7 +1948,8 @@ SelfInterceptTackle::canReachAfterDash( const int n_turn,
                              first_dash_power, 0.0,
                              my_final_pos,
                              my_final_pos.dist( ball_pos ),
-                             stamina_model.stamina() );
+                             stamina_model.stamina(),
+                               std::string("DashTackle"));
             tmp.setTackle();
             self_cache.push_back( tmp);
             return true;
@@ -2144,7 +2152,8 @@ SelfInterceptTackle::predictDashCycleLong( const int cycle,
                                              0.0, 0.0,
                                              my_final_pos,
                                              my_final_pos.dist( ball_pos ),
-                                             tmp_stamina.stamina() ) );
+                                             tmp_stamina.stamina(),
+                                             std::string("LongTackle")) );
     }
 
     const AngleDeg target_angle = ( ball_pos - my_inertia ).th();
@@ -2227,7 +2236,8 @@ SelfInterceptTackle::predictDashCycleLong( const int cycle,
                                                  first_dash_power, 0.0,
                                                  my_final_pos,
                                                  my_final_pos.dist( ball_pos ),
-                                                 stamina_model.stamina() ) );
+                                                 stamina_model.stamina(),
+                                                 std::string("LongTackle")) );
             return;
         }
     }
@@ -2253,7 +2263,8 @@ SelfInterceptTackle::predictDashCycleLong( const int cycle,
                                              first_dash_power, 0.0,
                                              my_pos,
                                              my_pos.dist( ball_pos ),
-                                             stamina_model.stamina() ) );
+                                             stamina_model.stamina(),
+                                             std::string("LongTackle")) );
         return;
     }
 
