@@ -1991,6 +1991,10 @@ SelfInterceptV13::predictLongStep( const int max_cycle,
             }
             found = true;
         }
+        if (((ball_pos - self.pos()).th() - self.body()).abs() < 10.0){
+            predictRealOmniDashShort( cycle, ball_pos, control_area, save_recovery,
+                                      tmp_cache );
+        }
         ///////////////////////////////////////////////////////////
 #if 0
 
