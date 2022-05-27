@@ -35,6 +35,7 @@
 #include <rcsc/geom/vector_2d.h>
 #include <rcsc/game_time.h>
 #include <vector>
+#include <string>
 
 namespace rcsc {
 
@@ -69,6 +70,7 @@ private:
     double M_ball_dist; //!< final squared ball distance
     double M_stamina; //!< final stamina value
     bool M_is_tackle;
+    std::string M_type;
 public:
 
     /*!
@@ -84,7 +86,8 @@ public:
           M_self_pos( -10000.0, 0.0 ),
           M_ball_dist( 10000000.0 ),
           M_stamina( 0.0 ),
-          M_is_tackle( false )
+          M_is_tackle( false ),
+          M_type("None")
       { }
 
     /*!
@@ -97,7 +100,8 @@ public:
                    const AngleDeg & dash_angle,
                    const Vector2D & self_pos,
                    const double & ball_dist,
-                   const double & stamina )
+                   const double & stamina,
+                   const std::string & type)
         : M_valid( true ),
           M_mode( mode ),
           M_turn_cycle( turn_cycle ),
@@ -107,7 +111,8 @@ public:
           M_self_pos( self_pos ),
           M_ball_dist( ball_dist ),
           M_stamina( stamina ),
-          M_is_tackle( false )
+          M_is_tackle( false ),
+          M_type(type)
       { }
 
     void setTackle()
@@ -228,6 +233,11 @@ public:
       \class Cmp
       \brief interception info compare function object
     */
+
+    const std::string & type() const
+    {
+        return M_type;
+    }
     struct Cmp {
         /*!
           \brief operator function
