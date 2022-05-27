@@ -47,6 +47,14 @@ class WorldModel;
   \class SelfInterceptV13
   \brief self intercept predictor for rcssserver v13+
 */
+
+class InterceptSorter {
+    double safety_ball_dist;
+public:
+    InterceptSorter(double safety_ball_dist) : safety_ball_dist(safety_ball_dist) {}
+    bool operator()(const InterceptInfo & a, const InterceptInfo & b) const;
+};
+
 class SelfInterceptV13 {
 public:
     //! max short step
@@ -168,7 +176,7 @@ private:
     void predictDashCycleShort( const int cycle,
                                 const int n_turn,
                                 const Vector2D & ball_pos,
-                                const AngleDeg & dash_angle,
+                                const AngleDeg & body_angle_after_turn,
                                 const double & control_area,
                                 const bool save_recovery,
                                 const bool back_dash,
@@ -179,6 +187,11 @@ private:
                                const bool save_recovery,
                                const bool back_dash,
                                std::vector< InterceptInfo > & self_cache ) const;
+    void predictRealOmniDashShort( const int cycle,
+                                   const Vector2D & ball_pos,
+                                   const double & control_area,
+                                   const bool save_recovery,
+                                   std::vector< InterceptInfo > & self_cache ) const;
     int predictAdjustOmniDash( const int cycle,
                                const Vector2D & ball_pos,
                                const double & control_area,
