@@ -71,7 +71,8 @@ const double control_area_buf = 0.15; // 2009-07-03
 }
 
 
-const int SelfInterceptV13::MAX_SHORT_STEP = 7;
+const int SelfInterceptV13::MAX_SHORT_STEP = 15;
+
 const double SelfInterceptV13::MIN_TURN_THR = 12.5;
 //const double SelfInterceptV13::MIN_TURN_THR = 15.0;
 const double SelfInterceptV13::BACK_DASH_THR_ANGLE = 100.0;
