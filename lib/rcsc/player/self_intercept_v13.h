@@ -98,6 +98,9 @@ public:
 
 
 private:
+    bool useKickRateInsteadOfDist() const {
+        return true;
+    }
     /////////////////////////////////////////////////////
     // one dash
 
