@@ -483,8 +483,23 @@ SelfInterceptV13::predictOneDash( std::vector< InterceptInfo > & self_cache ) co
                       it->dashPower(), it->dashAngle().degree(),
                       it->ballDist(), it->stamina() );
 #endif
-        if ( it->ballDist() < best->ballDist()){
+	        double best_kick_rate = kick_rate( ball_next.dist(best->selfPos()),
+                                           ( (ball_next - best->selfPos()).th() - self.body() ).degree(),
+                                           self.playerType().kickPowerRate(), //ServerParam::i().kickPowerRate(),
+                                           ServerParam::i().ballSize(),
+                                           self.playerType().playerSize(),
+                                           self.playerType().kickableMargin() );
+        double it_kick_rate = kick_rate( ball_next.dist(it->selfPos()),
+                                           ( (ball_next - it->selfPos()).th() - self.body() ).degree(),
+                                            self.playerType().kickPowerRate(), //ServerParam::i().kickPowerRate(),
+                                           ServerParam::i().ballSize(),
+                                             self.playerType().playerSize(),
+                                             self.playerType().kickableMargin() );
+        if (it_kick_rate > best_kick_rate){
             best = &(*it);
+        }
+        if ( it->ballDist() < best->ballDist()){
+//            best = &(*it);
         }
         //        if ( best->ballDist() < safety_ball_dist
         //             && it->ballDist() < safety_ball_dist )
@@ -1043,6 +1058,26 @@ SelfInterceptV13::predictShortStep( const int max_cycle,
                           best->dashPower(), best->dashAngle().degree(),
                           best->ballDist(), best->stamina(), best->type().c_str() );
 #endif
+	                double best_kick_rate = kick_rate( ball_pos.dist(best->selfPos()),
+                                               ( (ball_pos - best->selfPos()).th() - self.body() ).degree(),
+                                               self.playerType().kickPowerRate(), //ServerParam::i().kickPowerRate(),
+                                               ServerParam::i().ballSize(),
+                                               self.playerType().playerSize(),
+                                               self.playerType().kickableMargin() );
+            double it_kick_rate = kick_rate( ball_pos.dist(it.selfPos()),
+                                             ( (ball_pos - it.selfPos()).th() - self.body() ).degree(),
+                                             self.playerType().kickPowerRate(), //ServerParam::i().kickPowerRate(),
+                                             ServerParam::i().ballSize(),
+                                             self.playerType().playerSize(),
+                                             self.playerType().kickableMargin() );
+
+//	    if (best_kick_rate < it_kick_rate){
+  //              best = &(it);
+    //            #ifdef DEBUG_PRINT_SHORT_STEP
+      //          dlog.addText( Logger::INTERCEPT,
+        //                      "--> updated(1)" );
+          //      #endif
+	    //}
             if ( best->ballDist() < safety_ball_dist
                  && it.ballDist() < safety_ball_dist )
             {
@@ -1055,7 +1090,7 @@ SelfInterceptV13::predictShortStep( const int max_cycle,
 #endif
                 }
                 else if ( best->turnCycle() == it.turnCycle()
-                          && best->stamina() < it.stamina() )
+                          && best_kick_rate < it_kick_rate )
                 {
                     best = &(it);
 #ifdef DEBUG_PRINT_SHORT_STEP
@@ -1063,24 +1098,27 @@ SelfInterceptV13::predictShortStep( const int max_cycle,
                                   "--> updated(2)" );
 #endif
                 }
-            }
-            else
-            {
+            }else if (it.ballDist() < best->ballDist()){
+best = &(it);
+	    }
+//            else if(best->ballDist() > safety_ball_dist
+  //               && it.ballDist() > safety_ball_dist )
+    //        {
                 //if ( ( best->ballDist() > danger_ball_dist
                 //     || ( best->turnCycle() > 0
                 //          && best->turnCycle() >= it->turnCycle() ) )
-                if ( best->turnCycle() >= it.turnCycle()
-                     && ( best->ballDist() > it.ballDist()
-                          || ( std::fabs( best->ballDist() - it.ballDist() ) < 0.001
-                               && best->stamina() < it.stamina() ) ) )
-                {
-                    best = &(it);
-#ifdef DEBUG_PRINT_SHORT_STEP
-                    dlog.addText( Logger::INTERCEPT,
-                                  "--> updated(3)" );
-#endif
-                }
-            }
+      //          if ( best->turnCycle() >= it.turnCycle()
+        //             && ( best->ballDist() > it.ballDist()
+          //                || ( std::fabs( best->ballDist() - it.ballDist() ) < 0.001
+            //                   && best->stamina() < it.stamina() ) ) )
+              //  {
+    //                best = &(it);
+//#ifdef DEBUG_PRI/NT_SHORT_STEP
+  //                  dlog.addText( Logger::INTERCEPT,
+//                                  "--> updated(3)" );
+//#endif
+  //              }
+           // }
         }
 
 #ifdef DEBUG_PRINT_SHORT_STEP
