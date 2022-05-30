@@ -112,13 +112,21 @@ Body_Intercept2009::execute( PlayerAgent * agent )
     {
         dlog.addText( Logger::INTERCEPT,
                       __FILE__": can get the ball only by inertia move. Turn!" );
-
+        const bool goalie_mode
+                = ( wm.self().goalie()
+                    && wm.lastKickerSide() != wm.ourSide()
+                    && best_intercept.selfPos().x < ServerParam::i().ourPenaltyAreaLineX()
+                    && best_intercept.selfPos().absY() < ServerParam::i().penaltyAreaHalfWidth()
+                    && ((wm.ball().inertiaPoint(1) - wm.self().inertiaPoint(best_intercept.turnCycle())).th() - wm.self().body()).abs() < 90.0 + wm.self().playerType().effectiveTurn( ServerParam::i().maxMoment(), wm.self().vel().r() )
+                );
         Vector2D face_point = M_face_point;
         if ( ! face_point.isValid() )
         {
             face_point.assign( 50.5, wm.self().pos().y * 0.75 );
         }
-
+        if (goalie_mode){
+            face_point = wm.ball().inertiaPoint(1);
+        }
         agent->debugClient().addMessage( "InterceptTurnOnly" );
         Body_TurnToPoint( face_point,
                           best_intercept.reachCycle() ).execute( agent );
@@ -441,20 +449,26 @@ Body_Intercept2009::getBestIntercept( const WorldModel & wm,
              && ball_pos.absY() < penalty_y - 1.0
              && cycle < opp_min - 1 )
         {
-            if ( ( cache[i].turnCycle() == 0
-                   && cache[i].ballDist() < SP.catchableArea() * 0.5 )
+            bool can_catch = false;
+            if (cache[i].dashAngle().abs() < 1.0)
+                can_catch = true;
+            else if (cache[i].dashAngle().abs() < 179.0)
+                if (((ball_pos - cache[i].selfPos()).th() - wm.self().body()).abs() < 90.0)
+                    can_catch = true;
+            if ( can_catch
                  || cache[i].ballDist() < 0.01 )
             {
                 double d = ball_pos.dist2( our_goal_pos );
-
-                AngleDeg target_angle = ( ball_pos - self_pos ).th();
-                if ( cache[i].dashPower() < 0.0 )
-                {
-                    // back dash
-                    target_angle -= 180.0;
-                }
-                if((target_angle - (wm.ball().pos() - wm.self().pos()).th()).abs() > 120)
-                    d /= 2;
+                if (cache[i].turnCycle() == 0)
+                    d = d * 2.0 + 5.0;
+//                AngleDeg target_angle = ( ball_pos - self_pos ).th();
+//                if ( cache[i].dashPower() < 0.0 )
+//                {
+//                    // back dash
+//                    target_angle -= 180.0;
+//                }
+//                if((target_angle - (wm.ball().pos() - wm.self().pos()).th()).abs() > 120)
+//                    d /= 2;
 
                 if ( d> goalie_score )
                 {
