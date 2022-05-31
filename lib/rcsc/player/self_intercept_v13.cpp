@@ -1149,7 +1149,7 @@ SelfInterceptV13::predictShortStep( const int max_cycle,
                     #endif
                 }
             }
-        }
+        }}
 
 #ifdef DEBUG_PRINT_SHORT_STEP
         dlog.addText( Logger::INTERCEPT,
