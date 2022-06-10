@@ -113,6 +113,5 @@ private:
                         const int action_cycle,int & opp_min_dif, bool & safe_with_pos_count
                         );
 };
-};
 
 #endif
