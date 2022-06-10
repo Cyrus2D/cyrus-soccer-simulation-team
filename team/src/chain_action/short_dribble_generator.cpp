@@ -448,7 +448,7 @@ ShortDribbleGenerator::simulateKickTurnBackDashes(  const WorldModel & wm,
         bool safe_with_pos_count = true;
         if( !can_opp_reach(wm,M_first_ball_pos,first_vel,ball_trap_pos,1 + n_turn + n_dash,opp_min_dif, safe_with_pos_count))
         {
-            safe_with_pos_count = false;
+            // safe_with_pos_count = false;
             int danger = 1;
             CooperativeAction::Ptr ptr( new Dribble( wm.self().unum(),
                                                      ball_trap_pos,
@@ -640,7 +640,7 @@ ShortDribbleGenerator::simulateKickTurnsDashesAdvance( const WorldModel & wm,
             bool safe_with_pos_count = true;
             if( !can_opp_reach(wm,M_first_ball_pos,first_vel,ball_trap_pos,1 + n_turn + n_dash,opp_min_dif, safe_with_pos_count))
             {
-                safe_with_pos_count = false;
+                // safe_with_pos_count = false;
                 int danger = 1;
                 CooperativeAction::Ptr ptr( new Dribble( wm.self().unum(),
                                                          ball_trap_pos,
@@ -883,6 +883,17 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
 //                opp_cycle = opp_turn_cycle + opp_dash_cycle;
             }
             int opp_reach_cycle = opp_cycle - bonus_step;
+            int diff = opp_reach_cycle - c;
+
+            // danger
+            int danger = 0;
+            if  (diff <= 3){
+                danger = std::max(3 - diff, 0);
+            }
+
+            if (danger > 0 && (*o)->posCount() > 0)
+                safe_with_pos_count = false;
+            
             if (opp_reach_cycle <= c){
                 return true;
             }
