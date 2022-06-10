@@ -631,6 +631,9 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
 //    if(do_tackle_block(agent))
 //        return true;
     const WorldModel &wm = agent->world();
+    Vector2D self_pos = wm.self().pos();
+    AngleDeg self_body = wm.self().body();
+    double kickable_area = wm.self().playerType().kickableArea();
     if (wm.interceptTable()->fastestOpponent() == NULL || wm.interceptTable()->fastestOpponent()->unum() < 1)
         return false;
     if (wm.gameMode().type() != wm.gameMode().PlayOn)
@@ -643,45 +646,58 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
     }
     block_cycle(wm, wm.self().unum(), cycle, target, true);
     if (target.isValid() && target.absY() < 35 && target.absX() < 53) {
-        agent->doPointto(target.x, target.y);
+//        agent->doPointto(target.x, target.y);
         agent->debugClient().addMessage("blockk");
         bool move = false;
         double dash_power = 100;
         if(Strategy::i().self_Line() == Strategy::PostLine::forward && target.x > 10)
             dash_power = Strategy::i().get_normal_dash_power(wm);
-        if (wm.self().pos().dist(target) < 1) {
-            AngleDeg dir = (target - wm.self().pos()).th() - wm.self().body();
-            if (abs(dir.degree()) < 10 && abs(dir.degree()) > 170 &&
-                agent->doDash(100, dir)){
-                agent->debugClient().addMessage("do dash");
+        double body_diff_degree = ((target - wm.self().pos()).th() - wm.self().body()).abs();
+        Line2D direct_dash_line(self_pos, self_body);
+        if (!move){
+            if (body_diff_degree < 90 && direct_dash_line.dist(target) < kickable_area - 0.1 && self_pos.dist(target) > 1.0){
+                agent->doDash(dash_power, 0);
+                agent->debugClient().addMessage("direct dash");
                 move = true;
             }
         }
         if (!move){
-            if (wm.interceptTable()->opponentReachCycle() > 5){
-                if (Body_GoToPoint(target, 0.5, dash_power, 1.2,1,false, 15).execute(agent)){
-                    agent->debugClient().addMessage("BGP5");
-                }else{
-                    agent->debugClient().addMessage("Turn5");
-                    Body_TurnToBall().execute(agent);
+            AngleDeg dash_dir = ((target - wm.self().pos()).th() - wm.self().body());
+            if ( cycle == 1 ){
+                agent->doDash(100, dash_dir);
+                agent->debugClient().addMessage("close omni dash");
+                move = true;
+            }
+            else if (cycle <= 5){
+                if (body_diff_degree < 15){
+                    agent->doDash(dash_power, dash_dir);
+                    agent->debugClient().addMessage("far omni dash");
+                    move = true;
                 }
             }
-            else{
-                if (Body_GoToPoint(target, 0.5, dash_power).execute(agent)) {
-                    agent->debugClient().addMessage("BGP-");
-                }
-                else{
-                    agent->debugClient().addMessage("Turn-");
-                    Body_TurnToPoint(target).execute(agent);
-                }
+        }
+        if (!move){
+            if (Body_GoToPoint(
+                    target,
+                    0.5,
+                    dash_power,
+                    -1.0,
+                    cycle = 0,
+                    true,
+                    20.0,
+                    1.0,
+                    false ).execute(agent)){
+                agent->debugClient().addMessage("BGP A");
+            }else{
+                Body_TurnToBall().execute(agent);
+                agent->debugClient().addMessage("Turn A");
             }
-
         }
 
         Bhv_BasicMove::set_def_neck_with_ball(agent, target, wm.interceptTable()->fastestOpponent(), wm.self().unum());
-        Vector2D start_drible;
-        int start_drible_time;
-        get_start_dribble(wm, start_drible, start_drible_time);
+//        Vector2D start_drible;
+//        int start_drible_time;
+//        get_start_dribble(wm, start_drible, start_drible_time);
         /*agent->setIntention(new IntentionBlock(wm.interceptTable()->fastestOpponent()->unum(),
                                                wm.interceptTable()->fastestOpponent()->pos(),
                                                target,
