@@ -849,14 +849,14 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
         double pos_count_effect_factor = Setting::i()->mChainAction->mDribblePosCountZ;
         if ( ball_to_opp_rel.x > 0.5 )
         {
-            bonus_step += bound( 0, static_cast<int>((*o)->posCount() * pos_count_effect_factor), max_pos_count_effect_front );
+            bonus_step += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor)), max_pos_count_effect_front );
         }
         else
         {
             if(wm.ball().pos().x > 15 && wm.ball().pos().x < 45 && wm.ball().pos().x > wm.theirOffenseLineX() - 10){
-                bonus_step += bound( 0, static_cast<int>((*o)->posCount() * pos_count_effect_factor), max_pos_count_effect_behind / 2 );
+                bonus_step += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor)), max_pos_count_effect_behind / 2 );
             }else{
-                bonus_step += bound( 0, static_cast<int>((*o)->posCount() * pos_count_effect_factor), max_pos_count_effect_behind );
+                bonus_step += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor)), max_pos_count_effect_behind );
             }
 
         }
