@@ -430,7 +430,7 @@ ShortDribbleGenerator::simulateKickTurnBackDashes(  const WorldModel & wm,
         }
 
         if ( ( M_first_ball_pos + first_vel ).dist2( self_cache[0] )
-             < std::pow( ptype.playerSize() + SP.ballSize() + (wm.ball().pos().dist(Vector2D(52,0))< 15?0:0.1), 2 ) )
+             < std::pow( ptype.playerSize() + SP.ballSize() + (wm.ball().pos().dist(Vector2D(52,0)) < 15 ? 0 : Setting::i()->mChainAction->mDribbleBallCollisionNoise), 2 ) )
         {
 #ifdef DEBUG_PRINT_FAILED_COURSE
             dlog.addText( Logger::DRIBBLE,
@@ -623,7 +623,7 @@ ShortDribbleGenerator::simulateKickTurnsDashesAdvance( const WorldModel & wm,
             }
 
             if ( ( M_first_ball_pos + first_vel ).dist2( self_cache[0] )
-                 < std::pow( ptype.playerSize() + SP.ballSize() + 0.1, 2 ) )
+                 < std::pow( ptype.playerSize() + SP.ballSize() + Setting::i()->mChainAction->mDribbleBallCollisionNoise , 2 ) )
             {
 #ifdef DEBUG_PRINT_FAILED_COURSE
                 dlog.addText( Logger::DRIBBLE,
@@ -849,19 +849,26 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
             bonus_step = -5;
         }
 
+        int bonus_step_noisy = bonus_step;
+
         int max_pos_count_effect_front = Setting::i()->mChainAction->mDribblePosCountMaxFrontOpp;
         int max_pos_count_effect_behind = Setting::i()->mChainAction->mDribblePosCountMaxBehindOpp;
-        double pos_count_effect_factor = Setting::i()->mChainAction->mDribblePosCountZ;
+        double pos_count_effect_factor_low = Setting::i()->mChainAction->mDribblePosCountLow;
+        double pos_count_effect_factor_high = Setting::i()->mChainAction->mDribblePosCountHigh;
+
         if ( ball_to_opp_rel.x > 0.5 )
         {
-            bonus_step += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor)), max_pos_count_effect_front );
+            bonus_step += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor_low)), max_pos_count_effect_front );
+            bonus_step_noisy += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor_high)), max_pos_count_effect_front );
         }
         else
         {
             if(wm.ball().pos().x > 15 && wm.ball().pos().x < 45 && wm.ball().pos().x > wm.theirOffenseLineX() - 10){
-                bonus_step += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor)), max_pos_count_effect_behind / 2 );
+                bonus_step += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor_low)), max_pos_count_effect_behind / 2 );
+                bonus_step_noisy += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor_high)), max_pos_count_effect_behind / 2 );
             }else{
-                bonus_step += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor)), max_pos_count_effect_behind );
+                bonus_step += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor_low)), max_pos_count_effect_behind );
+                bonus_step_noisy += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor_high)), max_pos_count_effect_behind );
             }
 
         }
@@ -888,6 +895,7 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
 //                opp_cycle = opp_turn_cycle + opp_dash_cycle;
             }
             int opp_reach_cycle = opp_cycle - bonus_step;
+            int opp_reach_cycle_noisy = opp_cycle - bonus_step_noisy;
             int diff = opp_reach_cycle - c;
 
             // danger
@@ -899,17 +907,23 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
             if (danger > worst_danger){
                 worst_danger = danger;
             }
-
-            if (danger > 0 && (*o)->posCount() > 0)
-                safe_with_pos_count = false;
             
             if (opp_reach_cycle <= c){
+                if (Setting::i()->mChainAction->mDribbleAlwaysDanger)
+                    worst_danger = 1;
                 return true;
             }
+
+            if (opp_reach_cycle_noisy <= c){
+                safe_with_pos_count = false;
+            }
+
             opp_min_dif = std::min(opp_min_dif, opp_cycle - bonus_step - c);
             ball_pos += ball_vel;
             ball_vel *= sp.ballDecay();
         }
     }
+    if (Setting::i()->mChainAction->mDribbleAlwaysDanger)
+        worst_danger = 1;
     return false;
 }
