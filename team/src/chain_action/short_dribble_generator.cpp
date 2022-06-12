@@ -59,6 +59,8 @@
 #define DEBUG_PRINT_SUCCESS_COURSE
 #define DEBUG_PRINT_FAILED_COURSE
 
+#define DEBUG_DOUBLE_KICK
+
 using namespace rcsc;
 
 namespace {
@@ -497,6 +499,63 @@ ShortDribbleGenerator::simulateKickTurnBackDashes(  const WorldModel & wm,
     }
 }
 #include <rcsc/soccer_math.h>
+
+bool 
+ShortDribbleGenerator::can_kick_point_to_point(const WorldModel& wm,
+                                const Vector2D& ball_pos,
+                                const Vector2D& ball_vel,
+                                const Vector2D& target) 
+{
+    const ServerParam& SP = ServerParam::i();
+
+    const double term
+        = ( 1.0 - std::pow( SP.ballDecay(), 1) )
+        / ( 1.0 - SP.ballDecay() );
+
+    const Vector2D first_vel = ( target - ball_pos ) / term;
+    const Vector2D kick_accel = first_vel - ball_vel;
+    double kickrate;
+
+    double buf = 0.055;
+    if ( ball_pos.dist(wm.self().pos()) <= wm.self().playerType().kickableArea() - buf )
+    {
+        kickrate = wm.self().kickRate();
+    }
+    else{
+        kickrate
+            = kick_rate( 0.3,
+                         ( (ball_pos - wm.self().pos()).th() - wm.self().body() ).degree(),
+                         wm.self().playerType().kickPowerRate(), //ServerParam::i().kickPowerRate(),
+                         SP.ballSize(),
+                         wm.self().playerType().playerSize(),
+                         wm.self().playerType().kickableMargin() );
+    }
+
+    const double kick_power = kick_accel.r() / kickrate;
+    if ( kick_power > SP.maxPower()
+         || kick_accel.r2() > std::pow( SP.ballAccelMax(), 2 )
+         || first_vel.r2() > std::pow( SP.ballSpeedMax(), 2 ) )
+    {
+        #ifdef DEBUG_DOUBLE_KICK
+        dlog.addText(Logger::DRIBBLE, "(can kick point to point) can't kick; kick power problem.");
+        #endif
+
+        return false;
+    }
+
+    if ( ( ball_pos + first_vel ).dist2( wm.self().pos() )
+         < std::pow( wm.self().playerType().playerSize() + SP.ballSize() + 0.1, 2 ) )
+    {
+        #ifdef DEBUG_DOUBLE_KICK
+        dlog.addText(Logger::DRIBBLE, "(can kick point to point) can't kick; collide problem.");
+        #endif
+
+        return false;
+    }
+
+    return true;
+}
+
 void
 ShortDribbleGenerator::simulateKickTurnsDashesAdvance( const WorldModel & wm,
                                                        const AngleDeg & dash_angle,
