@@ -1060,11 +1060,21 @@ Bhv_GoalieBasicMove::doGoToPointLookBall( PlayerAgent * agent,
         agent->debugClient().addMessage( "Goalie:GoToLook" );
         dlog.addText( Logger::TEAM,
                       __FILE__": doGoToPointLookBall. use GoToPointLookBall" );
-        Bhv_GoToPointLookBall( target_point,
+        if (!Bhv_GoToPointLookBall( target_point,
                                dist_thr,
                                dash_power,
                                back_power_rate
-                               ).execute( agent );
+                               ).execute( agent )){
+            Body_GoToPoint(target_point,
+                    dist_thr,
+                    dash_power,
+                    -1.0,
+                    1,
+                    false,
+                    20.0,
+                    1.0,
+                    false ).execute(agent);
+        }
     }
     else
     {
