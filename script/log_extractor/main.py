@@ -47,6 +47,7 @@ def main(path: str,
             out_file.writelines(out_lines)
             out_file.close()
             saved_file_number += 1
+            out_lines = []
         if done:
             break
 
