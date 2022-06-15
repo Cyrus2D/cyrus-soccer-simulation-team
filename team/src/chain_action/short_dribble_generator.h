@@ -59,6 +59,7 @@ private:
 
     std::vector< CooperativeAction::Ptr > M_courses;
 
+
     // private for singleton
     ShortDribbleGenerator();
 
@@ -66,6 +67,8 @@ private:
     ShortDribbleGenerator( const ShortDribbleGenerator & );
     ShortDribbleGenerator & operator=( const ShortDribbleGenerator & );
 public:
+
+    static int last_cycle_double_dirbble;
 
     static
     ShortDribbleGenerator & instance();

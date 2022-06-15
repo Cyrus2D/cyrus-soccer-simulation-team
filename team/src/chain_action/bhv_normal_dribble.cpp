@@ -782,6 +782,7 @@ Bhv_NormalDribble::execute( PlayerAgent * agent )
     bool is_2kick = false;
     if(desc.compare("shortDribbleAdvance2Kick")==0){
         is_2kick = true;
+        ShortDribbleGenerator::last_cycle_double_dirbble = wm.time().cycle();
     }
 
     const ServerParam & SP = ServerParam::i();
