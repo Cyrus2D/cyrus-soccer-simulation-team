@@ -571,9 +571,11 @@ void ShortDribbleGenerator::checkDoubleKick(const WorldModel& wm,
                                             const int n_dash,
                                             const std::vector< Vector2D >& self_cache)
 {
-    if (ShortDribbleGenerator::last_cycle_double_dirbble == wm.time().cycle() - 1){
+    if (ShortDribbleGenerator::last_cycle_double_dirbble == wm.time().cycle() - 1)
         return;
-    }
+
+    if (target.x < 36.)
+        return;
     
     const Vector2D self_pos = wm.self().pos() + wm.self().vel();
     const Vector2D self_pos_next = wm.self().pos() + wm.self().vel() + wm.self().vel() * wm.self().playerType().playerDecay();
