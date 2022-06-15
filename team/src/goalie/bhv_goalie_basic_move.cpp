@@ -1072,7 +1072,7 @@ Bhv_GoalieBasicMove::doGoToPointLookBall( PlayerAgent * agent,
                     1,
                     false,
                     20.0,
-                    1.0,
+                    3.0,
                     false ).execute(agent);
         }
     }
