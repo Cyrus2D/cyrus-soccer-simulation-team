@@ -1060,11 +1060,21 @@ Bhv_GoalieBasicMove::doGoToPointLookBall( PlayerAgent * agent,
         agent->debugClient().addMessage( "Goalie:GoToLook" );
         dlog.addText( Logger::TEAM,
                       __FILE__": doGoToPointLookBall. use GoToPointLookBall" );
-        Bhv_GoToPointLookBall( target_point,
+        if (!Bhv_GoToPointLookBall( target_point,
                                dist_thr,
                                dash_power,
                                back_power_rate
-                               ).execute( agent );
+                               ).execute( agent )){
+            Body_GoToPoint(target_point,
+                    dist_thr,
+                    dash_power,
+                    -1.0,
+                    1,
+                    false,
+                    20.0,
+                    3.0,
+                    false ).execute(agent);
+        }
     }
     else
     {
@@ -1133,8 +1143,8 @@ bool Bhv_GoalieBasicMove::doHeliosGolie(PlayerAgent *agent)
     agent->debugClient().addTriangle(new_target + Vector2D(0.5,0),new_target + Vector2D(-0.35,0.35),new_target + Vector2D(-0.35,-0.35));
     if(ball_pos.absY() < 20)
         target = new_target;
-    if(new_target.x < -51.5){
-        new_target.x = -51.5;
+    if(target.x < -52.0){
+        target.x = -52.0;
     }
     Vector2D ball_opp_pos = ball_pos;
     if(wm.interceptTable()->fastestOpponent() != nullptr){
@@ -1164,26 +1174,29 @@ bool Bhv_GoalieBasicMove::doHeliosGolie(PlayerAgent *agent)
         body_target = a1;
     }
     Line2D self_body_target_line(target, body_target);
-    Vector2D body_line_intersect_goal = Segment2D(Vector2D(-52.0, 7), Vector2D(-52.0, -7)).intersection(self_body_target_line);
-    if(body_line_intersect_goal.isValid()){
-        agent->debugClient().addLine(target, target + Vector2D::polar2vector(10, body_target));
-        Vector2D near_tir(-52.5, -7);
-        if(body_line_intersect_goal.dist(near_tir) > body_line_intersect_goal.dist(Vector2D(-52.5, +7))){
-            near_tir = Vector2D(-52.5, +7);
-        }
-        body_target = (target - near_tir).th();
-        agent->debugClient().addLine(target, target + Vector2D::polar2vector(20, body_target));
-    }
+//    Vector2D body_line_intersect_goal = Segment2D(Vector2D(-52.0, 7), Vector2D(-52.0, -7)).intersection(self_body_target_line);
+//    if(body_line_intersect_goal.isValid()){
+//        agent->debugClient().addLine(target, target + Vector2D::polar2vector(10, body_target));
+//        Vector2D near_tir(-52.5, -7);
+//        if(body_line_intersect_goal.dist(near_tir) > body_line_intersect_goal.dist(Vector2D(-52.5, +7))){
+//            near_tir = Vector2D(-52.5, +7);
+//        }
+//        body_target = (target - near_tir).th();
+//        agent->debugClient().addLine(target, target + Vector2D::polar2vector(20, body_target));
+//    }
 
     if((body_target - AngleDeg(90)).abs() < 10){
         body_target = AngleDeg(90);
     }else if((body_target - AngleDeg(-90)).abs() < 10){
         body_target = AngleDeg(-90);
     }
+
+    target -= Vector2D::polar2vector(0.5, body_target);
     double body_diff = (body_target - self_body).degree();
     double body_diff_abs = (body_target - self_body).abs();
 
     int cycle_dash = wm.self().playerType().cyclesToReachDistance(target.dist(self_pos));
+    int cycle_dash_back_dash = wm.self().playerType().cyclesToReachDistance(target.dist(self_pos), 180.0);
     int cycle_turn = FieldAnalyzer::predict_player_turn_cycle(wm.self().playerTypePtr(),
                                                               wm.self().body(),
                                                               wm.self().vel().r(),
@@ -1200,7 +1213,7 @@ bool Bhv_GoalieBasicMove::doHeliosGolie(PlayerAgent *agent)
                                                                        false);
 
     int cycle_to_target = cycle_dash + cycle_turn;
-    int cycle_to_target_backmove = cycle_dash + cycle_turn_backmove;
+    int cycle_to_target_backmove = cycle_dash_back_dash + cycle_turn_backmove;
 
     int cycle_turn_angle = FieldAnalyzer::predict_player_turn_cycle(wm.self().playerTypePtr(),
                                                                     (target - self_pos).th(),
@@ -1219,9 +1232,13 @@ bool Bhv_GoalieBasicMove::doHeliosGolie(PlayerAgent *agent)
     int cycle_to_targetbody = cycle_to_target + cycle_turn_angle;
     int cycle_to_targetbody_backmove = cycle_to_target_backmove + cycle_turn_angle_backmove;
 
+    if (target.dist(self_pos) > 5.0 // Magic Number
+         && ( target_angle - wm.self().body() ).abs() < 90.0)
+        cycle_to_targetbody_backmove = 1000;
+
     agent->debugClient().addLine(target, target + Vector2D::polar2vector(10, body_target));
     if(self_pos.dist(target) < 1
-            &&((body_target - self_body).abs() < 20 || (-body_target - self_body).abs() < 20)
+            &&((body_target - self_body).abs() < 20)
             && opp_min <= 2)
     {//target is near and body is ok
         dlog.addText(Logger::TEAM,"target is near and body is ok");
@@ -1265,12 +1282,11 @@ bool Bhv_GoalieBasicMove::doHeliosGolie(PlayerAgent *agent)
             Body_TurnToAngle(body_target).execute(agent);
         }
     }
-    else if(target.dist(base_target) < 2.5
-            && self_pos.dist(target) < 2.5
-            && ((body_target - self_body).abs() < 20 || (-body_target - self_body).abs() < 20))
+    else if(self_pos.dist(target) < 2.5
+            && ((body_target - self_body).abs() < 20))
     {//Omni Dash to new target
         dlog.addText(Logger::TEAM,__FILE__":Omni Dash to new target");
-        if(ball_pos.dist(self_pos) < 15 && target.dist(self_pos) > 0.5)
+        if(target.dist(self_pos) > 0.5)
             agent->doDash(100, (target - self_pos).th() - wm.self().body());
         else
             agent->doDash(50, (target - self_pos).th() - wm.self().body());
@@ -1306,7 +1322,7 @@ bool Bhv_GoalieBasicMove::doHeliosGolie(PlayerAgent *agent)
             if(target.dist(self_pos) < 2)
             {
                 dlog.addText(Logger::TEAM, "target is near");
-                if((body_target - self_body).abs() < 20 || (-body_target - self_body).abs() < 20){
+                if((body_target - self_body).abs() < 20){
                     dlog.addText(Logger::TEAM, "angle is ok");
                     if(self_pos.dist(target) < 1){
                         agent->doDash(50, (target - self_pos).th() - wm.self().body());

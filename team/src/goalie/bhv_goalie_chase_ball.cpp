@@ -132,6 +132,18 @@ Bhv_GoalieChaseBall::execute( PlayerAgent * agent )
     int self_goalie_min = wm.interceptTable()->selfReachCycle();
     int opp_min_cyc = wm.interceptTable()->opponentReachCycle();
 
+//    if (self_goalie_min <= 2){
+//        if (wm.ball().inertiaPoint(self_goalie_min).x > -52.5){
+//            if ( Body_Intercept( false ).execute( agent ) )
+//            {
+//                dlog.addText( Logger::TEAM,
+//                              __FILE__": execute normal interception" );
+//                agent->debugClient().addMessage( "Intercept(11)" );
+//                agent->setNeckAction( new Neck_TurnToBall() );
+//                return true;
+//            }
+//        }
+//    }
     Vector2D intersection = ball_line.intersection( defend_line );
     if ( ! intersection.isValid()
          || ball_line.dist( wm.self().pos() ) < SP.catchableArea() * 0.8
@@ -163,7 +175,7 @@ Bhv_GoalieChaseBall::execute( PlayerAgent * agent )
                           wm.self().body().degree() );
             // ball vel angle is same to my body angle
             agent->debugClient().addMessage( "GoToCatch(1)" );
-            doGoToCatchPoint( agent, wm.ball().pos() );
+            doGoToCatchPoint( agent, wm.ball().inertiaPoint(1) );
             return true;
         }
     }
