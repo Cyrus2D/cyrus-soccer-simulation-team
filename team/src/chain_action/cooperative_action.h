@@ -94,11 +94,13 @@ private:
     rcsc::Vector2D M_first_kick_target;
     int M_danger = 0;
 
+
     // not used
     CooperativeAction();
     CooperativeAction( const CooperativeAction & );
     CooperativeAction & operator=( const CooperativeAction & );
 protected:
+    rcsc::Vector2D M_intermediate_point;
 
     /*!
       \brief construct with necessary variables
@@ -195,6 +197,8 @@ public:
     /*!
      */
     const rcsc::Vector2D & targetPoint() const { return M_target_point; }
+
+    const rcsc::Vector2D & intermediatePoint() const { return M_intermediate_point; }
 
     /*!
      */

@@ -45,6 +45,7 @@ class Bhv_NormalDribble
     : public rcsc::SoccerBehavior {
 private:
     rcsc::Vector2D M_target_point;
+    rcsc::Vector2D M_intermediate_pos;
     rcsc::Vector2D M_player_target_point;
 
     double M_first_ball_speed;

@@ -727,6 +727,7 @@ Bhv_NormalDribble::Bhv_NormalDribble( const CooperativeAction & action,
                                       NeckAction::Ptr neck,
                                       ViewAction::Ptr view )
     : M_target_point( action.targetPoint() ),
+      M_intermediate_pos( action.intermediatePoint()),
       M_first_ball_speed( action.firstBallSpeed() ),
       M_first_turn_moment( action.firstTurnMoment() ),
       M_first_dash_power( action.firstDashPower() ),
@@ -777,16 +778,27 @@ Bhv_NormalDribble::execute( PlayerAgent * agent )
         return false;
     }
 
+    std::string desc = M_dec;
+    bool is_2kick = false;
+    if(desc.compare("shortDribbleAdvance2Kick")==0){
+        is_2kick = true;
+    }
+
     const ServerParam & SP = ServerParam::i();
 
     if ( M_kick_step > 0 )
     {
-        Vector2D first_vel = M_target_point - wm.ball().pos();
+        Vector2D tar;
+        if (is_2kick)
+            tar = M_intermediate_pos;
+        else
+            tar = M_target_point;
+        Vector2D first_vel = tar - wm.ball().pos();
         first_vel.setLength( M_first_ball_speed );
         bool can_kick = false;
-        if(!Body_KickOneStep(M_target_point,M_first_ball_speed,false).execute(agent)){
+        if(!Body_KickOneStep(tar,M_first_ball_speed,false).execute(agent)){
             dlog.addText(Logger::DRIBBLE, "cant one kick step");
-            if(!Body_SmartKick(M_target_point,M_first_ball_speed,M_first_ball_speed - 0.1,1).execute(agent)){
+            if(!Body_SmartKick(tar,M_first_ball_speed,M_first_ball_speed - 0.1,1).execute(agent)){
                 dlog.addText(Logger::DRIBBLE, "cant smart kick");
                 return false;
             }else{
@@ -851,8 +863,6 @@ Bhv_NormalDribble::execute( PlayerAgent * agent )
         return false;
     }
 
-    std::string desc = M_dec;
-
     if(desc.compare("shortDribbleAdvance")==0){
         agent->setIntention( new IntentionNormalDribble( M_target_point,
                                                          M_turn_step,
@@ -866,7 +876,11 @@ Bhv_NormalDribble::execute( PlayerAgent * agent )
                                                          M_total_step - M_turn_step - 1, // n_dash
                                                          wm.time(),M_dec) );
 
-    }else{
+    }
+    else if (is_2kick){
+        // do nothing
+    }
+    else{
         agent->setIntention( new IntentionNormalDribble( M_target_point,
                                                          M_turn_step,
                                                          M_total_step - M_turn_step - 1, // n_dash
