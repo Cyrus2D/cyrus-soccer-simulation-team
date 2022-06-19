@@ -221,6 +221,8 @@ ShortDribbleGenerator::createCourses( const WorldModel & wm )
 
     const PlayerType & ptype = wm.self().playerType();
 
+    check_intermediate_poses(wm);
+
     const double my_first_speed = wm.self().vel().r();
     for ( int a = -2; a <= 2; ++a )
     {
@@ -503,6 +505,96 @@ ShortDribbleGenerator::simulateKickTurnBackDashes(  const WorldModel & wm,
 }
 #include <rcsc/soccer_math.h>
 
+void 
+ShortDribbleGenerator::check_intermediate_poses(const WorldModel & wm) 
+{
+    const Vector2D self_pos = wm.self().pos() + wm.self().vel();
+    const double dist_from_self = wm.self().playerType().kickableArea() * 0.7;
+    M_intermediate_poses.clear();
+
+    int n = 8;
+    for (int i = 0; i < n; i++) {
+        const AngleDeg angle(360./(double)n * (double)i);
+        const Vector2D intermediate_point = Vector2D::polar2vector(dist_from_self, angle) + self_pos;
+
+        IntermediatePos candid;
+        candid.pos = intermediate_point;
+
+        #ifdef DEBUG_DOUBLE_KICK
+        dlog.addText(Logger::DRIBBLE, "(check intermediate pos) intermediate_pos = (%.2f, %.2f)", intermediate_point.x, intermediate_point.y);
+        #endif
+
+        Vector2D first_vel;
+
+        if (!can_kick_point_to_point(wm, M_first_ball_pos, M_first_ball_vel, self_pos, intermediate_point, first_vel, 1)) {
+            #ifdef DEBUG_DOUBLE_KICK
+            dlog.addText(Logger::DRIBBLE, "(check intermediate pos) failed; cant kick to intermediat point");
+            #endif
+
+            candid.possible = false;
+            candid.eval = -1000;
+
+            continue;
+        }
+        candid.possible = true;
+        candid.eval = 1000;
+        candid.first_vel = first_vel;
+
+        double control_aria_safe_thr = 0;
+        if(  FieldAnalyzer::isMiracle(wm)
+              || FieldAnalyzer::isKN2C(wm) ){
+            control_aria_safe_thr = 0.2;
+        }
+
+        bool use_tackle = false;
+        if(  FieldAnalyzer::isMT(wm) ){
+            use_tackle = false;
+        }
+
+        int opp_min_dif = 100;
+        const PlayerPtrCont::const_iterator o_end = wm.opponentsFromSelf().end();
+        for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
+              o != o_end;
+              ++o )
+        {
+            Vector2D opp_pos = (*o)->pos();
+            Vector2D opp_vel = (*o)->vel();
+            opp_pos += Vector2D::polar2vector((*o)->playerTypePtr()->playerSpeedMax() * (opp_vel.r() / 0.4),opp_vel.th());
+
+            int opp_turn_cycle;
+            int opp_dash_cycle;
+            int opp_view_cycle;
+            int opp_cycle = (*o)->cycles_to_cut_ball_with_safe_thr_dist(wm,
+                                                                        intermediate_point,
+                                                                        1,
+                                                                        use_tackle,
+                                                                        opp_dash_cycle,
+                                                                        opp_turn_cycle,
+                                                                        opp_view_cycle,
+                                                                        opp_pos,
+                                                                        opp_vel,
+                                                                        control_aria_safe_thr);
+            
+            int opp_reach_cycle = opp_cycle;
+            if (opp_reach_cycle <= 1){
+                candid.possible = false;
+                #ifdef DEBUG_DOUBLE_KICK
+                dlog.addText(Logger::DRIBBLE, "(check intermediate pos) opp can get intercept; opp_pos=(%.2f, %.2f)", opp_pos.x, opp_pos.y);
+                #endif
+                break;
+            }
+            opp_min_dif = std::min(opp_min_dif, opp_cycle - 1);
+        }
+        candid.eval -= std::max(0, 3 - opp_min_dif)*100;
+        #ifdef DEBUG_DOUBLE_KICK
+        dlog.addText(Logger::DRIBBLE, "(check intermediate pos) candid submited;possible=%d eval=%d", candid.possible, candid.eval);
+        if (candid.possible)
+            dlog.addCircle(Logger::DRIBBLE, intermediate_point, 0.2, "#FF00FF", true);
+        #endif
+        M_intermediate_poses.push_back(candid);
+    }
+}
+
 bool 
 ShortDribbleGenerator::can_kick_point_to_point(const WorldModel& wm,
                                 const Vector2D& ball_pos,
@@ -574,52 +666,34 @@ void ShortDribbleGenerator::checkDoubleKick(const WorldModel& wm,
     // if (ShortDribbleGenerator::last_cycle_double_dirbble == wm.time().cycle() - 1)
     //     return;
 
-    if (target.x < 36.)
-        return;
+    // if (target.x < 36.)
+    //     return;
     
-    const Vector2D self_pos = wm.self().pos() + wm.self().vel();
     const Vector2D self_pos_next = wm.self().pos() + wm.self().vel() + wm.self().vel() * wm.self().playerType().playerDecay();
-    const double dist_from_self = wm.self().playerType().kickableArea() * 0.7;
 
-    bool find_one = false;
-    int n = 8;
-    for (int i = 0; i < n; i++) {
-        const AngleDeg angle(360./(double)n * (double)i);
-        const Vector2D intermediate_point = Vector2D::polar2vector(dist_from_self, angle) + self_pos;
+    std::vector<std::pair<IntermediatePos, int>> intermediate_eval;
+    int worst_danger = -1;
+    int worst_opp_min_diff = 100;
+    bool safe = true;
 
+    for (auto& intermediate_point: M_intermediate_poses) {
         #ifdef DEBUG_DOUBLE_KICK
-        dlog.addText(Logger::DRIBBLE, "(check double kick) intermediate_pos = (%.2f, %.2f)", intermediate_point.x, intermediate_point.y);
+        dlog.addText(Logger::DRIBBLE, "(check double kick) intermediate_pos = (%.2f, %.2f)", intermediate_point.pos.x, intermediate_point.pos.y);
         #endif
 
-        Vector2D new_ball_vel;
-        Vector2D first_vel;
-
-        if (!can_kick_point_to_point(wm, M_first_ball_pos, M_first_ball_vel, self_pos, intermediate_point, first_vel, 1)) {
+        if (!intermediate_point.possible){
             #ifdef DEBUG_DOUBLE_KICK
-            dlog.addText(Logger::DRIBBLE, "(check double dribble) failed; cant kick to intermediat point");
+            dlog.addText(Logger::DRIBBLE, "(check double kick) is not possible");
             #endif
-
-            #ifdef DEBUG_PRINT_FAILED_COURSE
-            dlog.addCircle(Logger::DRIBBLE, intermediate_point, 0.2, "#FF00FF", true);
-            dlog.addLine(Logger::DRIBBLE, M_first_ball_pos, intermediate_point, "#FF0000");
-            dlog.addLine(Logger::DRIBBLE, intermediate_point, target, "#FF0000");
-            #endif
-
             continue;
         }
 
-        new_ball_vel = first_vel * ServerParam::i().ballDecay();
+        Vector2D new_ball_vel = intermediate_point.first_vel * ServerParam::i().ballDecay();
         Vector2D last_ball_vel;
 
-        if (!can_kick_point_to_point(wm, intermediate_point, new_ball_vel, self_pos_next, target, last_ball_vel, n_turn + n_dash + 1)){
+        if (!can_kick_point_to_point(wm, intermediate_point.pos, new_ball_vel, self_pos_next, target, last_ball_vel, n_turn + n_dash)){
             #ifdef DEBUG_DOUBLE_KICK
             dlog.addText(Logger::DRIBBLE, "(check double dribble) failed; cant kick to target point");
-            #endif
-
-            #ifdef DEBUG_PRINT_FAILED_COURSE
-            dlog.addCircle(Logger::DRIBBLE, intermediate_point, 0.2, "#FF00FF", true);
-            dlog.addLine(Logger::DRIBBLE, M_first_ball_pos, intermediate_point, "#0000FF");
-            dlog.addLine(Logger::DRIBBLE, intermediate_point, target, "#FF0000");
             #endif
 
             continue;
@@ -627,40 +701,63 @@ void ShortDribbleGenerator::checkDoubleKick(const WorldModel& wm,
 
         bool safe_with_pos_count = true;
         int opp_min_dif = 3;
-        if( !can_opp_reach_double_kick_dribble(wm,M_first_ball_pos,intermediate_point,last_ball_vel,target,1 + n_turn + n_dash,opp_min_dif, safe_with_pos_count))
+        if( !can_opp_reach(wm,intermediate_point.pos,last_ball_vel,target,+1 + n_turn + n_dash,opp_min_dif, safe_with_pos_count))
         {
-            find_one = true;
             safe_with_pos_count = false;
             int danger = 1;
-            CooperativeAction::Ptr ptr( new Dribble( wm.self().unum(),
-                                                     target,
-                                                     intermediate_point,
-                                                     self_cache[n_turn + n_dash],
-                                        first_vel.r(),
-                                        2, // n_kick
-                                        n_turn,
-                                        n_dash,
-                                        "shortDribbleAdvance2Kick",
-                                        0,
-                                        opp_min_dif,
-                                        safe_with_pos_count,
-                                        danger) );
-            ptr->setIndex( M_total_count );
-            M_courses.push_back( ptr );
+
+            if (danger > worst_danger)
+                worst_danger = danger;
+            if (safe && !safe_with_pos_count)
+                safe = false;
+            if (opp_min_dif < worst_opp_min_diff)
+                worst_opp_min_diff = opp_min_dif;
+            
+            intermediate_eval.push_back(std::pair<IntermediatePos, int>(intermediate_point, intermediate_point.eval - opp_min_dif*100));
 
             #ifdef DEBUG_DOUBLE_KICK
             dlog.addText(Logger::DRIBBLE, "(check double dribble) OK");
             #endif
 
-            #ifdef DEBUG_PRINT_SUCCESS_COURSE
-            dlog.addCircle(Logger::DRIBBLE, intermediate_point, 0.2, "#FF00FF", true);
-            dlog.addLine(Logger::DRIBBLE, M_first_ball_pos, intermediate_point, "#0000FF");
-            dlog.addLine(Logger::DRIBBLE, intermediate_point, target, "#0000FF");
-            #endif
         }
     }
 
+    bool find_one = false;
+    int max_eval=-10000;
+    IntermediatePos best_intermediate;
+    for (auto& it: intermediate_eval){
+        if (!it.first.possible)
+            continue;
+        if (!find_one)
+            find_one = true;
+        if(it.second > max_eval){
+            max_eval = it.second;
+            best_intermediate = it.first;
+        }
+    }
     if (find_one) {
+        CooperativeAction::Ptr ptr( new Dribble( wm.self().unum(),
+                                                 target,
+                                                 best_intermediate.pos,
+                                                 self_cache[n_turn + n_dash],
+                                    best_intermediate.first_vel.r(),
+                                    2, // n_kick
+                                    n_turn,
+                                    n_dash,
+                                    "shortDribbleAdvance2Kick",
+                                    0,
+                                    worst_opp_min_diff,
+                                    safe,
+                                    worst_danger) );
+        ptr->setIndex( M_total_count );
+        M_courses.push_back( ptr );
+
+        #ifdef DEBUG_PRINT_SUCCESS_COURSE
+        dlog.addCircle(Logger::DRIBBLE, best_intermediate.pos, 0.1, "#00FF00", true);
+        dlog.addLine(Logger::DRIBBLE, M_first_ball_pos, best_intermediate.pos, "#0000FF");
+        dlog.addLine(Logger::DRIBBLE, best_intermediate.pos, target, "#0000FF");
+        #endif
+
         #ifdef DEBUG_PRINT_SUCCESS_COURSE
             dlog.addCircle( Logger::DRIBBLE,
                             target.x, target.y, 0.1,

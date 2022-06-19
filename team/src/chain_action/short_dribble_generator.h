@@ -45,6 +45,18 @@ class PlayerObject;
 class WorldModel;
 }
 
+class IntermediatePos {
+public:
+	IntermediatePos(){};
+
+	rcsc::Vector2D pos;
+	rcsc::Vector2D first_vel;
+	int eval;
+	bool possible;
+	bool safe_with_poscount;
+	int danger;
+};
+
 class ShortDribbleGenerator {
 private:
 
@@ -58,6 +70,8 @@ private:
     CooperativeAction::Ptr M_queued_action;
 
     std::vector< CooperativeAction::Ptr > M_courses;
+
+	std::vector< IntermediatePos > M_intermediate_poses;
 
 
     // private for singleton
@@ -118,6 +132,8 @@ private:
                         const int action_cycle,
                         int & opp_min_dif, 
                         bool & safe_with_pos_count);
+
+	void check_intermediate_poses(const rcsc::WorldModel & wm);
     
     bool can_opp_reach_double_kick_dribble(const rcsc::WorldModel & wm,
                                             const rcsc::Vector2D start_ball,
