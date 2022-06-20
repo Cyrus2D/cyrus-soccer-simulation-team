@@ -45,6 +45,18 @@ class PlayerObject;
 class WorldModel;
 }
 
+class IntermediatePos {
+public:
+	IntermediatePos(){};
+
+	rcsc::Vector2D pos;
+	rcsc::Vector2D first_vel;
+	int eval;
+	bool possible;
+	bool safe_with_poscount;
+	int danger;
+};
+
 class ShortDribbleGenerator {
 private:
 
@@ -59,6 +71,9 @@ private:
 
     std::vector< CooperativeAction::Ptr > M_courses;
 
+	std::vector< IntermediatePos > M_intermediate_poses;
+
+
     // private for singleton
     ShortDribbleGenerator();
 
@@ -66,6 +81,8 @@ private:
     ShortDribbleGenerator( const ShortDribbleGenerator & );
     ShortDribbleGenerator & operator=( const ShortDribbleGenerator & );
 public:
+
+    static int last_cycle_double_dirbble;
 
     static
     ShortDribbleGenerator & instance();
@@ -108,10 +125,37 @@ private:
                                 const int n_dash,
                                 std::vector< rcsc::Vector2D > & self_cache );
 
+
+
+	void check_intermediate_poses(const rcsc::WorldModel & wm);
+    
+    bool can_opp_reach_double_kick_dribble(const rcsc::WorldModel & wm,
+                                            const rcsc::Vector2D start_ball,
+                                            const rcsc::Vector2D intermediate_pos,
+                                            const rcsc::Vector2D kick_vel,
+                                            const rcsc::Vector2D ball_trap_pos,
+                                            const int action_cycle,int & opp_min_dif,
+                                            bool & safe_with_pos_count);
+
+    bool can_kick_point_to_point(const rcsc::WorldModel& wm,
+                                    const rcsc::Vector2D& ball_pos,
+                                    const rcsc::Vector2D& ball_vel,
+                                    const rcsc::Vector2D& self_pos,
+                                    const rcsc::Vector2D& target,
+                                    rcsc::Vector2D& next_ball_vel,
+                                    const int action_time);
+
+    void checkDoubleKick(const rcsc::WorldModel& wm,
+                          const rcsc::Vector2D target,
+                          const int n_turn,
+                          const int n_dash,
+                          const std::vector< rcsc::Vector2D >& self_cache);
+
     bool can_opp_reach(const rcsc::WorldModel & wm, const rcsc::Vector2D start_ball,
                          const rcsc::Vector2D kick_vel,const rcsc::Vector2D ball_trap_pos,
                           const int action_cycle,int & opp_min_dif, bool & safe_with_pos_count
                           , int & worst_danger);
+
 };
 
 #endif
