@@ -125,13 +125,7 @@ private:
                                 const int n_dash,
                                 std::vector< rcsc::Vector2D > & self_cache );
 
-    bool can_opp_reach(const rcsc::WorldModel & wm,
-                        const rcsc::Vector2D start_ball, 
-                        const rcsc::Vector2D kick_vel,
-                        const rcsc::Vector2D ball_trap_pos, 
-                        const int action_cycle,
-                        int & opp_min_dif, 
-                        bool & safe_with_pos_count);
+
 
 	void check_intermediate_poses(const rcsc::WorldModel & wm);
     
@@ -156,6 +150,12 @@ private:
                           const int n_turn,
                           const int n_dash,
                           const std::vector< rcsc::Vector2D >& self_cache);
+
+    bool can_opp_reach(const rcsc::WorldModel & wm, const rcsc::Vector2D start_ball,
+                         const rcsc::Vector2D kick_vel,const rcsc::Vector2D ball_trap_pos,
+                          const int action_cycle,int & opp_min_dif, bool & safe_with_pos_count
+                          , int & worst_danger);
+
 };
 
 #endif

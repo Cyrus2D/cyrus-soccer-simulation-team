@@ -16,9 +16,21 @@ ChainActionSetting::ChainActionSetting(Value & value){
     {
         mUseShootSafe = value["UseShootSafe"].GetBool();
     }
-    if(value.HasMember("DribblePosCountZ"))
+    if(value.HasMember("DribblePosCountLow"))
     {
-        mDribblePosCountZ = value["DribblePosCountZ"].GetFloat();
+        mDribblePosCountLow = value["DribblePosCountLow"].GetFloat();
+    }
+    if(value.HasMember("DribblePosCountHigh"))
+    {
+        mDribblePosCountHigh = value["DribblePosCountHigh"].GetFloat();
+    }
+    if(value.HasMember("DribbleAlwaysDanger"))
+    {
+        mDribbleAlwaysDanger = value["DribbleAlwaysDanger"].GetBool();
+    }
+    if(value.HasMember("DribbleBallCollisionNoise"))
+    {
+        mDribbleBallCollisionNoise = value["DribbleBallCollisionNoise"].GetFloat();
     }
     if(value.HasMember("DribblePosCountMaxFrontOpp"))
     {

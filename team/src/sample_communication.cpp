@@ -836,6 +836,23 @@ SampleCommunication::shouldSayBall( const PlayerAgent * agent )
         return true;
     }
 
+    {
+        if (!wm.self().goalie()){
+            Vector2D ball_vel = wm.ball().vel();
+            Vector2D ball_pos = wm.ball().pos();
+            Line2D goal_line = Line2D(Vector2D(-52.5, -10), Vector2D(-52.5, +10));
+            Line2D ball_move_line = Line2D(ball_pos, ball_vel.th());
+            Vector2D intersection = goal_line.intersection(ball_move_line);
+            Vector2D final_ball_pos = wm.ball().inertiaFinalPoint();
+            if (ball_vel.r() > 0.3 && final_ball_pos.x < -40 && intersection.isValid() && intersection.absY() < 10.0){
+                if (wm.interceptTable()->fastestTeammate() != nullptr && wm.interceptTable()->fastestTeammate()->unum() > 0){
+                    if (wm.interceptTable()->fastestTeammate()->goalie()){
+                        return true;
+                    }
+                }
+            }
+        }
+    }
 #if 0
     if ( ball_nearest_teammate
          && second_ball_nearest_teammate

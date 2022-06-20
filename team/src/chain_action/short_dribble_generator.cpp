@@ -163,7 +163,7 @@ ShortDribbleGenerator::generate( const WorldModel & wm )
         M_first_ball_vel = wm.ball().vel();
     }else if(wm.interceptTable()->selfReachCycle() <=2){
         M_first_ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->selfReachCycle());
-        M_first_ball_vel = wm.ball().vel();
+        M_first_ball_vel = wm.ball().vel(); // todo RF *decay^2
     }
     // else if ( ! wm.existKickableTeammate()
     //           && ! wm.existKickableOpponent()
@@ -436,7 +436,7 @@ ShortDribbleGenerator::simulateKickTurnBackDashes(  const WorldModel & wm,
         }
 
         if ( ( M_first_ball_pos + first_vel ).dist2( self_cache[0] )
-             < std::pow( ptype.playerSize() + SP.ballSize() + (wm.ball().pos().dist(Vector2D(52,0))< 15?0:0.1), 2 ) )
+             < std::pow( ptype.playerSize() + SP.ballSize() + (wm.ball().pos().dist(Vector2D(52,0)) < 15 ? 0 : Setting::i()->mChainAction->mDribbleBallCollisionNoise), 2 ) )
         {
 #ifdef DEBUG_PRINT_FAILED_COURSE
             dlog.addText( Logger::DRIBBLE,
@@ -453,10 +453,11 @@ ShortDribbleGenerator::simulateKickTurnBackDashes(  const WorldModel & wm,
 
         int opp_min_dif = 3;
         bool safe_with_pos_count = true;
-        if( !can_opp_reach(wm,M_first_ball_pos,first_vel,ball_trap_pos,1 + n_turn + n_dash,opp_min_dif, safe_with_pos_count))
+        int danger = 0;
+        if( !can_opp_reach(wm,M_first_ball_pos,first_vel,ball_trap_pos,
+        1 + n_turn + n_dash,opp_min_dif, safe_with_pos_count, danger))
         {
-            safe_with_pos_count = false;
-            int danger = 1;
+            // safe_with_pos_count = false;
             CooperativeAction::Ptr ptr( new Dribble( wm.self().unum(),
                                                      ball_trap_pos,
                                                      first_vel.r(),
@@ -484,11 +485,11 @@ ShortDribbleGenerator::simulateKickTurnBackDashes(  const WorldModel & wm,
             }
             else{
                 dlog.addText( Logger::DRIBBLE,
-                              "%d: ok notsafe trap_pos=(%.2f %.2f) first_vel=(%.1f %.1f, r=%.2f) n_turn=%d n_dash=%d",
+                              "%d: ok notsafe trap_pos=(%.2f %.2f) first_vel=(%.1f %.1f, r=%.2f) n_turn=%d n_dash=%d danger=%d",
                               M_total_count,
                               ball_trap_pos.x, ball_trap_pos.y,
                               first_vel.x, first_vel.y, first_vel.r(),
-                              n_turn, n_dash );
+                              n_turn, n_dash, danger);
                 dlog.addCircle( Logger::DRIBBLE,
                                 ball_trap_pos.x, ball_trap_pos.y, 0.1,
                                 "#41A2F4" );
@@ -886,7 +887,7 @@ ShortDribbleGenerator::simulateKickTurnsDashesAdvance( const WorldModel & wm,
                                  wm.self().playerType().playerSize(),
                                  wm.self().playerType().kickableMargin() );
             }
-            const double kick_power = kick_accel.r() / kickrate;
+            const double kick_power = kick_accel.r() / kickrate; // todo RF only on step?
 
             if ( kick_power > SP.maxPower()
                  || kick_accel.r2() > std::pow( SP.ballAccelMax(), 2 )
@@ -905,7 +906,7 @@ ShortDribbleGenerator::simulateKickTurnsDashesAdvance( const WorldModel & wm,
             }
 
             if ( ( M_first_ball_pos + first_vel ).dist2( self_cache[0] )
-                 < std::pow( ptype.playerSize() + SP.ballSize() + 0.1, 2 ) )
+                 < std::pow( ptype.playerSize() + SP.ballSize() + Setting::i()->mChainAction->mDribbleBallCollisionNoise , 2 ) )
             {
 #ifdef DEBUG_PRINT_FAILED_COURSE
                 dlog.addText( Logger::DRIBBLE,
@@ -921,10 +922,11 @@ ShortDribbleGenerator::simulateKickTurnsDashesAdvance( const WorldModel & wm,
 
             int opp_min_dif = 3;
             bool safe_with_pos_count = true;
-            if( !can_opp_reach(wm,M_first_ball_pos,first_vel,ball_trap_pos,1 + n_turn + n_dash,opp_min_dif, safe_with_pos_count))
+            int danger = 0;
+            if( !can_opp_reach(wm,M_first_ball_pos,first_vel,ball_trap_pos,
+                     1 + n_turn + n_dash,opp_min_dif, safe_with_pos_count, danger))
             {
-                safe_with_pos_count = false;
-                int danger = 1;
+                // safe_with_pos_count = false;
                 CooperativeAction::Ptr ptr( new Dribble( wm.self().unum(),
                                                          ball_trap_pos,
                                                          self_cache[n_turn + n_dash],
@@ -954,11 +956,11 @@ ShortDribbleGenerator::simulateKickTurnsDashesAdvance( const WorldModel & wm,
                 }
                 else{
                     dlog.addText( Logger::DRIBBLE,
-                                  "%d: ok nosafe trap_pos=(%.2f %.2f) first_vel=(%.1f %.1f, r=%.2f) n_turn=%d n_dash=%d",
+                                  "%d: ok nosafe trap_pos=(%.2f %.2f) first_vel=(%.1f %.1f, r=%.2f) n_turn=%d n_dash=%d danger=%d",
                                   M_total_count,
                                   ball_trap_pos.x, ball_trap_pos.y,
                                   first_vel.x, first_vel.y, first_vel.r(),
-                                  n_turn, n_dash );
+                                  n_turn, n_dash, danger );
                     dlog.addCircle( Logger::DRIBBLE,
                                     ball_trap_pos.x, ball_trap_pos.y, 0.1,
                                     "#41A2F4" );
@@ -1078,6 +1080,7 @@ ShortDribbleGenerator::createSelfBackCache( const WorldModel & wm,
     }
 
 }
+
 
 bool ShortDribbleGenerator::can_opp_reach_double_kick_dribble(const WorldModel & wm,
                                                                  const Vector2D start_ball, 
@@ -1216,13 +1219,12 @@ bool ShortDribbleGenerator::can_opp_reach_double_kick_dribble(const WorldModel &
     return false;
 }
 
-bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, 
-                                            const Vector2D start_ball, 
-                                            const Vector2D kick_vel,
-                                            const Vector2D ball_trap_pos, 
-                                            const int action_cycle, 
-                                            int & opp_min_dif, 
-                                            bool & safe_with_pos_count){
+
+bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D start_ball,
+                                     const Vector2D kick_vel, const Vector2D ball_trap_pos,
+                                      const int action_cycle, int & opp_min_dif, bool & safe_with_pos_count
+                                      , int & worst_danger){
+
     dlog.addText(Logger::DRIBBLE,"--canopp reach b(%.1f,%.1f)-(%.1f,%.1f)->(%.1f,%.1f),c:%d",start_ball.x,start_ball.y,kick_vel.x,kick_vel.y,ball_trap_pos.x,ball_trap_pos.y,action_cycle);
     const ServerParam & sp = ServerParam::i();
     const rcsc::AngleDeg ball_move_angle = ( ball_trap_pos - M_first_ball_pos ).th();
@@ -1252,10 +1254,10 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm,
         ball_vel *= sp.ballDecay();
         Vector2D opp_pos = (*o)->pos();
         Vector2D opp_vel = (*o)->vel();
-        opp_pos += Vector2D::polar2vector(ptype->playerSpeedMax() * (opp_vel.r() / 0.4),opp_vel.th());
+        opp_pos += Vector2D::polar2vector(ptype->playerSpeedMax() * (opp_vel.r() / 0.4),opp_vel.th());  // todo RF maxSpeed*opp_vel?
         dlog.addText(Logger::DRIBBLE,"--opp%d p(%.1f,%.1f),pp(%.1f,%.1f),v(%.1f,%.1f)",(*o)->unum(),(*o)->pos().x,(*o)->pos().y,opp_pos.x,opp_pos.y,opp_vel.x,opp_vel.y);
         int bonus_step = 0;
-        if ( ball_trap_pos.x < 30.0 )
+        if ( ball_trap_pos.x < 30.0)
         {
             bonus_step += 1;
         }
@@ -1270,19 +1272,26 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm,
             bonus_step = -5;
         }
 
+        int bonus_step_noisy = bonus_step;
+
         int max_pos_count_effect_front = Setting::i()->mChainAction->mDribblePosCountMaxFrontOpp;
         int max_pos_count_effect_behind = Setting::i()->mChainAction->mDribblePosCountMaxBehindOpp;
-        double pos_count_effect_factor = Setting::i()->mChainAction->mDribblePosCountZ;
+        double pos_count_effect_factor_low = Setting::i()->mChainAction->mDribblePosCountLow;
+        double pos_count_effect_factor_high = Setting::i()->mChainAction->mDribblePosCountHigh;
+
         if ( ball_to_opp_rel.x > 0.5 )
         {
-            bonus_step += bound( 0, static_cast<int>((*o)->posCount() * pos_count_effect_factor), max_pos_count_effect_front );
+            bonus_step += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor_low)), max_pos_count_effect_front );
+            bonus_step_noisy += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor_high)), max_pos_count_effect_front );
         }
         else
         {
             if(wm.ball().pos().x > 15 && wm.ball().pos().x < 45 && wm.ball().pos().x > wm.theirOffenseLineX() - 10){
-                bonus_step += bound( 0, static_cast<int>((*o)->posCount() * pos_count_effect_factor), max_pos_count_effect_behind / 2 );
+                bonus_step += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor_low)), max_pos_count_effect_behind / 2 );
+                bonus_step_noisy += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor_high)), max_pos_count_effect_behind / 2 );
             }else{
-                bonus_step += bound( 0, static_cast<int>((*o)->posCount() * pos_count_effect_factor), max_pos_count_effect_behind );
+                bonus_step += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor_low)), max_pos_count_effect_behind );
+                bonus_step_noisy += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor_high)), max_pos_count_effect_behind );
             }
 
         }
@@ -1303,19 +1312,41 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm,
                                                                          opp_vel,
                                                                          control_aria_safe_thr);
 
-            dlog.addText(Logger::DRIBBLE,"----c:%d,opptc:%d,oppdc:%d,bonus_step:%d",c,opp_turn_cycle,opp_dash_cycle,bonus_step);
+            dlog.addText(Logger::DRIBBLE,"----c:%d,opptc:%d,oppdc:%d,oppc:%d,bonus_step:%d",c,opp_turn_cycle,opp_dash_cycle,opp_cycle,bonus_step);
             if(  FieldAnalyzer::isMiracle(wm)
                   || FieldAnalyzer::isKN2C(wm) ){
 //                opp_cycle = opp_turn_cycle + opp_dash_cycle;
             }
             int opp_reach_cycle = opp_cycle - bonus_step;
+            int opp_reach_cycle_noisy = opp_cycle - bonus_step_noisy;
+            int diff = opp_reach_cycle - c;
+
+            // danger
+            int danger = 0;
+            if  (diff <= 3){
+                danger = std::max(3 - diff, 0);
+            }
+
+            if (danger > worst_danger){
+                worst_danger = danger;
+            }
+            
             if (opp_reach_cycle <= c){
+                if (Setting::i()->mChainAction->mDribbleAlwaysDanger)
+                    worst_danger = 1;
                 return true;
             }
+
+            if (opp_reach_cycle_noisy <= c){
+                safe_with_pos_count = false;
+            }
+
             opp_min_dif = std::min(opp_min_dif, opp_cycle - bonus_step - c);
             ball_pos += ball_vel;
             ball_vel *= sp.ballDecay();
         }
     }
+    if (Setting::i()->mChainAction->mDribbleAlwaysDanger)
+        worst_danger = 1;
     return false;
 }
