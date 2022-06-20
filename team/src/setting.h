@@ -38,10 +38,11 @@ public:
     int mChainDeph = 2;
     int mChainNodeNumber = 2000;
     bool mUseShootSafe = false;
-    double mDribblePosCountLow = 0.2;
+    double mDribblePosCountLow = 0.8;
     double mDribblePosCountHigh = 0.8;
     bool mDribbleAlwaysDanger = true;
     double mDribbleBallCollisionNoise = 0.1;
+    bool mDribbleUseDoubleKick = false;
     int mDribblePosCountMaxFrontOpp = 8;
     int mDribblePosCountMaxBehindOpp = 4;
     vector<double> mDangerEvalBack;

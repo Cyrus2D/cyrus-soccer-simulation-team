@@ -19,6 +19,7 @@
 		"DribblePosCountHigh":0.8,
 		"DribbleAlwaysDanger":true,
 		"DribbleBallCollisionNoise":0.1,
+		"DribbleUseDoubleKick": false,
 		"DribblePosCountMaxFrontOpp":8,
 		"DribblePosCountMaxBehindOpp":4,
 		"DangerEvalBack": [50, 40, 35, 20, 18, 16, 10, 5, 4, 3, 0, 0, 0, 0, 0],

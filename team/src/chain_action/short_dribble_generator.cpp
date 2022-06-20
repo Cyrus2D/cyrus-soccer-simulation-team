@@ -509,6 +509,9 @@ ShortDribbleGenerator::simulateKickTurnBackDashes(  const WorldModel & wm,
 void 
 ShortDribbleGenerator::check_intermediate_poses(const WorldModel & wm) 
 {
+    if (!Setting::i()->mChainAction->mDribbleUseDoubleKick)
+        return;
+    
     const Vector2D self_pos = wm.self().pos() + wm.self().vel();
     const double dist_from_self = wm.self().playerType().kickableArea() * 0.7;
     M_intermediate_poses.clear();
@@ -669,6 +672,9 @@ void ShortDribbleGenerator::checkDoubleKick(const WorldModel& wm,
 
     // if (target.x < 36.)
     //     return;
+
+    if (!Setting::i()->mChainAction->mDribbleUseDoubleKick)
+        return;
     
     const Vector2D self_pos_next = wm.self().pos() + wm.self().vel() + wm.self().vel() * wm.self().playerType().playerDecay();
 
@@ -702,10 +708,10 @@ void ShortDribbleGenerator::checkDoubleKick(const WorldModel& wm,
 
         bool safe_with_pos_count = true;
         int opp_min_dif = 3;
-        if( !can_opp_reach(wm,intermediate_point.pos,last_ball_vel,target,+1 + n_turn + n_dash,opp_min_dif, safe_with_pos_count))
+        int danger = 0;
+        if( !can_opp_reach(wm,intermediate_point.pos,last_ball_vel,target,+1 + n_turn + n_dash,opp_min_dif, safe_with_pos_count,danger))
         {
-            safe_with_pos_count = false;
-            int danger = 1;
+            // safe_with_pos_count = false;
 
             if (danger > worst_danger)
                 worst_danger = danger;
@@ -1079,144 +1085,6 @@ ShortDribbleGenerator::createSelfBackCache( const WorldModel & wm,
         self_cache.push_back( my_pos );
     }
 
-}
-
-
-bool ShortDribbleGenerator::can_opp_reach_double_kick_dribble(const WorldModel & wm,
-                                                                 const Vector2D start_ball, 
-                                                                 const Vector2D intermediate_pos,
-                                                                 const Vector2D kick_vel, 
-                                                                 const Vector2D ball_trap_pos, 
-                                                                 const int action_cycle, 
-                                                                 int & opp_min_dif, 
-                                                                 bool & safe_with_pos_count){
-    dlog.addText(Logger::DRIBBLE,"--canopp reach b(%.1f,%.1f)-(%.1f,%.1f)->(%.1f,%.1f),c:%d",start_ball.x,start_ball.y,kick_vel.x,kick_vel.y,ball_trap_pos.x,ball_trap_pos.y,action_cycle);
-    const ServerParam & sp = ServerParam::i();
-    const rcsc::AngleDeg ball_move_angle = ( ball_trap_pos - M_first_ball_pos ).th();
-
-    double control_aria_safe_thr = 0;
-    if(  FieldAnalyzer::isMiracle(wm)
-          || FieldAnalyzer::isKN2C(wm) ){
-        control_aria_safe_thr = 0.2;
-    }
-    bool use_tackle = false;
-    if(  FieldAnalyzer::isMT(wm) ){
-        use_tackle = false;
-    }
-
-    const PlayerPtrCont::const_iterator o_end = wm.opponentsFromSelf().end();
-    for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
-          o != o_end;
-          ++o )
-    {
-        if ( (*o)->distFromSelf() > 45.0 ) break;
-        const Vector2D ball_to_opp_rel = ( (*o)->pos() - M_first_ball_pos ).rotatedVector( -ball_move_angle );
-        const PlayerType * ptype = (*o)->playerTypePtr();
-
-        Vector2D ball_pos = start_ball;
-        Vector2D ball_vel = kick_vel;
-        ball_pos += ball_vel;
-        ball_vel *= sp.ballDecay();
-        Vector2D opp_pos = (*o)->pos();
-        Vector2D opp_vel = (*o)->vel();
-        opp_pos += Vector2D::polar2vector(ptype->playerSpeedMax() * (opp_vel.r() / 0.4),opp_vel.th());
-        dlog.addText(Logger::DRIBBLE,"--opp%d p(%.1f,%.1f),pp(%.1f,%.1f),v(%.1f,%.1f)",(*o)->unum(),(*o)->pos().x,(*o)->pos().y,opp_pos.x,opp_pos.y,opp_vel.x,opp_vel.y);
-        int bonus_step = 0;
-        if ( ball_trap_pos.x < 30.0 )
-        {
-            bonus_step += 1;
-        }
-
-        if ( ball_trap_pos.x < 0.0 )
-        {
-            bonus_step += 1;
-        }
-
-        if ( (*o)->isTackling() )
-        {
-            bonus_step = -5;
-        }
-
-        int max_pos_count_effect_front = Setting::i()->mChainAction->mDribblePosCountMaxFrontOpp;
-        int max_pos_count_effect_behind = Setting::i()->mChainAction->mDribblePosCountMaxBehindOpp;
-        double pos_count_effect_factor = Setting::i()->mChainAction->mDribblePosCountZ;
-        if ( ball_to_opp_rel.x > 0.5 )
-        {
-            bonus_step += bound( 0, static_cast<int>((*o)->posCount() * pos_count_effect_factor), max_pos_count_effect_front );
-        }
-        else
-        {
-            if(wm.ball().pos().x > 15 && wm.ball().pos().x < 45 && wm.ball().pos().x > wm.theirOffenseLineX() - 10){
-                bonus_step += bound( 0, static_cast<int>((*o)->posCount() * pos_count_effect_factor), max_pos_count_effect_behind / 2 );
-            }else{
-                bonus_step += bound( 0, static_cast<int>((*o)->posCount() * pos_count_effect_factor), max_pos_count_effect_behind );
-            }
-
-        }
-
-        // c = 1
-        {
-            int opp_turn_cycle;
-            int opp_dash_cycle;
-            int opp_view_cycle;
-            int opp_cycle = (*o)->cycles_to_cut_ball_with_safe_thr_dist(wm,
-                                                                         intermediate_pos,
-                                                                         1,
-                                                                         use_tackle,
-                                                                         opp_dash_cycle,
-                                                                         opp_turn_cycle,
-                                                                         opp_view_cycle,
-                                                                         opp_pos,
-                                                                         opp_vel,
-                                                                         control_aria_safe_thr);
-
-            dlog.addText(Logger::DRIBBLE,"----c:%d,opptc:%d,oppdc:%d,bonus_step:%d",1,opp_turn_cycle,opp_dash_cycle,bonus_step);
-                        if(  FieldAnalyzer::isMiracle(wm)
-                              || FieldAnalyzer::isKN2C(wm) ){
-            //                opp_cycle = opp_turn_cycle + opp_dash_cycle;
-                        }
-                        int opp_reach_cycle = opp_cycle - bonus_step;
-                        if (opp_reach_cycle <= 1){
-                            return true;
-                        }
-                        opp_min_dif = std::min(opp_min_dif, opp_cycle - bonus_step - 1);
-        }
-
-        ball_pos = intermediate_pos + kick_vel;
-        ball_vel = kick_vel * ServerParam::i().ballDecay();
-
-        for(int c = 2; c <= action_cycle; c++){
-
-
-            int opp_turn_cycle;
-            int opp_dash_cycle;
-            int opp_view_cycle;
-            int opp_cycle = (*o)->cycles_to_cut_ball_with_safe_thr_dist(wm,
-                                                                         ball_pos,
-                                                                         c,
-                                                                         use_tackle,
-                                                                         opp_dash_cycle,
-                                                                         opp_turn_cycle,
-                                                                         opp_view_cycle,
-                                                                         opp_pos,
-                                                                         opp_vel,
-                                                                         control_aria_safe_thr);
-
-            dlog.addText(Logger::DRIBBLE,"----c:%d,opptc:%d,oppdc:%d,bonus_step:%d",c,opp_turn_cycle,opp_dash_cycle,bonus_step);
-            if(  FieldAnalyzer::isMiracle(wm)
-                  || FieldAnalyzer::isKN2C(wm) ){
-//                opp_cycle = opp_turn_cycle + opp_dash_cycle;
-            }
-            int opp_reach_cycle = opp_cycle - bonus_step;
-            if (opp_reach_cycle <= c){
-                return true;
-            }
-            opp_min_dif = std::min(opp_min_dif, opp_cycle - bonus_step - c);
-            ball_pos += ball_vel;
-            ball_vel *= sp.ballDecay();
-        }
-    }
-    return false;
 }
 
 

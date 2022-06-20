@@ -32,6 +32,10 @@ ChainActionSetting::ChainActionSetting(Value & value){
     {
         mDribbleBallCollisionNoise = value["DribbleBallCollisionNoise"].GetFloat();
     }
+    if(value.HasMember("DribbleBallCollisionNoise"))
+    {
+        mDribbleUseDoubleKick = value["DribbleUseDoubleKick"].GetBool();
+    }
     if(value.HasMember("DribblePosCountMaxFrontOpp"))
     {
         mDribblePosCountMaxFrontOpp = value["DribblePosCountMaxFrontOpp"].GetInt();
