@@ -91,6 +91,8 @@ public:
     bool mUsePassBlock = false;
     double mStartMidMark = -30.0;
     vector<int> mStaticOffensiveOpp;
+    double mMidTh_PosFinderHPosXNegativeTerm = 0.0;
+    double mMidTh_PosFinderBackDistXPlusTerm = 0.0;
     bool mMidTh_BackInMark = true;
     bool mMidTh_BackInBlock = true;
     bool mMidTh_HalfInMark = true;

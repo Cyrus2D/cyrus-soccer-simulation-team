@@ -157,6 +157,12 @@ DefenseMoveSetting::DefenseMoveSetting(Value & value){
         mStaticOffensiveOpp.push_back(10);
         mStaticOffensiveOpp.push_back(11);
     }
+    if(value.HasMember("MidTh_PosFinderHPosXNegativeTerm")){
+        mMidTh_PosFinderHPosXNegativeTerm = value["MidTh_PosFinderHPosXNegativeTerm"].GetDouble();
+    }
+    if(value.HasMember("MidTh_PosFinderBackDistXPlusTerm")){
+        mMidTh_PosFinderBackDistXPlusTerm = value["MidTh_PosFinderBackDistXPlusTerm"].GetDouble();
+    }
     if(value.HasMember("MidTh_BackInMark")){
         mMidTh_BackInMark = value["MidTh_BackInMark"].GetBool();
     }

@@ -6,6 +6,7 @@
 #include "../chain_action/field_analyzer.h"
 #include <rcsc/geom.h>
 #include "../debugs.h"
+#include "../setting.h"
 using namespace rcsc;
 Target
 MarkPositionFinder::getLeadProjectionMarkTarget(int tmUnum, int oppUnum, const WorldModel &wm) {
@@ -87,8 +88,8 @@ MarkPositionFinder::getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldMo
 
 
     double tm_def_hpos_x = Strategy::i().getPosition(2).x;
-    if(ball_inertia.x > -15 && (FieldAnalyzer::isHelius(wm) || FieldAnalyzer::isGLD(wm))){
-        tm_def_hpos_x -= 10;
+    if(ball_inertia.x > -15){
+        tm_def_hpos_x -= Setting::i()->mDefenseMove->mMidTh_PosFinderHPosXNegativeTerm;
     }
     double tm_def_pos_x = wm.ourDefenseLineX();
     bool opp_can_pass_now = false;
@@ -144,8 +145,8 @@ MarkPositionFinder::getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldMo
                 dist_backward = 5;
             }
         }
-        if(ball_inertia.x > -25&& FieldAnalyzer::isHelius(wm)){
-            dist_backward += 3;
+        if(ball_inertia.x > -25 ){
+            dist_backward += Setting::i()->mDefenseMove->mMidTh_PosFinderBackDistXPlusTerm;
         }
         if(ball_inertia.x < -25 && opp_pos.x < -32.5)
             dist_backward = 1.0;
