@@ -86,6 +86,8 @@ class DefenseMoveSetting{
 public:
     DefenseMoveSetting(){}
     DefenseMoveSetting(Value & value);
+    bool mGoToDefendX = true;
+    bool mFixThMarkY = true;
     bool mUsePassBlock = false;
     double mStartMidMark = -30.0;
     vector<int> mStaticOffensiveOpp;

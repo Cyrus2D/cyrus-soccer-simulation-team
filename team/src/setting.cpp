@@ -136,6 +136,12 @@ OffensiveMoveSetting::OffensiveMoveSetting(Value &value)
 }
 
 DefenseMoveSetting::DefenseMoveSetting(Value & value){
+    if(value.HasMember("GoToDefendX")){
+        mGoToDefendX = value["GoToDefendX"].GetBool();
+    }
+    if(value.HasMember("FixThMarkY")){
+        mFixThMarkY = value["FixThMarkY"].GetBool();
+    }
     if(value.HasMember("PassBlock")){
         mUsePassBlock = value["PassBlock"].GetBool();
     }
