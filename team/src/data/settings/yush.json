@@ -38,9 +38,9 @@
 	},
 	"DefenseMove": {
 		"GoToDefendX": true,
-		"FixThMarkY": true,
+		"FixThMarkY": false,
 		"MidTh_PosFinderHPosXNegativeTerm": 0.0,
-		"MidTh_PosFinderBackDistXPlusTerm": 0.0,
+		"MidTh_PosFinderBackDistXPlusTerm": 2.0,
 		"PassBlock":false,
 		"StartMidMark":-30.0,
 		"StaticOffensiveOpp":[8, 9, 10, 11],
