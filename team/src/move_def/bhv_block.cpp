@@ -371,6 +371,18 @@ vector<double> bhv_block::blocker_eval_mark_decision(const WorldModel &wm) {
 	bhv_block::block_cycle(wm, t, cycle_reach, target);
         if (tm->isTackling())
             cycle_reach += 9;
+        if (Strategy::i().tm_Post(t) == Strategy::player_post::pp_cb){
+            if (target.isValid() && target.absY() > 15){
+                block_zarib[t] = Setting::i()->mDefenseMove->mBlockZ_CB_Next;
+            }else if (target.isValid() && target.x > my_hdef_x + 10){
+                block_zarib[t] = Setting::i()->mDefenseMove->mBlockZ_CB_Forward;
+            }
+        }
+        if (Strategy::i().tm_Post(t) == Strategy::player_post::pp_rb || Strategy::i().tm_Post(t) == Strategy::player_post::pp_lb){
+            if (target.isValid() && target.x > my_hdef_x + 10){
+                block_zarib[t] = Setting::i()->mDefenseMove->mBlockZ_LB_RB_Forward;
+            }
+        }
         cycle_reach *= block_zarib[t];
         block_cycle[t] = cycle_reach;
     }
