@@ -152,6 +152,12 @@ OffensiveMoveSetting::OffensiveMoveSetting(Value &value)
 }
 
 DefenseMoveSetting::DefenseMoveSetting(Value & value){
+    if(value.HasMember("GoToDefendX")){
+        mGoToDefendX = value["GoToDefendX"].GetBool();
+    }
+    if(value.HasMember("FixThMarkY")){
+        mFixThMarkY = value["FixThMarkY"].GetBool();
+    }
     if(value.HasMember("PassBlock")){
         mUsePassBlock = value["PassBlock"].GetBool();
     }
@@ -166,6 +172,21 @@ DefenseMoveSetting::DefenseMoveSetting(Value & value){
         mStaticOffensiveOpp.push_back(9);
         mStaticOffensiveOpp.push_back(10);
         mStaticOffensiveOpp.push_back(11);
+    }
+    if(value.HasMember("MidTh_PosFinderHPosXNegativeTerm")){
+        mMidTh_PosFinderHPosXNegativeTerm = value["MidTh_PosFinderHPosXNegativeTerm"].GetDouble();
+    }
+    if(value.HasMember("MidTh_PosFinderBackDistXPlusTerm")){
+        mMidTh_PosFinderBackDistXPlusTerm = value["MidTh_PosFinderBackDistXPlusTerm"].GetDouble();
+    }
+    if(value.HasMember("BlockZ_CB_Next")){
+        mBlockZ_CB_Next = value["BlockZ_CB_Next"].GetDouble();
+    }
+    if(value.HasMember("BlockZ_CB_Forward")){
+        mBlockZ_CB_Forward = value["BlockZ_CB_Forward"].GetDouble();
+    }
+    if(value.HasMember("BlockZ_LB_RB_Forward")){
+        mBlockZ_LB_RB_Forward = value["BlockZ_LB_RB_Forward"].GetDouble();
     }
     if(value.HasMember("MidTh_BackInMark")){
         mMidTh_BackInMark = value["MidTh_BackInMark"].GetBool();

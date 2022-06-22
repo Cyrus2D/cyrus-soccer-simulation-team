@@ -13,7 +13,7 @@
 
 
 
-void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked) {
+void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked, vector<MarkType> & global_how_mark, vector<size_t> & global_tm_mark_target, vector<size_t> & global_opp_marker) {
     const WorldModel &wm = agent->world();
     int opp_reach_cycle = wm.interceptTable()->opponentReachCycle();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_reach_cycle);
@@ -98,6 +98,11 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
     for (size_t t = 1; t <= 11; t++) {
         if (how_mark[t] == MarkType::ThMarkFastestOpp || how_mark[t] == MarkType::ThMarkFar)
             how_mark[t] = MarkType::ThMark;
+    }
+    for (size_t t = 1; t <= 11; t++) {
+        global_how_mark[t] = how_mark[t];
+        global_tm_mark_target[t] = tm_mark_target[t];
+        global_opp_marker[t] = opp_marker[t];
     }
 
     mark_unum = tm_mark_target[wm.self().unum()];
@@ -910,7 +915,7 @@ BhvMarkDecisionGreedy::canCenterHalfMarkLeadNear(const WorldModel &wm, int t, Ve
 }
 
 
-void BhvMarkDecisionGreedy::goalMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked) {
+void BhvMarkDecisionGreedy::goalMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked, vector<MarkType> & global_how_mark, vector<size_t> & global_tm_mark_target, vector<size_t> & global_opp_marker) {
     const WorldModel &wm = agent->world();
     int fastest_opp = (wm.interceptTable()->fastestOpponent() == NULL ? 0
                                                                       : wm.interceptTable()->fastestOpponent()->unum());
@@ -1000,6 +1005,10 @@ void BhvMarkDecisionGreedy::goalMarkDecision(PlayerAgent *agent, MarkType &mark_
         }
     }
     #endif
+    for (size_t t = 1; t <= 11; t++) {
+        global_how_mark[t] = how_mark[t];
+        global_tm_mark_target[t] = tm_mark_target[t];
+    }
     mark_unum = tm_mark_target[wm.self().unum()];
     mark_type = how_mark[wm.self().unum()];
     for (int i = 1; i <= 11; i++) {
@@ -1176,7 +1185,7 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
 
 
 void
-BhvMarkDecisionGreedy::antiDefMarkDecision(const WorldModel &wm, MarkType &marktype, int &markunum, bool &blocked) {
+BhvMarkDecisionGreedy::antiDefMarkDecision(const WorldModel &wm, MarkType &marktype, int &markunum, bool &blocked, vector<MarkType> & global_how_mark, vector<size_t> & global_tm_mark_target, vector<size_t> & global_opp_marker) {
     int fastest_opp = (wm.interceptTable()->fastestOpponent() == NULL ? 0
                                                                       : wm.interceptTable()->fastestOpponent()->unum());
     double mark_eval[12][12];
@@ -1268,6 +1277,11 @@ BhvMarkDecisionGreedy::antiDefMarkDecision(const WorldModel &wm, MarkType &markt
         tm_mark_target[BestTm] = o;
         opp_marker[o] = BestTm;
         how_mark[BestTm] = MarkType::LeadNearMark;
+    }
+    for (size_t t = 1; t <= 11; t++) {
+        global_how_mark[t] = how_mark[t];
+        global_tm_mark_target[t] = tm_mark_target[t];
+        global_opp_marker[t] = opp_marker[t];
     }
     markunum = tm_mark_target[wm.self().unum()];
     marktype = how_mark[wm.self().unum()];

@@ -18,6 +18,8 @@
 #include <rcsc/action/neck_turn_to_ball.h>
 #include <ctime>
 #include "../debugs.h"
+#include "mark_position_finder.h"
+#include "../setting.h"
 
 using namespace std;
 using namespace rcsc;
@@ -44,7 +46,17 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_cycle);
     MarkType mark_type;
 
-    BhvMarkDecisionGreedy().getMarkTargets(agent, mark_type, mark_unum, blocked);
+    vector<MarkType> global_how_mark;
+    vector<size_t> global_tm_mark_target;
+    vector<size_t> global_opp_marker;
+    for (int i = 0; i <= 11; i++) {
+        global_tm_mark_target.push_back(0);
+        global_opp_marker.push_back(0);
+        global_how_mark.push_back(MarkType::NoType);
+    }
+
+    BhvMarkDecisionGreedy().getMarkTargets(agent, mark_type, mark_unum, blocked,
+                                           global_how_mark, global_tm_mark_target, global_opp_marker);
 
     if (mark_unum > 0 || mark_type == MarkType::Goal_keep) {
         if (run_mark(agent, mark_unum, mark_type)) {
@@ -68,7 +80,54 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
         if (defenseBeInBack(agent))
             return true;
     }
+    if (Setting::i()->mDefenseMove->mGoToDefendX){
+        vector<double> th_mark_xs;
+        if (Strategy::i().self_Line() == Strategy::PostLine::back){
+            for (int t = 1; t <= 11; t++){
+                if (t == wm.self().unum())
+                    continue;
+                if (Strategy::i().tm_Line(t) != Strategy::PostLine::back)
+                    continue;
+                if (global_how_mark[t] == MarkType::ThMark && global_tm_mark_target[t] > 0){
+                    auto target = MarkPositionFinder::getThMarkTarget(t, global_tm_mark_target[t], wm, false);
+                    th_mark_xs.push_back(target.pos.x);
+                }
+            }
+            if (!th_mark_xs.empty()){
+                double min_th_mark_x = 100;
+                double max_th_mark_x = -100;
+                double sum_th_mark_x = 0;
+                for (auto & x: th_mark_xs){
+                    if (x < min_th_mark_x)
+                        min_th_mark_x = x;
+                    if (x < max_th_mark_x)
+                        max_th_mark_x = x;
+                    sum_th_mark_x += x;
+                }
+                double avg_th_mark_x = sum_th_mark_x / static_cast<double>(th_mark_xs.size());
+                Vector2D target = Strategy::i().getPosition(wm.self().unum());
+                target.x = avg_th_mark_x;
+                agent->debugClient().addCircle(target, 0.5);
+                agent->debugClient().setTarget(target);
+                agent->debugClient().addMessage("go to defend line");
+                double dist_thr = wm.ball().distFromSelf() * 0.1;
+                if (dist_thr < 1.0) dist_thr = 1.0;
+                double dash_power = Strategy::get_normal_dash_power(wm);
+                if (!Body_GoToPoint(target, dist_thr, dash_power
+                ).execute(agent)) {
+                    Body_TurnToBall().execute(agent);
+                }
 
+                if (wm.existKickableOpponent()
+                    && wm.ball().distFromSelf() < 18.0) {
+                    agent->setNeckAction(new Neck_TurnToBall());
+                } else {
+                    agent->setNeckAction(new Neck_TurnToBallOrScan());
+                }
+                return true;
+            }
+        }
+    }
     return false;
 }
 
@@ -345,28 +404,35 @@ bool bhv_mark_execute::do_move_mark(PlayerAgent *agent, Target targ, double dist
     #ifdef DEBUG_MARK_EXECUTE
     dlog.addText(Logger::MARK, ">>>>do_move_mark");
     #endif
+    agent->debugClient().addCircle(targ.pos, 0.5);
+    agent->debugClient().addCircle(targ.pos, 0.3);
+    agent->debugClient().addCircle(targ.pos, 0.1);
     const WorldModel &wm = agent->world();
     Vector2D target_pos = targ.pos;
     Vector2D self_pos = wm.self().pos();
     Vector2D opp_pos = wm.theirPlayer(opp_unum)->pos();
 
-    if (self_pos.dist(target_pos) < dist_thr && targ.th.degree() != 1000) {
-        if (Body_TurnToAngle(targ.th).execute(agent)) {
-            #ifdef DEBUG_MARK_EXECUTE
-            dlog.addText(Logger::MARK, "turn in mark move %.2f",
-                         targ.th.degree());
-            #endif
-            agent->debugClient().addMessage("mark:move:turn %.1f", targ.th.degree());
-            return true;
+    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
+    Vector2D self_hpos = Strategy::i().getPosition(wm.self().unum());
+
+    if (marktype != MarkType::ThMark)
+        if (self_pos.dist(target_pos) < dist_thr && targ.th.degree() != 1000) {
+            if (Body_TurnToAngle(targ.th).execute(agent)) {
+                #ifdef DEBUG_MARK_EXECUTE
+                dlog.addText(Logger::MARK, "turn in mark move %.2f",
+                             targ.th.degree());
+                #endif
+                agent->debugClient().addMessage("mark:move:turn %.1f", targ.th.degree());
+                return true;
+            }
         }
-    }
 
     if (marktype == MarkType::ThMark) {
         #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, ">>>>ThMark");
         #endif
         double dash_power = th_mark_power(agent, opp_pos, target_pos);
-        th_mark_move(agent, targ, dash_power, dist_thr);
+        th_mark_move(agent, targ, dash_power, dist_thr, opp_unum);
     }
     else if (marktype == MarkType::LeadProjectionMark || marktype == MarkType::LeadNearMark) {
         #ifdef DEBUG_MARK_EXECUTE
@@ -425,12 +491,37 @@ double bhv_mark_execute::th_mark_power(PlayerAgent * agent, Vector2D opp_pos, Ve
     return dash_power;
 }
 
-void bhv_mark_execute::th_mark_move(PlayerAgent * agent, Target targ, double dash_power, double dist_thr){
+void bhv_mark_execute::th_mark_move(PlayerAgent * agent, Target targ, double dash_power, double dist_thr, int opp_unum){
     const WorldModel & wm = agent->world();
     Vector2D self_pos = wm.self().pos();
     Vector2D target_pos = targ.pos;
     double body_dif = (targ.th - wm.self().body()).abs();
     int opp_min_cycle = wm.interceptTable()->opponentReachCycle();
+    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
+    Vector2D self_hpos = Strategy::i().getPosition(wm.self().unum());
+    Vector2D opp_pos = wm.theirPlayer(opp_unum)->pos();
+    if (Setting::i()->mDefenseMove->mFixThMarkY){
+        if (Strategy::i().self_Line() == Strategy::PostLine::back){
+            if (abs(self_hpos.y - target_pos.y) > 5.0 && (ball_pos - opp_pos).th().abs() > 30.0) {
+                target_pos.y = self_hpos.y;
+                targ.pos.y = self_hpos.y;
+                agent->debugClient().addCircle(targ.pos, 0.5);
+                agent->debugClient().setTarget(targ.pos);
+            }
+        }
+    }
+
+    if (self_pos.dist(target_pos) < dist_thr && targ.th.degree() != 1000) {
+        if (Body_TurnToAngle(targ.th).execute(agent)) {
+            #ifdef DEBUG_MARK_EXECUTE
+            dlog.addText(Logger::MARK, "turn in mark move %.2f",
+                         targ.th.degree());
+            #endif
+            agent->debugClient().addMessage("mark:move:turn %.1f", targ.th.degree());
+            return;
+        }
+    }
+
     if (self_pos.dist(target_pos) < 1) {
         if (body_dif < 20 && self_pos.dist(target_pos) < dist_thr / 2.0) {
             #ifdef DEBUG_MARK_EXECUTE

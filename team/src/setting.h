@@ -90,9 +90,16 @@ class DefenseMoveSetting{
 public:
     DefenseMoveSetting(){}
     DefenseMoveSetting(Value & value);
+    bool mGoToDefendX = true;
+    bool mFixThMarkY = true;
     bool mUsePassBlock = false;
     double mStartMidMark = -30.0;
     vector<int> mStaticOffensiveOpp;
+    double mMidTh_PosFinderHPosXNegativeTerm = 0.0;
+    double mMidTh_PosFinderBackDistXPlusTerm = 0.0;
+    double mBlockZ_CB_Next = 3.0;
+    double mBlockZ_CB_Forward = 3.0;
+    double mBlockZ_LB_RB_Forward = 2.0;
     bool mMidTh_BackInMark = true;
     bool mMidTh_BackInBlock = true;
     bool mMidTh_HalfInMark = true;

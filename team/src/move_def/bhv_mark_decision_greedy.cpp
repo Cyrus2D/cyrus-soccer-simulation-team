@@ -48,7 +48,7 @@ pair<long, int> BhvMarkDecisionGreedy::last_mark = make_pair(10000, 0);
 
 
 void
-BhvMarkDecisionGreedy::getMarkTargets(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked) {
+BhvMarkDecisionGreedy::getMarkTargets(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked, vector<MarkType> & global_how_mark, vector<size_t> & global_tm_mark_target, vector<size_t> & global_opp_marker) {
     const WorldModel &wm = agent->world();
     use_home_pos = false;
 
@@ -57,19 +57,19 @@ BhvMarkDecisionGreedy::getMarkTargets(PlayerAgent *agent, MarkType &mark_type, i
             #ifdef DEBUG_MARK_DECISION_GREEDY
             dlog.addText(Logger::MARK, "**MarkDec select MarkDec::AntiDef");
             #endif
-            antiDefMarkDecision(wm, mark_type, mark_unum, blocked);
+            antiDefMarkDecision(wm, mark_type, mark_unum, blocked, global_how_mark, global_tm_mark_target, global_opp_marker);
             break;
         case MarkDec::MidMark:
             #ifdef DEBUG_MARK_DECISION_GREEDY
             dlog.addText(Logger::MARK, "**MarkDec select MarkDec::MidMark");
             #endif
-            midMarkDecision(agent, mark_type, mark_unum, blocked);
+            midMarkDecision(agent, mark_type, mark_unum, blocked, global_how_mark, global_tm_mark_target, global_opp_marker);
             break;
         case MarkDec::GoalMark:
             #ifdef DEBUG_MARK_DECISION_GREEDY
             dlog.addText(Logger::MARK, "**MarkDec select MarkDec::GoalMark");
             #endif
-            goalMarkDecision(agent, mark_type, mark_unum, blocked);
+            goalMarkDecision(agent, mark_type, mark_unum, blocked, global_how_mark, global_tm_mark_target, global_opp_marker);
             break;
         case MarkDec::JustBlock:
             if (bhv_block::who_is_blocker(wm) == wm.self().unum()) {
@@ -78,6 +78,9 @@ BhvMarkDecisionGreedy::getMarkTargets(PlayerAgent *agent, MarkType &mark_type, i
                 #endif
                 mark_type = MarkType::Block;
                 mark_unum = wm.interceptTable()->fastestOpponent()->unum();
+                global_how_mark[wm.self().unum()] = mark_type;
+                global_tm_mark_target[wm.self().unum()] = mark_unum;
+                global_opp_marker[mark_unum] = wm.self().unum();
             }
             else {
                 #ifdef DEBUG_MARK_DECISION_GREEDY

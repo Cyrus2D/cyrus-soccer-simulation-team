@@ -54,7 +54,7 @@ public:
 
     double th_mark_power(PlayerAgent * agent, Vector2D opp_pos, Vector2D target_pos);
 
-    void th_mark_move(PlayerAgent * agent, Target targ, double dash_power, double dist_thr);
+    void th_mark_move(PlayerAgent * agent, Target targ, double dash_power, double dist_thr, int opp_unum);
 
     double lead_mark_power(PlayerAgent * agent, Vector2D opp_pos, Vector2D target_pos);
 

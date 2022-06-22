@@ -41,6 +41,13 @@
 		"UseUnmarkPassPredictionDNN": false
 	},
 	"DefenseMove": {
+		"GoToDefendX": true,
+		"FixThMarkY": false,
+		"MidTh_PosFinderHPosXNegativeTerm": 0.0,
+		"MidTh_PosFinderBackDistXPlusTerm": 0.0,
+		"BlockZ_CB_Next" : 3.0,
+		"BlockZ_CB_Forward" : 3.0,
+		"BlockZ_LB_RB_Forward" : 2.0,
 		"PassBlock":false,
 		"StartMidMark":-30.0,
 		"StaticOffensiveOpp":[8, 9, 10, 11],

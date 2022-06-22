@@ -73,7 +73,7 @@ public:
 
     virtual ~BhvMarkDecisionGreedy();
 
-    void getMarkTargets(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked);
+    void getMarkTargets(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked, vector<MarkType> & global_how_mark, vector<size_t> & global_tm_mark_target, vector<size_t> & global_opp_marker);
 
     static MarkDec markDecision(const WorldModel &wm);
 
@@ -81,7 +81,7 @@ public:
 
     static vector<int> getOppOffensiveStatic(const WorldModel &wm);
 
-    static void midMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked);
+    static void midMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked, vector<MarkType> & global_how_mark, vector<size_t> & global_tm_mark_target, vector<size_t> & global_opp_marker);
 
     static bool isAntiOffensive(const WorldModel & wm);
 
@@ -123,13 +123,13 @@ public:
 
     static bool canCenterHalfMarkLeadNear(const WorldModel &wm, int t, Vector2D opp_pos, Vector2D ball_inertia);
 
-    static void goalMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked);
+    static void goalMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked, vector<MarkType> & global_how_mark, vector<size_t> & global_tm_mark_target, vector<size_t> & global_opp_marker);
 
     static vector <UnumEval> oppEvaluatorGoalMark(const WorldModel &wm);
 
     static void goalMarkLeadMarkCostFinder(const WorldModel &wm, double mark_eval[][12], vector<int> who_go_to_goal);
 
-    static void antiDefMarkDecision(const WorldModel &wm, MarkType &mark_type, int &mark_unum, bool &blocked);
+    static void antiDefMarkDecision(const WorldModel &wm, MarkType &mark_type, int &mark_unum, bool &blocked, vector<MarkType> & global_how_mark, vector<size_t> & global_tm_mark_target, vector<size_t> & global_opp_marker);
 
     vector<int> whoCanPassToOpp(const WorldModel &wm, int o);
 
