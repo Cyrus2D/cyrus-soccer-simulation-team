@@ -163,6 +163,15 @@ DefenseMoveSetting::DefenseMoveSetting(Value & value){
     if(value.HasMember("MidTh_PosFinderBackDistXPlusTerm")){
         mMidTh_PosFinderBackDistXPlusTerm = value["MidTh_PosFinderBackDistXPlusTerm"].GetDouble();
     }
+    if(value.HasMember("BlockZ_CB_Next")){
+        mBlockZ_CB_Next = value["BlockZ_CB_Next"].GetDouble();
+    }
+    if(value.HasMember("BlockZ_CB_Forward")){
+        mBlockZ_CB_Forward = value["BlockZ_CB_Forward"].GetDouble();
+    }
+    if(value.HasMember("BlockZ_LB_RB_Forward")){
+        mBlockZ_LB_RB_Forward = value["BlockZ_LB_RB_Forward"].GetDouble();
+    }
     if(value.HasMember("MidTh_BackInMark")){
         mMidTh_BackInMark = value["MidTh_BackInMark"].GetBool();
     }
