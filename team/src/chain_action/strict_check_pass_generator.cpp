@@ -52,16 +52,8 @@
 #include <limits>
 #include <sstream>
 #include <cmath>
+#include "../debugs.h"
 
-#define DEBUG_PROFILE
-
-#define DEBUG_UPDATE_PASSER
-#define DEBUG_UPDATE_RECEIVERS
-#define DEBUG_UPDATE_OPPONENT
-#define DEBUG_PASS
-//
-#define DEBUG_PREDICT_RECEIVER
-#define DEBUG_PREDICT_OPPONENT_REACH_STEP
 
 // #define CREATE_SEVERAL_CANDIDATES_ON_SAME_POINT
 
@@ -89,14 +81,13 @@ void debug_paint_failed_pass(const int count, const Vector2D & receive_point, bo
 std::vector<bool> StrictCheckPassGenerator::Receivers_unum;
 StrictCheckPassGenerator::Receiver::Receiver(const AbstractPlayerObject * p,
                                              const Vector2D & first_ball_pos) :
-    player_(p), pos_(
-                    p->seenPosCount() <= p->posCount() ? p->seenPos() : p->pos()), vel_(
-                                                                                       p->seenVelCount() <= p->velCount() ? p->seenVel() : p->vel()), inertia_pos_(
-                                                                                                                                                          p->playerTypePtr()->inertiaFinalPoint(pos_, vel_)), speed_(
-                                                                                                                                                                                                                  vel_.r()), penalty_distance_(
-                                                                                                                                                                                                                                 FieldAnalyzer::estimate_virtual_dash_distance(p)), penalty_step_(
-                                                                                                                                                                                                                                                                                        p->playerTypePtr()->cyclesToReachDistance(penalty_distance_)), angle_from_ball_(
-                                                                                                                                                                                                                                                                                                                                                           (p->pos() - first_ball_pos).th()) {
+    player_(p), pos_(p->seenPosCount() <= p->posCount() ? p->seenPos() : p->pos()),
+    vel_(p->seenVelCount() <= p->velCount() ? p->seenVel() : p->vel()),
+    inertia_pos_(p->playerTypePtr()->inertiaFinalPoint(pos_, vel_)),
+    speed_(vel_.r()),
+    penalty_distance_(FieldAnalyzer::estimate_virtual_dash_distance(p)),
+    penalty_step_(p->playerTypePtr()->cyclesToReachDistance(penalty_distance_)),
+    angle_from_ball_((p->pos() - first_ball_pos).th()) {
 
 }
 
@@ -169,29 +160,26 @@ void StrictCheckPassGenerator::generate(const WorldModel & wm) {
         return;
     }
 
-    #ifdef DEBUG_PROFILE
+    #ifdef DEBUG_PASS_TIME_CALC
     Timer timer;
     #endif
     updatePasser(wm);
 
     if (!M_passer || !M_first_point.isValid()) {
-        #ifdef DEBUG_PROFILE
-        dlog.addText(Logger::PASS,
-                     __FILE__" (generate) passer not found.");
+        #ifdef DEBUG_PASS
+        dlog.addText(Logger::PASS," (generate) passer not found.");
         #endif
         return;
     }else{
-        #ifdef DEBUG_PROFILE
-        dlog.addText(Logger::PASS,
-                     __FILE__" passer is %",M_passer->unum());
+        #ifdef DEBUG_PASS
+        dlog.addText(Logger::PASS, " passer is %",M_passer->unum());
         #endif
     }
     updateReceivers(wm);
 
     if (M_receiver_candidates.empty()) {
-        #ifdef DEBUG_PROFILE
-        dlog.addText(Logger::PASS,
-                     __FILE__" (generate) no receiver.");
+        #ifdef DEBUG_PASS
+        dlog.addText(Logger::PASS, " (generate) no receiver.");
         #endif
         return;
     }
@@ -202,15 +190,15 @@ void StrictCheckPassGenerator::generate(const WorldModel & wm) {
               CooperativeAction::DistCompare(
                   ServerParam::i().theirTeamGoalPos()));
 
-    #ifdef DEBUG_PROFILE
+    #ifdef DEBUG_PASS_TIME_CALC
     if (M_passer->unum() == wm.self().unum()) {
         dlog.addText(Logger::PASS,
-                     __FILE__" (generate) PROFILE passer=self size=%d/%d D=%d L=%d T=%d elapsed %f [ms]",
+                     " (generate) PROFILE passer=self size=%d/%d D=%d L=%d T=%d elapsed %f [ms]",
                      (int) M_courses.size(), M_total_count, M_direct_size,
                      M_leading_size, M_through_size, timer.elapsedReal());
     } else {
         dlog.addText(Logger::PASS,
-                     __FILE__" (update) PROFILE passer=%d size=%d/%d D=%d L=%d T=%d elapsed %f [ms]",
+                     " (update) PROFILE passer=%d size=%d/%d D=%d L=%d T=%d elapsed %f [ms]",
                      M_passer->unum(), (int) M_courses.size(), M_total_count,
                      M_direct_size, M_leading_size, M_through_size,
                      timer.elapsedReal());
@@ -223,13 +211,15 @@ void StrictCheckPassGenerator::generate(const WorldModel & wm) {
 
  */
 void StrictCheckPassGenerator::updatePasser(const WorldModel & wm) {
+    #ifdef DEBUG_PASS_UPDATE_PASSER
+    dlog.addText( Logger::PASS, " ================ Update Passer ===================" );
+    #endif
     if (wm.self().isKickable() && !wm.self().isFrozen()) {
         M_passer = &wm.self();
         M_start_time = wm.time();
         M_first_point = wm.ball().pos();
-        #ifdef DEBUG_UPDATE_PASSER
-        dlog.addText( Logger::PASS,
-                      __FILE__" (updatePasser) self kickable." );
+        #ifdef DEBUG_PASS_UPDATE_PASSER
+        dlog.addText( Logger::PASS, " (updatePasser) self kickable." );
         #endif
         return;
     }
@@ -240,9 +230,8 @@ void StrictCheckPassGenerator::updatePasser(const WorldModel & wm) {
 
     int our_min = std::min(s_min, t_min);
     if (o_min < std::min(our_min - 4, (int) rint(our_min * 0.9))) {
-        #ifdef DEBUG_UPDATE_PASSER
-        dlog.addText(Logger::PASS,
-                     __FILE__" (updatePasser) opponent ball.");
+        #ifdef DEBUG_PASS_UPDATE_PASSER
+        dlog.addText(Logger::PASS, " (updatePasser) opponent ball.");
         #endif
         return;
     }
@@ -260,9 +249,8 @@ void StrictCheckPassGenerator::updatePasser(const WorldModel & wm) {
     }
 
     if (!M_passer) {
-        #ifdef DEBUG_UPDATE_PASSER
-        dlog.addText(Logger::PASS,
-                     __FILE__" (updatePasser) no passer.");
+        #ifdef DEBUG_PASS_UPDATE_PASSER
+        dlog.addText(Logger::PASS, " (updatePasser) no passer.");
         #endif
         return;
     }
@@ -275,17 +263,15 @@ void StrictCheckPassGenerator::updatePasser(const WorldModel & wm) {
     if (M_passer->unum() != wm.self().unum()) {
         if (M_first_point.dist2(wm.self().pos()) > std::pow(30.0, 2)) {
             M_passer = static_cast<const AbstractPlayerObject *>(0);
-            #ifdef DEBUG_UPDATE_PASSER
-            dlog.addText(Logger::PASS,
-                         __FILE__" (updatePasser) passer is too far.");
+            #ifdef DEBUG_PASS_UPDATE_PASSER
+            dlog.addText(Logger::PASS, " (updatePasser) passer is too far.");
             #endif
             return;
         }
     }
 
-    #ifdef DEBUG_UPDATE_PASSER
-    dlog.addText( Logger::PASS,
-                  __FILE__" (updatePasser) passer=%d(%.1f %.1f) reachStep=%d startPos=(%.1f %.1f)",
+    #ifdef DEBUG_PASS_UPDATE_PASSER
+    dlog.addText( Logger::PASS, " (updatePasser) passer=%d(%.1f %.1f) reachStep=%d startPos=(%.1f %.1f)",
                   M_passer->unum(),
                   M_passer->pos().x, M_passer->pos().y,
                   t_min,
@@ -330,6 +316,9 @@ struct ReceiverDistCompare {
 
  */
 void StrictCheckPassGenerator::updateReceivers(const WorldModel & wm) {
+    #ifdef DEBUG_PASS_UPDATE_RECEIVERS
+    dlog.addText(Logger::PASS, "=============== Update Receiver =================");
+    #endif
     const ServerParam & SP = ServerParam::i();
     const double max_dist2 = std::pow(40.0, 2); // Magic Number
 
@@ -346,7 +335,7 @@ void StrictCheckPassGenerator::updateReceivers(const WorldModel & wm) {
                 continue;
             }
             if ((*p)->posCount() > (wm.self().isKickable()?10:20)){
-                #ifdef DEBUG_UPDATE_RECEIVERS
+                #ifdef DEBUG_PASS_UPDATE_RECEIVERS
                 dlog.addText(Logger::PASS,
                              "(updateReceiver) unum=%d > poscount=%d",
                              (*p)->unum(), (*p)->posCount());
@@ -354,7 +343,7 @@ void StrictCheckPassGenerator::updateReceivers(const WorldModel & wm) {
                 continue;
             }
             if ((*p)->isTackling()){
-                #ifdef DEBUG_UPDATE_RECEIVERS
+                #ifdef DEBUG_PASS_UPDATE_RECEIVERS
                 dlog.addText(Logger::PASS,
                              "(updateReceiver) unum=%d > tackling",
                              (*p)->unum());
@@ -362,7 +351,7 @@ void StrictCheckPassGenerator::updateReceivers(const WorldModel & wm) {
                 continue;
             }
             if ((*p)->pos().x > wm.offsideLineX() + (wm.self().isKickable()?0:5)) {
-                #ifdef DEBUG_UPDATE_RECEIVERS
+                #ifdef DEBUG_PASS_UPDATE_RECEIVERS
                 dlog.addText(Logger::PASS,
                              "(updateReceiver) unum=%d (%.2f %.2f) > offside=%.2f",
                              (*p)->unum(), (*p)->pos().x, (*p)->pos().y,
@@ -372,7 +361,7 @@ void StrictCheckPassGenerator::updateReceivers(const WorldModel & wm) {
             }
             if ((*p)->goalie()
                     && (*p)->pos().x < SP.ourPenaltyAreaLineX() + 15.0 && wm.interceptTable()->opponentReachCycle() > 3) {
-                #ifdef DEBUG_UPDATE_RECEIVERS
+                #ifdef DEBUG_PASS_UPDATE_RECEIVERS
                 dlog.addText(Logger::PASS,
                              "(updateReceiver) unum=%d > goalie near goal and reach cycle more than 3",
                              (*p)->unum());
@@ -381,7 +370,7 @@ void StrictCheckPassGenerator::updateReceivers(const WorldModel & wm) {
             }
             if ((*p)->goalie()
                     && (*p)->pos().x < SP.ourPenaltyAreaLineX()) {
-                #ifdef DEBUG_UPDATE_RECEIVERS
+                #ifdef DEBUG_PASS_UPDATE_RECEIVERS
                 dlog.addText(Logger::PASS,
                              "(updateReceiver) unum=%d > goalie danger area",
                              (*p)->unum());
@@ -391,7 +380,7 @@ void StrictCheckPassGenerator::updateReceivers(const WorldModel & wm) {
         } else {
             // ignore other players
             if ((*p)->unum() != wm.self().unum()) {
-                #ifdef DEBUG_UPDATE_RECEIVERS
+                #ifdef DEBUG_PASS_UPDATE_RECEIVERS
                 dlog.addText(Logger::PASS,
                              "(updateReceiver) unum=%d > ignore other player",
                              (*p)->unum());
@@ -401,7 +390,7 @@ void StrictCheckPassGenerator::updateReceivers(const WorldModel & wm) {
         }
 
         if ((*p)->pos().dist2(M_first_point) > max_dist2){
-            #ifdef DEBUG_UPDATE_RECEIVERS
+            #ifdef DEBUG_PASS_UPDATE_RECEIVERS
             dlog.addText(Logger::PASS,
                              "(updateReceiver) unum=%d > dist=%.1f more than max",
                              (*p)->unum(), (*p)->pos().dist(M_first_point));
@@ -419,18 +408,19 @@ void StrictCheckPassGenerator::updateReceivers(const WorldModel & wm) {
     //            M_receiver_candidates.end(),
     //            ReceiverAngleCompare() );
 
-    #ifdef DEBUG_UPDATE_RECEIVERS
+    #ifdef DEBUG_PASS_UPDATE_RECEIVERS
     for ( ReceiverCont::const_iterator p = M_receiver_candidates.begin();
           p != M_receiver_candidates.end();
           ++p )
     {
         dlog.addText( Logger::PASS,
                       "StrictPass receiver %d pos(%.1f %.1f) inertia=(%.1f %.1f) vel(%.2f %.2f)"
-                      " penalty_dist=%.3f penalty_step=%d"
+                      " posCount %d velCount %d bodyCount %d penalty_dist=%.3f penalty_step=%d"
                       " angle=%.1f",
                       p->player_->unum(),
                       p->pos_.x, p->pos_.y,
                       p->inertia_pos_.x, p->inertia_pos_.y,
+                      p->player_->posCount(), p->player_->velCount(), p->player_->bodyCount(),
                       p->vel_.x, p->vel_.y,
                       p->penalty_distance_,
                       p->penalty_step_,
@@ -444,10 +434,14 @@ void StrictCheckPassGenerator::updateReceivers(const WorldModel & wm) {
 
  */
 void StrictCheckPassGenerator::updateOpponents(const WorldModel & wm) {
+    #ifdef DEBUG_PASS_UPDATE_OPPONENT
+    const Opponent & o = M_opponents.back();
+    dlog.addText( Logger::PASS, "====================== Update Opponents ===================");
+    #endif
     for (AbstractPlayerCont::const_iterator p = wm.theirPlayers().begin(), end =
          wm.theirPlayers().end(); p != end; ++p) {
         M_opponents.push_back(Opponent(*p));
-        #ifdef DEBUG_UPDATE_OPPONENT
+        #ifdef DEBUG_PASS_UPDATE_OPPONENT
         const Opponent & o = M_opponents.back();
         dlog.addText( Logger::PASS,
                       "StrictPass opp %d pos(%.1f %.1f) vel(%.2f %.2f) bonus_dist=%.3f",
@@ -464,6 +458,13 @@ void StrictCheckPassGenerator::updateOpponents(const WorldModel & wm) {
 
  */
 void StrictCheckPassGenerator::createCourses(const WorldModel & wm) {
+    #ifdef DEBUG_PASS
+        dlog.addMessage(Logger::PASS, Vector2D(-52, -33), "HELP");
+        dlog.addMessage(Logger::PASS, Vector2D(-52, -32), "RED shows failed");
+        dlog.addMessage(Logger::PASS, Vector2D(-52, -31), "BLACK shows no safe with noise");
+        dlog.addMessage(Logger::PASS, Vector2D(-52, -30), "Blue shows danger");
+        dlog.addMessage(Logger::PASS, Vector2D(-52, -29), "Green shows succeed");
+    #endif
     const ReceiverCont::iterator end = M_receiver_candidates.end();
     M_pass_type = 'D';
     M_pass_logger = Logger::D_PASS;
@@ -724,11 +725,6 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
 
     const Vector2D our_goal = SP.ourTeamGoalPos();
 
-    #ifdef DEBUG_PASS
-    std::vector< int > success_counts;
-    success_counts.reserve( 16 );
-    #endif
-
     //
     // distance loop
     //
@@ -882,10 +878,6 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
             const int min_ball_step = SP.ballMoveStep(SP.ballSpeedMax(),
                                                       ball_move_dist);
 
-            #ifdef DEBUG_PASS
-            success_counts.clear();
-            #endif
-
             const int start_step = std::max(
                         std::max(MIN_RECEIVE_STEP, min_ball_step), receiver_step);
 
@@ -896,11 +888,6 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
             #endif
 
             #ifdef DEBUG_PASS
-            dlog.addText( M_pass_logger,
-                          "(lead) receiver=%d"
-                          " receivePos=(%.1f %.1f)",
-                          receiver.player_->unum(),
-                          receive_point.x, receive_point.y );
             dlog.addText( Logger::PASS,
                           "| ballMove=%.3f moveAngle=%.1f",
                           ball_move_dist, ball_move_angle.degree() );
@@ -1025,14 +1012,6 @@ void StrictCheckPassGenerator::createThroughPass(const WorldModel & wm,
     }
 
     //
-    //
-    //
-    #ifdef DEBUG_PASS
-    std::vector< int > success_counts;
-    success_counts.reserve( 16 );
-    #endif
-
-    //
     // angle loop
     //
     for (int a = 0; a <= ANGLE_DIVS; ++a) {
@@ -1118,10 +1097,6 @@ void StrictCheckPassGenerator::createThroughPass(const WorldModel & wm,
                                                                receive_point, false);
             const AngleDeg ball_move_angle =
                     (receive_point - M_first_point).th();
-
-            #ifdef DEBUG_PASS
-            success_counts.clear();
-            #endif
 
             int start_step = receiver_step;
             if (pass_requested && (requested_move_angle - angle).abs() < 20.0) {
@@ -1623,7 +1598,7 @@ int StrictCheckPassGenerator::predictReceiverReachStep(
 
     int n_dash = ptype->cyclesToReachDistance(dash_dist);
 
-    #ifdef DEBUG_PREDICT_RECEIVER
+    #ifdef DEBUG_PASS
     dlog.addText( M_pass_logger,
                   "|   receiver=%d receivePos=(%.1f %.1f) dist=%.2f dash=%.2f penalty=%.2f turn=%d dash=%d",
                   receiver.player_->unum(),
@@ -1673,7 +1648,7 @@ int StrictCheckPassGenerator::predictOpponentsReachStep(const WorldModel & wm,
         }
     }
 
-    #ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+    #ifdef DEBUG_PASS_OPPONENT_REACH_STEP
     dlog.addText( M_pass_logger,
                   "|   opponent=%d(%.1f %.1f) step=%d",
                   fastest_opponent->unum(),
@@ -1716,15 +1691,16 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
                                                             ptype->realSpeedMax(), first_ball_pos, ball_move_angle) - opponent.player_->posCount() - 1;
     if(min_cycle < 0)
         min_cycle = 0;
-    #ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+    #ifdef DEBUG_PASS_OPPONENT_REACH_STEP
     dlog.addText( M_pass_logger,
-                  "|    opponent=%d(%.1f %.1f)",
+                  "|    opponent=%d(%.1f %.1f) posCount %d velCount %d bodyCount %d",
                   opponent.player_->unum(),
-                  opponent.pos_.x, opponent.pos_.y );
+                  opponent.pos_.x, opponent.pos_.y,
+                  opponent.player_->posCount(), opponent.player_->velCount(), opponent.player_->bodyCount());
     #endif
 
     if (min_cycle < 0) {
-    #ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+    #ifdef DEBUG_PASS_OPPONENT_REACH_STEP
         dlog.addText( M_pass_logger,
                       "|     never reach(1)",
                       opponent.player_->unum(),
@@ -1924,9 +1900,12 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
         n_step = turn_step + dash_step + view_step;
 
         if ( c_step <= cycle){
-            #ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+            #ifdef DEBUG_PASS_OPPONENT_REACH_STEP
             dlog.addText( M_pass_logger,
-                          "|      can reach in bs:%d(%.2f,%.2f) c_step=%d, t_step=%d, d_step=%d, n_step=%d, bce=%d, pce=%d, scs=%d, odc:%d, pc:%d, bc:%d",cycle,ball_pos.x,ball_pos.y,c_step,turn_step,dash_step,n_step,body_count_effect,pos_count_effect,view_step,opp_dif_cycle ,pos_count,body_count);
+                          "|      can reach in bs:%d(%.2f,%.2f) c_step=%d, t_step=%d, d_step=%d, "
+                          "n_step=%d, bce=%d, pce=%d, scs=%d, odc:%d, pc:%d, bc:%d",
+                          cycle,ball_pos.x,ball_pos.y,c_step,turn_step,dash_step,n_step,
+                          body_count_effect,pos_count_effect,view_step,opp_dif_cycle ,pos_count,body_count);
             #endif
             return cycle;
         }else{
@@ -1936,12 +1915,12 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
             }
 
             if(cycle < n_step){
-                #ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+                #ifdef DEBUG_PASS_OPPONENT_REACH_STEP
                 dlog.addText( M_pass_logger,
                               "|      cant reach in bs:%d(%.2f,%.2f) c_step=%d, t_step=%d, d_step=%d, n_step=%d, bce=%d, pce=%d, scs=%d, odc:%d, pc:%d, bc:%d",cycle,ball_pos.x,ball_pos.y,c_step,turn_step,dash_step,n_step,body_count_effect,pos_count_effect,view_step,opp_dif_cycle ,pos_count,body_count);
                 #endif
             }else{
-                #ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+                #ifdef DEBUG_PASS_OPPONENT_REACH_STEP
                 dlog.addText( M_pass_logger,
                               "|      cant reach in bs:%d(%.2f,%.2f) with out noise c_step=%d, t_step=%d, d_step=%d, n_step=%d, bce=%d, pce=%d, scs=%d, odc:%d, pc:%d, bc:%d",cycle,ball_pos.x,ball_pos.y,c_step,turn_step,dash_step,n_step,body_count_effect,pos_count_effect,view_step,opp_dif_cycle,pos_count,body_count );
                 #endif
@@ -1952,20 +1931,20 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
 
 
         //        else if(cycle < max_cycle - 4){
-        //#ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+        //#ifdef DEBUG_PASS_OPPONENT_REACH_STEP
         //            dlog.addText( M_pass_logger,
         //                          "__ cant reach in bs:%d(%.2f,%.2f) with out noise c_step=%d, t_step=%d, d_step=%d, n_step=%d, bce=%d, pce=%d, scs=%d, odc:%d, pc:%d, bc:%d",cycle,ball_pos.x,ball_pos.y,c_step,turn_step,dash_step,n_step,body_count_effect,pos_count_effect,should_see_step,opp_dif_cycle,pos_count,body_count );
         //#endif
         //            safe_with_pos_count = false;
         //        }else{
-        //#ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+        //#ifdef DEBUG_PASS_OPPONENT_REACH_STEP
         //            dlog.addText( M_pass_logger,
         //                          "__ cant reach in bs:%d(%.2f,%.2f) with out noise afterM c_step=%d, t_step=%d, d_step=%d, n_step=%d, bce=%d, pce=%d, scs=%d, odc:%d, pc:%d, bc:%d",cycle,ball_pos.x,ball_pos.y,c_step,turn_step,dash_step,n_step,body_count_effect,pos_count_effect,should_see_step,opp_dif_cycle,pos_count,body_count );
         //#endif
         //        }
     }
 
-    #ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+    #ifdef DEBUG_PASS_OPPONENT_REACH_STEP
     dlog.addText( M_pass_logger,
                   "|      never reach(2) %s",(safe_with_pos_count?"safe":"nosafe") );
     #endif
