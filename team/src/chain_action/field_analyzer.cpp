@@ -84,11 +84,14 @@ FieldAnalyzer::instance()
 
  */
 double
-FieldAnalyzer::estimate_virtual_dash_distance( const rcsc::AbstractPlayerObject * player )
+FieldAnalyzer::estimate_virtual_dash_distance( const rcsc::AbstractPlayerObject * player , int max_effective_pos_count)
 {
-    const int pos_count = std::min( 18, // Magic Number
+    int pos_count = std::min( 18, // Magic Number
                                     std::min( player->seenPosCount(),
                                               player->posCount() ) );
+    if (max_effective_pos_count != -1){
+        pos_count = std::min(pos_count, max_effective_pos_count);
+    }
     const double max_speed = player->playerTypePtr()->realSpeedMax() * 0.8; // Magic Number
 
     double d = 0.0;

@@ -117,7 +117,7 @@ public:
                                   const rcsc::AngleDeg & target_move_angle );
 
     static
-    double estimate_virtual_dash_distance( const rcsc::AbstractPlayerObject * player );
+    double estimate_virtual_dash_distance( const rcsc::AbstractPlayerObject * player, int max_effective_pos_count=-1 );
 
     static
     int predict_player_turn_cycle( const rcsc::PlayerType * player_type,

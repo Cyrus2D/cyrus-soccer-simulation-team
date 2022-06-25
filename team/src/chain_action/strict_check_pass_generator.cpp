@@ -1551,13 +1551,20 @@ int StrictCheckPassGenerator::predictReceiverReachStep(
         const bool use_penalty) {
     const PlayerType * ptype = receiver.player_->playerTypePtr();
     double target_dist = receiver.inertia_pos_.dist(pos);
-    int n_turn = (
-                receiver.player_->bodyCount() > 0 ?
-                    bound(0,receiver.player_->bodyCount(),2) :
-                    FieldAnalyzer::predict_player_turn_cycle(ptype,
-                                                             receiver.player_->body(), receiver.speed_,
-                                                             target_dist, (pos - receiver.inertia_pos_).th(),
-                                                             ptype->kickableArea(), false));
+
+    int n_turn_original = FieldAnalyzer::predict_player_turn_cycle(ptype,
+                                             receiver.player_->body(), receiver.speed_,
+                                             target_dist, (pos - receiver.inertia_pos_).th(),
+                                             ptype->kickableArea(), false);
+    int body_count_effect = bound(0,receiver.player_->bodyCount(),2);
+    int n_turn = 0;
+    if (body_count_effect < n_turn_original)
+        n_turn = n_turn_original;
+    else
+        n_turn = body_count_effect;
+
+    int effective_pos_count_in_body_count = bound(0,body_count_effect - n_turn,2);
+    int pos_count_effect = bound(0, receiver.player_->posCount() - effective_pos_count_in_body_count, receiver.player_->posCount());
     double dash_dist = target_dist;
 
     // if ( receiver.pos_.x < pos.x )
@@ -1566,7 +1573,9 @@ int StrictCheckPassGenerator::predictReceiverReachStep(
     // }
 
     if (use_penalty) {
-        dash_dist += receiver.penalty_distance_;
+//        dash_dist += receiver.penalty_distance_;
+       dash_dist += FieldAnalyzer::estimate_virtual_dash_distance(receiver.player_, pos_count_effect);
+
     }
 
     // if ( M_pass_type == 'T' )
