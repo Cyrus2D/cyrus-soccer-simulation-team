@@ -1834,7 +1834,7 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
         if ((M_pass_type == 'T' && receive_point.x > wm.offsideLineX() - 5) || receive_point.x > wm.offsideLineX() + 10){
             if (FieldAnalyzer::isHelius(wm)
                 || FieldAnalyzer::isMT(wm)
-                || FieldAnalyzer::isOxsy(wm)
+                || FieldAnalyzer::isOxsy(wm) || FieldAnalyzer::isYushan(wm)
                 || FieldAnalyzer::isFRA(wm))
             {
                 if(receive_point.x > wm.offsideLineX() + 10){
