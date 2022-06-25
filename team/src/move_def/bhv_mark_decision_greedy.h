@@ -88,7 +88,7 @@ public:
     static vector <UnumEval> oppEvaluatorMidMark(const WorldModel &wm, vector<size_t> offensive_opps, bool use_ball_dist = false);
 
     static void
-    midMarkThMarkCostFinder(const WorldModel &wm, double mark_eval[][12], bool used_hpos, vector<double> block_eval,
+    midMarkThMarkCostFinder(const WorldModel &wm, double mark_eval[][12], bool used_hpos, vector<double> block_eval, vector<Vector2D> block_target,
                             bool fastest_opp_marked, Target opp_targets[], bool on_anti_offense);
 
     static vector <size_t> midMarkThMarkMarkerFinder(double mark_eval[][12], size_t fastest_opp);

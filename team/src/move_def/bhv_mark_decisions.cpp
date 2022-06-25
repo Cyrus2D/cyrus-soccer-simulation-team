@@ -28,7 +28,9 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
 
     bool fastest_opp_marked = false; // true: fastest is offensive can not be blocked by def players
     auto offensive_opps = getOppOffensive(wm, fastest_opp_marked);
-    vector<double> block_eval = bhv_block::blocker_eval_mark_decision(wm);
+    auto block_eval_target = bhv_block::blocker_eval_mark_decision(wm);
+    vector<double> block_eval = block_eval_target.first;
+    vector<Vector2D> block_target = block_eval_target.second;
 
     bool used_hpos = false;
     if (opp_reach_cycle > 10) {
@@ -59,7 +61,7 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
         bool on_anti_offense = isAntiOffensive(wm);
         vector <UnumEval> opp_eval = oppEvaluatorMidMark(wm, offensive_opps);
         Target opp_targets[12];
-        midMarkThMarkCostFinder(wm, mark_eval, used_hpos, block_eval, fastest_opp_marked, opp_targets, on_anti_offense);
+        midMarkThMarkCostFinder(wm, mark_eval, used_hpos, block_eval, block_target, fastest_opp_marked, opp_targets, on_anti_offense);
         vector <size_t> temp_tms = midMarkThMarkMarkerFinder(mark_eval, fastest_opp);
         vector <size_t> temp_opps = midMarkThMarkMarkedFinder(offensive_opps, opp_eval);
         if (Setting::i()->mDefenseMove->mMidTh_RemoveNearOpps)
@@ -186,7 +188,7 @@ vector <UnumEval> BhvMarkDecisionGreedy::oppEvaluatorMidMark(const WorldModel &w
 
 
 void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double mark_eval[][12], bool used_hpos,
-                                                    vector<double> block_eval, bool fastest_opp_marked,
+                                                    vector<double> block_eval, vector<Vector2D> block_target, bool fastest_opp_marked,
                                                     Target opp_targets[], bool on_anti_offense) {
     double hpos_z = Setting::i()->mDefenseMove->mMidTh_HPosDistZ;
     double pos_z = Setting::i()->mDefenseMove->mMidTh_PosDistZ;

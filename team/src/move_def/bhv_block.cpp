@@ -311,11 +311,12 @@ vector<double> bhv_block::blocker_eval(const WorldModel &wm) {
     return block_eval;
 }
 
-vector<double> bhv_block::blocker_eval_mark_decision(const WorldModel &wm) {
+std::pair<vector<double>, vector<Vector2D> > bhv_block::blocker_eval_mark_decision(const WorldModel &wm) {
     static int last_time_execute = 0;
     static vector<double> block_eval(12, 1000);
+    static vector<Vector2D> block_target(12, Vector2D::INVALIDATED);
     if (wm.time().cycle() <= last_time_execute) {
-        return block_eval;
+        return make_pair(block_eval, block_target);
     }
     last_time_execute = wm.time().cycle();
     block_eval = vector<double>(12, 1000);
@@ -385,11 +386,12 @@ vector<double> bhv_block::blocker_eval_mark_decision(const WorldModel &wm) {
         }
         cycle_reach *= block_zarib[t];
         block_cycle[t] = cycle_reach;
+        block_target[t] = target;
     }
     for (int t = 2; t <= 11; t++) {
         block_eval[t] = block_cycle[t];
     }
-    return block_eval;
+    return make_pair(block_eval, block_target);
 }
 
 int bhv_block::who_is_blocker(const WorldModel &wm, vector<int> marker) {

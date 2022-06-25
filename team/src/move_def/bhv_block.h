@@ -29,7 +29,7 @@ public:
 	bool execute(PlayerAgent * agent);
     static int who_is_blocker(const WorldModel & wm,vector<int> marker=vector<int>());
     static vector<double> blocker_eval(const WorldModel & wm);
-    static vector<double> blocker_eval_mark_decision(const WorldModel & wm);
+    static std::pair<vector<double>, vector<Vector2D> > blocker_eval_mark_decision(const WorldModel & wm);
     static Vector2D get_block_center_pos( const WorldModel & wm );
     static double get_dribble_angle(const WorldModel & wm, Vector2D start_dribble);
     static void get_start_dribble(const WorldModel & wm, Vector2D & start_dribble, int & cycle);
