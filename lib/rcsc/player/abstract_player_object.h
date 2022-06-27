@@ -957,9 +957,7 @@ double cycle_to_reach_angle = 0.0;
 
         const PlayerType * ptype = playerTypePtr();
 
-        double control_area = (
-                goalie() && penalty_area.contains(ball_pos) ?
-                SP.catchableArea() : ptype->kickableArea());
+        double control_area = ptype->kickableArea();
 
         int final_step = 1000;
         for(double dir = -180; dir < 180; dir += 30.0){
@@ -967,11 +965,19 @@ double cycle_to_reach_angle = 0.0;
             dash_dir_deg /= 10.0;
             int dash_dir_step = static_cast<int>(std::round(dash_dir_deg));
             AngleDeg dash_angle = predict_body + AngleDeg(dir);
-            for (int c = 1; c <= 2 && c <= cycle; c++){
+            int max_check_cycle = 2;
+            double max_move_dist = ptype->dashDistanceTable()[dash_dir_step][max_check_cycle - 1] + predict_vel.rotate(-dir).x;
+            if (max_move_dist > ball_pos.dist(predict_pos) - control_area - 0.1)
+                continue;
+            for (int c = 1; c <= max_check_cycle && c <= cycle; c++){
                 double move = ptype->dashDistanceTable()[dash_dir_step][c - 1];
                 Vector2D opp_pos = predict_pos;
                 Vector2D inertia_pos = ptype->inertiaPoint(opp_pos,predict_vel,c);
                 inertia_pos += (Vector2D::polar2vector(move, dash_angle));
+                control_area = ptype->kickableArea();
+                if (goalie() && penalty_area.contains(ball_pos))
+                    if (((ball_pos - inertia_pos).th() - predict_body).abs() < 90.0)
+                        control_area = SP.catchableArea();
                 if(inertia_pos.dist(ball_pos) < control_area){
                     int n_step = 1 + 0 + c;
                     if (c == 1){
