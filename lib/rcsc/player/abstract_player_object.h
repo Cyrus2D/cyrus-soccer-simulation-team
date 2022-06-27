@@ -673,6 +673,7 @@ public:
         }
         //	cout<<"   predictOpponentReachStep_direct_kick5"<<endl;
 double cycle_to_reach_angle = 0.0;
+int add_dash = 0;
         if (intercept_number == 0){
             Vector2D last_pos = player_move_line.intersection(Line2D(ball_pos, next_body_angle + 90.0));
             if (last_pos.dist(iner_pos) > control_area){
@@ -681,6 +682,7 @@ double cycle_to_reach_angle = 0.0;
                // if (!is_tm){
                     if (ball_pos.dist(iner_pos) < 0.15){
                         dash_dist = 0.0;
+			add_dash += 1;
                     }else{
                         dash_dist = ball_pos.dist(iner_pos) - control_area;
                         cycle_to_reach_angle = (ball_pos - iner_pos).th().degree();
@@ -699,6 +701,7 @@ double cycle_to_reach_angle = 0.0;
         if (dash_dist > 0){
             n_dash = ptype->cyclesToReachDistance(dash_dist, cycle_to_reach_angle);
         }
+	n_dash += add_dash;
         if (n_turn > 0) {
             view_cycle = 1;
         }
