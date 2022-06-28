@@ -659,6 +659,77 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
         return true;
     }
     block_cycle(wm, wm.self().unum(), cycle, target, true);
+    auto fastest_opp = wm.interceptTable()->fastestOpponent();
+    bool go_to_opp = false;
+    if (target.isValid()){
+        #ifdef DEBUG_BLOCK
+        dlog.addText(Logger::BLOCK, "is valid k%d c%d d%.2f", fastest_opp->isKickable(),cycle,target.dist(fastest_opp->pos()));
+        #endif
+        if (fastest_opp->isKickable() && cycle <= 2 && target.dist(fastest_opp->pos()) < 1.2){
+            AngleDeg dir = AngleDeg::INVALIDATED;
+            if (target.x > -10){
+                dir = -180.0;
+            }
+            else{
+                Vector2D last_tar = Vector2D::INVALIDATED;
+                if (target.x < -35.0){
+                    if (target.absY() > 20.0){
+                        if (target.x > -43){
+                            last_tar = Vector2D(-47, target.y > 0 ? 9 : -9);
+                        }
+                        else{
+                            last_tar = Vector2D(target.x, 0);
+                        }
+                    }
+                    else if(target.absY() > 9.0){
+                        if (target.x > -43){
+                            last_tar = Vector2D(-47, target.y > 0 ? 6 : -6);
+                        }
+                        else{
+                            last_tar = Vector2D(-52.5, target.y > 0 ? 3 : -3);
+                        }
+                    }
+                    else {
+                        last_tar = Vector2D(-52.5, target.y / 9.0 * 5.0);
+                    }
+                }
+                else {
+                    if (target.absY() < 20.0){
+                        last_tar = Vector2D(-45.0, target.y / 20.0 * 13.0);
+                    }
+                    else{
+                        last_tar = Vector2D(-45.0, (target.absY() - 20.0) / 14.0 * 7.0 - 3.5);
+                        if (target.y < 0){
+                            last_tar.y *= -1.0;
+                        }
+                    }
+                }
+                dir = (last_tar - target).th();
+                #ifdef DEBUG_BLOCK
+                dlog.addCircle(Logger::BLOCK, last_tar, 0.5, 255, 192, 203);
+                #endif
+            }
+            Vector2D opp_pos = fastest_opp->pos();
+            Vector2D sec_center = opp_pos - Vector2D::polar2vector(1.0, dir);
+            #ifdef DEBUG_BLOCK
+            dlog.addLine(Logger::BLOCK, sec_center, sec_center + Vector2D::polar2vector(10, dir), 255, 192, 203);
+            dlog.addLine(Logger::BLOCK, sec_center, sec_center + Vector2D::polar2vector(10, dir + 15.0), 255, 192, 203);
+            dlog.addLine(Logger::BLOCK, sec_center, sec_center + Vector2D::polar2vector(10, dir - 15.0), 255, 192, 203);
+            dlog.addCircle(Logger::BLOCK, sec_center, 0.5, 255, 192, 203);
+            dlog.addCircle(Logger::BLOCK, Vector2D::polar2vector(1.0, dir), 0.5, 255, 192, 203);
+            #endif
+
+            Sector2D tar_sec = Sector2D(sec_center, 1.0, 5.0, dir - 15.0, dir + 15.0);
+            if (tar_sec.contains(self_pos)){
+                target = opp_pos;
+                go_to_opp = true;
+                #ifdef DEBUG_BLOCK
+                agent->debugClient().addMessage("change block to opp");
+                #endif
+            }
+        }
+    }
+
     if (target.isValid() && target.absY() < 35 && target.absX() < 53) {
 //        agent->doPointto(target.x, target.y);
         agent->debugClient().addMessage("blockk");
@@ -669,7 +740,11 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
         double body_diff_degree = ((target - wm.self().pos()).th() - wm.self().body()).abs();
         Line2D direct_dash_line(self_pos, self_body);
         if (!move){
-            if (body_diff_degree < 90 && direct_dash_line.dist(target) < kickable_area - 0.1 && self_pos.dist(target) > 1.0){
+            double max_dist_line = kickable_area - 0.1;
+            if (go_to_opp){
+                max_dist_line = 0.2;
+            }
+            if (body_diff_degree < 90 && direct_dash_line.dist(target) < max_dist_line && self_pos.dist(target) > 1.0){
                 agent->doDash(dash_power, 0);
                 agent->debugClient().addMessage("direct dash");
                 move = true;
