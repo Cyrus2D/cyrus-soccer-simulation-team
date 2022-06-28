@@ -660,6 +660,7 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
     }
     block_cycle(wm, wm.self().unum(), cycle, target, true);
     auto fastest_opp = wm.interceptTable()->fastestOpponent();
+    bool go_to_opp = false;
     if (target.isValid()){
         #ifdef DEBUG_BLOCK
         dlog.addText(Logger::BLOCK, "is valid k%d c%d d%.2f", fastest_opp->isKickable(),cycle,target.dist(fastest_opp->pos()));
@@ -721,6 +722,7 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
             Sector2D tar_sec = Sector2D(sec_center, 1.0, 5.0, dir - 15.0, dir + 15.0);
             if (tar_sec.contains(self_pos)){
                 target = opp_pos;
+                go_to_opp = true;
                 #ifdef DEBUG_BLOCK
                 agent->debugClient().addMessage("change block to opp");
                 #endif
@@ -738,7 +740,11 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
         double body_diff_degree = ((target - wm.self().pos()).th() - wm.self().body()).abs();
         Line2D direct_dash_line(self_pos, self_body);
         if (!move){
-            if (body_diff_degree < 90 && direct_dash_line.dist(target) < kickable_area - 0.1 && self_pos.dist(target) > 1.0){
+            double max_dist_line = kickable_area - 0.1;
+            if (go_to_opp){
+                max_dist_line = 0.2;
+            }
+            if (body_diff_degree < 90 && direct_dash_line.dist(target) < max_dist_line && self_pos.dist(target) > 1.0){
                 agent->doDash(dash_power, 0);
                 agent->debugClient().addMessage("direct dash");
                 move = true;
