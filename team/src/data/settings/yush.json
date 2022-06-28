@@ -41,6 +41,7 @@
 		"UseUnmarkPassPredictionDNN": false
 	},
 	"DefenseMove": {
+		"BlockGoToOppPos": false,
 		"GoToDefendX": true,
 		"FixThMarkY": false,
 		"MidTh_PosFinderHPosXNegativeTerm": 0.0,

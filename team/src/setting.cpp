@@ -152,6 +152,9 @@ OffensiveMoveSetting::OffensiveMoveSetting(Value &value)
 }
 
 DefenseMoveSetting::DefenseMoveSetting(Value & value){
+    if(value.HasMember("BlockGoToOppPos")){
+        mBlockGoToOppPos = value["BlockGoToOppPos"].GetBool();
+    }
     if(value.HasMember("GoToDefendX")){
         mGoToDefendX = value["GoToDefendX"].GetBool();
     }

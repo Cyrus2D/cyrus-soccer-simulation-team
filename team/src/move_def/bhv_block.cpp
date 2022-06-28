@@ -661,71 +661,73 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
     block_cycle(wm, wm.self().unum(), cycle, target, true);
     auto fastest_opp = wm.interceptTable()->fastestOpponent();
     bool go_to_opp = false;
-    if (target.isValid()){
-        #ifdef DEBUG_BLOCK
-        dlog.addText(Logger::BLOCK, "is valid k%d c%d d%.2f", fastest_opp->isKickable(),cycle,target.dist(fastest_opp->pos()));
-        #endif
-        if (fastest_opp->isKickable() && cycle <= 2 && target.dist(fastest_opp->pos()) < 1.2){
-            AngleDeg dir = AngleDeg::INVALIDATED;
-            if (target.x > -10){
-                dir = -180.0;
-            }
-            else{
-                Vector2D last_tar = Vector2D::INVALIDATED;
-                if (target.x < -35.0){
-                    if (target.absY() > 20.0){
-                        if (target.x > -43){
-                            last_tar = Vector2D(-47, target.y > 0 ? 9 : -9);
+    if (Setting::i()->mDefenseMove->mBlockGoToOppPos){
+        if (target.isValid()){
+            #ifdef DEBUG_BLOCK
+            dlog.addText(Logger::BLOCK, "is valid k%d c%d d%.2f", fastest_opp->isKickable(),cycle,target.dist(fastest_opp->pos()));
+            #endif
+            if (fastest_opp->isKickable() && cycle <= 2 && target.dist(fastest_opp->pos()) < 1.2){
+                AngleDeg dir = AngleDeg::INVALIDATED;
+                if (target.x > -10){
+                    dir = -180.0;
+                }
+                else{
+                    Vector2D last_tar = Vector2D::INVALIDATED;
+                    if (target.x < -35.0){
+                        if (target.absY() > 20.0){
+                            if (target.x > -43){
+                                last_tar = Vector2D(-47, target.y > 0 ? 9 : -9);
+                            }
+                            else{
+                                last_tar = Vector2D(target.x, 0);
+                            }
                         }
-                        else{
-                            last_tar = Vector2D(target.x, 0);
+                        else if(target.absY() > 9.0){
+                            if (target.x > -43){
+                                last_tar = Vector2D(-47, target.y > 0 ? 6 : -6);
+                            }
+                            else{
+                                last_tar = Vector2D(-52.5, target.y > 0 ? 3 : -3);
+                            }
                         }
-                    }
-                    else if(target.absY() > 9.0){
-                        if (target.x > -43){
-                            last_tar = Vector2D(-47, target.y > 0 ? 6 : -6);
-                        }
-                        else{
-                            last_tar = Vector2D(-52.5, target.y > 0 ? 3 : -3);
+                        else {
+                            last_tar = Vector2D(-52.5, target.y / 9.0 * 5.0);
                         }
                     }
                     else {
-                        last_tar = Vector2D(-52.5, target.y / 9.0 * 5.0);
-                    }
-                }
-                else {
-                    if (target.absY() < 20.0){
-                        last_tar = Vector2D(-45.0, target.y / 20.0 * 13.0);
-                    }
-                    else{
-                        last_tar = Vector2D(-45.0, (target.absY() - 20.0) / 14.0 * 7.0 - 3.5);
-                        if (target.y < 0){
-                            last_tar.y *= -1.0;
+                        if (target.absY() < 20.0){
+                            last_tar = Vector2D(-45.0, target.y / 20.0 * 13.0);
+                        }
+                        else{
+                            last_tar = Vector2D(-45.0, (target.absY() - 20.0) / 14.0 * 7.0 - 3.5);
+                            if (target.y < 0){
+                                last_tar.y *= -1.0;
+                            }
                         }
                     }
+                    dir = (last_tar - target).th();
+                    #ifdef DEBUG_BLOCK
+                    dlog.addCircle(Logger::BLOCK, last_tar, 0.5, 255, 192, 203);
+                    #endif
                 }
-                dir = (last_tar - target).th();
+                Vector2D opp_pos = fastest_opp->pos();
+                Vector2D sec_center = opp_pos - Vector2D::polar2vector(1.0, dir);
                 #ifdef DEBUG_BLOCK
-                dlog.addCircle(Logger::BLOCK, last_tar, 0.5, 255, 192, 203);
+                dlog.addLine(Logger::BLOCK, sec_center, sec_center + Vector2D::polar2vector(10, dir), 255, 192, 203);
+                dlog.addLine(Logger::BLOCK, sec_center, sec_center + Vector2D::polar2vector(10, dir + 15.0), 255, 192, 203);
+                dlog.addLine(Logger::BLOCK, sec_center, sec_center + Vector2D::polar2vector(10, dir - 15.0), 255, 192, 203);
+                dlog.addCircle(Logger::BLOCK, sec_center, 0.5, 255, 192, 203);
+                dlog.addCircle(Logger::BLOCK, Vector2D::polar2vector(1.0, dir), 0.5, 255, 192, 203);
                 #endif
-            }
-            Vector2D opp_pos = fastest_opp->pos();
-            Vector2D sec_center = opp_pos - Vector2D::polar2vector(1.0, dir);
-            #ifdef DEBUG_BLOCK
-            dlog.addLine(Logger::BLOCK, sec_center, sec_center + Vector2D::polar2vector(10, dir), 255, 192, 203);
-            dlog.addLine(Logger::BLOCK, sec_center, sec_center + Vector2D::polar2vector(10, dir + 15.0), 255, 192, 203);
-            dlog.addLine(Logger::BLOCK, sec_center, sec_center + Vector2D::polar2vector(10, dir - 15.0), 255, 192, 203);
-            dlog.addCircle(Logger::BLOCK, sec_center, 0.5, 255, 192, 203);
-            dlog.addCircle(Logger::BLOCK, Vector2D::polar2vector(1.0, dir), 0.5, 255, 192, 203);
-            #endif
 
-            Sector2D tar_sec = Sector2D(sec_center, 1.0, 5.0, dir - 15.0, dir + 15.0);
-            if (tar_sec.contains(self_pos)){
-                target = opp_pos;
-                go_to_opp = true;
-                #ifdef DEBUG_BLOCK
-                agent->debugClient().addMessage("change block to opp");
-                #endif
+                Sector2D tar_sec = Sector2D(sec_center, 1.0, 5.0, dir - 15.0, dir + 15.0);
+                if (tar_sec.contains(self_pos)){
+                    target = opp_pos;
+                    go_to_opp = true;
+                    #ifdef DEBUG_BLOCK
+                    agent->debugClient().addMessage("change block to opp");
+                    #endif
+                }
             }
         }
     }

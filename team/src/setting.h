@@ -90,6 +90,7 @@ class DefenseMoveSetting{
 public:
     DefenseMoveSetting(){}
     DefenseMoveSetting(Value & value);
+    bool mBlockGoToOppPos = false;
     bool mGoToDefendX = true;
     bool mFixThMarkY = true;
     bool mUsePassBlock = false;
