@@ -808,12 +808,12 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
             mark_or_block = false;
         }
     }
-    if (Strategy::i().self_Line() == Strategy::PostLine::back) {
-        if (go_to_goal(agent)){
-            agent->debugClient().addMessage("GoToGoal");
-            return true;
-        }
-    }
+//    if (Strategy::i().self_Line() == Strategy::PostLine::back) {
+//        if (go_to_goal(agent)){
+//            agent->debugClient().addMessage("GoToGoal");
+//            return true;
+//        }
+//    }
     if (mark_or_block) {
         dlog.addText(Logger::BLOCK, "block or mark");
         if (bhv_mark_execute().execute(agent)){
