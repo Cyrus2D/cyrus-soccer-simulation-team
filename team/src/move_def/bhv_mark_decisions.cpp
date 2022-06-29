@@ -936,7 +936,7 @@ void BhvMarkDecisionGreedy::goalMarkDecision(PlayerAgent *agent, MarkType &mark_
         }
     }
 
-    vector<int> who_go_to_goal = Bhv_BasicMove::who_goto_goal(agent);
+    vector<int> who_go_to_goal;// = Bhv_BasicMove::who_goto_goal(agent);
     vector <UnumEval> opp_eval = oppEvaluatorGoalMark(wm);
 
     MarkType how_mark[12];
@@ -1084,17 +1084,17 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
         #ifdef DEBUG_MARK_DECISIONS
         dlog.addText(Logger::MARK, "###tm %d", t);
         #endif
-        bool goto_goal = false;
-        for (auto go_goal_nums : who_go_to_goal) {
-            if (go_goal_nums == tm->unum())
-                goto_goal = true;
-        }
-        if (goto_goal) {
-            #ifdef DEBUG_MARK_DECISIONS
-            dlog.addText(Logger::MARK, "------continue because goto goal for tm %d", t);
-            #endif
-            continue;
-        }
+//        bool goto_goal = false;
+//        for (auto go_goal_nums : who_go_to_goal) {
+//            if (go_goal_nums == tm->unum())
+//                goto_goal = true;
+//        }
+//        if (goto_goal) {
+//            #ifdef DEBUG_MARK_DECISIONS
+//            dlog.addText(Logger::MARK, "------continue because goto goal for tm %d", t);
+//            #endif
+//            continue;
+//        }
         const Vector2D &tm_pos = tm->pos();
         const Vector2D &tm_hpos = Strategy::i().getPosition(t);
         for (int o = 1; o <= 11; o++) {
