@@ -91,6 +91,7 @@ class DefenseMoveSetting{
 public:
     DefenseMoveSetting(){}
     DefenseMoveSetting(Value & value);
+    double mBackBlockMaxXToDefHPosX = 10.0;
     bool mBlockGoToOppPos = false;
     bool mGoToDefendX = true;
     bool mFixThMarkY = true;

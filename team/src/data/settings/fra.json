@@ -42,6 +42,7 @@
 				"UseUnmarkPassPredictionDNN": false
 			},
 	"DefenseMove": {
+				"BackBlockMaxXToDefHPosX": 10.0,
 				"BlockGoToOppPos": false,
 				"GoToDefendX": true,
 				"FixThMarkY": true,
