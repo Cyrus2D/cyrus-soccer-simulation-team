@@ -157,7 +157,7 @@ OffensiveMoveSetting::OffensiveMoveSetting(Value &value)
 
 DefenseMoveSetting::DefenseMoveSetting(Value & value){
     if(value.HasMember("BackBlockMaxXToDefHPosX")){
-        mBackBlockMaxXToDefHPosX = value["BackBlockMaxXToDefHPosX"].GetBool();
+        mBackBlockMaxXToDefHPosX = value["BackBlockMaxXToDefHPosX"].GetDouble();
     }
     if(value.HasMember("BlockGoToOppPos")){
         mBlockGoToOppPos = value["BlockGoToOppPos"].GetBool();
