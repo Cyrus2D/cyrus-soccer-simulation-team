@@ -49,6 +49,7 @@ public:
     vector<double> mDangerEvalMid;
     vector<double> mDangerEvalForward;
     vector<double> mDangerEvalPenalty;
+    bool mSlowPass = false;
 };
 
 class StrategySetting{

@@ -85,6 +85,10 @@ ChainActionSetting::ChainActionSetting(Value & value){
         for (auto &v: default_value)
             mDangerEvalPenalty.push_back(v);
     }
+    if(value.HasMember("SlowPass"))
+    {
+        mSlowPass = value["SlowPass"].GetBool();
+    }
 }
 
 StrategySetting::StrategySetting(Value & value){

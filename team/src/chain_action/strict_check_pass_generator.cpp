@@ -53,7 +53,7 @@
 #include <sstream>
 #include <cmath>
 #include "../debugs.h"
-
+#include "../setting.h"
 
 // #define CREATE_SEVERAL_CANDIDATES_ON_SAME_POINT
 
@@ -1196,6 +1196,8 @@ void StrictCheckPassGenerator::createPassCommon(const WorldModel & wm,
     if(wm.opponentsFromSelf().size() > 0)
         if(wm.opponentsFromSelf().front()->distFromSelf() < 2.5)
             max_pass_number = 2;
+    if (Setting::i()->mChainAction->mSlowPass)
+        max_pass_number = 3;
     int pass_number = 0;
     bool safe_with_pos_count = true;
     int danger = 0;
@@ -1283,15 +1285,16 @@ void StrictCheckPassGenerator::createPassCommon(const WorldModel & wm,
 
         int kick_count = FieldAnalyzer::predict_kick_count(wm, M_passer,
                                                            first_ball_speed, ball_move_angle);
-        if(kick_count == 1)
-            max_pass_number = 1;
-
+        if (!Setting::i()->mChainAction->mSlowPass)
+            if(kick_count == 1)
+                max_pass_number = 1;
+        int opp_near_cycle = 100;
         if(wm.opponentsFromSelf().size() > 0){
             if(wm.opponentsFromSelf().front()->distFromSelf() < 4){
                 const AbstractPlayerObject * opp_near_me = wm.theirPlayer(wm.opponentsFromSelf().front()->unum());
                 if(opp_near_me != NULL && opp_near_me->unum() > 0){
                     int dc,tc,vc;
-                    int opp_near_cycle = opp_near_me->cycles_to_cut_ball(wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body());
+                    opp_near_cycle = opp_near_me->cycles_to_cut_ball(wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body());
                     if(kick_count > opp_near_cycle){
                         #ifdef DEBUG_PASS
                         dlog.addText(M_pass_logger,"|  cont for kick count and opp near kick:%d oppcycle:%d", kick_count, opp_near_cycle);
@@ -1430,17 +1433,36 @@ void StrictCheckPassGenerator::createPassCommon(const WorldModel & wm,
         #endif
 
         pass_number++;
-        if(pass_number >= max_pass_number)
+        if(pass_number >= max_pass_number){
+            dlog.addText( M_pass_logger,
+                          "|  pass_number(=%d) >= max_pass_number(=%d) break...",
+                          pass_number, max_pass_number );
             break;
+        }
+        int d = 3;
+        if (Setting::i()->mChainAction->mSlowPass){
+            if (kick_count > 1 && kick_count >= opp_near_cycle - 1){
+                d = 2;
+            }
+            else{
+                if (opp_dif_cycle <= 2)
+                    break;
+                if (tm_dif_cycle > 1)
+                    break;
+            }
+        }
+
+
+
         //#ifndef CREATE_SEVERAL_CANDIDATES_ON_SAME_POINT
         //        break;
         //#endif
 
-        if (o_step <= step + 3) {
+        if (o_step <= step + d) {
             #ifdef DEBUG_PASS
             dlog.addText( M_pass_logger,
                           "|  o_step(=%d) <= step+3(=%d) break...",
-                          o_step, step+3 );
+                          o_step, step + d );
             #endif
             break;
         }
