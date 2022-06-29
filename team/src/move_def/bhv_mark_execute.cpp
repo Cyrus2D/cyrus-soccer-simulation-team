@@ -68,12 +68,31 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
         #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, "no one to mark and %d is blocker", blocked);
         #endif
-        if (!blocked &&
-            !(ball_inertia.x > -20 && Strategy::i().self_Line() == Strategy::PostLine::back)) {
-            if (bhv_block::who_is_blocker(wm) == wm.self().unum()) {
-                if (bhv_block().execute(agent)) {
-                    agent->debugClient().addMessage("BlockNoDec");
-                    return true;
+        bool do_free_blocker_block = true;
+        if (BhvMarkDecisionGreedy::markDecision(wm) == MarkDec::MidMark){
+            if (Strategy::i().self_Line() == Strategy::PostLine::back){
+                auto block_eval_target = bhv_block::blocker_eval_mark_decision(wm);
+                vector<double> block_eval = block_eval_target.first;
+                vector<Vector2D> block_target = block_eval_target.second;
+                double tm_hpos_def_line = 0;
+                for (int i = 2; i <= 11; i++) {
+                    double hpos_x = Strategy::i().getPosition(i).x;
+                    if (hpos_x < tm_hpos_def_line)
+                        tm_hpos_def_line = hpos_x;
+                }
+                if (block_target[wm.self().unum()].x > tm_hpos_def_line + Setting::i()->mDefenseMove->mBackBlockMaxXToDefHPosX){
+                    do_free_blocker_block = false;
+                }
+            }
+        }
+        if (do_free_blocker_block){
+            if (!blocked &&
+                !(ball_inertia.x > -20 && Strategy::i().self_Line() == Strategy::PostLine::back)) {
+                if (bhv_block::who_is_blocker(wm) == wm.self().unum()) {
+                    if (bhv_block().execute(agent)) {
+                        agent->debugClient().addMessage("BlockNoDec");
+                        return true;
+                    }
                 }
             }
         }
