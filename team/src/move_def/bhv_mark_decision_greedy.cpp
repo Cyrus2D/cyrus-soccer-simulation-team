@@ -239,13 +239,17 @@ vector<size_t> BhvMarkDecisionGreedy::getOppOffensive(const WorldModel &wm, bool
             auto block_eval_target = bhv_block::blocker_eval_mark_decision(wm);
             vector<double> block_eval = block_eval_target.first;
             vector<Vector2D> block_target = block_eval_target.second;
-
+            double max_block_x = -52.0;
+            for (auto & target: block_target){
+                if (target.isValid() && target.x > max_block_x)
+                    max_block_x = target.x;
+            }
             if (wm.ourPlayer(5) != nullptr && wm.ourPlayer(5)->unum() == 5
                 && wm.ourPlayer(5)->pos().x < wm.ourDefenseLineX() + 10) {
                 OppPos = wm.ball().inertiaPoint(opp_reach_cycle);
                 OppOff2OffsideLine /= 2.0;
             }
-            if (ball_inertia.x > tm_hpos_def_line + OppOff2OffsideLine) {
+            if (max_block_x > tm_hpos_def_line + OppOff2OffsideLine) {
                 #ifdef DEBUG_MARK_DECISION_GREEDY
                 dlog.addText(Logger::MARK, "%d is not Offense Opp x=%.1f, dl=%.1f, m=%.1f", o, OppPos.x,
                              wm.ourDefenseLineX(), OppOff2OffsideLine);
