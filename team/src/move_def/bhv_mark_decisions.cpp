@@ -280,11 +280,13 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
                     continue;
                 }
                 if (Strategy::i().tm_Line(t) == Strategy::PostLine::back){
-                    if (block_target[t].x > tm_hpos_def_line + Setting::i()->mDefenseMove->mBackBlockMaxXToDefHPosX){
-                        #ifdef DEBUG_MARK_DECISIONS
-                        dlog.addText(Logger::MARK, "------DefDec mark off tm %d opp %d cancle for MaxHPosY", t, o);
-                        #endif
-                        continue;
+                    if (ball_inertia.x > Setting::i()->mDefenseMove->mStartMidMark + 10.0){
+                        if (block_target[t].x > tm_hpos_def_line + Setting::i()->mDefenseMove->mBackBlockMaxXToDefHPosX){
+                            #ifdef DEBUG_MARK_DECISIONS
+                            dlog.addText(Logger::MARK, "------DefDec mark off tm %d opp %d cancle for MaxHPosY", t, o);
+                            #endif
+                            continue;
+                        }
                     }
                 }
                 mark_eval[o][t] = block_eval[t];

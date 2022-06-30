@@ -71,17 +71,19 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
         bool do_free_blocker_block = true;
         if (BhvMarkDecisionGreedy::markDecision(wm) == MarkDec::MidMark){
             if (Strategy::i().self_Line() == Strategy::PostLine::back){
-                auto block_eval_target = bhv_block::blocker_eval_mark_decision(wm);
-                vector<double> block_eval = block_eval_target.first;
-                vector<Vector2D> block_target = block_eval_target.second;
-                double tm_hpos_def_line = 0;
-                for (int i = 2; i <= 11; i++) {
-                    double hpos_x = Strategy::i().getPosition(i).x;
-                    if (hpos_x < tm_hpos_def_line)
-                        tm_hpos_def_line = hpos_x;
-                }
-                if (block_target[wm.self().unum()].x > tm_hpos_def_line + Setting::i()->mDefenseMove->mBackBlockMaxXToDefHPosX){
-                    do_free_blocker_block = false;
+                if (ball_inertia.x > Setting::i()->mDefenseMove->mStartMidMark + 10.0){
+                    auto block_eval_target = bhv_block::blocker_eval_mark_decision(wm);
+                    vector<double> block_eval = block_eval_target.first;
+                    vector<Vector2D> block_target = block_eval_target.second;
+                    double tm_hpos_def_line = 0;
+                    for (int i = 2; i <= 11; i++) {
+                        double hpos_x = Strategy::i().getPosition(i).x;
+                        if (hpos_x < tm_hpos_def_line)
+                            tm_hpos_def_line = hpos_x;
+                    }
+                    if (block_target[wm.self().unum()].x > tm_hpos_def_line + Setting::i()->mDefenseMove->mBackBlockMaxXToDefHPosX){
+                        do_free_blocker_block = false;
+                    }
                 }
             }
         }
