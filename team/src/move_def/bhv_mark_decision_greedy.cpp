@@ -208,7 +208,7 @@ vector<int> BhvMarkDecisionGreedy::getOppOffensiveStatic(const WorldModel &wm) {
 }
 
 
-vector<size_t> BhvMarkDecisionGreedy::getOppOffensive(const WorldModel &wm, bool &fastest_opp_marked) {
+vector<size_t> BhvMarkDecisionGreedy::getOppOffensive(const WorldModel &wm) {
     vector<size_t> offensive_opps;
     int opp_reach_cycle = wm.interceptTable()->opponentReachCycle();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_reach_cycle);
@@ -233,66 +233,39 @@ vector<size_t> BhvMarkDecisionGreedy::getOppOffensive(const WorldModel &wm, bool
             || opp->goalie())
             continue;
         Vector2D OppPos = opp->pos();
-        double OppOff2OffsideLine = Setting::i()->mDefenseMove->mBackBlockMaxXToDefHPosX;
+        double OppOff2OffsideLine = 10.0;
         bool fastest_blocked = true;
         if (o == fastest_opp) {
-            auto block_eval_target = bhv_block::blocker_eval_mark_decision(wm);
-            vector<double> block_eval = block_eval_target.first;
-            vector<Vector2D> block_target = block_eval_target.second;
-            double max_block_x = -52.0;
-            for (auto & target: block_target){
-                if (target.isValid() && target.x > max_block_x)
-                    max_block_x = target.x;
-            }
-            if (wm.ourPlayer(5) != nullptr && wm.ourPlayer(5)->unum() == 5
-                && wm.ourPlayer(5)->pos().x < wm.ourDefenseLineX() + 10) {
-                OppPos = wm.ball().inertiaPoint(opp_reach_cycle);
-                OppOff2OffsideLine /= 2.0;
-            }
-            if (max_block_x > tm_hpos_def_line + OppOff2OffsideLine) {
-                #ifdef DEBUG_MARK_DECISION_GREEDY
-                dlog.addText(Logger::MARK, "%d is not Offense Opp x=%.1f, dl=%.1f, m=%.1f", o, OppPos.x,
-                             wm.ourDefenseLineX(), OppOff2OffsideLine);
-                #endif
-                fastest_blocked = false;
-            }
-            if (fastest_blocked) {
-                offensive_opps.push_back(o);
-                #ifdef DEBUG_MARK_DECISION_GREEDY
-                dlog.addText(Logger::MARK, "%d is Offense Opp Fastest", o);
-                #endif
-                continue;
-            }
+            OppPos = ball_inertia;
         }
-        OppOff2OffsideLine = 10.0;
-        if (o != fastest_opp || !fastest_blocked) {
-            if (wm.ourPlayer(5) != nullptr && wm.ourPlayer(5)->unum() == 5
-                && wm.ourPlayer(5)->pos().x < wm.ourDefenseLineX() + 10) {
-                if (ball_inertia.x > 25)
-                    OppOff2OffsideLine = 25;
-                else if (ball_inertia.x > 0)
-                    OppOff2OffsideLine = 20;
-                else
-                    OppOff2OffsideLine = 15;
-            }
-            else {
-                if (ball_inertia.x > 25)
-                    OppOff2OffsideLine = 25;
-                else if (ball_inertia.x > 0)
-                    OppOff2OffsideLine = 20;
-                else
-                    OppOff2OffsideLine = 15;
-            }
-            if (!opp_in_static_offense)
-                OppOff2OffsideLine /= 3.0;
 
-            if (OppPos.x > wm.ourDefenseLineX() + OppOff2OffsideLine) {
-                #ifdef DEBUG_MARK_DECISION_GREEDY
-                dlog.addText(Logger::MARK, "%d is not Offense Opp x=%.1f, dl=%.1f, m=%.1f", o, OppPos.x,
-                             wm.ourDefenseLineX(), OppOff2OffsideLine);
-                #endif
-                continue;
-            }
+        if (wm.ourPlayer(5) != nullptr && wm.ourPlayer(5)->unum() == 5
+            && wm.ourPlayer(5)->pos().x < wm.ourDefenseLineX() + 10) {
+            if (ball_inertia.x > 25)
+                OppOff2OffsideLine = 25;
+            else if (ball_inertia.x > 0)
+                OppOff2OffsideLine = 20;
+            else
+                OppOff2OffsideLine = 15;
+        }
+        else {
+            if (ball_inertia.x > 25)
+                OppOff2OffsideLine = 25;
+            else if (ball_inertia.x > 0)
+                OppOff2OffsideLine = 20;
+            else
+                OppOff2OffsideLine = 15;
+        }
+        if (!opp_in_static_offense)
+            OppOff2OffsideLine /= 3.0;
+        if (OppPos.x > wm.ourDefenseLineX() + OppOff2OffsideLine) {
+            #ifdef DEBUG_MARK_DECISION_GREEDY
+            dlog.addText(Logger::MARK, "%d is not Offense Opp x=%.1f, dl=%.1f, m=%.1f", o, OppPos.x,
+                         wm.ourDefenseLineX(), OppOff2OffsideLine);
+            #endif
+            continue;
+        }
+        if (o != fastest_opp) {
             if (OppPos.x > ball_inertia.x + 8 && OppPos.x > 15) {
                 #ifdef DEBUG_MARK_DECISION_GREEDY
                 dlog.addText(Logger::MARK, "%d is not Offense Opp x=%.1f, bx=%.1f, m=%.1f", o, OppPos.x,
@@ -307,11 +280,7 @@ vector<size_t> BhvMarkDecisionGreedy::getOppOffensive(const WorldModel &wm, bool
                 #endif
                 continue;
             }
-            if (!fastest_blocked) {
-                fastest_opp_marked = true;
-            }
         }
-
 
         offensive_opps.push_back(o);
         #ifdef DEBUG_MARK_DECISION_GREEDY

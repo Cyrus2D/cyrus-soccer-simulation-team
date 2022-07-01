@@ -27,7 +27,7 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
     }
 
     bool fastest_opp_marked = false; // true: fastest is offensive can not be blocked by def players
-    auto offensive_opps = getOppOffensive(wm, fastest_opp_marked);
+    auto offensive_opps = getOppOffensive(wm);
     auto block_eval_target = bhv_block::blocker_eval_mark_decision(wm);
     vector<double> block_eval = block_eval_target.first;
     vector<Vector2D> block_target = block_eval_target.second;
@@ -50,7 +50,7 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
         opp_mark_count[i] = 0;
         how_mark[i] = MarkType::NoType;
     }
-
+    bool fastest_opp_should_be_marked = false;
     //Tm Def Mark Opp Off
     {
         #ifdef DEBUG_MARK_DECISIONS
@@ -70,6 +70,31 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
         midMarkThMarkSetResults(wm, action, temp_opps, how_mark, tm_mark_target, opp_marker, opp_mark_count,
                                 fastest_opp, fastest_opp_marked, opp_targets);
 
+        int blocker = 0;
+        for (int t = 1; t <= 11; t++){
+            if (how_mark[t] == MarkType::Block){
+                blocker = t;
+            }
+        }
+        if (blocker > 0){
+            double tm_hpos_def_line = 0;
+            for (int i = 2; i <= 11; i++) {
+                double hpos_x = Strategy::i().getPosition(i).x;
+                if (hpos_x < tm_hpos_def_line)
+                    tm_hpos_def_line = hpos_x;
+            }
+            if (Strategy::i().tm_Line(blocker) == Strategy::PostLine::back){
+                if (ball_inertia.x > Setting::i()->mDefenseMove->mStartMidMark + 10.0){
+                    if (block_target[blocker].x > tm_hpos_def_line + Setting::i()->mDefenseMove->mBackBlockMaxXToDefHPosX){
+                        #ifdef DEBUG_MARK_DECISIONS
+                        dlog.addText(Logger::MARK, "------Blocker %d should ThMark %d", blocker, tm_mark_target[blocker]);
+                        #endif
+                        fastest_opp_should_be_marked = true;
+                        how_mark[blocker] = MarkType::ThMark;
+                    }
+                }
+            }
+        }
     }
 
     //Other mark Other
@@ -80,7 +105,7 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
         dlog.addText(Logger::MARK, "Tm Mark Opp");
         #endif
         vector <UnumEval> opp_eval = oppEvaluatorMidMark(wm, offensive_opps, true);
-        midMarkLeadMarkCostFinder(wm, mark_eval, used_hpos, block_eval, fastest_opp_marked);
+        midMarkLeadMarkCostFinder(wm, mark_eval, used_hpos, block_eval, fastest_opp_should_be_marked);
         vector <size_t> temp_tms = midMarkLeadMarkMarkerFinder(mark_eval, fastest_opp, tm_mark_target);
         vector <size_t> temp_opps = midMarkLeadMarkMarkedFinder(wm, offensive_opps, opp_eval, fastest_opp, ball_inertia,
                                                                 opp_marker, how_mark);
@@ -216,6 +241,7 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
             mark_eval_hpos[o][t] = 1000;
         }
     }
+
     for (size_t t = 2; t <= 11; t++) {
         const AbstractPlayerObject *tm = wm.ourPlayer(t);
         if (tm == NULL
@@ -249,7 +275,8 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
             dlog.addText(Logger::MARK, "----DefDec mark off: tm %d opp %d THMark in %.1f,%.1f", t, o, opp_pos.pos.x,
                          opp_pos.pos.y);
             #endif
-            if (opp->unum() == fastest_opp && !fastest_opp_marked) {
+
+            if (opp->unum() == fastest_opp) {
                 max_hpos_dist = Setting::i()->mDefenseMove->mMidTh_HPosMaxDistBlock;
                 max_pos_dist = Setting::i()->mDefenseMove->mMidTh_PosMaxDistBlock;
                 max_hpos_dist_y = Setting::i()->mDefenseMove->mMidTh_HPosYMaxDistBlock;
@@ -279,19 +306,12 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
                     #endif
                     continue;
                 }
-//                if (Strategy::i().tm_Line(t) == Strategy::PostLine::back){
-//                    if (ball_inertia.x > Setting::i()->mDefenseMove->mStartMidMark + 10.0){
-//                        if (block_target[t].x > tm_hpos_def_line + Setting::i()->mDefenseMove->mBackBlockMaxXToDefHPosX){
-//                            #ifdef DEBUG_MARK_DECISIONS
-//                            dlog.addText(Logger::MARK, "------DefDec mark off tm %d opp %d cancle for MaxHPosY", t, o);
-//                            #endif
-//                            continue;
-//                        }
-//                    }
-//                }
+
                 mark_eval[o][t] = block_eval[t];
             }
             else {
+                if (opp->unum() == fastest_opp)
+                    opp_pos.pos = ball_inertia;
                 max_hpos_dist = Setting::i()->mDefenseMove->mMidTh_HPosMaxDistMark;
                 max_pos_dist = Setting::i()->mDefenseMove->mMidTh_PosMaxDistMark;
                 max_hpos_dist_y = Setting::i()->mDefenseMove->mMidTh_HPosYMaxDistMark;

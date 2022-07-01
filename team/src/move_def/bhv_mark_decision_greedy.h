@@ -77,7 +77,7 @@ public:
 
     static MarkDec markDecision(const WorldModel &wm);
 
-    static vector <size_t> getOppOffensive(const WorldModel &wm, bool &fastest_opp_marked);
+    static vector <size_t> getOppOffensive(const WorldModel &wm);
 
     static vector<int> getOppOffensiveStatic(const WorldModel &wm);
 
