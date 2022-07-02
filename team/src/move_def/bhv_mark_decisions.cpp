@@ -83,7 +83,7 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
                 if (hpos_x < tm_hpos_def_line)
                     tm_hpos_def_line = hpos_x;
             }
-            if (Strategy::i().tm_Line(blocker) == Strategy::PostLine::back){
+            if (Strategy::i().tm_Line(blocker) == Strategy::PostLine::back && blocker != 5){
                 if (ball_inertia.x > Setting::i()->mDefenseMove->mStartMidMark + 10.0){
                     if (block_target[blocker].x > tm_hpos_def_line + Setting::i()->mDefenseMove->mBackBlockMaxXToDefHPosX){
                         #ifdef DEBUG_MARK_DECISIONS
