@@ -90,7 +90,7 @@ void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_t
                         dlog.addText(Logger::MARK, "------Blocker %d should ThMark %d", blocker, tm_mark_target[blocker]);
                         #endif
                         fastest_opp_should_be_marked = true;
-                        how_mark[blocker] = MarkType::ThMark;
+                        how_mark[blocker] = MarkType::ThMarkFastestOpp;
                     }
                 }
             }
