@@ -1053,28 +1053,44 @@ Bhv_GoalieBasicMove::doGoToPointLookBall( PlayerAgent * agent,
                                           const double & back_power_rate )
 {
     const WorldModel & wm = agent->world();
-
+    agent->debugClient().setTarget(target_point);
     if ( wm.gameMode().type() == GameMode::PlayOn
          || wm.gameMode().type() == GameMode::PenaltyTaken_ )
     {
         agent->debugClient().addMessage( "Goalie:GoToLook" );
         dlog.addText( Logger::TEAM,
-                      __FILE__": doGoToPointLookBall. use GoToPointLookBall" );
-        if (!Bhv_GoToPointLookBall( target_point,
-                               dist_thr,
-                               dash_power,
-                               back_power_rate
-                               ).execute( agent )){
-            Body_GoToPoint(target_point,
-                    dist_thr,
-                    dash_power,
-                    -1.0,
-                    1,
-                    false,
-                    20.0,
-                    3.0,
-                    false ).execute(agent);
+                      __FILE__": doGoToPointLookBall. use GoToPointLookBall to (%.1f, %.1f)", target_point.x, target_point.y );
+//        if (!Bhv_GoToPointLookBall( target_point,
+//                               dist_thr,
+//                               dash_power,
+//                               back_power_rate
+//                               ).execute( agent )){
+        dlog.addText( Logger::TEAM,
+                      __FILE__": doGoToPointLookBall. use GoToPointLookBall execute body go to point" );
+        Body_GoToPoint(target_point,
+                       dist_thr,
+                       dash_power,
+                       -1.0,
+                       1,
+                       false,
+                       20.0,
+                       3.0,
+                       false ).execute(agent);
+        Vector2D self_pos = wm.self().pos();
+        Vector2D ball_pos = wm.ball().inertiaPoint(1);
+        double dif_angle = ((target_point - self_pos).th() - (ball_pos - self_pos).th()).abs();
+        if ( dif_angle < ServerParam::i().maxNeckAngle() - 5.0 + wm.self().viewWidth() / 2.0) {
+            //ok
+        }else{
+            if (dif_angle < 140.0){
+                agent->doChangeView( ViewWidth::NORMAL );
+            }
+            else{
+                agent->doChangeView( ViewWidth::WIDE );
+            }
         }
+        agent->setNeckAction( new Neck_TurnToBall() );
+//        }
     }
     else
     {
@@ -1082,7 +1098,7 @@ Bhv_GoalieBasicMove::doGoToPointLookBall( PlayerAgent * agent,
         dlog.addText( Logger::TEAM,
                       __FILE__": doGoToPointLookBall. use GoToPoint" );
         if ( Body_GoalieGoToPoint( target_point, dist_thr, dash_power
-                                   ).execute( agent ) )
+        ).execute( agent ) )
         {
             dlog.addText( Logger::TEAM,
                           __FILE__": doGoToPointLookBall. go" );
@@ -1094,7 +1110,6 @@ Bhv_GoalieBasicMove::doGoToPointLookBall( PlayerAgent * agent,
                           __FILE__": doGoToPointLookBall. turn to %.1f",
                           body_angle.degree() );
         }
-
         agent->setNeckAction( new Neck_TurnToBall() );
     }
 }
