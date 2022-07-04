@@ -192,9 +192,14 @@ bool bhv_mark_execute::defenseBeInBack(PlayerAgent *agent){
     if (mark_dec != MarkDec::MidMark)
         return false;
 
-    double tm_pos_def_line = wm.ourDefenseLineX();
+    double tm_pos_def_line = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle()).x;
     double tm_hpos_def_line = 0;
     for (int i = 2; i <= 11; i++) {
+        const AbstractPlayerObject * tm = wm.ourPlayer(i);
+        if (tm != nullptr && tm->unum() > 0){
+            if (tm->pos().x < tm_pos_def_line)
+                tm_pos_def_line = tm->pos().x;
+        }
         double hpos_x = Strategy::i().getPosition(i).x;
         if (hpos_x < tm_hpos_def_line)
             tm_hpos_def_line = hpos_x;
@@ -214,7 +219,11 @@ bool bhv_mark_execute::defenseBeInBack(PlayerAgent *agent){
 //            target_point = Strategy::i().getPositionWithBall(wm.self().unum(), new_ball, wm);
 //        }
 //    }
-
+    #ifdef DEBUG_MARK_EXECUTE
+    dlog.addText(Logger::TEAM,
+                 __FILE__": defLineX %.1f defLineHX %.1f",
+                 tm_pos_def_line, tm_hpos_def_line);
+    #endif
     if (tm_pos_def_line < tm_hpos_def_line - 5){
         if(Strategy::i().tm_Line(wm.self().unum()) == Strategy::PostLine::back)
             target_point.x = tm_pos_def_line + 3.0;
@@ -225,12 +234,22 @@ bool bhv_mark_execute::defenseBeInBack(PlayerAgent *agent){
     }else{
         return false;
     }
+    #ifdef DEBUG_MARK_EXECUTE
+    dlog.addText(Logger::TEAM,
+                 __FILE__": Be Back target=(%.1f %.1f)",
+                 target_point.x, target_point.y);
+    #endif
     target_point.x = min(target_point.x, Strategy::i().getPosition(wm.self().unum()).x);
+    #ifdef DEBUG_MARK_EXECUTE
+    dlog.addText(Logger::TEAM,
+                 __FILE__": Be Back target=(%.1f %.1f)",
+                 target_point.x, target_point.y);
+    #endif
     double dist_thr = wm.ball().distFromSelf() * 0.1;
     if (dist_thr < 1.0) dist_thr = 1.0;
     #ifdef DEBUG_MARK_EXECUTE
     dlog.addText(Logger::TEAM,
-                 __FILE__": Mark new target=(%.1f %.1f) dist_thr=%.2f",
+                 __FILE__": Be Back new target=(%.1f %.1f) dist_thr=%.2f",
                  target_point.x, target_point.y,
                  dist_thr);
     #endif
