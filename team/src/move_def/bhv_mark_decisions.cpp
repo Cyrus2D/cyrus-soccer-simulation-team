@@ -787,7 +787,7 @@ BhvMarkDecisionGreedy::midMarkLeadMarkMarkedFinder(const WorldModel &wm, vector 
         if (Opp->unum() != fastest_opp){
             if (Opp->pos().x > ball_inertia.x + Setting::i()->mDefenseMove->mMidNear_OppsDistXToBall)
                 continue;
-            if (Opp->pos().x > Strategy::i().getPosition(2).x + 15.0)
+            if (Opp->pos().x > Strategy::i().getPosition(2).x + Setting::i()->mDefenseMove->mMidNear_OppsDistXToHPos2X)
                 continue;
         }
         if (opp_marker[o] != 0) {
