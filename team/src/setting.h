@@ -133,6 +133,7 @@ public:
     bool mMidNear_ForwardInMark = true;
     bool mMidNear_ForwardInBlock = true;
     double mMidNear_OppsDistXToBall = 25.0;
+    double mMidNear_OppsDistXToHPos2X = 25.0;
     bool mMidNear_MarkAgain = true;
     bool mMidNear_BlockAgain = true;
     double mMidNear_MarkAgainMaxDistToChangeCost = 5.0;

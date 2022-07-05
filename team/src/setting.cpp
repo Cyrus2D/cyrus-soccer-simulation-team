@@ -288,6 +288,9 @@ DefenseMoveSetting::DefenseMoveSetting(Value & value){
     if(value.HasMember("MidNear_OppsDistXToBall")){
         mMidNear_OppsDistXToBall = value["MidNear_OppsDistXToBall"].GetDouble();
     }
+    if(value.HasMember("MidNear_OppsDistXToHPos2X")){
+        mMidNear_OppsDistXToHPos2X = value["MidNear_OppsDistXToHPos2X"].GetDouble();
+    }
     if(value.HasMember("MidNear_MarkAgain")){
         mMidNear_MarkAgain = value["MidNear_MarkAgain"].GetBool();
     }
