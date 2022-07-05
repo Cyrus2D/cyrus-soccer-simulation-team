@@ -740,7 +740,8 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
         if(Strategy::i().self_Line() == Strategy::PostLine::forward && target.x > 10)
             dash_power = Strategy::i().get_normal_dash_power(wm);
         double body_diff_degree = ((target - wm.self().pos()).th() - wm.self().body()).abs();
-        Line2D direct_dash_line(self_pos, self_body);
+        Vector2D self_inertia = wm.self().inertiaPoint(1);
+        Line2D direct_dash_line(self_inertia, self_body);
         if (!move){
             double max_dist_line = kickable_area - 0.1;
             if (go_to_opp){
@@ -753,13 +754,14 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
             }
         }
         if (!move){
-            AngleDeg dash_dir = ((target - wm.self().pos()).th() - wm.self().body());
             if ( cycle == 1 ){
+                AngleDeg dash_dir = ((target - self_inertia).th() - wm.self().body());
                 agent->doDash(100, dash_dir);
                 agent->debugClient().addMessage("close omni dash");
                 move = true;
             }
             else if (cycle <= 5){
+                AngleDeg dash_dir = ((target - wm.self().inertiaPoint(cycle)).th() - wm.self().body());
                 if (body_diff_degree < 15){
                     agent->doDash(dash_power, dash_dir);
                     agent->debugClient().addMessage("far omni dash");
