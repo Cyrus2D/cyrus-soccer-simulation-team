@@ -784,9 +784,12 @@ BhvMarkDecisionGreedy::midMarkLeadMarkMarkedFinder(const WorldModel &wm, vector 
             break;
         size_t o = opp_eval[d].first;
         const AbstractPlayerObject *Opp = wm.theirPlayer(o);
-        if (Opp->unum() != fastest_opp)
+        if (Opp->unum() != fastest_opp){
             if (Opp->pos().x > ball_inertia.x + Setting::i()->mDefenseMove->mMidNear_OppsDistXToBall)
                 continue;
+            if (Opp->pos().x > Strategy::i().getPosition(2).x + Setting::i()->mDefenseMove->mMidNear_OppsDistXToHPos2X)
+                continue;
+        }
         if (opp_marker[o] != 0) {
 
             if (Opp->unum() == fastest_opp) {

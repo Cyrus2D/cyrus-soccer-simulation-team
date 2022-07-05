@@ -84,6 +84,7 @@
 				"MidNear_ForwardInMark":true,
 				"MidNear_ForwardInBlock":true,
 				"MidNear_OppsDistXToBall":25.0,
+				"MidNear_OppsDistXToHPos2X": 20.0,
 				"MidNear_MarkAgain":true,
 				"MidNear_BlockAgain":false,
 				"MidNear_MarkAgainMaxDistToChangeCost":5.0,
