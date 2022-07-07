@@ -95,9 +95,9 @@ bool SelfInterceptV13::useCollideToBall() const{
         Vector2D goal_intersection = Line2D(ball_pos, ball_vel.th()).intersection(Line2D(Vector2D(52.5, 0.0), AngleDeg(90.0)));
         if (ball_vel.r() > 0 && goal_intersection.isValid() && goal_intersection.absY() < 8.0 && goal_intersection.x > 0.0)
             ball_go_to_goal = true;
-        if (ball_pos.y > 5.0 && ball_vel.x > -0.5 && ball_vel.x > 0.0)
+        if (ball_pos.y > 5.0 && ball_vel.x > -0.5 && ball_vel.y > 0.0)
             ball_go_to_goal = true;
-        if (ball_pos.y < -5.0 && ball_vel.x > -0.5 && ball_vel.x < 0.0)
+        if (ball_pos.y < -5.0 && ball_vel.x > -0.5 && ball_vel.y < 0.0)
             ball_go_to_goal = true;
         if (ball_go_to_goal)
             return false;
