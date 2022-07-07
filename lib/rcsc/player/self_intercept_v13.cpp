@@ -81,6 +81,28 @@ const double SelfInterceptV13::BACK_DASH_THR_ANGLE = 100.0;
 /*!
 
  */
+bool SelfInterceptV13::useCollideToBall() const{
+    return false;
+    auto &wm = M_world;
+    Vector2D ball_pos = wm.ball().inertiaPoint(1);
+    Vector2D ball_vel = wm.ball().vel() * ServerParam::i().ballDecay();
+    bool shoot_available = false;
+    Rect2D rect_shoot_area = Rect2D(Vector2D(52.5 - 11.0 - 4.0, -8.0), Vector2D(4.0, 16.0));
+    Circle2D circle_shoot_area = Circle2D(Vector2D(52.5, 0.0), 11.0);
+    if (rect_shoot_area.contains(ball_pos) || circle_shoot_area.contains(ball_pos))
+        shoot_available = true;
+    bool ball_go_to_goal = false;
+    Vector2D goal_intersection = Line2D(ball_pos, ball_vel.th()).intersection(Line2D(Vector2D(52.5, 0.0), AngleDeg(90.0)));
+    if (ball_vel.r() > 0 && goal_intersection.isValid() && goal_intersection.absY() < 8.0 && goal_intersection.x > 0.0)
+        ball_go_to_goal = true;
+    if (ball_pos.y > 5.0 && ball_vel.x > -0.5 && ball_vel.x > 0.0)
+        ball_go_to_goal = true;
+    if (ball_pos.y < -5.0 && ball_vel.x > -0.5 && ball_vel.x < 0.0)
+        ball_go_to_goal = true;
+    if (ball_go_to_goal)
+        return false;
+    return true;
+}
 void
 SelfInterceptV13::predict( const int max_cycle,
                            std::vector< InterceptInfo > & self_cache ) const
@@ -455,61 +477,89 @@ SelfInterceptV13::predictOneDash( std::vector< InterceptInfo > & self_cache ) co
 
     const double safety_ball_dist = std::max( control_area - 0.2 - ball.vel().r() * SP.ballRand(),
                                               ptype.playerSize() + SP.ballSize() + ptype.kickableMargin() * 0.4 );
+    double min_ball_dist = 0.0;
+    if (!useCollideToBall()) {
+        min_ball_dist = self.playerType().playerSize() + ServerParam::i().ballSize() + 0.15 * ptype.kickableMargin();
+    }
 #ifdef DEBUG_PRINT_ONE_STEP
     dlog.addText( Logger::INTERCEPT,
-                  "decide best 1 step interception. size=%d safety_ball_dist=%.3f",
-                  tmp_cache.size(), safety_ball_dist );
+                  "decide best 1 step interception. size=%d safety_ball_dist=%.3f min_ball_dist=%.3f",
+                  tmp_cache.size(), safety_ball_dist, min_ball_dist );
 #endif
 
     const InterceptInfo * best = &(tmp_cache.front());
+    double best_kick_rate = kick_rate( ball_next.dist(best->selfPos()),
+                                       ( (ball_next - best->selfPos()).th() - self.body() ).degree(),
+                                       self.playerType().kickPowerRate(), //ServerParam::i().kickPowerRate(),
+                                       ServerParam::i().ballSize(),
+                                       self.playerType().playerSize(),
+                                       self.playerType().kickableMargin() );
 #ifdef DEBUG_PRINT_ONE_STEP
     dlog.addText( Logger::INTERCEPT,
-                  "____ turn=%d dash=%d power=%.1f dir=%.1f ball_dist=%.3f stamina=%.1f",
+                  "____ turn=%d dash=%d power=%.1f dir=%.1f ball_dist=%.3f stamina=%.1f k-rate=%.2f",
                   best->turnCycle(), best->dashCycle(),
                   best->dashPower(), best->dashAngle().degree(),
-                  best->ballDist(), best->stamina() );
+                  best->ballDist(), best->stamina(), best_kick_rate );
 #endif
 
     double best_dist = 1000;
     const std::vector< InterceptInfo >::iterator end = tmp_cache.end();
     std::vector< InterceptInfo >::iterator it = tmp_cache.begin();
     ++it;
+
     for ( ; it != end; ++it )
     {
+        double best_kick_rate = kick_rate( ball_next.dist(best->selfPos()),
+                                           ( (ball_next - best->selfPos()).th() - self.body() ).degree(),
+                                           self.playerType().kickPowerRate(), //ServerParam::i().kickPowerRate(),
+                                           ServerParam::i().ballSize(),
+                                           self.playerType().playerSize(),
+                                           self.playerType().kickableMargin() );
+        double it_kick_rate = kick_rate( ball_next.dist(it->selfPos()),
+                                         ( (ball_next - it->selfPos()).th() - self.body() ).degree(),
+                                         self.playerType().kickPowerRate(), //ServerParam::i().kickPowerRate(),
+                                         ServerParam::i().ballSize(),
+                                         self.playerType().playerSize(),
+                                         self.playerType().kickableMargin() );
 #ifdef DEBUG_PRINT_ONE_STEP
         dlog.addText( Logger::INTERCEPT,
-                      "____ turn=%d dash=%d power=%.1f dir=%.1f ball_dist=%.3f stamina=%.1f",
+                      "____ turn=%d dash=%d power=%.1f dir=%.1f ball_dist=%.3f stamina=%.1f k-rate=%.2f",
                       it->turnCycle(), it->dashCycle(),
                       it->dashPower(), it->dashAngle().degree(),
-                      it->ballDist(), it->stamina() );
+                      it->ballDist(), it->stamina(), it_kick_rate );
 #endif
         if (useKickRateInsteadOfDist()){
-            double best_kick_rate = kick_rate( ball_next.dist(best->selfPos()),
-                                               ( (ball_next - best->selfPos()).th() - self.body() ).degree(),
-                                               self.playerType().kickPowerRate(), //ServerParam::i().kickPowerRate(),
-                                               ServerParam::i().ballSize(),
-                                               self.playerType().playerSize(),
-                                               self.playerType().kickableMargin() );
-            double it_kick_rate = kick_rate( ball_next.dist(it->selfPos()),
-                                             ( (ball_next - it->selfPos()).th() - self.body() ).degree(),
-                                             self.playerType().kickPowerRate(), //ServerParam::i().kickPowerRate(),
-                                                 ServerParam::i().ballSize(),
-                                             self.playerType().playerSize(),
-                                             self.playerType().kickableMargin() );
-            if (it_kick_rate > best_kick_rate){
+
+
+            if ((best->ballDist() > min_ball_dist && it->ballDist() > min_ball_dist) || (best->ballDist() < min_ball_dist && it->ballDist() < min_ball_dist)){
+                if (it_kick_rate > best_kick_rate){
+                    best = &(*it);
+                    #ifdef DEBUG_PRINT_ONE_STEP
+                    dlog.addText( Logger::INTERCEPT,
+                                  "--> updated(1)" );
+                    #endif
+                }
+            }
+            else if (best->ballDist() > min_ball_dist)
+            {
+
+            }
+            else
+            {
                 best = &(*it);
                 #ifdef DEBUG_PRINT_ONE_STEP
-                                dlog.addText( Logger::INTERCEPT,
-                                              "--> updated(1)" );
+                dlog.addText( Logger::INTERCEPT,
+                              "--> updated(2)" );
                 #endif
             }
+
         }
         else{
             if ( it->ballDist() < best->ballDist()){
                 best = &(*it);
                 #ifdef DEBUG_PRINT_ONE_STEP
                 dlog.addText( Logger::INTERCEPT,
-                              "--> updated(2)" );
+                              "--> updated(3)" );
                 #endif
             }
         }
@@ -546,8 +596,8 @@ SelfInterceptV13::predictOneDash( std::vector< InterceptInfo > & self_cache ) co
     dlog.addText( Logger::INTERCEPT,
                   "<<<<< Register best cycle=%d(t=%d d=%d) my_pos=(%.2f %.2f) ball_dist=%.3f stamina=%.1f",
                   best->reachCycle(), best->turnCycle(), best->dashCycle(),
-                  best->ballDist(),
                   best->selfPos().x, best->selfPos().y,
+                  best->ballDist(),
                   best->stamina() );
 #endif
 

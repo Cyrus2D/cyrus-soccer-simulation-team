@@ -101,6 +101,7 @@ private:
     bool useKickRateInsteadOfDist() const {
         return true;
     }
+    bool useCollideToBall() const;
     /////////////////////////////////////////////////////
     // one dash
 
