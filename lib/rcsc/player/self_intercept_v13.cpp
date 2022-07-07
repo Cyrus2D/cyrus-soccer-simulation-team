@@ -82,27 +82,35 @@ const double SelfInterceptV13::BACK_DASH_THR_ANGLE = 100.0;
 
  */
 bool SelfInterceptV13::useCollideToBall() const{
-    return false;
     auto &wm = M_world;
     Vector2D ball_pos = wm.ball().inertiaPoint(1);
     Vector2D ball_vel = wm.ball().vel() * ServerParam::i().ballDecay();
-    bool shoot_available = false;
+    bool in_shoot_area = false;
     Rect2D rect_shoot_area = Rect2D(Vector2D(52.5 - 11.0 - 4.0, -8.0), Vector2D(4.0, 16.0));
     Circle2D circle_shoot_area = Circle2D(Vector2D(52.5, 0.0), 11.0);
     if (rect_shoot_area.contains(ball_pos) || circle_shoot_area.contains(ball_pos))
-        shoot_available = true;
-    bool ball_go_to_goal = false;
-    Vector2D goal_intersection = Line2D(ball_pos, ball_vel.th()).intersection(Line2D(Vector2D(52.5, 0.0), AngleDeg(90.0)));
-    if (ball_vel.r() > 0 && goal_intersection.isValid() && goal_intersection.absY() < 8.0 && goal_intersection.x > 0.0)
-        ball_go_to_goal = true;
-    if (ball_pos.y > 5.0 && ball_vel.x > -0.5 && ball_vel.x > 0.0)
-        ball_go_to_goal = true;
-    if (ball_pos.y < -5.0 && ball_vel.x > -0.5 && ball_vel.x < 0.0)
-        ball_go_to_goal = true;
-    if (ball_go_to_goal)
+        in_shoot_area = true;
+    if (in_shoot_area){
+        bool ball_go_to_goal = false;
+        Vector2D goal_intersection = Line2D(ball_pos, ball_vel.th()).intersection(Line2D(Vector2D(52.5, 0.0), AngleDeg(90.0)));
+        if (ball_vel.r() > 0 && goal_intersection.isValid() && goal_intersection.absY() < 8.0 && goal_intersection.x > 0.0)
+            ball_go_to_goal = true;
+        if (ball_pos.y > 5.0 && ball_vel.x > -0.5 && ball_vel.x > 0.0)
+            ball_go_to_goal = true;
+        if (ball_pos.y < -5.0 && ball_vel.x > -0.5 && ball_vel.x < 0.0)
+            ball_go_to_goal = true;
+        if (ball_go_to_goal)
+            return false;
+    }
+    if (ball_pos.x > 0)
         return false;
     return true;
 }
+
+double SelfInterceptV13::minBallDistNoCollide() const {
+    return M_world.self().playerType().playerSize() / 2.0 + ServerParam::i().ballSize() / 2.0 + 0.15 * M_world.self().playerType().kickableMargin();
+}
+
 void
 SelfInterceptV13::predict( const int max_cycle,
                            std::vector< InterceptInfo > & self_cache ) const
@@ -204,10 +212,18 @@ SelfInterceptV13::predictOneStep( std::vector< InterceptInfo > & self_cache ) co
 #endif
         return;
     }
-
+    double min_ball_dist = 0.0;
+    if (!useCollideToBall()) {
+        min_ball_dist = minBallDistNoCollide();
+    }
     if(predictOneDash( self_cache )){
-        if(ball_next.dist(M_world.self().inertiaPoint(1)) < ball_next.dist(self_cache[self_cache.size() - 1].selfPos())){
-            predictNoDash( self_cache );
+        if (!useCollideToBall()) {
+            if (self_cache[self_cache.size() - 1].ballDist() < min_ball_dist) {
+                if (ball_next.dist(M_world.self().inertiaPoint(1)) <
+                    ball_next.dist(self_cache[self_cache.size() - 1].selfPos())) {
+                    predictNoDash(self_cache);
+                }
+            }
         }
     }else{
         predictNoDash( self_cache );
@@ -479,7 +495,7 @@ SelfInterceptV13::predictOneDash( std::vector< InterceptInfo > & self_cache ) co
                                               ptype.playerSize() + SP.ballSize() + ptype.kickableMargin() * 0.4 );
     double min_ball_dist = 0.0;
     if (!useCollideToBall()) {
-        min_ball_dist = self.playerType().playerSize() + ServerParam::i().ballSize() + 0.15 * ptype.kickableMargin();
+        min_ball_dist = minBallDistNoCollide();
     }
 #ifdef DEBUG_PRINT_ONE_STEP
     dlog.addText( Logger::INTERCEPT,

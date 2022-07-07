@@ -102,6 +102,7 @@ private:
         return true;
     }
     bool useCollideToBall() const;
+    double minBallDistNoCollide() const;
     /////////////////////////////////////////////////////
     // one dash
 
