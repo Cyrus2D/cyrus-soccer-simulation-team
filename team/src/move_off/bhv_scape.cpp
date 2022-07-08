@@ -27,6 +27,7 @@ using namespace rcsc;
 using namespace std;
 
 bool bhv_scape::can_scape(const WorldModel & wm){
+    dlog.addText(Logger::MARK, "############ Can Scape ##############");
     const int self_min = wm.interceptTable()->selfReachCycle();
     const int mate_min = wm.interceptTable()->teammateReachCycle();
     const int opp_min = wm.interceptTable()->opponentReachCycle();
@@ -35,39 +36,62 @@ bool bhv_scape::can_scape(const WorldModel & wm){
     double stamina = wm.self().stamina();
     const Vector2D target_point = Strategy::i().getPosition( unum );
     Vector2D self_pos = wm.self().pos();
-    double offside = std::max(wm.offsideLineX(),ball_iner.x) - 0.3;
+    Vector2D ballInertiaPos = wm.ball().inertiaPoint(mate_min);
+    double offside_line_x = std::max(ballInertiaPos.x,wm.offsideLineX());
+    double offside_count = std::min(wm.offsideLineCount(), 1);
+    double offside = offside_line_x - 1.0 - offside_count;
     int passer = 0;
     if (wm.interceptTable()->fastestTeammate() != NULL)
         passer = wm.interceptTable()->fastestTeammate()->unum();
-    if(passer < 1)
+    if(passer < 1){
+        dlog.addText(Logger::MARK, "-- Can not scape -> passer < 1");
         return false;
-    if( Strategy::i().self_Line() != Strategy::PostLine::forward )
+    }
+    if( Strategy::i().self_Line() != Strategy::PostLine::forward ){
+        dlog.addText(Logger::MARK, "-- Can not scape -> is not forward");
         return false;
-    if(stamina < 5500)
+    }
+    if(stamina < 5500){
+        dlog.addText(Logger::MARK, "-- Can not scape -> stamina < 5500");
         return false;
-    if(ball_iner.x< -25)
+    }
+    if(ball_iner.x< -25){
+        dlog.addText(Logger::MARK, "-- Can not scape -> ball iner .x < -25");
         return false;
-    if(ball_iner.x > 34)
+    }
+    if(ball_iner.x > 34){
+        dlog.addText(Logger::MARK, "-- Can not scape -> ball iner .x > 34");
         return false;
-    if(target_point.x < offside - 8)
+    }
+    if(target_point.x < offside - 8){
+        dlog.addText(Logger::MARK, "-- Can not scape -> target.x < offside - 8");
         return false;
-    if(self_pos.dist(target_point) > 20)
+    }
+    if (abs(self_pos.y - target_point.y) > 8.0){
+        dlog.addText(Logger::MARK, "-- Can not scape -> y diff > 8.0");
         return false;
-    if(std::abs(target_point.x - self_pos.x) > 12)
+    }
+    if (self_pos.x > offside){
+        dlog.addText(Logger::MARK, "-- Can not scape -> self pos .x > offside");
         return false;
-    if (self_pos.x > offside)
+    }
+    if(ball_iner.dist(target_point) > 35 || ball_iner.dist(self_pos) > 35){
+        dlog.addText(Logger::MARK, "-- Can not scape -> ball dist (target) > 35 || ball dist (self pos) > 35");
         return false;
-    if(ball_iner.dist(target_point) > 35
-            || ball_iner.dist(self_pos) > 35)
-        return false;
+    }
+//    if(self_pos.dist(target_point) > 20)
+//        return false;
+//    if(std::abs(target_point.x - self_pos.x) > 12)
+//        return false;
+
     int fastest_tm = 0;
     if (wm.interceptTable()->fastestTeammate() != nullptr && wm.interceptTable()->fastestTeammate()->unum() > 0){
         fastest_tm = wm.interceptTable()->fastestTeammate()->unum();
     }
-    if (fastest_tm == 9 && wm.self().unum() == 10)
-        return false;
-    if (fastest_tm == 10 && wm.self().unum() == 11)
-        return false;
+//    if (fastest_tm == 9 && wm.self().unum() == 10)
+//        return false;
+//    if (fastest_tm == 10 && wm.self().unum() == 11)
+//        return false;
 //    if(ball_iner.x < target_point.x - 20)
 //        return false;
     if(Setting::i()->mOffensiveMove->mIs9BrokeOffside

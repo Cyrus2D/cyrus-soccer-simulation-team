@@ -4,6 +4,7 @@ PLAYERMOVEOFF = \
 	move_off/bhv_offensive_move.cpp \
 	move_off/bhv_unmark.cpp \
 	move_off/bhv_unmark2019.cpp \
+	move_off/bhv_scape_voronoi.cpp \
 	move_off/bhv_scape.cpp 
 
 PLAYERMOVEOFFH = \

@@ -145,7 +145,6 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
                     return true;
                 }
                 if (pers_scap(agent)) {
-//                    SampleCommunication().sayUnmark(agent);
                     dlog.addText(Logger::POSITIONING, "pers scape is running");
                     return true;
                 }
@@ -282,7 +281,9 @@ bool cyrus_offensive_move::pers_scap(PlayerAgent *agent) {
     Vector2D ball = wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle());
     Vector2D me = wm.self().pos();
     int num = wm.self().unum();
-    double max_x = std::max(wm.offsideLineX(), wm.ball().inertiaPoint(mate_min).x);
+    double max_x = bhv_scape_voronoi::maxXLow(wm);
+    if (wm.existKickableTeammate())
+        max_x = bhv_scape_voronoi::maxXHigh(wm);
 
     if (num == 9
             || (wm.interceptTable()->fastestTeammate() != NULL
@@ -294,7 +295,7 @@ bool cyrus_offensive_move::pers_scap(PlayerAgent *agent) {
 //    return false;
     Vector2D homePos = Strategy::i().getPosition(num);
     if (wm.self().unum() > 8 && ball.x < 30 && ball.x > -10 && me.dist(homePos) < 8 &&
-            wm.self().pos().x < max_x - 0.5 &&
+            wm.self().pos().x < max_x &&
             homePos.x > max_x - 8.0 &&
             wm.self().body().abs() < 20.0 &&
             mate_min < opp_min && self_min > mate_min && wm.self().stamina() > 5000 && me.absY() < 33) {
@@ -316,7 +317,7 @@ bool cyrus_offensive_move::pers_scap(PlayerAgent *agent) {
     if (num > 8 && mate_min < opp_min && ball.x > -30.0 && ball.x + 33 > max_x &&
             homePos.x < 36.0 && wm.self().stamina() > minStamina && homePos.x > -10 &&
             fabs(me.y - homePos.y) < minYdiff &&
-            me.x < max_x - 1.3 && me.absY() < 33) {
+            me.x < max_x - 0.3 && me.absY() < 33) {
 
         if (!Body_GoToPoint(rcsc::Vector2D(me.x + 10, me.y),
                             0.5, ServerParam::i().maxDashPower()).execute(agent))
@@ -344,7 +345,10 @@ bool cyrus_offensive_move::BackFromOffside(PlayerAgent *agent) {
     const int mate_min = wm.interceptTable()->teammateReachCycle();
     const int opp_min = wm.interceptTable()->opponentReachCycle();
 
-    double max_x = std::max(wm.offsideLineX(), wm.ball().inertiaPoint(mate_min).x);
+    double max_x = bhv_scape_voronoi::maxXLow(wm);
+    if (wm.interceptTable()->teammateReachCycle() > 1){
+        max_x -= 1.0;
+    }
 
     Vector2D ball = wm.ball().inertiaPoint(
                 std::min(self_min, std::min(mate_min, opp_min)));
@@ -363,7 +367,7 @@ bool cyrus_offensive_move::BackFromOffside(PlayerAgent *agent) {
         return true;
     }
 
-    if (self_pos.x > max_x - 1.0
+    if (self_pos.x > max_x
             && (wm.self().stamina() > 4000 || (mate_min < opp_min))) {
         if (off_gotopoint(agent, Vector2D(self_pos.x - 10.0, self_pos.y), 0.5, ServerParam::i().maxDashPower())) {
 
