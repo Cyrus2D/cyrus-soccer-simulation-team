@@ -108,7 +108,7 @@ bool SelfInterceptV13::useCollideToBall() const{
 }
 
 double SelfInterceptV13::minBallDistNoCollide() const {
-    return M_world.self().playerType().playerSize() / 2.0 + ServerParam::i().ballSize() / 2.0 + 0.15 * M_world.self().playerType().kickableMargin();
+    return M_world.self().playerType().playerSize() + ServerParam::i().ballSize() + 0.1 * M_world.self().playerType().kickableMargin();
 }
 
 void
@@ -224,7 +224,10 @@ SelfInterceptV13::predictOneStep( std::vector< InterceptInfo > & self_cache ) co
                     predictNoDash(self_cache);
                 }
             }
-        }
+        }else{
+	if(ball_next.dist(M_world.self().inertiaPoint(1)) < ball_next.dist(self_cache[self_cache.size() - 1].selfPos())){
+            predictNoDash( self_cache );}
+	}
     }else{
         predictNoDash( self_cache );
     }
