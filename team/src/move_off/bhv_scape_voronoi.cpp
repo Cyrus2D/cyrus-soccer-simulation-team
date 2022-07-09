@@ -188,15 +188,19 @@ double bhv_scape_voronoi::maxXLow(const WorldModel & wm){
     const int mate_min = wm.interceptTable()->teammateReachCycle();
     Vector2D ballInertiaPos = wm.ball().inertiaPoint(mate_min);
     double offside_line_x = std::max(ballInertiaPos.x,wm.offsideLineX());
-    double offside_count = std::min(wm.offsideLineCount(), 2);
-    return offside_line_x - 1.0 - offside_count;
+    double offside_count = std::min(wm.offsideLineCount(), 1);
+    double offside_x = offside_line_x - 1.0 - offside_count;
+    dlog.addLine(Logger::MARK, Vector2D(offside_x, -38), Vector2D(offside_x, +38), 0, 0, 255);
+    return offside_x;
 }
 double bhv_scape_voronoi::maxXHigh(const WorldModel & wm){
     const int mate_min = wm.interceptTable()->teammateReachCycle();
     Vector2D ballInertiaPos = wm.ball().inertiaPoint(mate_min);
     double offside_line_x = std::max(ballInertiaPos.x,wm.offsideLineX());
     double offside_count = std::min(wm.offsideLineCount(), 1);
-    return offside_line_x - 0.5 - offside_count;
+    double offside_x = offside_line_x - 0.5 - offside_count;
+    dlog.addLine(Logger::MARK, Vector2D(offside_x, -38), Vector2D(offside_x, +38), 255, 0, 0);
+    return offside_x;
 }
 bool bhv_scape_voronoi::can_scape(const WorldModel & wm) {
     return true;
