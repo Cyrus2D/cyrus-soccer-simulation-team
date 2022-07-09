@@ -64,7 +64,7 @@ public:
     bool execute(PlayerAgent *agent);
     bool can_scape(const WorldModel & wm);
     vector<Vector2D> voronoi_points(rcsc::PlayerAgent *agent);
-    static bool can_receive_th_pass(const WorldModel & wm, Vector2D target);
+    static double can_receive_th_pass(const WorldModel & wm, Vector2D target);
     double evaluate_point(rcsc::PlayerAgent *agent, const Vector2D & point,const int & num);
 };
 

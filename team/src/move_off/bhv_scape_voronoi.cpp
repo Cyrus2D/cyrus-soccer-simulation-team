@@ -340,7 +340,7 @@ vector<Vector2D> bhv_scape_voronoi::voronoi_points(rcsc::PlayerAgent *agent) {
 
 }
 
-bool bhv_scape_voronoi::can_receive_th_pass(const WorldModel & wm, Vector2D target){
+double bhv_scape_voronoi::can_receive_th_pass(const WorldModel & wm, Vector2D target){
     Vector2D ball_inertia = wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle());
     double min_angle = -70;
     double max_angle = 70;
@@ -349,26 +349,37 @@ bool bhv_scape_voronoi::can_receive_th_pass(const WorldModel & wm, Vector2D targ
     double max_dist = 30;
     double dist_step = 2.0;
     PlayerType s_type = wm.self().playerType();
+    vector<Vector2D> possible_targets;
     for(double angle = min_angle; angle <= max_angle; angle += angle_step){
-        int self_step = s_type.cyclesToReachDistance(dist_step) - 0.5;
+        int self_step = 0;//s_type.cyclesToReachDistance(dist_step) - 0.5;
         for(double dist = min_dist; dist <= max_dist; dist += dist_step){
             Vector2D pass_target = target + Vector2D::polar2vector(dist, angle);
+            if (pass_target.x > 52 || pass_target.absY() > 33)
+                break;
             double ball_dist = ball_inertia.dist(pass_target);
-            double first_speed = calc_first_term_geom_series(ball_dist, ServerParam::i().ballDecay(), self_step);
-            if (first_speed > 3.0)
+            double player_move_dist = target.dist(pass_target);
+            int player_intercept_cycle = s_type.cyclesToReachDistance(player_move_dist);
+            double first_speed = calc_first_term_geom_series(ball_dist, ServerParam::i().ballDecay(), player_intercept_cycle);
+            if (first_speed > 3.0 && ball_inertia.dist(pass_target) > 40)
                 continue;
+            if (first_speed > 3.0){
+                first_speed = 3.0;
+                player_intercept_cycle = calc_length_geom_series(first_speed, ball_dist, ServerParam::i().ballDecay());
+            }
+            dlog.addText(Logger::MARK, "--- a:%.1f d:%.1f t:%.1f,%.1f p_move %.1f p_cycle %d f_speed %.1f",
+                         angle, dist, pass_target.x, pass_target.y, player_move_dist, player_intercept_cycle, first_speed);
             Vector2D ball = ball_inertia;
             Vector2D vel = (pass_target - ball_inertia).setLengthVector(first_speed);
             bool opp_catch = false;
-            for (int s = 1; s <= self_step; s++){
+            for (int s = 1; s <= player_intercept_cycle; s++){
                 ball += vel;
                 vel *= ServerParam::i().ballDecay();
                 for(int o = 1; o <= 11; o++){
                     const AbstractPlayerObject * opp = wm.theirPlayer(o);
                     if(opp == NULL || opp->unum() < 1)
                         continue;
-                    int opp_cycle = opp->playerTypePtr()->cyclesToReachDistance(ball.dist(opp->pos() + opp->vel())) + 1;
-                    if (opp_cycle < s){
+                    int opp_cycle = opp->playerTypePtr()->cyclesToReachDistance(ball.dist(opp->pos() + opp->vel()) - 1.0) + 1;
+                    if (opp_cycle <= s){
                         opp_catch = true;
                         break;
                     }
@@ -377,15 +388,31 @@ bool bhv_scape_voronoi::can_receive_th_pass(const WorldModel & wm, Vector2D targ
                     break;
             }
             if (!opp_catch)
-                return true;
+                possible_targets.push_back(pass_target);
         }
     }
-    return false;
+    if (possible_targets.empty())
+        return 0.0;
+    double best_eval = 0;
+    double sum = 0;
+    for (auto & pass_target: possible_targets){
+        dlog.addCircle(Logger::BLOCK, pass_target, 0.5, 0, 255, 0);
+        dlog.addLine(Logger::BLOCK, pass_target, target, 0, 255, 0);
+        double eval = pass_target.x + max(0.0, 40.0 - pass_target.dist(Vector2D(52, 0)));
+        if (eval > best_eval){
+            best_eval = eval;
+        }
+        sum += eval;
+    }
+    double res = (sum / static_cast<double>(possible_targets.size())+ best_eval) / 2.0;
+    if (possible_targets.size() < 5)
+        res /= 2.0;
+    return res;
 }
 double bhv_scape_voronoi::evaluate_point(rcsc::PlayerAgent *agent, const Vector2D & point,const int & num) {
     const WorldModel &wm = agent->world();
     dlog.addText(Logger::MARK,"$%d $$$$point(%.2f,%.2f)",num,point.x,point.y);
-    double eval_ball_pass = 0; // 0,100
+    double eval_ball_pass = can_receive_th_pass(wm, point); // 0,100
     double eval_tm_pass = 0; // [0,300]
     double eval_home_pos = 0;
     double eval_opp_pos = 0;
