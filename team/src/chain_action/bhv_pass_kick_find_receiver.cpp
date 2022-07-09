@@ -201,6 +201,11 @@ IntentionPassKickFindReceiver::finished(  PlayerAgent * agent )
 /*!
 
  */
+int Bhv_PassKickFindReceiver::last_say_pass_cycle = -1;
+int Bhv_PassKickFindReceiver::last_say_pass_unum = -1;
+rcsc::Vector2D Bhv_PassKickFindReceiver::last_say_pass_target = Vector2D::INVALIDATED;
+rcsc::Vector2D Bhv_PassKickFindReceiver::last_say_pass_receiver_pos = Vector2D::INVALIDATED;
+
 Bhv_PassKickFindReceiver::Bhv_PassKickFindReceiver( const ActionChainGraph & chain_graph )
 : M_chain_graph( chain_graph )
 {
@@ -1005,7 +1010,10 @@ Bhv_PassKickFindReceiver::doSayPass( PlayerAgent * agent,
 		{
 			return;
 		}
-
+        Bhv_PassKickFindReceiver::last_say_pass_cycle = wm.time().cycle();
+        Bhv_PassKickFindReceiver::last_say_pass_unum = receiver_unum;
+        Bhv_PassKickFindReceiver::last_say_pass_target = receive_pos;
+        Bhv_PassKickFindReceiver::last_say_pass_receiver_pos = receiver->pos();
 		dlog.addText( Logger::ACTION | Logger::TEAM,
 				__FILE__": (doSayPass) set pass communication." );
 
@@ -1045,7 +1053,10 @@ Bhv_PassKickFindReceiver::doSayPrePass( PlayerAgent * agent,
         {
             return;
         }
-
+        Bhv_PassKickFindReceiver::last_say_pass_cycle = wm.time().cycle();
+        Bhv_PassKickFindReceiver::last_say_pass_unum = receiver_unum;
+        Bhv_PassKickFindReceiver::last_say_pass_target = receive_pos;
+        Bhv_PassKickFindReceiver::last_say_pass_receiver_pos = receiver->pos();
         dlog.addText( Logger::ACTION | Logger::TEAM,
                 __FILE__": (doSayPrePass) set pass communication." );
 
