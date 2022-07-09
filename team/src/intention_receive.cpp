@@ -101,6 +101,12 @@ IntentionReceive::finished(  PlayerAgent * agent )
         return true;
     }
 
+    if (M_prepass && M_target_point.x > agent->world().offsideLineX() - 0.5){
+        dlog.addText( Logger::TEAM,
+                      __FILE__": pre pass in offside" );
+        return true;
+    }
+
     if ( agent->world().self().isKickable() )
     {
         dlog.addText( Logger::TEAM,
@@ -232,6 +238,11 @@ IntentionReceive::execute( PlayerAgent * agent )
 
     if(prepass_received){
         agent->debugClient().addMessage("hear PrePassMSG");
+        if (M_target_point.x > wm.offsideLineX() && wm.self().pos().x > wm.offsideLineX() - 1.0){
+            agent->debugClient().addMessage("cancel for offside");
+            return false;
+        }
+
         IntentionReceive::gotoIntercept(agent,M_target_point,true);
     }else if(self_min > opp_min){
         auto self_tackle_cycle = bhv_tackle_intercept::intercept_cycle(wm);
