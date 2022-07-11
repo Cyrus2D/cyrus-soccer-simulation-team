@@ -1193,9 +1193,13 @@ void StrictCheckPassGenerator::createPassCommon(const WorldModel & wm,
     failed_counts.reserve( max_step - min_step + 1 );
     #endif
     int max_pass_number = 1;
+    bool should_find_one_kick = false;
     if(wm.opponentsFromSelf().size() > 0)
-        if(wm.opponentsFromSelf().front()->distFromSelf() < 2.5)
+        if(wm.opponentsFromSelf().front()->distFromSelf() < 2.5){
             max_pass_number = 2;
+            should_find_one_kick = true;
+        }
+
     if (Setting::i()->mChainAction->mSlowPass)
         max_pass_number = 3;
     int pass_number = 0;
@@ -1433,48 +1437,55 @@ void StrictCheckPassGenerator::createPassCommon(const WorldModel & wm,
         #endif
 
         pass_number++;
-        if(pass_number >= max_pass_number){
-            dlog.addText( M_pass_logger,
-                          "|  pass_number(=%d) >= max_pass_number(=%d) break...",
-                          pass_number, max_pass_number );
-            break;
+        if (should_find_one_kick && kick_count > 1)
+        {
+
         }
-        int d = 3;
-        if (Setting::i()->mChainAction->mSlowPass){
-            if (kick_count > 1 && kick_count >= opp_near_cycle - 1){
-                d = 2;
+        else{
+            if(pass_number >= max_pass_number){
+                dlog.addText( M_pass_logger,
+                              "|  pass_number(=%d) >= max_pass_number(=%d) break...",
+                              pass_number, max_pass_number );
+                break;
             }
-            else{
-                if (opp_dif_cycle <= 2)
-                    break;
-                if (tm_dif_cycle > 1)
-                    break;
+            int d = 3;
+            if (Setting::i()->mChainAction->mSlowPass){
+                if (kick_count > 1 && kick_count >= opp_near_cycle - 1){
+                    d = 2;
+                }
+                else{
+                    if (opp_dif_cycle <= 2)
+                        break;
+                    if (tm_dif_cycle > 1)
+                        break;
+                }
+            }
+
+
+
+            //#ifndef CREATE_SEVERAL_CANDIDATES_ON_SAME_POINT
+            //        break;
+            //#endif
+
+            if (o_step <= step + d) {
+                #ifdef DEBUG_PASS
+                dlog.addText( M_pass_logger,
+                              "|  o_step(=%d) <= step+3(=%d) break...",
+                              o_step, step + d );
+                #endif
+                break;
+            }
+
+            if (min_step + 3 <= step) {
+                #ifdef DEBUG_PASS
+                dlog.addText( M_pass_logger,
+                              "|  step=%d >= min_step+?(=%d) break...",
+                              step, min_step + 3 );
+                #endif
+                break;
             }
         }
 
-
-
-        //#ifndef CREATE_SEVERAL_CANDIDATES_ON_SAME_POINT
-        //        break;
-        //#endif
-
-        if (o_step <= step + d) {
-            #ifdef DEBUG_PASS
-            dlog.addText( M_pass_logger,
-                          "|  o_step(=%d) <= step+3(=%d) break...",
-                          o_step, step + d );
-            #endif
-            break;
-        }
-
-        if (min_step + 3 <= step) {
-            #ifdef DEBUG_PASS
-            dlog.addText( M_pass_logger,
-                          "|  step=%d >= min_step+?(=%d) break...",
-                          step, min_step + 3 );
-            #endif
-            break;
-        }
 
         if (M_passer->unum() != wm.self().unum()) {
             break;
