@@ -89,6 +89,10 @@ ChainActionSetting::ChainActionSetting(Value & value){
     {
         mSlowPass = value["SlowPass"].GetBool();
     }
+    if(value.HasMember("TryFindOneKickPassOppClose"))
+    {
+        mTryFindOneKickPassOppClose = value["TryFindOneKickPassOppClose"].GetBool();
+    }
 }
 
 StrategySetting::StrategySetting(Value & value){

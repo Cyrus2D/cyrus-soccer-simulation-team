@@ -50,6 +50,7 @@ public:
     vector<double> mDangerEvalForward;
     vector<double> mDangerEvalPenalty;
     bool mSlowPass = false;
+    bool mTryFindOneKickPassOppClose = true;
 };
 
 class StrategySetting{

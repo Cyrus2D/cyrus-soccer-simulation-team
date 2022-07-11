@@ -1199,7 +1199,8 @@ void StrictCheckPassGenerator::createPassCommon(const WorldModel & wm,
             max_pass_number = 2;
             should_find_one_kick = true;
         }
-
+    if (!Setting::i()->mChainAction->mTryFindOneKickPassOppClose)
+        should_find_one_kick = false;
     if (Setting::i()->mChainAction->mSlowPass)
         max_pass_number = 3;
     int pass_number = 0;
