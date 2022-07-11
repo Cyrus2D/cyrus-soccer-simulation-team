@@ -39,7 +39,8 @@
 				"Is9BrokeOffside":false,
 				"UnmarkingAlgorithms": ["main", "voronoi"],
 				"MainUnmarkPassPredictionDNN": "",
-				"UseUnmarkPassPredictionDNN": false
+				"UseUnmarkPassPredictionDNN": false,
+				"UseThPassSimInVoroScape": true
 			},
 	"DefenseMove": {
 				"BackBlockMaxXToDefHPosX": 10.0,

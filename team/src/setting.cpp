@@ -153,6 +153,9 @@ OffensiveMoveSetting::OffensiveMoveSetting(Value &value)
             mUseUnmarkPassPredictionDNN = value["UseUnmarkPassPredictionDNN"].GetBool();
         }
     }
+    if(value.HasMember("UseThPassSimInVoroScape")){
+        mUseThPassSimInVoroScape = value["UseThPassSimInVoroScape"].GetBool();
+    }
 }
 
 DefenseMoveSetting::DefenseMoveSetting(Value & value){

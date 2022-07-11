@@ -85,6 +85,7 @@ public:
     vector<string> mUnmarkingAlgorithms;
     string mMainUnmarkPassPredictionDNN;
     bool mUseUnmarkPassPredictionDNN = false;
+    bool mUseThPassSimInVoroScape = false;
 };
 
 class DefenseMoveSetting{

@@ -25,7 +25,7 @@
 #include <rcsc/common/say_message_parser.h>
 #include "../neck/neck_decision.h"
 #include "bhv_scape_voronoi.h"
-
+#include "../setting.h"
 using namespace std;
 using namespace rcsc;
 
@@ -412,7 +412,7 @@ double bhv_scape_voronoi::can_receive_th_pass(const WorldModel & wm, Vector2D ta
 double bhv_scape_voronoi::evaluate_point(rcsc::PlayerAgent *agent, const Vector2D & point,const int & num) {
     const WorldModel &wm = agent->world();
     dlog.addText(Logger::MARK,"$%d $$$$point(%.2f,%.2f)",num,point.x,point.y);
-    double eval_ball_pass = can_receive_th_pass(wm, point); // 0,100
+    double eval_ball_pass = (Setting::i()->mOffensiveMove->mUseThPassSimInVoroScape? can_receive_th_pass(wm, point), 0.0);
     double eval_tm_pass = 0; // [0,300]
     double eval_home_pos = 0;
     double eval_opp_pos = 0;
