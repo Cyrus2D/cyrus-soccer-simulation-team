@@ -61,7 +61,10 @@ public:
                     const CooperativeAction & pass );
     void doSayPrePass( rcsc::PlayerAgent * agent,
                     const CooperativeAction & pass );
-
+    static int last_say_pass_cycle;
+    static int last_say_pass_unum;
+    static rcsc::Vector2D last_say_pass_target;
+    static rcsc::Vector2D last_say_pass_receiver_pos;
 private:
 
     int kickStep( const rcsc::WorldModel & wm,
