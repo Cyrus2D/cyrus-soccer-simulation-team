@@ -65,6 +65,12 @@
 #include "move_off/bhv_offensive_move.h"
 #include "neck/next_pass_predictor.h"
 #include "neck/neck_decision.h"
+
+#define DEBUG_PRINT
+// #define DEBUG_PRINT_INTERCEPT_LIST
+
+#define USE_GOALIE_MODE
+
 using namespace rcsc;
 
 bool
@@ -381,7 +387,7 @@ Body_Intercept2022::getBestIntercept( const WorldModel & wm,
 
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::INTERCEPT,
-                  "===== getBestIntercept =====");
+                  "==================== getBestIntercept ====================");
 #endif
 
     const Vector2D goal_pos( 65.0, 0.0 );
@@ -406,7 +412,7 @@ Body_Intercept2022::getBestIntercept( const WorldModel & wm,
     double forward_score = 0.0;
 
     const InterceptInfo * noturn_best = static_cast< InterceptInfo * >( 0 );
-    double noturn_score = 10000.0;
+    double noturn_score = 0.0;
 
     const InterceptInfo * nearest_best = static_cast< InterceptInfo * >( 0 );
     double nearest_score = 10000.0;
@@ -525,7 +531,7 @@ Body_Intercept2022::getBestIntercept( const WorldModel & wm,
              && ball_pos.x < 47.0
              //&& std::fabs( ball_pos.y - wm.self().pos().y ) < 10.0
              && ( ball_pos.x > 35.0
-                  || ball_pos.x > wm.offsideLineX() )
+                  || ball_pos.x > wm.offsideLineX() - 2.)
              )
         {
 #ifdef DEBUG_PRINT
@@ -600,9 +606,12 @@ Body_Intercept2022::getBestIntercept( const WorldModel & wm,
 
         if ( cache[i].turnCycle() == 0 )
         {
+            int diff = opp_min - cache[i].dashCycle();
             //double score = ball_pos.x;
             //double score = wm.self().pos().dist2( ball_pos );
             double score = cycle;
+            if (diff <= 4)
+                score -= diff;
             //if ( ball_vel.x > 0.0 )
             //{
             //    score *= std::exp( - std::pow( ball_vel.r() - 1.0, 2.0 )
@@ -616,7 +625,7 @@ Body_Intercept2022::getBestIntercept( const WorldModel & wm,
                           cache[i].turnCycle(), cache[i].dashCycle(),
                           score );
 #endif
-            if ( score < noturn_score )
+            if ( score > noturn_score )
             {
                 noturn_best = &cache[i];
                 noturn_score = score;
@@ -717,7 +726,9 @@ Body_Intercept2022::getBestIntercept( const WorldModel & wm,
 #endif
     if ( attacker_best && noturn_best)
     {
-        if(wm.ball().inertiaPoint((*attacker_best).reachCycle()).dist(wm.ball().inertiaPoint((*noturn_best).reachCycle())) < 4){
+        if(wm.ball().inertiaPoint((*attacker_best).reachCycle()).dist(wm.ball().inertiaPoint((*noturn_best).reachCycle())) < 4
+            && wm.offsideLineX() - wm.ball().inertiaPoint((*attacker_best).reachCycle()).x > 5.
+            && std::fabs(wm.ball().vel().th().degree()) > 60.){
             dlog.addText( Logger::INTERCEPT,
                               "<--- noturn best(0): cycle=%d(t=%d,d=%d) score=%f",
                           noturn_best->reachCycle(),
