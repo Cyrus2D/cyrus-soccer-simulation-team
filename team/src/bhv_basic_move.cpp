@@ -606,12 +606,15 @@ Body_Intercept2022::getBestIntercept( const WorldModel & wm,
 
         if ( cache[i].turnCycle() == 0 )
         {
-            int diff = opp_min - cache[i].dashCycle();
+            int diff = std::min(0, 4 - (opp_min - cache[i].dashCycle()));
+            auto opp = table->fastestOpponent();
+            if (opp){
+                diff += opp->posCount();
+            }
             //double score = ball_pos.x;
             //double score = wm.self().pos().dist2( ball_pos );
             double score = cycle;
-            if (diff <= 4)
-                score -= diff;
+            score -= diff;
             //if ( ball_vel.x > 0.0 )
             //{
             //    score *= std::exp( - std::pow( ball_vel.r() - 1.0, 2.0 )
