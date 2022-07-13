@@ -2352,6 +2352,8 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
 
     double min_x_hpos = 1000;
     for (int i = 2; i <= 11; i++) {
+        if (Setting::i()->mStrategySetting->mIsGoalForward && i==2)
+            continue;
         double hposx = Strategy::i().getPosition(i).x;
         if (hposx < min_x_hpos)
             min_x_hpos = hposx;
@@ -2405,6 +2407,8 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
 
     double min_x_strategy = 100;
     for (int i = 2; i <= 11; i++) {
+        if (Setting::i()->mStrategySetting->mIsGoalForward && i==2)
+            continue;
         double x = Strategy::i().getPosition(i).x;
         if (x < min_x_strategy)
             min_x_strategy = x;
