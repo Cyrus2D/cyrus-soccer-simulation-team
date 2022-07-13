@@ -262,7 +262,10 @@ vector<double> bhv_block::blocker_eval(const WorldModel &wm) {
         start_drible = start_drible + Vector2D::polar2vector(4, (Vector2D(-52, 0) - start_drible).th());
     double my_hdef_x = 100;
     for (int t = 2; t <= 11; t++) {
+        if(Setting::i()->mStrategySetting->mIsGoalForward && t==2 )
+            continue;
         Vector2D hpos = Strategy::i().getPosition(t);
+
         if (hpos.x < my_hdef_x)
             my_hdef_x = hpos.x;
     }
@@ -332,6 +335,8 @@ std::pair<vector<double>, vector<Vector2D> > bhv_block::blocker_eval_mark_decisi
         start_drible = start_drible + Vector2D::polar2vector(4, (Vector2D(-52, 0) - start_drible).th());
     double my_hdef_x = 100;
     for (int t = 2; t <= 11; t++) {
+        if(Setting::i()->mStrategySetting->mIsGoalForward && t==2 )
+            continue;
         Vector2D hpos = Strategy::i().getPosition(t);
         if (hpos.x < my_hdef_x)
             my_hdef_x = hpos.x;

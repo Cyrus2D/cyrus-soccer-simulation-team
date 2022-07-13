@@ -124,6 +124,8 @@ MarkDec BhvMarkDecisionGreedy::markDecision(const WorldModel &wm) {
     }
 
     for (size_t i = 2; i < 12; i++) {
+        if(Setting::i()->mStrategySetting->mIsGoalForward && i==2 )
+            continue;
         if (wm.ourPlayer(i) != NULL && wm.ourPlayer(i)->unum() > 1) {
             if (Strategy::i().tm_Line(i) != Strategy::PostLine::back) {
                 tm_offense_pos_x_avg += wm.ourPlayer(i)->pos().x;
@@ -218,6 +220,8 @@ vector<size_t> BhvMarkDecisionGreedy::getOppOffensive(const WorldModel &wm, bool
     auto static_offensive_opps = getOppOffensiveStatic(wm);
     double tm_hpos_def_line = 0;
     for (int i = 2; i <= 11; i++) {
+        if(Setting::i()->mStrategySetting->mIsGoalForward && i==2 )
+            continue;
         double hpos_x = Strategy::i().getPosition(i).x;
         if (hpos_x < tm_hpos_def_line)
             tm_hpos_def_line = hpos_x;

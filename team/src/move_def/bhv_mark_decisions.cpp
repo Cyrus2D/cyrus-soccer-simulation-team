@@ -124,6 +124,8 @@ bool BhvMarkDecisionGreedy::isAntiOffensive(const WorldModel &wm) {
     double avg_x = 0;
     for (int i = 2; i <= 11; i++) {
         const AbstractPlayerObject *tm = wm.ourPlayer(i);
+        if(Setting::i()->mStrategySetting->mIsGoalForward && i==2 )
+            continue;
         if (!tm || tm->unum() != i)
             continue;
         if (Strategy::i().tm_Line(i) == Strategy::PostLine::back && i != 5)
@@ -201,6 +203,8 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
     double tm_pos_def_line = wm.ourDefenseLineX();
     double tm_hpos_def_line = 0;
     for (int i = 2; i <= 11; i++) {
+        if(Setting::i()->mStrategySetting->mIsGoalForward && i==2 )
+            continue;
         double hpos_x = Strategy::i().getPosition(i).x;
         if (hpos_x < tm_hpos_def_line)
             tm_hpos_def_line = hpos_x;
@@ -220,6 +224,8 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
         const AbstractPlayerObject *tm = wm.ourPlayer(t);
         if (tm == NULL
             || tm->unum() < 1)
+            continue;
+        if(Setting::i()->mStrategySetting->mIsGoalForward && t==2 )
             continue;
         Vector2D tm_pos = tm->pos();
         Vector2D tm_hpos = Strategy::i().getPosition(t);
@@ -488,10 +494,12 @@ vector <size_t> BhvMarkDecisionGreedy::midMarkThMarkRemoveCloseOpp(const WorldMo
     #ifdef DEBUG_MARK_DECISIONS
     dlog.addText(Logger::MARK, "Start to remove same opp");
     #endif
+    bool isGoalieForward=Setting::i()->mStrategySetting->mIsGoalForward;
+    double base_def_pos_x = isGoalieForward?Strategy::i().getPosition(3).x:Strategy::i().getPosition(2).x;
     for (int i = 0; i < temp_opps.size(); i++) {
         int o1 = temp_opps[i];
         if (wm.theirPlayer(o1)->pos().x <
-            Strategy::i().getPosition(2).x + Setting::i()->mDefenseMove->mMidTh_XNearOpps) {
+                base_def_pos_x + Setting::i()->mDefenseMove->mMidTh_XNearOpps) {
             #ifdef DEBUG_MARK_DECISIONS
             dlog.addText(Logger::MARK, "--opp %d added to checked, it is danger", o1);
             #endif
@@ -599,6 +607,8 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkCostFinder(const WorldModel &wm, doub
         if (tm == NULL
             || tm->unum() < 1)
             continue;
+        if(Setting::i()->mStrategySetting->mIsGoalForward && t==2 )
+            continue;
         Vector2D tm_pos = tm->pos();
         Vector2D tm_hpos = Strategy::i().getPosition(t);
         #ifdef DEBUG_MARK_DECISIONS
@@ -621,8 +631,10 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkCostFinder(const WorldModel &wm, doub
                 max_hpos_dist = Setting::i()->mDefenseMove->mMidNear_HPosMaxDistBlock; //20
                 max_pos_dist = Setting::i()->mDefenseMove->mMidNear_PosMaxDistBlock; //20
                 opp_pos.pos = ball_inertia;
+                bool isGoalieForward=Setting::i()->mStrategySetting->mIsGoalForward;
+                double base_def_pos_x = isGoalieForward?Strategy::i().getPosition(3).x:Strategy::i().getPosition(2).x;
                 if (Strategy::i().tm_Post(t) == Strategy::i().player_post::pp_ch
-                    && ball_inertia.x > Strategy::i().getPosition(2).x + 10) {
+                    && ball_inertia.x > base_def_pos_x + 10) {
                     max_hpos_dist = Setting::i()->mDefenseMove->mMidNear_HPosMaxDistBlock * 0.75;
                     if (!canCenterHalfMarkLeadNear(wm, t, opp_pos.pos, ball_inertia)) {
                         #ifdef DEBUG_MARK_DECISIONS
@@ -779,6 +791,8 @@ BhvMarkDecisionGreedy::midMarkLeadMarkMarkedFinder(const WorldModel &wm, vector 
                                                    vector <UnumEval> &opp_eval, size_t fastest_opp,
                                                    Vector2D &ball_inertia, size_t opp_marker[], MarkType how_mark[]) {
     vector <size_t> temp_opps;
+    bool isGoalieForward=Setting::i()->mStrategySetting->mIsGoalForward;
+    double base_def_pos_x = isGoalieForward?Strategy::i().getPosition(3).x:Strategy::i().getPosition(2).x;
     for (int d = 1; d <= 11; d++) {
         if (opp_eval[d].second < -999)
             break;
@@ -787,7 +801,7 @@ BhvMarkDecisionGreedy::midMarkLeadMarkMarkedFinder(const WorldModel &wm, vector 
         if (Opp->unum() != fastest_opp){
             if (Opp->pos().x > ball_inertia.x + Setting::i()->mDefenseMove->mMidNear_OppsDistXToBall)
                 continue;
-            if (Opp->pos().x > Strategy::i().getPosition(2).x + Setting::i()->mDefenseMove->mMidNear_OppsDistXToHPos2X)
+            if (Opp->pos().x > base_def_pos_x + Setting::i()->mDefenseMove->mMidNear_OppsDistXToHPos2X)
                 continue;
         }
         if (opp_marker[o] != 0) {
@@ -938,6 +952,8 @@ void BhvMarkDecisionGreedy::goalMarkDecision(PlayerAgent *agent, MarkType &mark_
     //determine arbitrary offside line
     double tm_hpos_x_min = 0;
     for (int i = 2; i <= 11; i++) {
+        if(Setting::i()->mStrategySetting->mIsGoalForward && i==2 )
+            continue;
         double tm_hpos_x = Strategy::i().getPosition(i).x;
         if (tm_hpos_x < tm_hpos_x_min)
             tm_hpos_x_min = tm_hpos_x;
@@ -1080,6 +1096,8 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
     }
     double tm_hpos_x_min = 0;
     for (int i = 2; i <= 11; i++) {
+        if(Setting::i()->mStrategySetting->mIsGoalForward && i==2 )
+            continue;
         double tm_hpos_x = Strategy::i().getPosition(i).x;
         if (tm_hpos_x < tm_hpos_x_min)
             tm_hpos_x_min = tm_hpos_x;
@@ -1093,6 +1111,8 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
         const AbstractPlayerObject *tm = wm.ourPlayer(t);
         if (tm == NULL
             || tm->unum() < 1)
+            continue;
+        if(Setting::i()->mStrategySetting->mIsGoalForward && t==2 )
             continue;
         #ifdef DEBUG_MARK_DECISIONS
         dlog.addText(Logger::MARK, "###tm %d", t);
@@ -1225,6 +1245,8 @@ BhvMarkDecisionGreedy::antiDefMarkDecision(const WorldModel &wm, MarkType &markt
     //    for (int i = 1; i <= 11; i++)
     //        dlog.addText(Logger::MARK, "oppdanger %d is oppunum %d with eval %.2f", i, OppUnum[i], opp_eval[i]);
     for (int t = 2; t <= 11; t++) {
+        if(Setting::i()->mStrategySetting->mIsGoalForward && t==2 )
+            continue;
         const AbstractPlayerObject *Tm = wm.ourPlayer(t);
         if (Tm == NULL
             || Tm->unum() < 1

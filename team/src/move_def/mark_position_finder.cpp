@@ -86,8 +86,8 @@ MarkPositionFinder::getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldMo
         }
     }
 
-
-    double tm_def_hpos_x = Strategy::i().getPosition(2).x;
+    bool isGoalieForward=Setting::i()->mStrategySetting->mIsGoalForward;
+    double tm_def_hpos_x = isGoalieForward?Strategy::i().getPosition(3).x:Strategy::i().getPosition(2).x;
     if(ball_inertia.x > -15){
         tm_def_hpos_x -= Setting::i()->mDefenseMove->mMidTh_PosFinderHPosXNegativeTerm;
     }

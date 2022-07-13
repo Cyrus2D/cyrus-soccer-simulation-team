@@ -65,6 +65,7 @@
 #include "move_off/bhv_offensive_move.h"
 #include "neck/next_pass_predictor.h"
 #include "neck/neck_decision.h"
+#include "setting.h"
 
 #define DEBUG_PRINT
 // #define DEBUG_PRINT_INTERCEPT_LIST
@@ -2454,8 +2455,9 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
     agent->debugClient().addMessage("BasicMoveDef%.0f", dash_power);
     agent->debugClient().setTarget(target_point);
     agent->debugClient().addCircle(target_point, dist_thr);
-
-    if (wm.self().stamina() < 4500 && wm.self().pos().x < Strategy::i().getPosition(2).x) {
+    bool isGoalieForward=Setting::i()->mStrategySetting->mIsGoalForward;
+    double base_def_pos_x = isGoalieForward?Strategy::i().getPosition(3).x:Strategy::i().getPosition(2).x;
+    if (wm.self().stamina() < 4500 && wm.self().pos().x < base_def_pos_x) {
         agent->addSayMessage(new WaitRequestMessage());
     }
     if (!Body_GoToPoint(target_point, dist_thr, dash_power).execute(agent)) {
