@@ -2336,6 +2336,8 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
             mark_or_block = false;
         }
     }
+    if(Setting::i()->mStrategySetting->mIsGoalForward && wm.self().unum()==2)
+        mark_or_block = false;
 //    if (Strategy::i().self_Line() == Strategy::PostLine::back) {
 //        if (go_to_goal(agent)){
 //            agent->debugClient().addMessage("GoToGoal");
