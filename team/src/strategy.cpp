@@ -2090,9 +2090,9 @@ bool Strategy::is_open_deffense(const WorldModel &wm)
     int opp_score = ( wm.ourSide() == LEFT
                       ? wm.gameMode().scoreRight()
                       : wm.gameMode().scoreLeft() );
-    if(FieldAnalyzer::isOxsy(wm)
-            || FieldAnalyzer::isKN2C(wm))
-        return true;
+    //if(FieldAnalyzer::isOxsy(wm)
+    //        || FieldAnalyzer::isKN2C(wm))
+    //    return true;
     if(FieldAnalyzer::isAlice(wm))
         return true;
     if(FieldAnalyzer::isNexus(wm)
