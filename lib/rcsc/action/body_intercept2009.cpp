@@ -396,7 +396,7 @@ Body_Intercept2009::getBestIntercept( const WorldModel & wm,
     double forward_score = 0.0;
 
     const InterceptInfo * noturn_best = static_cast< InterceptInfo * >( 0 );
-    double noturn_score = 10000.0;
+    double noturn_score = -10000.0;
 
     const InterceptInfo * nearest_best = static_cast< InterceptInfo * >( 0 );
     double nearest_score = 10000.0;
@@ -590,14 +590,13 @@ Body_Intercept2009::getBestIntercept( const WorldModel & wm,
 
         if ( cache[i].turnCycle() == 0 )
         {
-            //double score = ball_pos.x;
-            //double score = wm.self().pos().dist2( ball_pos );
+            int diff = std::min(0, 4 - (opp_min - cache[i].dashCycle()));
+            auto opp = table->fastestOpponent();
+            if (opp){
+                diff += opp->posCount();
+            }
             double score = cycle;
-            //if ( ball_vel.x > 0.0 )
-            //{
-            //    score *= std::exp( - std::pow( ball_vel.r() - 1.0, 2.0 )
-            //                       / ( 2.0 * 1.0 ) );
-            //}
+            score -= diff;
 #ifdef DEBUG_PRINT
             dlog.addText( Logger::INTERCEPT,
                           "___ %d noturn cycle=%d pos=(%.1f %.1f) turn=%d dash=%d score=%f",
@@ -606,7 +605,7 @@ Body_Intercept2009::getBestIntercept( const WorldModel & wm,
                           cache[i].turnCycle(), cache[i].dashCycle(),
                           score );
 #endif
-            if ( score < noturn_score )
+            if ( score > noturn_score )
             {
                 noturn_best = &cache[i];
                 noturn_score = score;
