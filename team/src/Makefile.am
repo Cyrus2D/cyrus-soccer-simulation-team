@@ -109,6 +109,7 @@ PLAYERSOURCES = \
 	sample_player.cpp \
 	strategy.cpp \
 	setting.cpp \
+	calculate_offensive_opponents.cpp\
         main_player.cpp
 
 PLAYERHEADERS = \
@@ -120,6 +121,7 @@ PLAYERHEADERS = \
 	sample_field_evaluator.h \
 	sample_player.h \
 	setting.h \
+	calculate_offensive_opponents.h\
   strategy.h \
   debugs.h
 
