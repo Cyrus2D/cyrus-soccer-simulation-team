@@ -82,6 +82,7 @@
 
 #include "setting.h"
 Setting * Setting::instance = nullptr;
+
 #include <rcsc/param/param_map.h>
 #include <rcsc/param/cmd_line_parser.h>
 #include "neck/neck_decision.h"
@@ -245,6 +246,8 @@ SamplePlayer::initImpl( CmdLineParser & cmd_parser )
 #include "move_def/bhv_basic_tackle.h"
 #include <thread>         // std::this_thread::sleep_for
 #include <chrono>         // std::chrono::seconds
+#include "calculate_offensive_opponents.h"
+CalculateOffensiveOpponents* CalculateOffensiveOpponents::instance= nullptr;
 void
 SamplePlayer::actionImpl()
 {
@@ -256,6 +259,7 @@ SamplePlayer::actionImpl()
     //
     Strategy::instance().update( world() );
     FieldAnalyzer::instance().update( world() );
+    CalculateOffensiveOpponents::getInstance()->updatePlayers(world());
 
     //
     // prepare action chain
@@ -271,6 +275,7 @@ SamplePlayer::actionImpl()
         std::cout<<"defense training mode"<<std::endl;
         std::this_thread::sleep_for (std::chrono::seconds(1));
     }
+
     //
     // special situations (tackle, objects accuracy, intention...)
     //
