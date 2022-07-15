@@ -259,7 +259,8 @@ SamplePlayer::actionImpl()
     //
     Strategy::instance().update( world() );
     FieldAnalyzer::instance().update( world() );
-    CalculateOffensiveOpponents::getInstance()->updatePlayers(world());
+    if(FieldAnalyzer::isOxsy(world()))
+        CalculateOffensiveOpponents::getInstance()->updatePlayers(world());
 
     //
     // prepare action chain
