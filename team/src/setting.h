@@ -1,3 +1,5 @@
+#ifndef SRC_SETTING_H
+#define SRC_SETTING_H
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
 
@@ -180,3 +182,4 @@ public:
     OffensiveMoveSetting * mOffensiveMove;
     DefenseMoveSetting * mDefenseMove;
 };
+#endif
