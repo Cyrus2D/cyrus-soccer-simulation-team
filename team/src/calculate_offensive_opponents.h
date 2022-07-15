@@ -8,6 +8,7 @@
 #include "rcsc/geom/vector_2d.h"
 #include "setting.h"
 #include "rcsc/player/world_model.h"
+#include <rcsc/player/intercept_table.h>
 
 using namespace rcsc;
 
@@ -18,7 +19,6 @@ public:
     vector<double> opponent_observe_pos_x_EWMA;
 
     //int opponent_offense_count;
-    vector<int> final_offensive_opponents;
     static const int finalize_cycle = 500;
     static const int use_observation_cycle = 200;
     bool finalized;
@@ -27,7 +27,7 @@ public:
     CalculateOffensiveOpponents() {
         opponent_observe_pos_x_EWMA = vector<double>(11, 0);
         opponent_observe_pos_x_sum = vector<double>(11, 0);
-        opponent_observe_count= vector<int>(11, 0);
+        opponent_observe_count = vector<int>(11, 0);
         //opponent_offense_count = Setting::i()->mDefenseMove->mStaticOffensiveOpp.size();
         finalized = false;
 
@@ -53,7 +53,8 @@ public:
             return;
         if (finalize(wm))
             return;
-        if(wm.gameMode().type() == GameMode::KickOff_ || wm.gameMode().type() == GameMode::KickIn_ || wm.gameMode().type()==GameMode::BeforeKickOff)
+        if (wm.gameMode().type() == GameMode::KickOff_ || wm.gameMode().type() == GameMode::KickIn_ ||
+            wm.gameMode().type() == GameMode::BeforeKickOff)
             return;
         for (int i = 1; i <= 11; i++) {
             if (wm.theirPlayer(i) != NULL && wm.theirPlayer(i)->posCount() == 0) {
@@ -74,16 +75,12 @@ public:
                      CalculateOffensiveOpponents::vec_to_str(opponent_observe_count).c_str());
         if (wm.time().cycle() > use_observation_cycle && wm.gameMode().type() != GameMode::KickOff_ &&
             wm.gameMode().type() != GameMode::KickIn_) {
-            vector<double> ewma_copy= vector<double>(11, 0);
-            for(int i=0;i<11;i++)
-            {
-                if(opponent_observe_count[i]>0)
-                {
-                    ewma_copy[i]=opponent_observe_pos_x_EWMA[i];
-                }
-                else
-                {
-                    ewma_copy[i]=9999;
+            vector<double> ewma_copy = vector<double>(11, 0);
+            for (int i = 0; i < 11; i++) {
+                if (opponent_observe_count[i] > 0) {
+                    ewma_copy[i] = opponent_observe_pos_x_EWMA[i];
+                } else {
+                    ewma_copy[i] = 9999;
                 }
             }
             Setting::i()->mDefenseMove->mStaticOffensiveOpp = find_k_min_element_index(ewma_copy,
@@ -101,8 +98,10 @@ public:
     bool finalize(const rcsc::WorldModel &wm) {
         if (finalized)
             return true;
-        if (wm.time().cycle() > finalize_cycle &&
-            (wm.ball().pos().x > 0 || wm.gameMode().type() != rcsc::GameMode::PlayOn)) {
+        int our_cycle = min(wm.interceptTable()->selfReachCycle(), wm.interceptTable()->teammateReachCycle());
+        int opp_cycle = wm.interceptTable()->opponentReachCycle();
+        bool isSafe = wm.gameMode().type() != GameMode::PlayOn || wm.ball().pos().x > 0 || our_cycle < opp_cycle-2;
+        if (wm.time().cycle() > finalize_cycle && isSafe) {
             vector<double> avg_opponent_observe_pos_x = vector<double>(11, 0);
             for (int i = 0; i < 11; i++) {
                 if (opponent_observe_count[i] != 0)
@@ -136,6 +135,7 @@ private:
         str += "]";
         return str;
     }
+
     static string vec_to_str(vector<double> vec) {
         string str = "[";
         for (int i = 0; i < vec.size(); i++) {
