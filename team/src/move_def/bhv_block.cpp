@@ -752,7 +752,7 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
             if (go_to_opp){
                 max_dist_line = 0.2;
             }
-            if (body_diff_degree < 90 && direct_dash_line.dist(target) < max_dist_line && self_inertia.dist(target) > 0.8){
+            if (body_diff_degree < 90 && direct_dash_line.dist(target) < max_dist_line && self_pos.dist(target) > 1){
                 agent->doDash(dash_power, 0);
                 agent->debugClient().addMessage("direct dash");
                 move = true;
