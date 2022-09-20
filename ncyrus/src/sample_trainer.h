@@ -53,14 +53,6 @@ protected:
     virtual
     void actionImpl();
 
-    virtual
-    void handleInitMessage();
-    virtual
-    void handleServerParam();
-    virtual
-    void handlePlayerParam();
-    virtual
-    void handlePlayerType();
 
 private:
 
@@ -68,6 +60,7 @@ private:
     void recoverForever();
     void doSubstitute();
     void doKeepaway();
+    bool exist_opp_kickable();
 
 };
 

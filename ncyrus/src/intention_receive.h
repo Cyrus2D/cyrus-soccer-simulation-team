@@ -39,7 +39,9 @@ private:
     const double M_dash_power;
     const double M_buffer;
     int M_step;
-
+    int M_ex_step;
+    int M_passer;
+    bool M_prepass;
     rcsc::GameTime M_last_execute_time;
 
 public:
@@ -47,12 +49,14 @@ public:
                       const double & dash_power,
                       const double & buf,
                       const int max_step,
-                      const rcsc::GameTime & start_time);
+                      const rcsc::GameTime & start_time,
+                      const int passer,
+                      const bool prepass);
 
-    bool finished( const rcsc::PlayerAgent * agent );
+    bool finished(  rcsc::PlayerAgent * agent );
 
     bool execute( rcsc::PlayerAgent * agent );
-
+    static bool gotoIntercept( rcsc::PlayerAgent * agent, rcsc::Vector2D target, bool prepass = false);
 };
 
 #endif

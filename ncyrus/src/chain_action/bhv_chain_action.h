@@ -50,10 +50,11 @@ public:
     Bhv_ChainAction();
 
     bool execute( rcsc::PlayerAgent * agent );
-
+    bool hold_ball( rcsc::PlayerAgent * agent );
 private:
 
     bool doTurnToForward( rcsc::PlayerAgent * agent );
+    rcsc::Vector2D hold_body_face(const rcsc::WorldModel & wm);
 
     rcsc::Vector2D getKeepBallVel( const rcsc::WorldModel & wm );
 

@@ -36,7 +36,7 @@
 #include "shoot_generator.h"
 
 #include "field_analyzer.h"
-
+#include "../setting.h"
 #include <rcsc/action/kick_table.h>
 
 #include <rcsc/player/player_agent.h>
@@ -46,9 +46,9 @@
 #include <rcsc/math_util.h>
 #include <rcsc/timer.h>
 
-#define SEARCH_UNTIL_MAX_SPEED_AT_SAME_POINT
+//#define SEARCH_UNTIL_MAX_SPEED_AT_SAME_POINT
 
-#define DEBUG_PROFILE
+//#define DEBUG_PROFILE
 // #define DEBUG_PRINT
 
 // #define DEBUG_PRINT_SUCCESS_COURSE
@@ -96,20 +96,20 @@ ShootGenerator::clear()
 
  */
 void
-ShootGenerator::generate( const WorldModel & wm )
+ShootGenerator::generate( const WorldModel & wm , double opp_dist_thr)
 {
     static GameTime s_update_time( 0, 0 );
 
     if ( s_update_time == wm.time() )
     {
-        return;
+//        return;
     }
     s_update_time = wm.time();
 
     clear();
 
     if ( ! wm.self().isKickable()
-         && wm.interceptTable()->selfReachCycle() > 1 )
+         && wm.interceptTable()->selfReachCycle() > 2 )
     {
         return;
     }
@@ -133,12 +133,13 @@ ShootGenerator::generate( const WorldModel & wm )
         return;
     }
 
+    int self_min = wm.interceptTable()->selfReachCycle();
     M_first_ball_pos = ( wm.self().isKickable()
                          ? wm.ball().pos()
-                         : wm.ball().pos() + wm.ball().vel() );
+                         : (self_min == 1?wm.ball().pos() + wm.ball().vel():wm.ball().inertiaPoint(2)) );
 
 #ifdef DEBUG_PROFILE
-    Timer timer;
+    MSecTimer timer;
 #endif
 
     Vector2D goal_l( SP.pitchHalfLength(), -SP.goalHalfWidth() );
@@ -154,6 +155,12 @@ ShootGenerator::generate( const WorldModel & wm )
     {
         goal_l.x = wm.self().pos().x + 1.5;
         goal_r.x = wm.self().pos().x + 1.5;
+    }
+
+    if(ShootGenerator::shouldShootSafe(wm))
+    {
+        goal_l.y += 0.3;
+        goal_r.y -= 0.3;
     }
 
     const int DIST_DIVS = 25;
@@ -178,7 +185,7 @@ ShootGenerator::generate( const WorldModel & wm )
                       M_total_count,
                       target_point.x, target_point.y );
 #endif
-        createShoot( wm, target_point );
+        createShoot( wm, target_point,opp_dist_thr );
     }
 
 
@@ -201,11 +208,12 @@ ShootGenerator::generate( const WorldModel & wm )
  */
 void
 ShootGenerator::createShoot( const WorldModel & wm,
-                             const Vector2D & target_point )
+                             const Vector2D & target_point,
+                             const double & opp_dist_thr)
 {
     const AngleDeg ball_move_angle = ( target_point - M_first_ball_pos ).th();
 
-    const AbstractPlayerObject * goalie = wm.getTheirGoalie();
+    const PlayerObject * goalie = wm.getOpponentGoalie();
     if ( goalie
          && 5 < goalie->posCount()
          && goalie->posCount() < 30
@@ -243,10 +251,9 @@ ShootGenerator::createShoot( const WorldModel & wm,
                               1.5 ) );
 
     bool over_max = false;
-#ifdef DEBUG_PRINT_SUCCESS_COURSE
+#ifdef DEBUG_PRINT_FAILED_COURSE
     bool success = false;
 #endif
-
     while ( ! over_max )
     {
         if ( first_ball_speed > ball_speed_max - 0.001 )
@@ -259,7 +266,8 @@ ShootGenerator::createShoot( const WorldModel & wm,
                           target_point,
                           first_ball_speed,
                           ball_move_angle,
-                          ball_move_dist ) )
+                          ball_move_dist ,
+                          opp_dist_thr) )
         {
             Course & course = M_courses.back();
 
@@ -284,10 +292,10 @@ ShootGenerator::createShoot( const WorldModel & wm,
             snprintf( num, 8, "%d", M_total_count );
             dlog.addMessage( Logger::SHOOT,
                              target_point, num, "#ffffff" );
-
+#endif
+#ifdef DEBUG_PRINT_FAILED_COURSE
             success = true;
 #endif
-
 #ifdef SEARCH_UNTIL_MAX_SPEED_AT_SAME_POINT
             if ( course.goalie_never_reach_
                  && course.opponent_never_reach_ )
@@ -296,7 +304,7 @@ ShootGenerator::createShoot( const WorldModel & wm,
             }
             ++M_total_count;
 #else
-            return;
+//            return;
 #endif
         }
 
@@ -336,13 +344,14 @@ ShootGenerator::createShoot( const WorldModel & wm,
                              const Vector2D & target_point,
                              const double & first_ball_speed,
                              const rcsc::AngleDeg & ball_move_angle,
-                             const double & ball_move_dist )
+                             const double & ball_move_dist ,
+                             const double & opp_dist_thr)
 {
     const ServerParam & SP = ServerParam::i();
 
     const int ball_reach_step
         = static_cast< int >( std::ceil( calc_length_geom_series( first_ball_speed,
-                                                                   ball_move_dist,
+                                                                   ball_move_dist + 0.1,
                                                                    SP.ballDecay() ) ) );
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::SHOOT,
@@ -378,8 +387,9 @@ ShootGenerator::createShoot( const WorldModel & wm,
     const double opponent_x_thr = SP.theirPenaltyAreaLineX() - 30.0;
     const double opponent_y_thr = SP.penaltyAreaHalfWidth();
 
-    for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
-              end = wm.opponentsFromSelf().end();
+    int nearest_step_diff = 5;
+    const PlayerPtrCont::const_iterator end = wm.opponentsFromSelf().end();
+    for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
           o != end;
           ++o )
     {
@@ -393,28 +403,14 @@ ShootGenerator::createShoot( const WorldModel & wm,
             continue;
         }
 
-        if ( (*o)->goalie() )
-        {
-            if ( maybeGoalieCatch( *o, course ) )
-            {
-#ifdef DEBUG_PRINT
-                dlog.addText( Logger::SHOOT,
-                              "%d: maybe goalie", M_total_count );
-#endif
-                return false;
-            }
-
-            continue;
-        }
-
         //
         // check field player
         //
 
-        if ( (*o)->posCount() > 10 ) continue;
-        if ( (*o)->isGhost() && (*o)->posCount() > 5 ) continue;
+        if ( (*o)->posCount() > 10 && !(*o)->goalie()) continue;
+        if ( (*o)->isGhost() && (*o)->posCount() > 5 && !(*o)->goalie()) continue;
 
-        if ( opponentCanReach( *o, course ) )
+        if ( opponentCanReach( *o, course,wm ,opp_dist_thr,nearest_step_diff) )
         {
 #ifdef DEBUG_PRINT
                 dlog.addText( Logger::SHOOT,
@@ -423,7 +419,7 @@ ShootGenerator::createShoot( const WorldModel & wm,
             return false;
         }
     }
-
+    course.min_dif = nearest_step_diff;
     M_courses.push_back( course );
     return true;
 
@@ -434,192 +430,26 @@ ShootGenerator::createShoot( const WorldModel & wm,
 
  */
 bool
-ShootGenerator::maybeGoalieCatch( const PlayerObject * goalie,
-                                  Course & course )
+ShootGenerator::opponentCanReach( const PlayerObject * opponent,
+                                  Course & course,
+                                  const WorldModel & wm,
+                                  const double & opp_dist_thr,
+                                  int & nearest_step_diff)
 {
     static const Rect2D penalty_area( Vector2D( ServerParam::i().theirPenaltyAreaLineX(),
                                                 -ServerParam::i().penaltyAreaHalfWidth() ),
                                       Size2D( ServerParam::i().penaltyAreaLength(),
                                               ServerParam::i().penaltyAreaWidth() ) );
-    static const double CONTROL_AREA_BUF = 0.15;  // buffer for kick table
-
-    const ServerParam & SP = ServerParam::i();
-
-    const PlayerType * ptype = goalie->playerTypePtr();
-
-    const int min_cycle = FieldAnalyzer::estimate_min_reach_cycle( goalie->pos(),
-                                                                   ptype->realSpeedMax(),
-                                                                   M_first_ball_pos,
-                                                                   course.ball_move_angle_ );
-    if ( min_cycle < 0 )
-    {
-#ifdef DEBUG_PRINT
-        dlog.addText( Logger::SHOOT,
-                      "%d: (goalie) never reach" );
-#endif
-        return false;
-    }
-
-    const double goalie_speed = goalie->vel().r();
-    const double seen_dist_noise = goalie->distFromSelf() * 0.02;
-
-    const int max_cycle = course.ball_reach_step_;
-
-#ifdef DEBUG_PRINT
-    dlog.addText( Logger::SHOOT,
-                  "%d: (goalie) minCycle=%d maxCycle=%d",
-                  M_total_count,
-                  min_cycle, max_cycle );
-#endif
-
-    for ( int cycle = min_cycle; cycle < max_cycle; ++cycle )
-    {
-        const Vector2D ball_pos = inertia_n_step_point( M_first_ball_pos,
-                                                        course.first_ball_vel_,
-                                                        cycle,
-                                                        SP.ballDecay() );
-        if ( ball_pos.x > SP.pitchHalfLength() )
-        {
-#ifdef DEBUG_PRINT
-            dlog.addText( Logger::SHOOT,
-                          "%d: (goalie) cycle=%d in the goal",
-                          M_total_count, cycle );
-#endif
-            break;
-        }
-
-        const bool in_penalty_area = penalty_area.contains( ball_pos );
-
-        const double control_area = ( in_penalty_area
-                                      ? SP.catchableArea()
-                                      : ptype->kickableArea() );
-
-        Vector2D inertia_pos = goalie->inertiaPoint( cycle );
-        double target_dist = inertia_pos.dist( ball_pos );
-
-        if ( in_penalty_area )
-        {
-            target_dist -= seen_dist_noise;
-        }
-
-        if ( target_dist - control_area - CONTROL_AREA_BUF < 0.001 )
-        {
-#ifdef DEBUG_PRINT
-            dlog.addText( Logger::SHOOT,
-                          "%d: xxx (goalie) can catch. cycle=%d ball_pos(%.2f %.2f)"
-                          " dist_from_goalie=%.3f",
-                          M_total_count,
-                          cycle,
-                          ball_pos.x, ball_pos.y,
-                          target_dist );
-#endif
-            return true;
-        }
-
-        double dash_dist = target_dist;
-        if ( cycle > 1 )
-        {
-            //dash_dist -= control_area * 0.6;
-            //dash_dist *= 0.95;
-            dash_dist -= control_area * 0.9;
-            dash_dist *= 0.999;
-        }
-
-        int n_dash = ptype->cyclesToReachDistance( dash_dist );
-
-        if ( n_dash > cycle + goalie->posCount() )
-        {
-#ifdef DEBUG_PRINT
-            dlog.addText( Logger::SHOOT,
-                          "%d: (goalie) cycle=%d dash_dist=%.3f n_dash=%d posCount=%d",
-                          M_total_count,
-                          cycle,
-                          dash_dist,
-                          n_dash, goalie->posCount() );
-#endif
-            continue;
-        }
-
-        int n_turn = ( goalie->bodyCount() > 1
-                       ? 0
-                       : FieldAnalyzer::predict_player_turn_cycle( ptype,
-                                                                   goalie->body(),
-                                                                   goalie_speed,
-                                                                   target_dist,
-                                                                   ( ball_pos - inertia_pos ).th(),
-                                                                   control_area + 0.1,
-                                                                   true ) );
-        int n_step = ( n_turn == 0
-                       ? n_turn + n_dash
-                       : n_turn + n_dash + 1 );
-
-        int bonus_step = ( in_penalty_area
-                           ? bound( 0, goalie->posCount(), 5 )
-                           : bound( 0, goalie->posCount() - 1, 1 ) );
-        if ( ! in_penalty_area )
-        {
-            bonus_step -= 1;
-        }
-
-        if ( n_step <= cycle + bonus_step )
-        {
-#ifdef DEBUG_PRINT
-            dlog.addText( Logger::SHOOT,
-                          "%d: xxx (goalie) can catch. cycle=%d ball_pos(%.1f %.1f)"
-                          " goalie target_dist=%.3f(noise=%.3f dash=%.3f ctrl=%.3f) step=%d(t:%d,d%d) bonus=%d",
-                          M_total_count,
-                          cycle,
-                          ball_pos.x, ball_pos.y,
-                          target_dist, seen_dist_noise, dash_dist, control_area,
-                          n_step, n_turn, n_dash, bonus_step );
-#endif
-            return true;
-        }
-
-#ifdef DEBUG_PRINT
-        dlog.addText( Logger::SHOOT,
-                      "%d: (goalie) cycle=%d ball_pos(%.1f %.1f)"
-                      " goalieStep=%d(t:%d,d%d) bonus=%d",
-                      M_total_count,
-                      cycle,
-                      ball_pos.x, ball_pos.y,
-                      n_step, n_turn, n_dash, bonus_step );
-#endif
-
-        if ( in_penalty_area
-             && n_step <= cycle + goalie->posCount() + 1 )
-        {
-            course.goalie_never_reach_ = false;
-
-#ifdef DEBUG_PRINT
-            dlog.addText( Logger::SHOOT,
-                          "%d: (goalie) may be reach",
-                          M_total_count );
-#endif
-        }
-    }
-
-    return false;
-}
-
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-bool
-ShootGenerator::opponentCanReach( const PlayerObject * opponent,
-                                  Course & course )
-{
     const ServerParam & SP = ServerParam::i();
 
     const PlayerType * ptype = opponent->playerTypePtr();
-    const double control_area = ptype->kickableArea();
+    double control_area = ptype->kickableArea();
 
-    const int min_cycle = FieldAnalyzer::estimate_min_reach_cycle( opponent->pos(),
+    int min_cycle = FieldAnalyzer::estimate_min_reach_cycle( opponent->pos(),
                                                                    ptype->realSpeedMax(),
                                                                    M_first_ball_pos,
                                                                    course.ball_move_angle_ );
+
     if ( min_cycle < 0 )
     {
 // #ifdef DEBUG_PRINT
@@ -632,14 +462,22 @@ ShootGenerator::opponentCanReach( const PlayerObject * opponent,
         return false;
     }
 
+    min_cycle -= opponent->posCount();
+    if(min_cycle < 0)
+        min_cycle = 0;
     const double opponent_speed = opponent->vel().r();
     const int max_cycle = course.ball_reach_step_;
 
     bool maybe_reach = false;
-    int nearest_step_diff = 1000;
+    bool maybe_reach_tackle = false;
 #ifdef DEBUG_PRINT
     int nearest_cycle = 1000;
 #endif
+
+
+    Vector2D opp_pos = opponent->pos();
+    Vector2D opp_vel = opponent->vel();
+    opp_pos += Vector2D::polar2vector(ptype->playerSpeedMax() * (opp_vel.r() / 0.4),opp_vel.th());
 
     for ( int cycle = min_cycle; cycle < max_cycle; ++cycle )
     {
@@ -648,8 +486,22 @@ ShootGenerator::opponentCanReach( const PlayerObject * opponent,
                                                   cycle,
                                                   SP.ballDecay() );
 
-        Vector2D inertia_pos = opponent->inertiaPoint( cycle );
+        Vector2D inertia_pos = opp_pos;
         double target_dist = inertia_pos.dist( ball_pos );
+
+        if((opponent->goalie() && penalty_area.contains(ball_pos)) || wm.gameMode().type() == GameMode::PenaltyTaken_)
+        {
+            control_area = ServerParam::i().catchableArea();
+            if(ShootGenerator::shouldShootSafe(wm))
+            {
+                control_area += 0.2;
+            }
+        }
+        else
+        {
+            control_area = ptype->kickableArea();
+        }
+        control_area += opp_dist_thr;
 
         if ( target_dist - control_area < 0.001 )
         {
@@ -664,47 +516,36 @@ ShootGenerator::opponentCanReach( const PlayerObject * opponent,
         }
 
         double dash_dist = target_dist;
-        if ( cycle > 1 )
-        {
-            dash_dist -= control_area*0.8;
-        }
 
-        int n_dash = ptype->cyclesToReachDistance( dash_dist );
+        int n_turn;
+        int n_dash;
+        int n_view;
 
-        if ( n_dash > cycle + opponent->posCount() )
-        {
-            continue;
-        }
+        int opp_cycle = opponent->cycles_to_cut_ball(wm,
+                                                     ball_pos,
+                                                     cycle,
+                                                     (wm.gameMode().type() == GameMode::PenaltyTaken_? true : false),
+                                                     n_dash,
+                                                     n_turn,
+                                                     n_view,
+                                                     opp_pos,
+                                                     opp_vel);
 
-        int n_turn = ( opponent->bodyCount() > 0
-                       ? 1
-                       : FieldAnalyzer::predict_player_turn_cycle( ptype,
-                                                                   opponent->body(),
-                                                                   opponent_speed,
-                                                                   target_dist,
-                                                                   ( ball_pos - inertia_pos ).th(),
-                                                                   control_area,
-                                                                   true ) );
-        int n_step = ( n_turn == 0
-                       ? n_turn + n_dash
-                       : n_turn + n_dash + 1 );
-
-        //int bonus_step = bound( 0, opponent->posCount() - 1, 1 );
         int bonus_step = bound( 0, opponent->posCount(), 1 );
-        int penalty_step = -1; //-3;
+        int penalty_step = 0; //-3;
 
         if ( opponent->isTackling() )
         {
             penalty_step -= 5;
         }
 
-        if ( n_step <= cycle + bonus_step + penalty_step )
+        if ( opp_cycle - bonus_step - penalty_step <= cycle )
         {
 #ifdef DEBUG_PRINT
             dlog.addText( Logger::SHOOT,
-                          "%d: xxx (opponent) can reach. cycle=%d ball_pos(%.1f %.1f)"
+                          "%d: xxx (opponent)%d can reach. cycle=%d ball_pos(%.1f %.1f)"
                           " oppStep=%d(t:%d,d%d) bonus=%d",
-                          M_total_count,
+                          M_total_count,opponent->unum(),
                           cycle,
                           ball_pos.x, ball_pos.y,
                           n_step, n_turn, n_dash, bonus_step );
@@ -712,16 +553,42 @@ ShootGenerator::opponentCanReach( const PlayerObject * opponent,
             return true;
         }
 
-        if ( n_step <= cycle + opponent->posCount() + 1 )
+        int diff = (opp_cycle - bonus_step - penalty_step) - cycle;
+        if ( diff < nearest_step_diff )
+        {
+            nearest_step_diff = diff;
+        }
+
+        if ( opp_cycle <= cycle + opponent->posCount() +1 )
         {
             maybe_reach = true;
-            int diff = cycle + opponent->posCount() - n_step;
-            if ( diff < nearest_step_diff )
+        }
+        if(opponent->goalie())
+        {
+            int n_turn;
+            int n_dash;
+            int n_view;
+            int opp_cycle = opponent->cycles_to_cut_ball(wm,
+                                                         ball_pos,
+                                                         cycle,
+                                                         true,
+                                                         n_dash,
+                                                         n_turn,
+                                                         n_view,
+                                                         opp_pos,
+                                                         opp_vel);
+
+            int bonus_step = bound( 0, opponent->posCount(), 2 );
+            int penalty_step = 0; //-3;
+
+            if ( opponent->isTackling() )
             {
-#ifdef DEBUG_PRINT
-                nearest_cycle = cycle;
-#endif
-                nearest_step_diff = diff;
+                penalty_step -= 5;
+            }
+
+            if ( opp_cycle <= cycle + bonus_step + penalty_step )
+            {
+                maybe_reach_tackle = true;
             }
         }
     }
@@ -736,6 +603,10 @@ ShootGenerator::opponentCanReach( const PlayerObject * opponent,
 #endif
         course.opponent_never_reach_ = false;
     }
+    if( maybe_reach_tackle ){
+        course.goalie_never_reach_ = false;
+    }
+
 
     return false;
 }
@@ -750,73 +621,121 @@ ShootGenerator::evaluateCourses( const WorldModel & wm )
     const double y_dist_thr2 = std::pow( 8.0, 2 );
 
     const ServerParam & SP = ServerParam::i();
-    const AbstractPlayerObject * goalie = wm.getTheirGoalie();
+    const PlayerObject * goalie = wm.getOpponentGoalie();
     const AngleDeg goalie_angle = ( goalie
                                     ? ( goalie->pos() - M_first_ball_pos ).th()
                                     : 180.0 );
 
+    AngleDeg amax = (Vector2D(52.5, +7) - wm.ball().pos()).th() - AngleDeg(3);
+    AngleDeg amin = (Vector2D(52.5, -7) - wm.ball().pos()).th() + AngleDeg(3);
     const Container::iterator end = M_courses.end();
     for ( Container::iterator it = M_courses.begin();
           it != end;
           ++it )
     {
+        dlog.addText(Logger::SHOOT,"shoot targ(%.1f,%.1f",it->target_point_.x,it->target_point_.y);
         double score = 1.0;
 
         if ( it->kick_step_ == 1 )
         {
+            dlog.addText(Logger::SHOOT,"kickstep=1");
             score += 50.0;
+            if(wm.existKickableOpponent()){
+                score += 1000;
+            }
+        }else{
+            if(wm.existKickableOpponent()){
+                score = -1000000;
+                        it->score_ = score;
+                continue;
+            }
         }
 
         if ( it->goalie_never_reach_ )
         {
+            dlog.addText(Logger::SHOOT,"never reach tackle");
             score += 100.0;
         }
 
         if ( it->opponent_never_reach_ )
         {
+            dlog.addText(Logger::SHOOT,"never reach");
             score += 100.0;
-        }
-
-        double goalie_rate = 1.0;
-        if ( goalie )
-        {
-#if 1
-            double variance2 = ( it->goalie_never_reach_
-                                 ? 1.0 // 1.0*1.0
-                                 : std::pow( 10.0, 2 ) );
-            double angle_diff = ( it->ball_move_angle_ - goalie_angle ).abs();
-            goalie_rate = 1.0 - std::exp( - std::pow( angle_diff, 2 )
-                                          / ( 2.0 * variance2 ) );
-#else
-            double angle_diff = ( it->ball_move_angle_ - goalie_angle ).abs();
-            goalie_rate = 1.0 - std::exp( - std::pow( angle_diff * 0.1, 2 )
-                                          // / ( 2.0 * 90.0 * 0.1 ) );
-                                          // / ( 2.0 * 40.0 * 0.1 ) ); // 2009-07
-                                              // / ( 2.0 * 90.0 * 0.1 ) ); // 2009-12-13
-                                          / ( 2.0 * 20.0 * 0.1 ) ); // 2010-06-09
-#endif
         }
 
         double y_rate = 1.0;
         if ( it->target_point_.dist2( M_first_ball_pos ) > y_dist_thr2 )
         {
-            double y_dist = std::max( 0.0, it->target_point_.absY() - 4.0 );
-            y_rate = std::exp( - std::pow( y_dist, 2.0 )
-                               / ( 2.0 * std::pow( SP.goalHalfWidth() - 1.5, 2 ) ) );
-        }
+            double besty = 1000;
+            if(goalie){
+                if(goalie->pos().dist(Vector2D(52,-6.5)) < goalie->pos().dist(Vector2D(52,6.5))){
+                    besty = 6.5;
+                }else{
+                    besty = -6.5;
+                }
 
+            }
+            double y_dist = std::max( 0.0, it->target_point_.absY() - 6.0 );
+            if(FieldAnalyzer::isHFUT(wm) && wm.ball().pos().y < -5 && wm.ball().pos().x > 40){
+                y_dist = std::max( 0.0, it->target_point_.absY() - 3.0 );
+            }
+//            if(goalie)
+                y_dist = std::fabs( it->target_point_.y - besty );
+//            y_rate = std::exp( - std::pow( y_dist, 2.0 )
+//                               / ( 2.0 * std::pow( SP.goalHalfWidth() - 1.5, 2 ) ) );
+                y_rate = 7 - y_dist;
+                if(y_rate < 0)
+                    y_rate = 0.1;
+        }
+        score *= y_rate;
+        score *= it->min_dif;
+        if(wm.gameMode().type() != GameMode::PenaltyTaken_)
+            if( !( it->target_point_ - wm.ball().pos()).th().isWithin(amin,amax)){
+                score /= 2.0;
+            }
+        dlog.addText(Logger::SHOOT,"yrate:%.1f,mindif:%.1f,score",y_rate,it->min_dif,score);
+        if(wm.opponentsFromBall().size() > 0
+                && wm.opponentsFromBall().front()->distFromBall() < 2.5)
+            if (it->kick_step_ > 1)
+                score *= 0.3;
+        it->score_ = score;
 #ifdef DEBUG_PRINT_EVALUATE
         dlog.addText( Logger::SHOOT,
-                      "(shoot eval) %d: score=%f(%f) pos(%.2f %.2f) speed=%.3f goalie_rate=%f y_rate=%f",
-                      it->index_,
-                      score * goalie_rate * y_rate, score,
+                      "(shoot eval) %d: score(%f) pos(%.2f %.2f) speed=%.3f mindif=%f y_rate=%f",
+                      it->index_, score,
                       it->target_point_.x, it->target_point_.y,
                       it->first_ball_speed_,
-                      goalie_rate,
+                      it->min_dif,
                       y_rate );
 #endif
-        score *= goalie_rate;
-        score *= y_rate;
-        it->score_ = score;
     }
+}
+
+bool ShootGenerator::shouldShootSafe(const WorldModel &wm)
+{
+    if ( !Setting::i()->mChainAction->mUseShootSafe )
+        return false;
+    if ( !wm.self().isKickable() )
+        return false;
+    Vector2D ballPos = wm.ball().pos();
+    AngleDeg tir1 = (Vector2D(52.5,7.0) - ballPos).th();
+    AngleDeg tir2 = (Vector2D(52.5,-7.0) - ballPos).th();
+    bool existOpp = false;
+    for(int o = 1; o <= 11; o++)
+    {
+        const AbstractPlayerObject * opp = wm.theirPlayer(o);
+        if(opp == nullptr || opp->unum() != o)
+            continue;
+        if(opp->goalie())
+            continue;
+        AngleDeg oppAngle = (opp->pos() - ballPos).th();
+        if(oppAngle.isWithin(tir2, tir1))
+            existOpp = true;
+    }
+    if(existOpp)
+        return false;
+    if(wm.getDistOpponentNearestToBall(10, true) < 3)
+        return false;
+    dlog.addText(Logger::SHOOT, "Safe Shoot!!");
+    return true;
 }

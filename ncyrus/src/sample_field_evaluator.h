@@ -51,6 +51,7 @@ public:
 
     virtual
     double operator()( const PredictState & state,
+    					const rcsc::WorldModel & wm,
                        const std::vector< ActionStatePair > & path ) const;
 };
 

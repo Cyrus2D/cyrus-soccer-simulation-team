@@ -41,15 +41,16 @@
 #include <rcsc/common/server_param.h>
 #include <rcsc/geom/vector_2d.h>
 
-#include <memory>
+#include <boost/shared_ptr.hpp>
+
 #include <algorithm>
 
 class PredictState {
 public:
     static const int VALID_PLAYER_THRESHOLD;
 
-    typedef std::shared_ptr< PredictState > Ptr; //!< pointer type alias
-    typedef std::shared_ptr< const PredictState > ConstPtr; //!< const pointer type alias
+    typedef boost::shared_ptr< PredictState > Ptr; //!< pointer type alias
+    typedef boost::shared_ptr< const PredictState > ConstPtr; //!< const pointer type alias
 
 private:
     const rcsc::WorldModel * M_world;
@@ -61,14 +62,15 @@ private:
 
     int M_self_unum;
 
-    PredictPlayerObject::Cont M_our_players;
+    PredictPlayerPtrCont M_our_players;
+
 
     double M_our_defense_line_x;
     double M_our_offense_player_line_x;
 
 
 public:
-
+    double M_shoot_open_angle;
     PredictState( const rcsc::WorldModel & wm );
 
     PredictState( const PredictState & rhs,
@@ -82,6 +84,11 @@ public:
     PredictState( const PredictState & rhs,
                   unsigned long append_spend_time,
                   const rcsc::Vector2D & ball_pos );
+
+    PredictState( const PredictState & rhs,
+                  unsigned long append_spend_time,
+                  const rcsc::Vector2D & ball_pos,
+                  const double shoot_open_angle);
 
 private:
 
@@ -148,17 +155,22 @@ public:
           return M_world->theirPlayer( unum );
       }
 
-    const PredictPlayerObject::Cont & ourPlayers() const
+    const PredictPlayerPtrCont & ourPlayers() const
       {
           return M_our_players;
       }
 
-    const rcsc::AbstractPlayerObject::Cont & theirPlayers() const
+    const rcsc::PlayerCont & opponents() const
+      {
+          return M_world->opponents();
+      }
+
+    const rcsc::AbstractPlayerCont & theirPlayers() const
       {
           return M_world->theirPlayers();
       }
 
-    const rcsc::PlayerObject::Cont & opponentsFromSelf() const
+    const rcsc::PlayerPtrCont & opponentsFromSelf() const
       {
           return M_world->opponentsFromSelf();
       }
@@ -185,9 +197,9 @@ public:
           return ourPlayer( M_world->ourGoalieUnum() );
       }
 
-    const rcsc::AbstractPlayerObject * getTheirGoalie() const
+    const rcsc::PlayerObject * getOpponentGoalie() const
       {
-          return M_world->getTheirGoalie();
+          return M_world->getOpponentGoalie();
       }
 
     const rcsc::GameMode & gameMode() const
@@ -245,7 +257,7 @@ public:
           return M_world->audioMemory();
       }
 
-    rcsc::AbstractPlayerObject::Cont getPlayers( const rcsc::PlayerPredicate * predicate ) const;
+    rcsc::AbstractPlayerCont getPlayerCont( const rcsc::PlayerPredicate * predicate ) const;
 };
 
 #endif

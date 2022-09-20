@@ -53,8 +53,8 @@
 // #define DEBUG_PRINT_OPPONENT
 // #define DEBUG_PRINT_OPPONENT_LEVEL2
 
-// #define DEBUG_PRINT_SUCCESS_COURSE
-// #define DEBUG_PRINT_FAILED_COURSE
+ #define DEBUG_PRINT_SUCCESS_COURSE
+ #define DEBUG_PRINT_FAILED_COURSE
 
 using namespace rcsc;
 
@@ -295,7 +295,7 @@ SelfPassGenerator::createCourses( const WorldModel & wm )
                                                      1, // 1 kick
                                                      n_turn,
                                                      n_dash,
-                                                     "SelfPass" ) );
+                                                     "SelfPass") );
             ptr->setIndex( M_total_count );
             M_courses.push_back( ptr );
 
@@ -513,9 +513,9 @@ SelfPassGenerator::canKick( const WorldModel & wm,
     // check opponent kickable area
     //
 
-    for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
-              end = wm.opponentsFromSelf().end();
-          o != end;
+    const PlayerPtrCont::const_iterator o_end = wm.opponentsFromSelf().end();
+    for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
+          o != o_end;
           ++o )
     {
         const PlayerType * ptype = (*o)->playerTypePtr();
@@ -597,9 +597,9 @@ SelfPassGenerator::checkOpponent( const WorldModel & wm,
 
     int min_step = 1000;
 
-    for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
-              end = wm.opponentsFromSelf().end();
-          o != end;
+    const PlayerPtrCont::const_iterator o_end = wm.opponentsFromSelf().end();
+    for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
+          o != o_end;
           ++o )
     {
         const Vector2D & opos = ( (*o)->seenPosCount() <= (*o)->posCount()

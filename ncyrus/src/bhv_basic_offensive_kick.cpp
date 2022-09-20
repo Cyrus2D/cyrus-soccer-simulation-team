@@ -36,7 +36,7 @@
 #include <rcsc/action/body_pass.h>
 #include <rcsc/action/neck_scan_field.h>
 #include <rcsc/action/neck_turn_to_low_conf_teammate.h>
-
+#include <rcsc/action/body_smart_kick.h>
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/debug_client.h>
 
@@ -44,8 +44,9 @@
 #include <rcsc/common/server_param.h>
 #include <rcsc/geom/sector_2d.h>
 
+#include <vector>
 using namespace rcsc;
-
+using namespace std;
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -58,10 +59,11 @@ Bhv_BasicOffensiveKick::execute( PlayerAgent * agent )
 
     const WorldModel & wm = agent->world();
 
-    const PlayerObject::Cont & opponents = wm.opponentsFromSelf();
-    const PlayerObject * nearest_opp = ( opponents.empty()
-                                         ? static_cast< PlayerObject * >( 0 )
-                                         : opponents.front() );
+    const PlayerPtrCont & opps = wm.opponentsFromSelf();
+    const PlayerObject * nearest_opp
+        = ( opps.empty()
+            ? static_cast< PlayerObject * >( 0 )
+            : opps.front() );
     const double nearest_opp_dist = ( nearest_opp
                                       ? nearest_opp->distFromSelf()
                                       : 1000.0 );
@@ -75,9 +77,9 @@ Bhv_BasicOffensiveKick::execute( PlayerAgent * agent )
         if ( pass_point.x > wm.self().pos().x - 1.0 )
         {
             bool safety = true;
-            for ( PlayerObject::Cont::const_iterator it = opponents.begin(),
-                      end = opponents.end();
-                  it != end;
+            const PlayerPtrCont::const_iterator opps_end = opps.end();
+            for ( PlayerPtrCont::const_iterator it = opps.begin();
+                  it != opps_end;
                   ++it )
             {
                 if ( (*it)->pos().dist( pass_point ) < 4.0 )
@@ -270,4 +272,52 @@ Bhv_BasicOffensiveKick::execute( PlayerAgent * agent )
 
     return true;
 
+}
+bool
+Bhv_BasicOffensiveKick::cr_shoot( PlayerAgent * agent )
+{
+    const WorldModel & wm = agent->world();
+    if(!wm.self().isKickable())
+    	return false;
+    Vector2D ball = wm.ball().pos();
+    vector<Vector2D> targets;
+    vector<double> dist_angle;
+    for(double d=-6;d<=6;d+=0.5){
+    	targets.push_back(Vector2D(52.5,d));
+    	dist_angle.push_back(1000);
+    }
+    for(int i=0;i<25;i++){
+    	Vector2D t = targets[i];
+    	if(t.dist(ball) > 30)
+    		continue;
+    	for(int p=1;p<=11;p++){
+    		const AbstractPlayerObject * opp = wm.theirPlayer(p);
+    		if(opp==NULL || opp->unum()<1)
+    			continue;
+    		Vector2D pos = opp->pos();
+    		if(pos.x<ball.x)
+    			continue;
+    		double shoot_angle = (t-ball).th().degree();
+    		double opp_angle = (pos-ball).th().degree();
+    		double dist_a = abs(shoot_angle - opp_angle);
+    		if(dist_a>180)
+    			dist_a = 360 - dist_a;
+    		if(dist_a<dist_angle[i])
+    			dist_angle[i] = dist_a;
+    	}
+    }
+    int best_target = 0;
+    double best_eval = 0;
+    for(int i=0;i<25;i++){
+    	if(dist_angle[i]>best_eval){
+    		best_eval = dist_angle[i];
+    		best_target = i;
+    	}
+    }
+    if(best_eval>15){
+    	Body_SmartKick(targets[best_target],3.0,2.7,3).execute(agent);
+    	agent->setNeckAction( new Neck_ScanField() );
+    	return true;
+    }
+    return false;
 }

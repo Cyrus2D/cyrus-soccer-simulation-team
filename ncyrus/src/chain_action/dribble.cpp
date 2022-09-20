@@ -62,4 +62,112 @@ Dribble::Dribble( const int dribbler,
     setDashCount( dash_count );
 }
 
+Dribble::Dribble( const int dribbler,
+                  const rcsc::Vector2D & target_point,
+                  const double & ball_speed,
+                  const int kick_count,
+                  const int turn_count,
+                  const int dash_count,
+                  const char * description,
+                  const int min_opp_dif,
+                  const bool safe_with_pos_count,
+                  const int danger)
+    : CooperativeAction( CooperativeAction::Dribble,
+                         dribbler,
+                         target_point,
+                         kick_count + turn_count + dash_count,
+                         description,
+                         min_opp_dif,
+                         safe_with_pos_count,
+                         danger)
+{
+    setTargetPlayerUnum( dribbler );
+    setFirstBallSpeed( ball_speed );
+    setKickCount( kick_count );
+    setTurnCount( turn_count );
+    setDashCount( dash_count );
+}
+
+Dribble::Dribble( const int dribbler,
+                  const rcsc::Vector2D & target_point,
+                  const double & ball_speed,
+                  const int kick_count,
+                  const int turn_count,
+                  const int dash_count,
+                  const char * description,
+                  const double body_angle)
+    : CooperativeAction( CooperativeAction::Dribble,
+                         dribbler,
+                         target_point,
+                         kick_count + turn_count + dash_count,
+                         description )
+{
+    setTargetPlayerUnum( dribbler );
+    setFirstBallSpeed( ball_speed );
+    setKickCount( kick_count );
+    setTurnCount( turn_count );
+    setDashCount( dash_count );
+    setDribbleDashAngle( body_angle );
+}
+
+Dribble::Dribble( const int dribbler,
+                  const rcsc::Vector2D & target_point,
+                  const rcsc::Vector2D & player_target_point,
+                  const double & ball_speed,
+                  const int kick_count,
+                  const int turn_count,
+                  const int dash_count,
+                  const char * description,
+                  const double body_angle,
+                  const int min_opp_dif,
+                  const bool safe_with_pos_count,
+                  const int danger)
+    : CooperativeAction( CooperativeAction::Dribble,
+                         dribbler,
+                         target_point,
+                         kick_count + turn_count + dash_count,
+                         description,
+                         min_opp_dif,
+                         safe_with_pos_count,
+                         danger)
+{
+    setTargetPlayerUnum( dribbler );
+    setFirstBallSpeed( ball_speed );
+    setKickCount( kick_count );
+    setTurnCount( turn_count );
+    setDashCount( dash_count );
+    setDribbleDashAngle( body_angle );
+    setPlayerTargetPoint( player_target_point);
+}
+Dribble::Dribble( const int dribbler,
+                    const rcsc::Vector2D & target_point,
+                    const rcsc::Vector2D & _intermediate_pos,
+                    const rcsc::Vector2D & player_target_point,
+                    const double & ball_speed,
+                    const int kick_count,
+                    const int turn_count,
+                    const int dash_count,
+                    const char * description,
+                    const double body_angle,
+                    const int min_opp_dif,
+                    const bool safe_with_pos_count,
+                    const int danger)
+    : CooperativeAction( CooperativeAction::Dribble,
+                            dribbler,
+                            target_point,
+                            kick_count + turn_count + dash_count,
+                            description,
+                            min_opp_dif,
+                            safe_with_pos_count,
+                            danger)
+{
+    setTargetPlayerUnum( dribbler );
+    setFirstBallSpeed( ball_speed );
+    setKickCount( kick_count );
+    setTurnCount( turn_count );
+    setDashCount( dash_count );
+    setDribbleDashAngle( body_angle );
+    setPlayerTargetPoint( player_target_point);
+    M_intermediate_point = _intermediate_pos;
+}
 }

@@ -34,7 +34,7 @@
 #endif
 
 #include "cross_generator.h"
-
+#include "strict_check_pass_generator.h"
 #include "field_analyzer.h"
 
 #include <rcsc/player/world_model.h>
@@ -44,13 +44,13 @@
 #include <rcsc/geom/rect_2d.h>
 #include <rcsc/soccer_math.h>
 #include <rcsc/timer.h>
-
-#define USE_ONLY_MAX_ANGLE_WIDTH
+#include "../strategy.h"
+//#define USE_ONLY_MAX_ANGLE_WIDTH
 
 #define DEBUG_PROFILE
-// #define DEBUG_PRINT
-// #define DEBUG_PRINT_SUCCESS_COURSE
-// #define DEBUG_PRINT_FAILED_COURSE
+#define DEBUG_PRINT
+#define DEBUG_PRINT_SUCCESS_COURSE
+#define DEBUG_PRINT_FAILED_COURSE
 
 using namespace rcsc;
 
@@ -262,24 +262,26 @@ CrossGenerator::updatePasser( const WorldModel & wm )
 /*!
 
  */
+#include "strict_check_pass_generator.h"
 void
 CrossGenerator::updateReceivers( const WorldModel & wm )
 {
     static const double shootable_dist2 = std::pow( 16.0, 2 ); // Magic Number
     static const double min_cross_dist2
-        = std::pow( ServerParam::i().defaultKickableArea() * 2.2, 2 );
+            = std::pow( ServerParam::i().defaultKickableArea() * 2.2, 2 );
     static const double max_cross_dist2
-        = std::pow( inertia_n_step_distance( ServerParam::i().ballSpeedMax(),
-                                             9,
-                                             ServerParam::i().ballDecay() ),
-                    2 );
+            = std::pow( inertia_n_step_distance( ServerParam::i().ballSpeedMax(),
+                                                 9,
+                                                 ServerParam::i().ballDecay() ),
+                        2 );
 
     const Vector2D goal = ServerParam::i().theirTeamGoalPos();
 
     const bool is_self_passer = ( M_passer->unum() == wm.self().unum() );
 
-    for ( AbstractPlayerObject::Cont::const_iterator p = wm.ourPlayers().begin(),
-              end = wm.ourPlayers().end();
+    for ( AbstractPlayerCont::const_iterator
+          p = wm.ourPlayers().begin(),
+          end = wm.ourPlayers().end();
           p != end;
           ++p )
     {
@@ -288,7 +290,7 @@ CrossGenerator::updateReceivers( const WorldModel & wm )
         if ( is_self_passer )
         {
             if ( (*p)->isGhost() ) continue;
-            if ( (*p)->posCount() >= 4 ) continue;
+            if ( (*p)->posCount() >= (wm.self().isKickable()?4:10) ) continue;
             if ( (*p)->pos().x > wm.offsideLineX() ) continue;
         }
         else
@@ -300,6 +302,11 @@ CrossGenerator::updateReceivers( const WorldModel & wm )
             }
         }
 
+        //        if(StrictCheckPassGenerator::Receivers_unum.size() == 12 && (*p)->unum() > 1 && (*p)->unum() <= 11)
+        //        if(StrictCheckPassGenerator::Receivers_unum[(*p)->unum()] == true){
+        //            StrictCheckPassGenerator::Receivers_unum[(*p)->unum()] = false;
+        //            continue;
+        //        }
         if ( (*p)->pos().dist2( goal ) > shootable_dist2 ) continue;
 
         double d2 = (*p)->pos().dist2( M_first_point );
@@ -324,13 +331,14 @@ CrossGenerator::updateReceivers( const WorldModel & wm )
 void
 CrossGenerator::updateOpponents( const WorldModel & wm )
 {
-    const double opponent_dist_thr2 = std::pow( 20.0, 2 );
+    const double opponent_dist_thr2 = std::pow( 35.0, 2 );
 
     const Vector2D goal = ServerParam::i().theirTeamGoalPos();
     const AngleDeg goal_angle_from_ball = ( goal - M_first_point ).th();
 
-    for ( AbstractPlayerObject::Cont::const_iterator p = wm.theirPlayers().begin(),
-              end = wm.theirPlayers().end();
+    for ( AbstractPlayerCont::const_iterator
+          p = wm.theirPlayers().begin(),
+          end = wm.theirPlayers().end();
           p != end;
           ++p )
     {
@@ -348,7 +356,7 @@ CrossGenerator::updateOpponents( const WorldModel & wm )
         M_opponents.push_back( *p );
 
 #ifdef DEBUG_PRINT
-        dlog.addText( Logger::PASS,
+        dlog.addText( Logger::CROSS,
                       "Cross opponent %d pos(%.1f %.1f)",
                       (*p)->unum(),
                       (*p)->pos().x, (*p)->pos().y );
@@ -363,7 +371,7 @@ CrossGenerator::updateOpponents( const WorldModel & wm )
 void
 CrossGenerator::createCourses( const WorldModel & wm )
 {
-    for ( AbstractPlayerObject::Cont::const_iterator p = M_receiver_candidates.begin();
+    for ( AbstractPlayerCont::const_iterator p = M_receiver_candidates.begin();
           p != M_receiver_candidates.end();
           ++p )
     {
@@ -383,7 +391,7 @@ CrossGenerator::createCross( const WorldModel & wm,
     static const int MAX_RECEIVE_STEP = 12; // Magic Number
 
     static const double MIN_RECEIVE_BALL_SPEED
-        = ServerParam::i().defaultPlayerSpeedMax();
+            = ServerParam::i().defaultPlayerSpeedMax();
     // = std::max( ServerParam::i().defaultPlayerSpeedMax(),
     //             ServerParam::i().ballSpeedMax()
     //             * std::pow( ServerParam::i().ballDecay(), MAX_RECEIVE_STEP ) );
@@ -400,8 +408,8 @@ CrossGenerator::createCross( const WorldModel & wm,
     const double max_first_ball_speed = ( wm.gameMode().type() == GameMode::PlayOn
                                           ? SP.ballSpeedMax()
                                           : wm.self().isKickable()
-                                          ? wm.self().kickRate() * SP.maxPower()
-                                          : SP.kickPowerRate() * SP.maxPower() );
+                                            ? wm.self().kickRate() * SP.maxPower()
+                                            : SP.kickPowerRate() * SP.maxPower() );
 
     const PlayerType * ptype = receiver->playerTypePtr();
     const Vector2D receiver_pos = receiver->inertiaFinalPoint();
@@ -416,7 +424,7 @@ CrossGenerator::createCross( const WorldModel & wm,
     //
     // angle loop
     //
-    for ( int a = -2; a < 3; ++a )
+    for ( int a = -4; a < 5; ++a )
     {
         const AngleDeg cross_angle = receiver_angle_from_ball + ( ANGLE_STEP * a );
 
@@ -428,8 +436,8 @@ CrossGenerator::createCross( const WorldModel & wm,
             const double sub_dist = DIST_STEP * d;
             const double ball_move_dist = receiver_dist - sub_dist;
             const Vector2D receive_point
-                = M_first_point
-                + Vector2D::from_polar( ball_move_dist, cross_angle );
+                    = M_first_point
+                    + Vector2D::from_polar( ball_move_dist, cross_angle );
 
 #ifdef DEBUG_PRINT
             dlog.addText( Logger::CROSS,
@@ -452,7 +460,9 @@ CrossGenerator::createCross( const WorldModel & wm,
                 continue;
             }
 
-            const int receiver_step = ptype->cyclesToReachDistance( sub_dist ) + 1;
+            int receiver_step = ptype->cyclesToReachDistance( sub_dist ) + 1;
+            if(abs(a) > 2)
+                receiver_step = predictReceiverReachStep(receiver, receive_point);
 
             //
             // step loop
@@ -518,13 +528,23 @@ CrossGenerator::createCross( const WorldModel & wm,
                                                                     M_passer,
                                                                     first_ball_speed,
                                                                     cross_angle );
-
+                if(wm.opponentsFromSelf().size() > 0){
+                    if(wm.opponentsFromSelf().front()->distFromSelf() < 4){
+                        const AbstractPlayerObject * opp_near_me = wm.theirPlayer(wm.opponentsFromSelf().front()->unum());
+                        if(opp_near_me != NULL && opp_near_me->unum() > 0){
+                            int dc,tc,vc;
+                            if(kick_count - 1> opp_near_me->cycles_to_cut_ball(wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body()))
+                                continue;
+                        }
+                    }
+                }
+                int opp_dif_cycle = 5;
                 if ( ! checkOpponent( M_first_point,
                                       receiver,
                                       receive_point,
                                       first_ball_speed,
                                       cross_angle,
-                                      step + kick_count - 1 ) ) // 1 step penalty for observation delay
+                                      step /*+ kick_count - 1*/,opp_dif_cycle,wm ) ) // 1 step penalty for observation delay
                 {
 
                     break;
@@ -541,7 +561,7 @@ CrossGenerator::createCross( const WorldModel & wm,
                                                           step + kick_count,
                                                           kick_count,
                                                           false,
-                                                          "cross" ) );
+                                                          "cross",true,0,opp_dif_cycle,0 ) );
                     ptr->setIndex( M_total_count );
                     max_angle_diff = min_angle_diff;
                     best_action = ptr;
@@ -555,7 +575,7 @@ CrossGenerator::createCross( const WorldModel & wm,
                                                       step + kick_count,
                                                       kick_count,
                                                       false,
-                                                      "cross" ) );
+                                                      "cross",true,0,opp_dif_cycle,0 ) );
                 ptr->setIndex( M_total_count );
                 M_courses.push_back( ptr );
 #endif
@@ -589,7 +609,35 @@ CrossGenerator::createCross( const WorldModel & wm,
     }
 #endif
 }
+#include "field_analyzer.h"
+int CrossGenerator::predictReceiverReachStep(
+        const AbstractPlayerObject * receiver, const Vector2D & pos) {
+    const PlayerType * ptype = receiver->playerTypePtr();
+    double target_dist = receiver->inertiaPoint(1).dist(pos);
+    int n_turn = (
+                receiver->bodyCount() > 0 ?
+                    1 :
+                    FieldAnalyzer::predict_player_turn_cycle(ptype,
+                                                             receiver->body(), receiver->vel().r(),
+                                                             target_dist, (pos - receiver->inertiaPoint(1)).th(),
+                                                             ptype->kickableArea(), false));
+    double dash_dist = target_dist;
 
+    if (true) {
+        dash_dist *= 1.05;
+
+        AngleDeg dash_angle = (pos - receiver->pos()).th();
+
+        if (dash_angle.abs() > 90.0 || receiver->bodyCount() > 1
+                || (dash_angle - receiver->body()).abs() > 30.0) {
+            n_turn += 1;
+        }
+    }
+
+    int n_dash = ptype->cyclesToReachDistance(dash_dist);
+
+    return (n_turn == 0 ? n_turn + n_dash : n_turn + n_dash + 1); // 1 step penalty for observation delay.
+}
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -600,18 +648,18 @@ CrossGenerator::checkOpponent( const Vector2D & first_ball_pos,
                                const Vector2D & receive_pos,
                                const double & first_ball_speed,
                                const AngleDeg & ball_move_angle,
-                               const int max_cycle )
+                               const int max_cycle,int & opp_dif_cycle,const WorldModel & wm )
 {
-    static const double CONTROL_AREA_BUF = 0.15;  // buffer for kick table
+    static const double CONTROL_AREA_BUF = 0.1;  // buffer for kick table
 
     const ServerParam & SP = ServerParam::i();
 
     const double receiver_dist = receiver->pos().dist( first_ball_pos );
     const Vector2D first_ball_vel
-        = Vector2D( receive_pos - first_ball_pos ).setLength( first_ball_speed );
+            = Vector2D( receive_pos - first_ball_pos ).setLength( first_ball_speed );
 
-    for ( AbstractPlayerObject::Cont::const_iterator o = M_opponents.begin(),
-              end = M_opponents.end();
+    const AbstractPlayerCont::const_iterator end = M_opponents.end();
+    for ( AbstractPlayerCont::const_iterator o = M_opponents.begin();
           o != end;
           ++o )
     {
@@ -627,7 +675,7 @@ CrossGenerator::checkOpponent( const Vector2D & first_ball_pos,
                                                                        ball_move_angle );
 
 
-        if ( opponent_pos.dist( first_ball_pos ) > receiver_dist + 1.0 )
+        if ( opponent_pos.dist( first_ball_pos ) - (*o)->posCount() > receiver_dist + 1.0 )
         {
 #ifdef DEBUG_PRINT
             dlog.addText( Logger::CROSS,
@@ -638,97 +686,247 @@ CrossGenerator::checkOpponent( const Vector2D & first_ball_pos,
             continue;
         }
 
-        for ( int cycle = std::max( 1, min_cycle );
-              cycle <= max_cycle;
-              ++cycle )
+        bool safe_with_pos_count;
+        int n_step = newoldpredictOpponentReachStep(wm,*o, first_ball_pos,first_ball_vel, ball_move_angle,receive_pos, max_cycle,opp_dif_cycle,safe_with_pos_count);
+
+
+        if ( n_step <= max_cycle )
         {
-            Vector2D ball_pos = inertia_n_step_point( first_ball_pos,
-                                                      first_ball_vel,
-                                                      cycle,
-                                                      SP.ballDecay() );
-            double target_dist = opponent_pos.dist( ball_pos );
-
-            if ( target_dist - control_area - CONTROL_AREA_BUF < 0.001 )
-            {
 #ifdef DEBUG_PRINT_FAILED_COURSE
-                dlog.addText( Logger::CROSS,
-                              "%d: xxx recvPos(%.2f %.2f) step=%d/%d"
-                              " opponent(%d)(%.2f %.2f) kickable"
-                              " ballPos(%.2f %.2f)",
-                              M_total_count,
-                              receive_pos.x, receive_pos.y,
-                              cycle, max_cycle,
-                              (*o)->unum(), opponent_pos.x, opponent_pos.y ,
-                              ball_pos.x, ball_pos.y );
-                debug_paint_failed( M_total_count, receive_pos );
+            //            dlog.addText( Logger::CROSS,
+            //                          "%d: xxx recvPos(%.1f %.1f) step=%d/%d"
+            //                          " opponent(%d)(%.1f %.1f) can reach"
+            //                          " ballPos(%.2f %.2f)",
+            //                          M_total_count,
+            //                          receive_pos.x, receive_pos.y,
+            //                          cycle, max_cycle,
+            //                          (*o)->unum(), opponent_pos.x, opponent_pos.y,
+            //                          ball_pos.x, ball_pos.y );
+            debug_paint_failed( M_total_count, receive_pos );
 #endif
-                return false;
-            }
-
-            double dash_dist = target_dist;
-
-            if ( cycle > 1 )
-            {
-                //dash_dist -= control_area*0.8;
-                dash_dist -= control_area*0.6;
-                //dash_dist -= control_area*0.5;
-            }
-
-            if ( dash_dist > ptype->realSpeedMax() * cycle )
-            {
-                continue;
-            }
-
-            //
-            // dash
-            //
-
-            int n_dash = ptype->cyclesToReachDistance( dash_dist * 1.05 ); // add penalty
-
-            if ( n_dash > cycle )
-            {
-                continue;
-            }
-
-            //
-            // turn
-            //
-            int n_turn = ( (*o)->bodyCount() >= 3
-                           ? 2
-                           : FieldAnalyzer::predict_player_turn_cycle( ptype,
-                                                                       (*o)->body(),
-                                                                       (*o)->vel().r(),
-                                                                       target_dist,
-                                                                       ( ball_pos - opponent_pos ).th(),
-                                                                       control_area,
-                                                                       true ) );
-
-            int n_step = n_turn + n_dash + 1; // 1 step penalty for observation delay
-            if ( (*o)->isTackling() )
-            {
-                n_step += 5; // Magic Number
-            }
-
-            if ( n_step <= cycle )
-            {
-#ifdef DEBUG_PRINT_FAILED_COURSE
-                dlog.addText( Logger::CROSS,
-                              "%d: xxx recvPos(%.1f %.1f) step=%d/%d"
-                              " opponent(%d)(%.1f %.1f) can reach"
-                              " ballPos(%.2f %.2f)",
-                              M_total_count,
-                              receive_pos.x, receive_pos.y,
-                              cycle, max_cycle,
-                              (*o)->unum(), opponent_pos.x, opponent_pos.y,
-                              ball_pos.x, ball_pos.y );
-                debug_paint_failed( M_total_count, receive_pos );
-#endif
-                return false;
-            }
+            return false;
         }
     }
 
     return true;
+}
+
+int CrossGenerator::newoldpredictOpponentReachStep(const WorldModel & wm,
+                                                   const AbstractPlayerObject * opponent, const Vector2D & first_ball_pos,
+                                                   const Vector2D & first_ball_vel, const AngleDeg & ball_move_angle,
+                                                   const Vector2D & receive_point, const int max_cycle,int & opp_dif_cycle,bool & safe_with_pos_count) {
+    static const Rect2D penalty_area(
+                Vector2D(ServerParam::i().theirPenaltyAreaLineX(),
+                         -ServerParam::i().penaltyAreaHalfWidth()),
+                Size2D(ServerParam::i().penaltyAreaLength(),
+                       ServerParam::i().penaltyAreaWidth()));
+    static const double CONTROL_AREA_BUF = 0.15;
+
+    const ServerParam & SP = ServerParam::i();
+
+    int our_score = ( wm.ourSide() == LEFT
+                      ? wm.gameMode().scoreLeft()
+                      : wm.gameMode().scoreRight() );
+    int opp_score = ( wm.ourSide() == LEFT
+                      ? wm.gameMode().scoreRight()
+                      : wm.gameMode().scoreLeft() );
+
+    const PlayerType * ptype = opponent->playerTypePtr();
+    int min_cycle = FieldAnalyzer::estimate_min_reach_cycle(opponent->pos(),
+                                                            ptype->realSpeedMax(), first_ball_pos, ball_move_angle) - opponent->posCount();
+    if(min_cycle < 0)
+        min_cycle = 0;
+#ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+    dlog.addText( Logger::CROSS,
+                  "++ opponent=%d(%.1f %.1f)",
+                  opponent->unum(),
+                  opponent->pos().x, opponent->pos().y );
+#endif
+
+    if (min_cycle < 0) {
+#ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+        dlog.addText( Logger::CROSS,
+                      "__ never reach(1)",
+                      opponent->unum(),
+                      opponent->pos().x,
+                      opponent->pos().y );
+#endif
+        return 1000;
+    }
+
+    Vector2D opp_pos = opponent->pos();
+    Vector2D opp_vel = opponent->vel();
+    opp_pos += Vector2D::polar2vector(ptype->playerSpeedMax() * (opp_vel.r() / 0.4),opp_vel.th());
+
+    for (int cycle = std::max(1, min_cycle); cycle <= max_cycle; ++cycle) {
+        const Vector2D ball_pos = inertia_n_step_point(first_ball_pos,
+                                                       first_ball_vel, cycle, SP.ballDecay());
+
+        double control_area = (
+                    opponent->goalie() && penalty_area.contains(ball_pos) ?
+                        SP.catchableArea() : ptype->kickableArea());
+
+        Vector2D inertia_pos = opp_pos;
+        const double target_dist = inertia_pos.dist(ball_pos);
+        double dash_dist = target_dist;
+
+        if (dash_dist - control_area - CONTROL_AREA_BUF < 0.001) {
+            return cycle;
+        }
+
+        if (dash_dist - control_area
+                > ptype->realSpeedMax()
+                * (cycle + std::min(opponent->posCount(), 5))) {
+            continue;
+        }
+
+
+        int turn_step;
+        int dash_step;
+        int view_step;
+
+        int c_step = opponent->cycles_to_cut_ball_with_safe_thr_dist(wm,
+                                                                     ball_pos,
+                                                                     cycle,
+                                                                     false,
+                                                                     dash_step,
+                                                                     turn_step,
+                                                                     view_step,
+                                                                     opp_pos,
+                                                                     opp_vel,
+                                                                     FieldAnalyzer::isFRA(wm)? 0.3 : 0.1);
+        int bonus_step = 0;
+        if (opponent->isTackling()) {
+            bonus_step = -5; // Magic Number
+        }
+        if(FieldAnalyzer::isFRA(wm))
+            view_step = 0;
+//        if(wm.interceptTable()->opponentReachCycle() > 2)
+//            if(FieldAnalyzer::isFRA(wm) || FieldAnalyzer::isMT(wm) || FieldAnalyzer::isHFUT(wm)|| FieldAnalyzer::isYushan(wm) || FieldAnalyzer::isHelius(wm) || FieldAnalyzer::isCYRUS(wm)
+//                    || Strategy::i().my_team_tactic == Strategy::TeamTactic::AllDef || FieldAnalyzer::isOxsy(wm) || our_score < opp_score
+//                    || FieldAnalyzer::isKN2C(wm))
+        view_step = 0;
+
+        c_step -= bonus_step;
+        int body_count = opponent->bodyCount();
+        int pos_count = opponent->posCount();
+        int body_count_effect = body_count - pos_count;
+        int pos_count_effect = std::min(4, pos_count);
+        if (body_count_effect > 2)
+            body_count_effect = 2;
+
+        double count_effect = 0.5;
+
+        if(body_count == 1){
+            body_count_effect = 1;
+        }else{
+            body_count_effect = (int)((double)body_count_effect * count_effect);
+        }
+        if(pos_count_effect <= 2){
+            pos_count_effect = pos_count;
+        }else{
+            pos_count_effect = (int)((double)pos_count_effect * count_effect);
+        }
+
+        turn_step -= body_count_effect;
+        dash_step -= pos_count_effect;
+        if (turn_step < 0)
+            turn_step = 0;
+        if (dash_step < 0)
+            dash_step = 0;
+
+
+
+        int n_step = c_step;
+        c_step -= (body_count_effect + pos_count_effect) / 2.0;
+        //        if( ( FieldAnalyzer::isMT(wm) || FieldAnalyzer::isMiracle(wm) )
+        //                && wm.opponentsFromBall().size() > 0
+        //                && wm.opponentsFromBall().front()->distFromBall() > 2){
+        //            should_see_step = 0;
+        //        }
+        n_step = turn_step + dash_step + view_step;
+
+
+        if ( c_step <= cycle){
+#ifdef DEBUG_PRINT
+            dlog.addText( Logger::PASS,
+                          "__ can reach in bs:%d(%.2f,%.2f) c_step=%d, t_step=%d, d_step=%d, n_step=%d, bce=%d, pce=%d, odc:%d, pc:%d, bc:%d",cycle,ball_pos.x,ball_pos.y,c_step,turn_step,dash_step,n_step,body_count_effect,pos_count_effect,/*should_see_step,*/opp_dif_cycle ,pos_count,body_count);
+#endif
+            return cycle;
+        }else{
+            auto predictpos = StrictCheckPassGenerator::OppPredictGenerator(wm, opponent->unum(), receive_point);
+            int minsc = 1000;
+            for(auto&p : predictpos){
+
+                int dc,tc,vc;
+                int sc =opponent->cycles_to_cut_ball_with_safe_thr_dist(wm,
+                                                                        ball_pos,
+                                                                        cycle,
+                                                                        false,
+                                                                        dc,
+                                                                        tc,
+                                                                        vc,
+                                                                        p.pos,
+                                                                        p.vel,
+                                                                        0.1,
+                                                                        p.body);
+                dc -= pos_count_effect/2.0;
+                tc -= body_count_effect/2.0;
+//                if(FieldAnalyzer::isFRA(wm) || FieldAnalyzer::isMT(wm) || FieldAnalyzer::isHFUT(wm)|| FieldAnalyzer::isYushan(wm) || FieldAnalyzer::isHelius(wm) || FieldAnalyzer::isCYRUS(wm)
+//                        || Strategy::i().my_team_tactic == Strategy::TeamTactic::AllDef || FieldAnalyzer::isOxsy(wm) || our_score < opp_score
+//                        || FieldAnalyzer::isKN2C(wm))
+                vc = 0;
+                sc = dc + tc + vc;
+                if(minsc > sc)
+                    minsc = sc;
+            }
+            opp_dif_cycle = std::min(opp_dif_cycle,n_step - cycle);
+            opp_dif_cycle = std::min(opp_dif_cycle,minsc - cycle);
+
+            if(cycle < n_step){
+#ifdef DEBUG_PRINT
+                dlog.addText( Logger::PASS,
+                              "__ cant reach in bs:%d(%.2f,%.2f) c_step=%d, t_step=%d, d_step=%d, n_step=%d, bce=%d, pce=%d,  odc:%d, pc:%d, bc:%d",cycle,ball_pos.x,ball_pos.y,c_step,turn_step,dash_step,n_step,body_count_effect,pos_count_effect,/*should_see_step,*/opp_dif_cycle ,pos_count,body_count);
+#endif
+            }else{
+#ifdef DEBUG_PRINT
+                dlog.addText( Logger::PASS,
+                              "__ cant reach in bs:%d(%.2f,%.2f) with out noise c_step=%d, t_step=%d, d_step=%d, n_step=%d, bce=%d, pce=%d, odc:%d, pc:%d, bc:%d",cycle,ball_pos.x,ball_pos.y,c_step,turn_step,dash_step,n_step,body_count_effect,pos_count_effect/*,should_see_step*/,opp_dif_cycle,pos_count,body_count );
+#endif
+                safe_with_pos_count = false;
+            }
+        }
+        //        if ( c_step <= cycle){
+        //#ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+        //            dlog.addText( Logger::CROSS,
+        //                          "__ can reach in bs:%d(%.2f,%.2f) c_step=%d, t_step=%d, d_step=%d, n_step=%d, bce=%d, pce=%d, scs=%d, odc:%d, pc:%d, bc:%d",cycle,ball_pos.x,ball_pos.y,c_step,turn_step,dash_step,n_step,body_count_effect,pos_count_effect,should_see_step,opp_dif_cycle ,pos_count,body_count);
+        //#endif
+        //            return cycle;
+        //        }else if(cycle < n_step){
+        //#ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+        //            dlog.addText( Logger::CROSS,
+        //                          "__ cant reach in bs:%d(%.2f,%.2f) c_step=%d, t_step=%d, d_step=%d, n_step=%d, bce=%d, pce=%d, scs=%d, odc:%d, pc:%d, bc:%d",cycle,ball_pos.x,ball_pos.y,c_step,turn_step,dash_step,n_step,body_count_effect,pos_count_effect,should_see_step,opp_dif_cycle ,pos_count,body_count);
+        //#endif
+        //        }else if(cycle < max_cycle - 4){
+        //#ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+        //            dlog.addText( Logger::CROSS,
+        //                          "__ cant reach in bs:%d(%.2f,%.2f) with out noise c_step=%d, t_step=%d, d_step=%d, n_step=%d, bce=%d, pce=%d, scs=%d, odc:%d, pc:%d, bc:%d",cycle,ball_pos.x,ball_pos.y,c_step,turn_step,dash_step,n_step,body_count_effect,pos_count_effect,should_see_step,opp_dif_cycle,pos_count,body_count );
+        //#endif
+        //            safe_with_pos_count = false;
+        //        }else{
+        //#ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+        //            dlog.addText( Logger::CROSS,
+        //                          "__ cant reach in bs:%d(%.2f,%.2f) with out noise afterM c_step=%d, t_step=%d, d_step=%d, n_step=%d, bce=%d, pce=%d, scs=%d, odc:%d, pc:%d, bc:%d",cycle,ball_pos.x,ball_pos.y,c_step,turn_step,dash_step,n_step,body_count_effect,pos_count_effect,should_see_step,opp_dif_cycle,pos_count,body_count );
+        //#endif
+        //        }
+    }
+
+#ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+    dlog.addText( Logger::CROSS,
+                  "__ never reach(2) %s",(safe_with_pos_count?"safe":"nosafe") );
+#endif
+
+    return 1000;
 }
 
 /*-------------------------------------------------------------------*/
@@ -741,8 +939,8 @@ CrossGenerator::getMinimumAngleWidth( const double & target_dist,
 {
     double min_angle_diff = 180.0;
 
-    for ( AbstractPlayerObject::Cont::const_iterator o = M_opponents.begin(),
-              end = M_opponents.end();
+    const AbstractPlayerCont::const_iterator end = M_opponents.end();
+    for ( AbstractPlayerCont::const_iterator o = M_opponents.begin();
           o != end;
           ++ o )
     {

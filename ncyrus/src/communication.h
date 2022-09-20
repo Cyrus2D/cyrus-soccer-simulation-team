@@ -32,7 +32,7 @@
 #ifndef COMMUNICATION_H
 #define COMMUNICATION_H
 
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
 namespace rcsc {
 class PlayerAgent;
@@ -41,7 +41,7 @@ class PlayerAgent;
 class Communication {
 public:
 
-    typedef std::shared_ptr< Communication > Ptr;
+    typedef boost::shared_ptr< Communication > Ptr;
 
 protected:
 

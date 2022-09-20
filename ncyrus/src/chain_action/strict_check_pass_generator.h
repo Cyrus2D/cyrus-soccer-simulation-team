@@ -33,16 +33,18 @@
 #define STRICT_CHECK_PASS_GENERATOR_H
 
 #include "cooperative_action.h"
-
+#include "field_analyzer.h"
 #include <rcsc/player/abstract_player_object.h>
 #include <rcsc/geom/vector_2d.h>
 #include <rcsc/game_time.h>
-
+#include <vector>
+#include <rcsc/common/logger.h>
 #include <vector>
 
 namespace rcsc {
 class PlayerObject;
 class WorldModel;
+
 }
 
 /*!
@@ -50,7 +52,8 @@ class WorldModel;
  */
 class StrictCheckPassGenerator {
 public:
-
+    static std::vector<bool> Receivers_unum;
+    boost::int32_t M_pass_logger;
     struct Receiver {
         const rcsc::AbstractPlayerObject * player_;
         rcsc::Vector2D pos_;
@@ -119,6 +122,10 @@ public:
 
     const std::vector< CooperativeAction::Ptr > & courses( const rcsc::WorldModel & wm )
       {
+          Receivers_unum.clear();
+          for(int i=0;i<=11;i++){
+              Receivers_unum.push_back(false);
+          }
           generate( wm );
           return M_courses;
       }
@@ -157,7 +164,9 @@ private:
                            const double & max_receive_ball_speed,
                            const double & ball_move_dist,
                            const rcsc::AngleDeg & ball_move_angle,
-                           const char * description );
+						   int receiver_step,
+                           const char * description,
+						   bool high_dist = false);
 
     int getNearestReceiverUnum( const rcsc::Vector2D & pos );
 
@@ -171,14 +180,39 @@ private:
                                    const rcsc::AngleDeg & ball_move_angle,
                                    const rcsc::Vector2D & receive_point,
                                    const int max_cycle,
-                                   const rcsc::AbstractPlayerObject ** opponent );
+                                   const rcsc::AbstractPlayerObject ** opponent,
+								   int & opp_dif_cycle,
+								   bool & safe_with_pos_count);
     int predictOpponentReachStep( const rcsc::WorldModel & wm,
                                   const Opponent & opponent,
                                   const rcsc::Vector2D & first_ball_pos,
                                   const rcsc::Vector2D & first_ball_vel,
                                   const rcsc::AngleDeg & ball_move_angle,
                                   const rcsc::Vector2D & receive_point,
-                                  const int max_cycle );
+                                  const int max_cycle,
+								  int & opp_dif_cycle,
+								  bool & safe_with_pos_count);
+    int newpredictOpponentReachStep( const rcsc::WorldModel & wm,
+								  const Opponent & opponent,
+								  const rcsc::Vector2D & first_ball_pos,
+								  const rcsc::Vector2D & first_ball_vel,
+								  const rcsc::AngleDeg & ball_move_angle,
+								  const rcsc::Vector2D & receive_point,
+								  const int max_cycle,
+								  int & opp_dif_cycle,
+								  bool & safe_with_pos_count);
+    int newoldpredictOpponentReachStep( const rcsc::WorldModel & wm,
+    								  const Opponent & opponent,
+    								  const rcsc::Vector2D & first_ball_pos,
+    								  const rcsc::Vector2D & first_ball_vel,
+    								  const rcsc::AngleDeg & ball_move_angle,
+    								  const rcsc::Vector2D & receive_point,
+    								  const int max_cycle,
+    								  int & opp_dif_cycle,
+    								  bool & safe_with_pos_count);
+public:
+    static std::vector<SimplePredictPlayer> OppPredictGenerator(const rcsc::WorldModel & wm, int opp_unum, rcsc::Vector2D target = rcsc::Vector2D::INVALIDATED);
+
 };
 
 #endif

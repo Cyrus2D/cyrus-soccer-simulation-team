@@ -67,12 +67,14 @@ ActGen_Shoot::generate( std::vector< ActionStatePair > * result,
     }
 
 
-    AbstractPlayerObject::Cont opponents = state.getPlayers( new OpponentOrUnknownPlayerPredicate( wm ) );
+    AbstractPlayerCont opponents
+        = state.getPlayerCont( new OpponentOrUnknownPlayerPredicate( wm ) );
 
-    if ( ! FieldAnalyzer::can_shoot_from( holder->unum() == wm.self().unum(),
-                                          holder->pos(),
-                                          opponents,
-                                          VALID_PLAYER_THRESHOLD ) )
+    double open_angle = FieldAnalyzer::can_shoot_from( holder->unum() == wm.self().unum(),
+                                                       holder->pos(),
+                                                       opponents,
+                                                       VALID_PLAYER_THRESHOLD );
+    if ( open_angle == 0.0)
     {
         //
         // failure
@@ -100,13 +102,15 @@ ActGen_Shoot::generate( std::vector< ActionStatePair > * result,
 
     PredictState::ConstPtr result_state( new PredictState( state,
                                                            shoot_spend_time,
-                                                           ServerParam::i().theirTeamGoalPos() ) );
+                                                           ServerParam::i().theirTeamGoalPos(),
+                                                           open_angle) );
 
     CooperativeAction::Ptr action( new Shoot( holder->unum(),
                                               ServerParam::i().theirTeamGoalPos(),
                                               ServerParam::i().ballSpeedMax(),
                                               shoot_spend_time,
                                               1,
+                                              open_angle,
                                               "shoot" ) );
 
     result->push_back( ActionStatePair( action, result_state ) );

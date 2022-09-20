@@ -44,7 +44,7 @@ private:
     ActionGenerator::ConstPtr M_action_generator;
 
 public:
-
+    static int player_port;
     SamplePlayer();
 
     virtual
@@ -72,8 +72,6 @@ protected:
     virtual
     void handleActionEnd();
 
-    virtual
-    void handleInitMessage();
     virtual
     void handleServerParam();
     virtual

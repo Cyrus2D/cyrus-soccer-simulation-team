@@ -44,6 +44,7 @@ Shoot::Shoot( const int shooter,
               const double & ball_speed,
               const int duration_step,
               const int kick_count,
+              const double shoot_open_angle,
               const char * description )
     : CooperativeAction( CooperativeAction::Shoot,
                          shooter,
@@ -57,6 +58,7 @@ Shoot::Shoot( const int shooter,
     setTurnCount( 0 );
     setDashCount( 0 );
     setFinalAction( true );
+    setShootOpenAngle(shoot_open_angle);
 }
 
 }

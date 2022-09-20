@@ -49,13 +49,22 @@ class WorldModel;
 class TackleGenerator {
 public:
 
+    enum TackleType{
+        tackle_other,
+        tackle_pass,
+        tackle_out,
+        tackle_shoot
+    };
+
     struct TackleResult {
         rcsc::AngleDeg tackle_angle_; //!< global angle
         rcsc::Vector2D ball_vel_; //!< result ball velocity
         double ball_speed_;
         rcsc::AngleDeg ball_move_angle_;
         double score_;
-
+        TackleType type;
+        int pass_unum;
+        rcsc::Vector2D pass_target;
         TackleResult();
         TackleResult( const rcsc::AngleDeg & angle,
                       const rcsc::Vector2D & vel );
@@ -105,17 +114,37 @@ private:
 
     void calculate( const rcsc::WorldModel & wm );
     double evaluate( const rcsc::WorldModel & wm,
-                     const TackleResult & result );
+                     TackleResult & result );
 
     int predictOpponentsReachStep( const rcsc::WorldModel & wm,
                                    const rcsc::Vector2D & first_ball_pos,
                                    const rcsc::Vector2D & first_ball_vel,
-                                   const rcsc::AngleDeg & ball_move_angle );
+                                   const rcsc::AngleDeg & ball_move_angle,
+                                   int & opp,
+                                   int & opp_dif);
     int predictOpponentReachStep( const rcsc::AbstractPlayerObject * opponent,
                                   const rcsc::Vector2D & first_ball_pos,
                                   const rcsc::Vector2D & first_ball_vel,
                                   const rcsc::AngleDeg & ball_move_angle,
-                                  const int max_cycle );
+                                  const int max_cycle,
+                                  int & opp_dif );
+
+    int predictTeammatesReachStep( const rcsc::WorldModel & wm,
+                                   const rcsc::Vector2D & first_ball_pos,
+                                   const rcsc::Vector2D & first_ball_vel,
+                                   const rcsc::AngleDeg & ball_move_angle,
+                                   int & tm,
+                                   int & tm_dif);
+    int predictTeammateReachStep( const rcsc::AbstractPlayerObject * opponent,
+                                  const rcsc::Vector2D & first_ball_pos,
+                                  const rcsc::Vector2D & first_ball_vel,
+                                  const rcsc::AngleDeg & ball_move_angle,
+                                  const int max_cycle,
+                                  int & tm_dif );
+    int predictSelfReachStep( const rcsc::WorldModel & wm,
+                                                const rcsc::Vector2D & first_ball_pos,
+                                                const rcsc::Vector2D & first_ball_vel,
+                                                const rcsc::AngleDeg & ball_move_angle);
 
 };
 

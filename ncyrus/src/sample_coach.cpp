@@ -30,12 +30,10 @@
 
 #include "sample_coach.h"
 
-#include "sample_freeform_message.h"
-
 #include <rcsc/coach/coach_command.h>
 #include <rcsc/coach/coach_config.h>
 #include <rcsc/coach/coach_debug_client.h>
-#include <rcsc/common/abstract_client.h>
+#include <rcsc/common/basic_client.h>
 #include <rcsc/common/logger.h>
 #include <rcsc/common/player_param.h>
 #include <rcsc/common/server_param.h>
@@ -45,8 +43,11 @@
 #include <rcsc/param/param_map.h>
 #include <rcsc/param/cmd_line_parser.h>
 
-#include <rcsc/coach/coach_world_model.h>
+#include <rcsc/coach/global_world_model.h>
 
+static bool first6subcycle=false;
+static bool second6subcycle=false;
+static bool third6subcycle=false;
 #include <cstdio>
 #include <vector>
 #include <algorithm>
@@ -60,27 +61,27 @@ using namespace rcsc;
 
 
 struct RealSpeedMaxCmp
-    : public std::binary_function< const PlayerType *,
-                                   const PlayerType *,
-                                   bool > {
+        : public std::binary_function< const PlayerType *,
+        const PlayerType *,
+        bool > {
 
     result_type operator()( first_argument_type lhs,
                             second_argument_type rhs ) const
-      {
-          if ( std::fabs( lhs->realSpeedMax() - rhs->realSpeedMax() ) < 0.005 )
-          {
-              return lhs->cyclesToReachMaxSpeed() < rhs->cyclesToReachMaxSpeed();
-          }
+    {
+        if ( std::fabs( lhs->realSpeedMax() - rhs->realSpeedMax() ) < 0.005 )
+        {
+            return lhs->cyclesToReachMaxSpeed() < rhs->cyclesToReachMaxSpeed();
+        }
 
-          return lhs->realSpeedMax() > rhs->realSpeedMax();
-      }
+        return lhs->realSpeedMax() > rhs->realSpeedMax();
+    }
 
 };
 
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 SampleCoach::SampleCoach()
     : CoachAgent()
 {
@@ -88,40 +89,40 @@ SampleCoach::SampleCoach()
     // register audio memory & say message parsers
     //
 
-    std::shared_ptr< AudioMemory > audio_memory( new AudioMemory );
+    boost::shared_ptr< AudioMemory > audio_memory( new AudioMemory );
 
     M_worldmodel.setAudioMemory( audio_memory );
 
-    addSayMessageParser( new BallMessageParser( audio_memory ) );
-    addSayMessageParser( new PassMessageParser( audio_memory ) );
-    addSayMessageParser( new InterceptMessageParser( audio_memory ) );
-    addSayMessageParser( new GoalieMessageParser( audio_memory ) );
-    addSayMessageParser( new GoalieAndPlayerMessageParser( audio_memory ) );
-    addSayMessageParser( new OffsideLineMessageParser( audio_memory ) );
-    addSayMessageParser( new DefenseLineMessageParser( audio_memory ) );
-    addSayMessageParser( new WaitRequestMessageParser( audio_memory ) );
-    addSayMessageParser( new PassRequestMessageParser( audio_memory ) );
-    addSayMessageParser( new DribbleMessageParser( audio_memory ) );
-    addSayMessageParser( new BallGoalieMessageParser( audio_memory ) );
-    addSayMessageParser( new OnePlayerMessageParser( audio_memory ) );
-    addSayMessageParser( new TwoPlayerMessageParser( audio_memory ) );
-    addSayMessageParser( new ThreePlayerMessageParser( audio_memory ) );
-    addSayMessageParser( new SelfMessageParser( audio_memory ) );
-    addSayMessageParser( new TeammateMessageParser( audio_memory ) );
-    addSayMessageParser( new OpponentMessageParser( audio_memory ) );
-    addSayMessageParser( new BallPlayerMessageParser( audio_memory ) );
-    addSayMessageParser( new StaminaMessageParser( audio_memory ) );
-    addSayMessageParser( new RecoveryMessageParser( audio_memory ) );
+    addSayMessageParser( SayMessageParser::Ptr( new BallMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new PassMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new InterceptMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new GoalieMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new GoalieAndPlayerMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new OffsideLineMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new DefenseLineMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new WaitRequestMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new PassRequestMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new DribbleMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new BallGoalieMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new OnePlayerMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new TwoPlayerMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new SelfMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new TeammateMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new OpponentMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new BallPlayerMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new StaminaMessageParser( audio_memory ) ) );
+    addSayMessageParser( SayMessageParser::Ptr( new RecoveryMessageParser( audio_memory ) ) );
 
-    // addSayMessageParser( new FreeMessageParser< 9 >( audio_memory ) );
-    // addSayMessageParser( new FreeMessageParser< 8 >( audio_memory ) );
-    // addSayMessageParser( new FreeMessageParser< 7 >( audio_memory ) );
-    // addSayMessageParser( new FreeMessageParser< 6 >( audio_memory ) );
-    // addSayMessageParser( new FreeMessageParser< 5 >( audio_memory ) );
-    // addSayMessageParser( new FreeMessageParser< 4 >( audio_memory ) );
-    // addSayMessageParser( new FreeMessageParser< 3 >( audio_memory ) );
-    // addSayMessageParser( new FreeMessageParser< 2 >( audio_memory ) );
-    // addSayMessageParser( new FreeMessageParser< 1 >( audio_memory ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new FreeMessageParser< 9 >( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new FreeMessageParser< 8 >( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new FreeMessageParser< 7 >( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new FreeMessageParser< 6 >( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new FreeMessageParser< 5 >( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new FreeMessageParser< 4 >( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new FreeMessageParser< 3 >( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new FreeMessageParser< 2 >( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new FreeMessageParser< 1 >( audio_memory ) ) );
 
     //
     //
@@ -137,7 +138,7 @@ SampleCoach::SampleCoach()
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 SampleCoach::~SampleCoach()
 {
 
@@ -156,8 +157,8 @@ SampleCoach::initImpl( CmdLineParser & cmd_parser )
     ParamMap my_params;
     if ( cmd_parser.count( "help" ) )
     {
-       my_params.printHelp( std::cout );
-       return false;
+        my_params.printHelp( std::cout );
+        return false;
     }
     cmd_parser.parse( my_params );
 #endif
@@ -196,7 +197,10 @@ SampleCoach::initImpl( CmdLineParser & cmd_parser )
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
+static int ballin1 = 0;
+static int ballin2 = 0;
+static int ballin3 = 0;
 void
 SampleCoach::actionImpl()
 {
@@ -216,17 +220,7 @@ SampleCoach::actionImpl()
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
-void
-SampleCoach::handleInitMessage()
-{
-
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
-*/
+ */
 void
 SampleCoach::handleServerParam()
 {
@@ -236,7 +230,7 @@ SampleCoach::handleServerParam()
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 void
 SampleCoach::handlePlayerParam()
 {
@@ -246,7 +240,7 @@ SampleCoach::handlePlayerParam()
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 void
 SampleCoach::handlePlayerType()
 {
@@ -256,7 +250,7 @@ SampleCoach::handlePlayerType()
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 void
 SampleCoach::doSubstitute()
 {
@@ -280,12 +274,69 @@ SampleCoach::doSubstitute()
 
         return;
     }
+    //	if ( world().time().cycle() > 0
+    //			&& world().gameMode().type() != GameMode::PlayOn
+    //			&& ! world().gameMode().isPenaltyKickMode() )
+    //	{
+    //		int types[18];
+    //		for(int i = 0;i<18;i++){
+    //			types[i] = i;
+    //		}
+    //		for ( std::vector< const GlobalPlayerObject * >::const_iterator
+    //				it = world().teammates().begin(),
+    //				end = world().teammates().end();
+    //				it != end;
+    //				++it )
+    //		{
+    //			types[(*it)->type()] = 0;
+    //		}
+    //		int typess[3];
+    //		for(int i = 0,j=0;i<18;i++){
+    //			if(types[i]!=0&&j<4){
+    //				typess[j++] = i;
+    //				types[i] = 0;
+    //			}
+    //			if(j>3)
+    //				break;
+    //		}
+
+    //        if (world().time().cycle()>=1500 && !first6subcycle){
+    //			first6subcycle = true;
+    //			if(ballin1 > ballin2 && ballin1 > ballin3){
+    //                doChangePlayerType(5,typess[0]);
+    //                doChangePlayerType(8,typess[1]);
+    //			}
+    //			else if(ballin2 > ballin1 && ballin2 > ballin3){
+    //				doChangePlayerType(5,typess[0]);
+    //                doChangePlayerType(8,typess[1]);
+    //			}else{
+    //				doChangePlayerType(5,typess[0]);
+    //                doChangePlayerType(8,typess[1]);
+    //			}
+    //			return;
+    //		}
+    //		else if (world().time().cycle()>=5000 && !third6subcycle){
+    //			third6subcycle = true;
+    //			if(ballin1 > ballin2 && ballin1 > ballin3){
+    //                doChangePlayerType(5,typess[3]);
+    //			}
+    //			else if(ballin2 > ballin1 && ballin2 > ballin3){
+    //				doChangePlayerType(5,typess[3]);
+    //			}else{
+    //				doChangePlayerType(5,typess[3]);
+    //			}
+    //			return ;
+    //		}
+
+    //    doSubstituteTiredPlayers();
+    return;
 }
+
 
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 void
 SampleCoach::doFirstSubstitute()
 {
@@ -367,16 +418,70 @@ SampleCoach::doFirstSubstitute()
     ordered_unum.push_back( 8 );  // defensive half
 #else
     // wing player has priority
-    ordered_unum.push_back( 11 ); // center forward
-    ordered_unum.push_back( 2 );  // center back
-    ordered_unum.push_back( 3 );  // center back
-    ordered_unum.push_back( 10 ); // side half
-    ordered_unum.push_back( 9 );  // side half
-    ordered_unum.push_back( 6 );  // center half
-    ordered_unum.push_back( 4 );  // side back
-    ordered_unum.push_back( 5 );  // side back
-    ordered_unum.push_back( 7 );  // defensive half
-    ordered_unum.push_back( 8 );  // defensive half
+
+
+    std::string name;
+    if(world().ourSide() == SideID::LEFT){
+        name = world().teamNameRight();
+    }else{
+        name = world().teamNameLeft();
+    }
+    bool isHelios = false;
+    bool isFRA = false;
+
+    if( (name.find("F") != std::string::npos || name.find("f") != std::string::npos)
+            && (name.find("R") != std::string::npos || name.find("r") != std::string::npos)
+            && (name.find("A") != std::string::npos || name.find("a") != std::string::npos)
+            && (name.find("U") != std::string::npos || name.find("u") != std::string::npos)
+            && (name.find("N") != std::string::npos || name.find("n") != std::string::npos) ){
+        isFRA = true;
+    }
+    if( (name.find("H") != std::string::npos || name.find("h") != std::string::npos)
+            && (name.find("L") != std::string::npos || name.find("l") != std::string::npos)
+            && (name.find("I") != std::string::npos || name.find("i") != std::string::npos)
+            && (name.find("O") != std::string::npos || name.find("o") != std::string::npos)
+            && (name.find("S") != std::string::npos || name.find("s") != std::string::npos) ){
+        isHelios = true;
+    }
+    if( isFRA){
+        ordered_unum.push_back( 9 );  // side half
+        ordered_unum.push_back( 8 );  // center back
+        ordered_unum.push_back( 11 ); // side half
+        ordered_unum.push_back( 10 );  // side back
+        ordered_unum.push_back( 5 ); // center forward
+        ordered_unum.push_back( 7 );  // center back
+        ordered_unum.push_back( 6 );  // side back
+        ordered_unum.push_back( 3 );  // defensive half
+        ordered_unum.push_back( 2 );  // defensive half
+        ordered_unum.push_back( 4 );  // center half
+    }else if(isHelios)
+    {
+        ordered_unum.push_back( 10 );  // side half
+        ordered_unum.push_back( 2 );  // center back
+        ordered_unum.push_back( 11 ); // side half
+        ordered_unum.push_back( 5 );  // side back
+        ordered_unum.push_back( 3 );  // center back
+        ordered_unum.push_back( 4 );  // side back
+        ordered_unum.push_back( 7 );  // defensive half
+        ordered_unum.push_back( 8 );  // defensive half
+        ordered_unum.push_back( 6 );  // center half
+        ordered_unum.push_back( 9 ); // center forward
+    }
+    else
+    {
+        ordered_unum.push_back( 9 );  // side half
+        ordered_unum.push_back( 2 );  // center back
+        ordered_unum.push_back( 11 ); // side half
+        ordered_unum.push_back( 5 );  // side back
+        ordered_unum.push_back( 10 ); // center forward
+        ordered_unum.push_back( 3 );  // center back
+        ordered_unum.push_back( 4 );  // side back
+        ordered_unum.push_back( 7 );  // defensive half
+        ordered_unum.push_back( 8 );  // defensive half
+        ordered_unum.push_back( 6 );  // center half
+    }
+
+
 #endif
 
 
@@ -413,7 +518,7 @@ SampleCoach::doFirstSubstitute()
           unum != ordered_unum.end();
           ++unum )
     {
-        const CoachPlayerObject * p = world().teammate( *unum );
+        const GlobalPlayerObject * p = world().teammate( *unum );
         if ( ! p )
         {
             std::cerr << config().teamName() << " coach: "
@@ -425,7 +530,15 @@ SampleCoach::doFirstSubstitute()
             continue;
         }
 
-        int type = getFastestType( candidates );
+        int type;
+        if( (*unum) == 5 ){
+            type = getStaminaType( candidates );
+        }
+        else if( (*unum) == 11 && false){
+            type = getKickerType( candidates );
+        }else{
+            type = getFastestType( candidates );
+        }
         if ( type != Hetero_Unknown )
         {
             substituteTo( *unum, type );
@@ -436,7 +549,7 @@ SampleCoach::doFirstSubstitute()
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 void
 SampleCoach::doSubstituteTiredPlayers()
 {
@@ -453,42 +566,20 @@ SampleCoach::doSubstituteTiredPlayers()
     //
     // check game time
     //
-    const int half_time = SP.actualHalfTime();
-    const int normal_time = half_time * SP.nrNormalHalfs();
+    //    const int half_time = SP.actualHalfTime();
+    //    const int normal_time = half_time * SP.nrNormalHalfs();
 
-    if ( world().time().cycle() < normal_time - 500
-         //|| world().time().cycle() <= half_time + 1
-         //|| world().gameMode().type() == GameMode::KickOff_
-         )
-    {
-        return;
-    }
+    ////    if ( world().time().cycle() < normal_time - 500
+    ////         //|| world().time().cycle() <= half_time + 1
+    ////         //|| world().gameMode().type() == GameMode::KickOff_
+    ////         )
+    ////    {
+    ////        return;
+    ////    }
 
     dlog.addText( Logger::TEAM,
                   __FILE__": consider to substitute tired teammates." );
 
-    //
-    // create candidate teamamte
-    //
-    std::vector< int > tired_teammate_unum;
-
-    for ( CoachPlayerObject::Cont::const_iterator t = world().teammates().begin(),
-              end = world().teammates().end();
-          t != end;
-          ++t )
-    {
-        if ( (*t)->recovery() < ServerParam::i().recoverInit() - 0.002 )
-        {
-            tired_teammate_unum.push_back( (*t)->unum() );
-        }
-    }
-
-    if ( tired_teammate_unum.empty() )
-    {
-        dlog.addText( Logger::TEAM,
-                      __FILE__": no tired teammates." );
-        return;
-    }
 
     //
     // create candidate player type
@@ -496,8 +587,8 @@ SampleCoach::doSubstituteTiredPlayers()
     PlayerTypePtrCont candidates;
 
     for ( std::vector< int >::const_iterator
-              id = world().availablePlayerTypeId().begin(),
-              end = world().availablePlayerTypeId().end();
+          id = world().availablePlayerTypeId().begin(),
+          end = world().availablePlayerTypeId().end();
           id != end;
           ++id )
     {
@@ -516,23 +607,31 @@ SampleCoach::doSubstituteTiredPlayers()
     //
     // try substitution
     //
-
-
-    for ( std::vector< int >::iterator unum = tired_teammate_unum.begin();
-          unum != tired_teammate_unum.end();
-          ++unum )
-    {
+    static bool sub1 = false;
+    static bool sub2 = false;
+    if(world().time().cycle() > 1500 && !sub1){
+        sub1 = true;
         int type = getFastestType( candidates );
         if ( type != Hetero_Unknown )
         {
-            substituteTo( *unum, type );
-            if ( ++substitute_count >= PlayerParam::i().subsMax() )
-            {
-                // over the maximum substitution
-                break;
-            }
+            substituteTo( 5, type );
+        }
+        type = getFastestType( candidates );
+        if ( type != Hetero_Unknown )
+        {
+            substituteTo( 7, type );
         }
     }
+    if(world().time().cycle() > 4500 && !sub2){
+        sub2 = true;
+        int type = getFastestType( candidates );
+        if ( type != Hetero_Unknown )
+        {
+            substituteTo( 5, type );
+        }
+    }
+
+
 }
 
 /*-------------------------------------------------------------------*/
@@ -546,7 +645,7 @@ SampleCoach::substituteTo( const int unum,
     if ( world().time().cycle() > 0
          && world().ourSubstituteCount() >= PlayerParam::i().subsMax() )
     {
-        std::cerr << "***Warning*** "
+        std::cout << "***Warning*** "
                   << config().teamName() << " coach: over the substitution max."
                   << " cannot change the player " << unum
                   << " to type " << type
@@ -555,12 +654,12 @@ SampleCoach::substituteTo( const int unum,
     }
 
     std::vector< int >::const_iterator
-        it = std::find( world().availablePlayerTypeId().begin(),
-                        world().availablePlayerTypeId().end(),
-                        type );
+            it = std::find( world().availablePlayerTypeId().begin(),
+                            world().availablePlayerTypeId().end(),
+                            type );
     if ( it == world().availablePlayerTypeId().end() )
     {
-        std::cerr << "***ERROR*** "
+        std::cout << "***ERROR*** "
                   << config().teamName() << " coach: "
                   << " cannot change the player " << unum
                   << " to type " << type
@@ -593,14 +692,14 @@ SampleCoach::getFastestType( PlayerTypePtrCont & candidates )
                candidates.end(),
                RealSpeedMaxCmp() );
 
-//     std::cerr << "getFastestType candidate = ";
-//     for ( PlayerTypePtrCont::iterator it = candidates.begin();
-//           it != candidates.end();
-//           ++it )
-//     {
-//         std::cerr << (*it)->id() << ' ';
-//     }
-//     std::cerr << std::endl;
+    //     std::cerr << "getFastestType candidate = ";
+    //     for ( PlayerTypePtrCont::iterator it = candidates.begin();
+    //           it != candidates.end();
+    //           ++it )
+    //     {
+    //         std::cerr << (*it)->id() << ' ';
+    //     }
+    //     std::cerr << std::endl;
 
     PlayerTypePtrCont::iterator best_type = candidates.end();
     double max_speed = 0.0;
@@ -643,10 +742,104 @@ SampleCoach::getFastestType( PlayerTypePtrCont & candidates )
     return Hetero_Unknown;
 }
 
+int
+SampleCoach::getStaminaType( PlayerTypePtrCont & candidates )
+{
+    if ( candidates.empty() )
+    {
+        return Hetero_Unknown;
+    }
+
+    // sort by max speed
+    std::sort( candidates.begin(),
+               candidates.end(),
+               RealSpeedMaxCmp() );
+
+    //     std::cerr << "getFastestType candidate = ";
+    //     for ( PlayerTypePtrCont::iterator it = candidates.begin();
+    //           it != candidates.end();
+    //           ++it )
+    //     {
+    //         std::cerr << (*it)->id() << ' ';
+    //     }
+    //     std::cerr << std::endl;
+
+    PlayerTypePtrCont::iterator best_type = candidates.end();
+    double kick_speed = 0.0;
+    for ( PlayerTypePtrCont::iterator it = candidates.begin();
+          it != candidates.end();
+          ++it )
+    {
+        double p_kick_speed = (*it)->staminaIncMax() * (*it)->realSpeedMax();
+
+        if ( p_kick_speed
+             > kick_speed )
+        {
+            best_type = it;
+            kick_speed = p_kick_speed;
+        }
+    }
+
+    if ( best_type != candidates.end() )
+    {
+        int id = (*best_type)->id();
+        candidates.erase( best_type );
+        return id;
+    }
+
+    return Hetero_Unknown;
+}
+int
+SampleCoach::getKickerType( PlayerTypePtrCont & candidates )
+{
+    if ( candidates.empty() )
+    {
+        return Hetero_Unknown;
+    }
+
+    // sort by max speed
+    std::sort( candidates.begin(),
+               candidates.end(),
+               RealSpeedMaxCmp() );
+
+    //     std::cerr << "getFastestType candidate = ";
+    //     for ( PlayerTypePtrCont::iterator it = candidates.begin();
+    //           it != candidates.end();
+    //           ++it )
+    //     {
+    //         std::cerr << (*it)->id() << ' ';
+    //     }
+    //     std::cerr << std::endl;
+
+    PlayerTypePtrCont::iterator best_type = candidates.end();
+    double kick_speed = 0.0;
+    for ( PlayerTypePtrCont::iterator it = candidates.begin();
+          it != candidates.end();
+          ++it )
+    {
+        double p_kick_speed = (*it)->kickableArea() * (*it)->kickRand();
+
+        if ( p_kick_speed
+             > kick_speed )
+        {
+            best_type = it;
+            kick_speed = p_kick_speed;
+        }
+    }
+
+    if ( best_type != candidates.end() )
+    {
+        int id = (*best_type)->id();
+        candidates.erase( best_type );
+        return id;
+    }
+
+    return Hetero_Unknown;
+}
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 void
 SampleCoach::sayPlayerTypes()
 {
@@ -655,7 +848,7 @@ SampleCoach::sayPlayerTypes()
       "(player_types (1 0) (2 1) (3 2) (4 3) (5 4) (6 5) (7 6) (8 -1) (9 0) (10 1) (11 2))"
       ->
       (say (freeform "(player_type ...)"))
-    */
+         */
 
     static GameTime s_last_send_time( 0, 0 );
 
@@ -691,27 +884,11 @@ SampleCoach::sayPlayerTypes()
         return;
     }
 
-    std::shared_ptr< FreeformMessage > ptr( new OpponentPlayerTypeMessage( M_opponent_player_types[0],
-                                                                           M_opponent_player_types[1],
-                                                                           M_opponent_player_types[2],
-                                                                           M_opponent_player_types[3],
-                                                                           M_opponent_player_types[4],
-                                                                           M_opponent_player_types[5],
-                                                                           M_opponent_player_types[6],
-                                                                           M_opponent_player_types[7],
-                                                                           M_opponent_player_types[8],
-                                                                           M_opponent_player_types[9],
-                                                                           M_opponent_player_types[10] ) );
-
-    this->addFreeformMessage( ptr );
-
-    s_last_send_time = world().time();
-
-
     std::string msg;
     msg.reserve( 128 );
 
     msg = "(player_types ";
+
     for ( int unum = 1; unum <= 11; ++unum )
     {
         char buf[8];
@@ -719,7 +896,12 @@ SampleCoach::sayPlayerTypes()
                   unum, M_opponent_player_types[unum - 1] );
         msg += buf;
     }
-    msg += ')';
+
+    msg += ")";
+
+    doSayFreeform( msg );
+
+    s_last_send_time = world().time();
 
     std::cout << config().teamName()
               << " coach: "
@@ -731,7 +913,7 @@ SampleCoach::sayPlayerTypes()
 /*-------------------------------------------------------------------*/
 /*!
 
-*/
+ */
 void
 SampleCoach::sendTeamGraphic()
 {

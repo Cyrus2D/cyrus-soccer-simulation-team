@@ -69,13 +69,21 @@ protected:
     virtual
     void actionImpl();
 
-
-    virtual
-    void handleInitMessage();
+    /*!
+      this method is automatically called just after receiving server_param message.
+     */
     virtual
     void handleServerParam();
+
+    /*!
+      this method is automatically called just after receiving player_param message.
+     */
     virtual
     void handlePlayerParam();
+
+    /*!
+      this method is automatically called just after receiving player_type message.
+     */
     virtual
     void handlePlayerType();
 
@@ -90,6 +98,8 @@ private:
                        const int type );
 
     int getFastestType( PlayerTypePtrCont & candidates );
+    int getKickerType( PlayerTypePtrCont & candidates );
+    int getStaminaType( PlayerTypePtrCont & candidates );
 
     void sayPlayerTypes();
 

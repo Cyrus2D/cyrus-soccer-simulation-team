@@ -36,7 +36,9 @@
 #include "field_analyzer.h"
 #include "predict_state.h"
 #include "pass_checker.h"
+#include "strategy.h"
 
+#include <rcsc/player/intercept_table.h>
 #include <rcsc/action/kick_table.h>
 #include <rcsc/player/world_model.h>
 #include <rcsc/player/player_predicate.h>
@@ -47,6 +49,7 @@
 #include <rcsc/common/logger.h>
 #include <rcsc/timer.h>
 #include <rcsc/math_util.h>
+#include <rcsc/action/body_smart_kick.h>
 
 #include <algorithm>
 
@@ -81,11 +84,14 @@ FieldAnalyzer::instance()
 
  */
 double
-FieldAnalyzer::estimate_virtual_dash_distance( const rcsc::AbstractPlayerObject * player )
+FieldAnalyzer::estimate_virtual_dash_distance( const rcsc::AbstractPlayerObject * player , int max_effective_pos_count)
 {
-    const int pos_count = std::min( 10, // Magic Number
+    int pos_count = std::min( 18, // Magic Number
                                     std::min( player->seenPosCount(),
                                               player->posCount() ) );
+    if (max_effective_pos_count != -1){
+        pos_count = std::min(pos_count, max_effective_pos_count);
+    }
     const double max_speed = player->playerTypePtr()->realSpeedMax() * 0.8; // Magic Number
 
     double d = 0.0;
@@ -382,6 +388,7 @@ FieldAnalyzer::predict_player_reach_cycle( const AbstractPlayerObject * player,
 /*!
 
  */
+int Body_SmartKick::M_kick_table[36][30] = {};
 int
 FieldAnalyzer::predict_kick_count( const WorldModel & wm,
                                    const AbstractPlayerObject * kicker,
@@ -397,6 +404,7 @@ FieldAnalyzer::predict_kick_count( const WorldModel & wm,
     if ( kicker->unum() == wm.self().unum()
          && wm.self().isKickable() )
     {
+
         Vector2D max_vel = KickTable::calc_max_velocity( ball_move_angle,
                                                          wm.self().kickRate(),
                                                          wm.ball().vel() );
@@ -405,7 +413,7 @@ FieldAnalyzer::predict_kick_count( const WorldModel & wm,
             return 1;
         }
     }
-
+//    return std::min(3,Body_SmartKick::get_kick_count(wm, first_ball_speed, ball_move_angle));
     if ( first_ball_speed > 2.5 )
     {
         return 3;
@@ -557,16 +565,16 @@ struct Player {
 /*!
 
  */
-bool
+double
 FieldAnalyzer::can_shoot_from( const bool is_self,
                                const Vector2D & pos,
-                               const AbstractPlayerObject::Cont & opponents,
+                               const AbstractPlayerCont & opponents,
                                const int valid_opponent_threshold )
 {
     static const double SHOOT_DIST_THR2 = std::pow( 17.0, 2 );
     //static const double SHOOT_ANGLE_THRESHOLD = 20.0;
     static const double SHOOT_ANGLE_THRESHOLD = ( is_self
-                                                  ? 20.0
+                                                  ? 15.0
                                                   : 15.0 );
     static const double OPPONENT_DIST_THR2 = std::pow( 20.0, 2 );
 
@@ -597,9 +605,9 @@ FieldAnalyzer::can_shoot_from( const bool is_self,
     std::vector< Player > opponent_candidates;
     opponent_candidates.reserve( opponents.size() );
 
-    for ( AbstractPlayerObject::Cont::const_iterator o = opponents.begin(),
-              end = opponents.end();
-          o != end;
+    const AbstractPlayerCont::const_iterator o_end = opponents.end();
+    for ( AbstractPlayerCont::const_iterator o = opponents.begin();
+          o != o_end;
           ++o )
     {
         if ( (*o)->posCount() > valid_opponent_threshold )
@@ -693,7 +701,7 @@ FieldAnalyzer::can_shoot_from( const bool is_self,
                       max_angle_diff );
 #endif
 
-    return max_angle_diff >= SHOOT_ANGLE_THRESHOLD;
+    return (max_angle_diff >= SHOOT_ANGLE_THRESHOLD?max_angle_diff:0);
 }
 
 /*-------------------------------------------------------------------*/
@@ -702,7 +710,7 @@ FieldAnalyzer::can_shoot_from( const bool is_self,
  */
 bool
 FieldAnalyzer::opponent_can_shoot_from( const Vector2D & pos,
-                                        const AbstractPlayerObject::Cont & teammates,
+                                        const AbstractPlayerCont & teammates,
                                         const int valid_teammate_threshold,
                                         const double shoot_dist_threshold,
                                         const double shoot_angle_threshold,
@@ -759,9 +767,9 @@ FieldAnalyzer::opponent_can_shoot_from( const Vector2D & pos,
     std::vector< Player > teammate_candidates;
     teammate_candidates.reserve( teammates.size() );
 
-    for ( AbstractPlayerObject::Cont::const_iterator t = teammates.begin(),
-              end = teammates.end();
-          t != end;
+    const AbstractPlayerCont::const_iterator t_end = teammates.end();
+    for ( AbstractPlayerCont::const_iterator t = teammates.begin();
+          t != t_end;
           ++t )
     {
         if ( (*t)->posCount() > valid_teammate_threshold )
@@ -902,41 +910,41 @@ FieldAnalyzer::opponent_can_shoot_from( const Vector2D & pos,
 /*!
 
  */
-// double
-// FieldAnalyzer::get_dist_player_nearest_to_point( const Vector2D & point,
-//                                                  const PlayerCont & players,
-//                                                  const int count_thr )
-// {
-//     double min_dist2 = 65535.0;
+double
+FieldAnalyzer::get_dist_player_nearest_to_point( const Vector2D & point,
+                                                 const PlayerCont & players,
+                                                 const int count_thr )
+{
+    double min_dist2 = 65535.0;
 
-//     const PlayerCont::const_iterator end = players.end();
-//     for ( PlayerCont::const_iterator it = players.begin();
-//           it != end;
-//           ++it )
-//     {
-//         if ( (*it).isGhost() )
-//         {
-//             continue;
-//         }
+    const PlayerCont::const_iterator end = players.end();
+    for ( PlayerCont::const_iterator it = players.begin();
+          it != end;
+          ++it )
+    {
+        if ( (*it).isGhost() )
+        {
+            continue;
+        }
 
-//         if ( count_thr != -1 )
-//         {
-//             if ( (*it).posCount() > count_thr )
-//             {
-//                 continue;
-//             }
-//         }
+        if ( count_thr != -1 )
+        {
+            if ( (*it).posCount() > count_thr )
+            {
+                continue;
+            }
+        }
 
-//         double d2 = (*it).pos().dist2( point );
+        double d2 = (*it).pos().dist2( point );
 
-//         if ( d2 < min_dist2 )
-//         {
-//             min_dist2 = d2;
-//         }
-//     }
+        if ( d2 < min_dist2 )
+        {
+            min_dist2 = d2;
+        }
+    }
 
-//     return std::sqrt( min_dist2 );
-// }
+    return std::sqrt( min_dist2 );
+}
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -1045,7 +1053,8 @@ FieldAnalyzer::get_pass_count( const PredictState & state,
 
 
     int pass_count = 0;
-    for ( PredictPlayerObject::Cont::const_iterator it = state.ourPlayers().begin(),
+    for ( PredictPlayerPtrCont::const_iterator
+              it = state.ourPlayers().begin(),
               end = state.ourPlayers().end();
           it != end;
           ++it )
@@ -1167,7 +1176,8 @@ FieldAnalyzer::get_blocker( const WorldModel & wm,
 
     const AngleDeg attack_angle = ( base_pos - opponent_pos ).th();
 
-    for ( AbstractPlayerObject::Cont::const_iterator t = wm.ourPlayers().begin(),
+    for ( AbstractPlayerCont::const_iterator
+              t = wm.ourPlayers().begin(),
               end = wm.ourPlayers().end();
           t != end;
           ++t )
@@ -1216,7 +1226,7 @@ FieldAnalyzer::update( const WorldModel & wm )
     {
         return;
     }
-
+    updateAntiOffenseState(wm);
 #ifdef DEBUG_PRINT
     Timer timer;
 #endif
@@ -1232,6 +1242,66 @@ FieldAnalyzer::update( const WorldModel & wm )
 
 }
 
+void
+FieldAnalyzer::updateAntiOffenseState(const rcsc::WorldModel &wm)
+{
+    dlog.addText( Logger::TEAM, "FieldAnalyzer::updateAntiOffenseState() started");
+    M_is_anti_offense_state = false;
+    int self_min = wm.interceptTable()->selfReachCycle();
+    int tm_min = wm.interceptTable()->teammateReachCycle();
+    tm_min = std::min(tm_min, self_min);
+    int opp_min = wm.interceptTable()->opponentReachCycle();
+    if ( opp_min <= tm_min ){
+        dlog.addText( Logger::TEAM, "FieldAnalyzer::updateAntiOffenseState() return, oppmin < tmmin");
+        return;
+    }
+
+    double sum_position_x = 0;
+    double sum_formation_x = 0;
+    double player_count = 0;
+    for (int t = 1; t <= 11; t++){
+        const rcsc::AbstractPlayerObject * tm = wm.ourPlayer(t);
+        if (tm == nullptr || tm->unum() < 1)
+            continue;
+        if (Strategy::i().tm_Line(t) == Strategy::PostLine::golie
+            || Strategy::i().tm_Line(t) == Strategy::PostLine::back)
+            continue;
+        sum_position_x += tm->pos().x;
+        sum_formation_x += Strategy::i().getPosition(t).x;
+        player_count += 1.0;
+    }
+    Vector2D ball_pos = wm.ball().inertiaPoint(tm_min);
+    int opp_after_ball = 0;
+    for (int o = 1; o <= 11; o++){
+        const rcsc::AbstractPlayerObject * opp = wm.theirPlayer(o);
+        if (opp == nullptr || opp->unum() < 1)
+            continue;
+        if ( ball_pos.x < opp->pos().x )
+            opp_after_ball += 1;
+    }
+    if (player_count <= 0){
+        dlog.addText( Logger::TEAM, "FieldAnalyzer::updateAntiOffenseState() player_count=0");
+        return;
+    }
+
+    sum_position_x /= player_count;
+    sum_formation_x /= player_count;
+    if (sum_position_x + 15.0 < sum_formation_x
+        && opp_after_ball <= 6)
+        M_is_anti_offense_state = true;
+    dlog.addText( Logger::TEAM, "AntiOffenseState: %s posx %.1f forx %.1f opp %d",
+                  M_is_anti_offense_state ? "true" : "false",
+                  sum_position_x,
+                  sum_formation_x,
+                  opp_after_ball);
+    if ( M_is_anti_offense_state ){
+        dlog.addCircle(Logger::TEAM, 0.0, 35.0, 2.0, 0, 0, 255);
+    }
+}
+
+bool FieldAnalyzer::isAntiOffenseState(){
+    return M_is_anti_offense_state;
+}
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -1249,8 +1319,8 @@ FieldAnalyzer::updateVoronoiDiagram( const WorldModel & wm )
 
     const SideID our = wm.ourSide();
 
-    for ( AbstractPlayerObject::Cont::const_iterator p = wm.allPlayers().begin(),
-              end = wm.allPlayers().end();
+    const AbstractPlayerCont::const_iterator end = wm.allPlayers().end();
+    for ( AbstractPlayerCont::const_iterator p = wm.allPlayers().begin();
           p != end;
           ++p )
     {
@@ -1316,4 +1386,192 @@ FieldAnalyzer::writeDebugLog()
                           "#0000ff" );
         }
     }
+}
+
+bool FieldAnalyzer::isRazi(const rcsc::WorldModel & wm){
+    std::string name = wm.opponentTeamName();
+    if( (name.find("R") != std::string::npos || name.find("r") != std::string::npos)
+            && (name.find("A") != std::string::npos || name.find("s") != std::string::npos)
+            && (name.find("Z") != std::string::npos || name.find("z") != std::string::npos)
+            && (name.find("I") != std::string::npos || name.find("i") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+
+bool FieldAnalyzer::isKN2C(const rcsc::WorldModel & wm){
+    std::string name = wm.opponentTeamName();
+    if( (name.find("K") != std::string::npos || name.find("k") != std::string::npos)
+            && (name.find("K") != std::string::npos || name.find("k") != std::string::npos)
+            && (name.find("N") != std::string::npos || name.find("n") != std::string::npos)
+            && (name.find("C") != std::string::npos || name.find("c") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+bool FieldAnalyzer::isNexus(const rcsc::WorldModel & wm){
+    std::string name = wm.opponentTeamName();
+    if( (name.find("N") != std::string::npos || name.find("n") != std::string::npos)
+            && (name.find("E") != std::string::npos || name.find("e") != std::string::npos)
+            && (name.find("X") != std::string::npos || name.find("x") != std::string::npos)
+            && (name.find("U") != std::string::npos || name.find("u") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+bool FieldAnalyzer::isMiracle(const rcsc::WorldModel & wm){
+    std::string name = wm.opponentTeamName();
+    if( (name.find("M") != std::string::npos || name.find("m") != std::string::npos)
+            && (name.find("I") != std::string::npos || name.find("i") != std::string::npos)
+            && (name.find("R") != std::string::npos || name.find("r") != std::string::npos)
+            && (name.find("C") != std::string::npos || name.find("c") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+bool FieldAnalyzer::isMT(const rcsc::WorldModel & wm){
+    std::string name = wm.opponentTeamName();
+    if( (name.find("M") != std::string::npos || name.find("m") != std::string::npos)
+            && (name.find("T") != std::string::npos || name.find("t") != std::string::npos)
+            && (name.find("2") != std::string::npos || name.find("2") != std::string::npos)
+            && (name.find("0") != std::string::npos || name.find("0") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+bool FieldAnalyzer::isHFUT(const rcsc::WorldModel & wm){
+    std::string name = wm.opponentTeamName();
+    if( (name.find("H") != std::string::npos || name.find("h") != std::string::npos)
+            && (name.find("F") != std::string::npos || name.find("f") != std::string::npos)
+            && (name.find("U") != std::string::npos || name.find("u") != std::string::npos)
+            && (name.find("T") != std::string::npos || name.find("t") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+bool FieldAnalyzer::isHelius(const rcsc::WorldModel & wm){
+    std::string name = wm.opponentTeamName();
+    if( (name.find("H") != std::string::npos || name.find("h") != std::string::npos)
+            && (name.find("E") != std::string::npos || name.find("e") != std::string::npos)
+            && (name.find("L") != std::string::npos || name.find("l") != std::string::npos)
+            && (name.find("S") != std::string::npos || name.find("s") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+
+bool FieldAnalyzer::isFRA(const rcsc::WorldModel & wm){
+    std::string name = wm.opponentTeamName();
+    if( (name.find("F") != std::string::npos || name.find("f") != std::string::npos)
+            && (name.find("R") != std::string::npos || name.find("r") != std::string::npos)
+            && (name.find("U") != std::string::npos || name.find("u") != std::string::npos)
+            && (name.find("N") != std::string::npos || name.find("n") != std::string::npos)
+            && (name.find("A") != std::string::npos || name.find("a") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+bool FieldAnalyzer::isNamira(const rcsc::WorldModel & wm){
+    std::string name = wm.opponentTeamName();
+    if( (name.find("N") != std::string::npos || name.find("n") != std::string::npos)
+            && (name.find("A") != std::string::npos || name.find("a") != std::string::npos)
+            && (name.find("M") != std::string::npos || name.find("m") != std::string::npos)
+            && (name.find("I") != std::string::npos || name.find("i") != std::string::npos)
+            && (name.find("R") != std::string::npos || name.find("r") != std::string::npos)
+            && (name.find("A") != std::string::npos || name.find("a") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+bool FieldAnalyzer::isOxsy(const rcsc::WorldModel & wm){
+    std::string name = wm.opponentTeamName();
+    if( (name.find("O") != std::string::npos || name.find("o") != std::string::npos)
+            && (name.find("X") != std::string::npos || name.find("x") != std::string::npos)
+            && (name.find("Y") != std::string::npos || name.find("y") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+bool FieldAnalyzer::isYushan(const rcsc::WorldModel & wm){
+    std::string name = wm.opponentTeamName();
+    if( (name.find("Y") != std::string::npos || name.find("y") != std::string::npos)
+            && (name.find("U") != std::string::npos || name.find("u") != std::string::npos)
+            && (name.find("S") != std::string::npos || name.find("s") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+bool FieldAnalyzer::isIT(const rcsc::WorldModel & wm){
+    std::string name = wm.opponentTeamName();
+    if( (name.find("I") != std::string::npos || name.find("i") != std::string::npos)
+            && (name.find("T") != std::string::npos || name.find("t") != std::string::npos)
+            && (name.find("N") != std::string::npos || name.find("n") != std::string::npos)
+            && (name.find("D") != std::string::npos || name.find("d") != std::string::npos)
+            && (name.find("A") != std::string::npos || name.find("a") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+
+bool FieldAnalyzer::isGLD(const WorldModel &wm)
+{
+    std::string name = wm.opponentTeamName();
+    if( (name.find("F") != std::string::npos || name.find("f") != std::string::npos)
+            && (name.find("R") != std::string::npos || name.find("r") != std::string::npos)
+            && (name.find("A") != std::string::npos || name.find("a") != std::string::npos)
+            && (name.find("C") != std::string::npos || name.find("c") != std::string::npos)
+            && (name.find("T") != std::string::npos || name.find("t") != std::string::npos)
+            && (name.find("A") != std::string::npos || name.find("a") != std::string::npos)
+            && (name.find("L") != std::string::npos || name.find("l") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+
+bool FieldAnalyzer::isPers(const rcsc::WorldModel &wm)
+{
+    std::string name = wm.opponentTeamName();
+    if( (name.find("P") != std::string::npos || name.find("p") != std::string::npos)
+        && (name.find("E") != std::string::npos || name.find("e") != std::string::npos)
+        && (name.find("R") != std::string::npos || name.find("r") != std::string::npos)
+        && (name.find("S") != std::string::npos || name.find("s") != std::string::npos)
+        && (name.find("L") != std::string::npos || name.find("l") != std::string::npos)
+        && (name.find("I") != std::string::npos || name.find("i") != std::string::npos)){
+        return true;
+    }
+    return false;
+}
+
+bool FieldAnalyzer::isCYRUS(const rcsc::WorldModel & wm){
+    std::string name = wm.opponentTeamName();
+    if( (name.find("C") != std::string::npos || name.find("c") != std::string::npos)
+            && (name.find("Y") != std::string::npos || name.find("y") != std::string::npos)
+            && (name.find("R") != std::string::npos || name.find("r") != std::string::npos)
+            && (name.find("U") != std::string::npos || name.find("u") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+
+bool FieldAnalyzer::isJyo(const rcsc::WorldModel &wm) {
+    std::string name = wm.opponentTeamName();
+    if( (name.find("J") != std::string::npos || name.find("j") != std::string::npos)
+        && (name.find("Y") != std::string::npos || name.find("y") != std::string::npos)
+        && (name.find("O") != std::string::npos || name.find("o") != std::string::npos)
+        && (name.find("S") != std::string::npos || name.find("s") != std::string::npos) ){
+        return true;
+    }
+    return false;
+}
+
+bool FieldAnalyzer::isAlice(const rcsc::WorldModel &wm) {
+    std::string name = wm.opponentTeamName();
+    if( (name.find("A") != std::string::npos || name.find("a") != std::string::npos)
+        && (name.find("L") != std::string::npos || name.find("l") != std::string::npos)
+           && (name.find("I") != std::string::npos || name.find("i") != std::string::npos)
+        && (name.find("C") != std::string::npos || name.find("c") != std::string::npos)
+        && (name.find("E") != std::string::npos || name.find("e") != std::string::npos) ){
+        return true;
+    }
+    return false;
 }

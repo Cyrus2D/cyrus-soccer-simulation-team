@@ -55,7 +55,7 @@
 
 // #define DEBUG_PREDICT_OPPONENT_REACH_STEP
 // #define DEBUG_PREDICT_OPPONENT_REACH_STEP_LEVEL2
-
+#define MY_DEBUG
 
 using namespace rcsc;
 
@@ -68,68 +68,68 @@ const int ANGLE_DIVS = 40;
 
  */
 struct DeflectingEvaluator {
-    static const double not_shoot_ball_eval;
+    constexpr static const double not_shoot_ball_eval = 10000;
 
     double operator()( const WorldModel & wm,
                        TackleGenerator::TackleResult & result ) const
-      {
-          double eval = 0.0;
+    {
+        double eval = 0.0;
 
-          if ( ! FieldAnalyzer::is_ball_moving_to_our_goal( wm.ball().pos(),
-                                                            result.ball_vel_,
-                                                            2.0 ) )
-          {
-              eval += not_shoot_ball_eval;
-          }
+        if ( ! FieldAnalyzer::is_ball_moving_to_our_goal( wm.ball().pos(),
+                                                          result.ball_vel_,
+                                                          2.0 ) )
+        {
+            eval += not_shoot_ball_eval;
+        }
 
-          Vector2D final_ball_pos = inertia_final_point( wm.ball().pos(),
-                                                         result.ball_vel_,
-                                                         ServerParam::i().ballDecay() );
+        Vector2D final_ball_pos = inertia_final_point( wm.ball().pos(),
+                                                       result.ball_vel_,
+                                                       ServerParam::i().ballDecay() );
 
-          if ( result.ball_vel_.x < 0.0
-               && wm.ball().pos().x > ServerParam::i().ourTeamGoalLineX() + 0.5 )
-          {
-              //const double goal_half_width = ServerParam::i().goalHalfWidth();
-              const double pitch_half_width = ServerParam::i().pitchHalfWidth();
-              const double goal_line_x = ServerParam::i().ourTeamGoalLineX();
-              const Vector2D corner_plus_post( goal_line_x, +pitch_half_width );
-              const Vector2D corner_minus_post( goal_line_x, -pitch_half_width );
+        if ( result.ball_vel_.x < 0.0
+             && wm.ball().pos().x > ServerParam::i().ourTeamGoalLineX() + 0.5 )
+        {
+            //const double goal_half_width = ServerParam::i().goalHalfWidth();
+            const double pitch_half_width = ServerParam::i().pitchHalfWidth();
+            const double goal_line_x = ServerParam::i().ourTeamGoalLineX();
+            const Vector2D corner_plus_post( goal_line_x, +pitch_half_width );
+            const Vector2D corner_minus_post( goal_line_x, -pitch_half_width );
 
-              const Line2D goal_line( corner_plus_post, corner_minus_post );
+            const Line2D goal_line( corner_plus_post, corner_minus_post );
 
-              const Segment2D ball_segment( wm.ball().pos(), final_ball_pos );
-              Vector2D cross_point = ball_segment.intersection( goal_line );
-              if ( cross_point.isValid() )
-              {
-                  eval += 1000.0;
+            const Segment2D ball_segment( wm.ball().pos(), final_ball_pos );
+            Vector2D cross_point = ball_segment.intersection( goal_line );
+            if ( cross_point.isValid() )
+            {
+                eval += 1000.0;
 
-                  double c = std::min( std::fabs( cross_point.y ),
-                                       ServerParam::i().pitchHalfWidth() );
-                  //if ( c > goal_half_width
-                  //     && ( cross_point.y * wm.self().pos().y >= 0.0
-                  //          && c > wm.self().pos().absY() ) )
-                  {
-                      eval += c;
-                  }
-              }
-          }
-          else
-          {
-              if ( final_ball_pos.x > ServerParam::i().ourTeamGoalLineX() + 5.0 )
-              {
-                  eval += 1000.0;
-              }
+                double c = std::min( std::fabs( cross_point.y ),
+                                     ServerParam::i().pitchHalfWidth() );
+                //if ( c > goal_half_width
+                //     && ( cross_point.y * wm.self().pos().y >= 0.0
+                //          && c > wm.self().pos().absY() ) )
+                {
+                    eval += c;
+                }
+            }
+        }
+        else
+        {
+            if ( final_ball_pos.x > ServerParam::i().ourTeamGoalLineX() + 5.0 )
+            {
+                eval += 1000.0;
+            }
 
-              eval += sign( wm.ball().pos().y ) * result.ball_vel_.y;
-          }
+            eval += sign( wm.ball().pos().y ) * result.ball_vel_.y;
+        }
 
-          return eval;
-      }
+        return eval;
+    }
 };
 
-const double DeflectingEvaluator::not_shoot_ball_eval = 10000.0;
-
 }
+
+
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -210,6 +210,7 @@ TackleGenerator::generate( const WorldModel & wm )
 {
     static GameTime s_update_time( 0, 0 );
 
+    dlog.addText(Logger::CLEAR,"in gennnnnnnnnnnn");
     if ( s_update_time == wm.time() )
     {
         // dlog.addText( Logger::CLEAR,
@@ -222,9 +223,9 @@ TackleGenerator::generate( const WorldModel & wm )
 
     if ( wm.self().isKickable() )
     {
-        // dlog.addText( Logger::CLEAR,
-        //               __FILE__": kickable" );
-        return;
+        //         dlog.addText( Logger::CLEAR,
+        //                       __FILE__": kickable" );
+                return;
     }
 
     if ( wm.self().tackleProbability() < 0.001
@@ -247,14 +248,13 @@ TackleGenerator::generate( const WorldModel & wm )
     {
         // dlog.addText( Logger::CLEAR,
         //               __FILE__": illegal playmode " );
-        return;
+                return;
     }
 
 
 #ifdef DEBUG_PROFILE
-    Timer timer;
+    MSecTimer timer;
 #endif
-
     calculate( wm );
 
 #ifdef DEBUG_PROFILE
@@ -269,6 +269,7 @@ TackleGenerator::generate( const WorldModel & wm )
 /*!
 
  */
+static int can_num = 0;
 void
 TackleGenerator::calculate( const WorldModel & wm )
 {
@@ -286,8 +287,8 @@ TackleGenerator::calculate( const WorldModel & wm )
 
     const AngleDeg ball_rel_angle = wm.ball().angleFromSelf() - wm.self().body();
     const double tackle_rate
-        = SP.tacklePowerRate()
-        * ( 1.0 - 0.5 * ball_rel_angle.abs() / 180.0 );
+            = SP.tacklePowerRate()
+            * ( 1.0 - 0.5 * ball_rel_angle.abs() / 180.0 );
 
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::CLEAR,
@@ -332,26 +333,33 @@ TackleGenerator::calculate( const WorldModel & wm )
         }
 
         M_candidates.push_back( TackleResult( angle, vel ) );
-#ifdef DEBUG_PRINT
         const TackleResult & result = M_candidates.back();
+#ifdef MY_DEBUG
         dlog.addText( Logger::CLEAR,
                       "%d: angle=%.1f(dir=%.1f), result: vel(%.2f %.2f ) speed=%.2f move_angle=%.1f",
                       a,
                       result.tackle_angle_.degree(), dir.degree(),
                       result.ball_vel_.x, result.ball_vel_.y,
                       result.ball_speed_, result.ball_move_angle_.degree() );
+
 #endif
     }
 
 
     M_best_result.clear();
 
+    can_num = 0;
     const Container::iterator end = M_candidates.end();
     for ( Container::iterator it = M_candidates.begin();
           it != end;
           ++it )
     {
+        Vector2D ball_end_point = inertia_final_point( wm.ball().pos(),
+                                                       it->ball_vel_,
+                                                       SP.ballDecay() );
+
         it->score_ = evaluate( wm, *it );
+        can_num++;
 
 #ifdef DEBUG_PRINT
         Vector2D ball_end_point = inertia_final_point( wm.ball().pos(),
@@ -398,9 +406,10 @@ TackleGenerator::calculate( const WorldModel & wm )
 /*!
 
  */
+
 double
 TackleGenerator::evaluate( const WorldModel & wm,
-                           const TackleResult & result )
+                           TackleResult & result )
 {
     const ServerParam & SP = ServerParam::i();
 
@@ -420,180 +429,256 @@ TackleGenerator::evaluate( const WorldModel & wm,
                   ball_end_point.x, ball_end_point.y );
 #endif
 
-    //
-    // moving to their goal
-    //
-    if ( ball_end_point.x > SP.pitchHalfLength()
-         && wm.ball().pos().dist2( SP.theirTeamGoalPos() ) < std::pow( 20.0, 2 ) )
-    {
-        const Line2D goal_line( Vector2D( SP.pitchHalfLength(), 10.0 ),
-                                Vector2D( SP.pitchHalfLength(), -10.0 ) );
-        const Vector2D intersect = ball_line.intersection( goal_line );
-        if ( intersect.isValid()
-             && intersect.absY() < SP.goalHalfWidth() )
-        {
-            double shoot_score = 1000000.0;
-            double speed_rate = 1.0 - std::exp( - std::pow( ball_speed, 2 )
-                                                / ( 2.0 * std::pow( SP.ballSpeedMax()*0.5, 2 ) ) );
-            double y_rate = std::exp( - std::pow( intersect.absY(), 2 )
-                                      / ( 2.0 * std::pow( SP.goalWidth(), 2 ) ) );
-            shoot_score *= speed_rate;
-            shoot_score *= y_rate;
-#ifdef DEBUG_PRINT
-            dlog.addText( Logger::CLEAR,
-                          "__ shoot %f (speed_rate=%f y_rate=%f)",
-                          shoot_score, speed_rate, y_rate );
-#endif
-            return shoot_score;
-        }
-    }
 
-    //
-    // moving to our goal
-    //
-    if ( ball_end_point.x < -SP.pitchHalfLength() )
-    {
-        const Line2D goal_line( Vector2D( -SP.pitchHalfLength(), 10.0 ),
-                                Vector2D( -SP.pitchHalfLength(), -10.0 ) );
-        const Vector2D intersect = ball_line.intersection( goal_line );
-        if ( intersect.isValid()
-             && intersect.absY() < SP.goalHalfWidth() + 1.0 )
-        {
-            double shoot_score = 0.0;
-            double y_penalty = ( -10000.0
-                                 * std::exp( - std::pow( intersect.absY() - SP.goalHalfWidth(), 2 )
-                                             / ( 2.0 * std::pow( SP.goalHalfWidth(), 2 ) ) ) );
-            double speed_bonus = ( +10000.0
-                                   * std::exp( - std::pow( ball_speed, 2 )
-                                               / ( 2.0 * std::pow( SP.ballSpeedMax()*0.5, 2 ) ) ) );
-            shoot_score = y_penalty + speed_bonus;
-#ifdef DEBUG_PRINT
-            dlog.addText( Logger::CLEAR,
-                          "__ in our goal %f (y_pealty=%f speed_bonus=%f)",
-                          shoot_score, y_penalty, speed_bonus );
-#endif
-            return shoot_score;
-        }
-    }
 
     //
     // normal evaluation
     //
 
+    int tm = 0,opp = 0;
+    int tm_dif = 5,opp_dif = 5;
+    bool use_dif = false;
     int opponent_reach_step = predictOpponentsReachStep( wm,
                                                          wm.ball().pos(),
                                                          result.ball_vel_,
-                                                         ball_move_angle );
-    Vector2D final_point = inertia_n_step_point( wm.ball().pos(),
-                                                 result.ball_vel_,
-                                                 opponent_reach_step,
-                                                 SP.ballDecay() );
-    {
-        Segment2D final_segment( wm.ball().pos(), final_point );
-        Rect2D pitch = Rect2D::from_center( 0.0, 0.0, SP.pitchLength(), SP.pitchWidth() );
-        Vector2D intersection;
-        int n = pitch.intersection( final_segment, &intersection, NULL );
-        if ( n > 0 )
-        {
-            final_point = intersection;
-        }
+                                                         ball_move_angle,
+                                                         opp,
+                                                         opp_dif);
+    int teammate_reach_step = predictTeammatesReachStep( wm,
+                                                         wm.ball().pos(),
+                                                         result.ball_vel_,
+                                                         ball_move_angle,
+                                                         tm,
+                                                         tm_dif);
+    int self_reach_step = predictSelfReachStep( wm,
+                                                wm.ball().pos(),
+                                                result.ball_vel_,
+                                                ball_move_angle);
+
+    if( teammate_reach_step > self_reach_step){
+        teammate_reach_step = self_reach_step;
+        tm = wm.self().unum();
+        tm_dif = 0;
     }
 
-#if 1
-
-    AngleDeg our_goal_angle = ( SP.ourTeamGoalPos() - wm.ball().pos() ).th();
-    double our_goal_angle_diff = ( our_goal_angle - ball_move_angle ).abs();
-    double our_goal_angle_rate = 1.0 - std::exp( - std::pow( our_goal_angle_diff, 2 )
-                                                 / ( 2.0 * std::pow( 40.0, 2 ) ) );
-
-    double y_rate = ( final_point.absY() > SP.pitchHalfWidth() - 0.1
-                      ? 1.0
-                      : std::exp( - std::pow( final_point.absY() - SP.pitchHalfWidth(), 2 )
-                                  / ( 2.0 * std::pow( SP.pitchHalfWidth() * 0.7, 2 ) ) ) );
-    double opp_rate = 1.0 - std::exp( - std::pow( (double)opponent_reach_step, 2 )
-                                      / ( 2.0 * std::pow( 30.0, 2 ) ) );
-
-    double score = 10000.0 * our_goal_angle_rate * y_rate * opp_rate;
-
+    /*
+     * ourgoal = -1000
+     * theirgoal = 1000
+     * out = x [0,100]
+     * team = (x + 40-dist2goal)/max*100 + 100 ->[100,200]
+     * opp = x [-200,-100]
+     *
+     * */
+    if(opponent_reach_step == 1000 && teammate_reach_step == 1000){
+        //
+        // moving to their goal
+        //
+        if ( ball_end_point.x > SP.pitchHalfLength()
+             && wm.ball().pos().dist2( SP.theirTeamGoalPos() ) < std::pow( 20.0, 2 ) )
+        {
+            const Line2D goal_line( Vector2D( SP.pitchHalfLength(), 10.0 ),
+                                    Vector2D( SP.pitchHalfLength(), -10.0 ) );
+            const Vector2D intersect = ball_line.intersection( goal_line );
+            if ( intersect.isValid()
+                 && intersect.absY() < SP.goalHalfWidth() )
+            {
+                double shoot_score = 1000.0;
+                double y_rate = 6.0 - std::abs(intersect.absY() - 6.0);
+                shoot_score *= y_rate;
+                if(use_dif)
+                    shoot_score *= opp_dif;
+#ifdef MY_DEBUG
+                dlog.addLine(Logger::CLEAR,wm.ball().pos(),ball_end_point,0,255,0);
+                char str[16];
+                snprintf( str, 16, "%d", can_num );
+                dlog.addMessage(Logger::CLEAR,ball_end_point.x,ball_end_point.y,str);
+                dlog.addText(Logger::CLEAR,"t%d: OppGoal:bmangle:%.1f, tangle:%.1f, score:%.1f, (%.1f,%.1f)",can_num,result.ball_move_angle_.degree(),result.tackle_angle_.degree(),shoot_score,ball_end_point.x,ball_end_point.y);
+#endif
+                return shoot_score;
+            }
+        }
+        //
+        // moving to our goal
+        //
+        else if ( ball_end_point.x < -SP.pitchHalfLength() - 2)
+        {
+            const Line2D goal_line( Vector2D( -SP.pitchHalfLength(), 10.0 ),
+                                    Vector2D( -SP.pitchHalfLength(), -10.0 ) );
+            const Vector2D intersect = ball_line.intersection( goal_line );
+            if ( intersect.isValid()
+                 && intersect.absY() < SP.goalHalfWidth() - 1.0 )
+            {
+                double shoot_score = -1000.0;
+#ifdef MY_DEBUG
+                dlog.addLine(Logger::CLEAR,wm.ball().pos(),ball_end_point,255,0,0);
+                char str[16];
+                snprintf( str, 16, "%d", can_num );
+                dlog.addMessage(Logger::CLEAR,ball_end_point.x,ball_end_point.y,str);
+                dlog.addText(Logger::CLEAR,"t%d: Ourgoal:bmangle:%.1f, tangle:%.1f, score:%.1f, (%.1f,%.1f)",can_num,result.ball_move_angle_.degree(),result.tackle_angle_.degree(),shoot_score,ball_end_point.x,ball_end_point.y);
+#endif
+                return shoot_score;
+            }
+            if ( intersect.isValid()
+                 && intersect.absY() < SP.goalHalfWidth() + 5.0 )
+            {
+                double shoot_score = -500.0;
+#ifdef MY_DEBUG
+                dlog.addLine(Logger::CLEAR,wm.ball().pos(),ball_end_point,255,30,0);
+                char str[16];
+                snprintf( str, 16, "%d", can_num );
+                dlog.addMessage(Logger::CLEAR,ball_end_point.x,ball_end_point.y,str);
+                dlog.addText(Logger::CLEAR,"t%d: Ourgoal:bmangle:%.1f, tangle:%.1f, score:%.1f, (%.1f,%.1f)",can_num,result.ball_move_angle_.degree(),result.tackle_angle_.degree(),shoot_score,ball_end_point.x,ball_end_point.y);
+#endif
+                return shoot_score;
+            }
+        }
+        if ( ball_end_point.x < -SP.pitchHalfLength() - 1)
+        {
+            const Line2D goal_line( Vector2D( -SP.pitchHalfLength(), 10.0 ),
+                                    Vector2D( -SP.pitchHalfLength(), -10.0 ) );
+            const Vector2D intersect = ball_line.intersection( goal_line );
+            if ( intersect.isValid()
+                 && intersect.absY() < SP.goalHalfWidth() - 2.0 )
+            {
+                double shoot_score = -1000.0;
+#ifdef MY_DEBUG
+                dlog.addLine(Logger::CLEAR,wm.ball().pos(),ball_end_point,255,0,0);
+                char str[16];
+                snprintf( str, 16, "%d", can_num );
+                dlog.addMessage(Logger::CLEAR,ball_end_point.x,ball_end_point.y,str);
+                dlog.addText(Logger::CLEAR,"t%d: Ourgoal:bmangle:%.1f, tangle:%.1f, score:%.1f, (%.1f,%.1f)",can_num,result.ball_move_angle_.degree(),result.tackle_angle_.degree(),shoot_score,ball_end_point.x,ball_end_point.y);
+#endif
+                return shoot_score;
+            }
+            if ( intersect.isValid()
+                 && intersect.absY() < SP.goalHalfWidth() + 5.0 )
+            {
+                double shoot_score = -450.0;
+#ifdef MY_DEBUG
+                dlog.addLine(Logger::CLEAR,wm.ball().pos(),ball_end_point,255,30,0);
+                char str[16];
+                snprintf( str, 16, "%d", can_num );
+                dlog.addMessage(Logger::CLEAR,ball_end_point.x,ball_end_point.y,str);
+                dlog.addText(Logger::CLEAR,"t%d: Ourgoal:bmangle:%.1f, tangle:%.1f, score:%.1f, (%.1f,%.1f)",can_num,result.ball_move_angle_.degree(),result.tackle_angle_.degree(),shoot_score,ball_end_point.x,ball_end_point.y);
+#endif
+                return shoot_score;
+            }
+        }
+        if ( ball_end_point.x < -SP.pitchHalfLength())
+        {
+            const Line2D goal_line( Vector2D( -SP.pitchHalfLength(), 10.0 ),
+                                    Vector2D( -SP.pitchHalfLength(), -10.0 ) );
+            const Vector2D intersect = ball_line.intersection( goal_line );
+            if ( intersect.isValid()
+                 && intersect.absY() < SP.goalHalfWidth() - 2.0 )
+            {
+                double shoot_score = -1000.0;
+#ifdef MY_DEBUG
+                dlog.addLine(Logger::CLEAR,wm.ball().pos(),ball_end_point,255,0,0);
+                char str[16];
+                snprintf( str, 16, "%d", can_num );
+                dlog.addMessage(Logger::CLEAR,ball_end_point.x,ball_end_point.y,str);
+                dlog.addText(Logger::CLEAR,"t%d: Ourgoal:bmangle:%.1f, tangle:%.1f, score:%.1f, (%.1f,%.1f)",can_num,result.ball_move_angle_.degree(),result.tackle_angle_.degree(),shoot_score,ball_end_point.x,ball_end_point.y);
+#endif
+                return shoot_score;
+            }
+            if ( intersect.isValid()
+                 && intersect.absY() < SP.goalHalfWidth() + 5.0 )
+            {
+                double shoot_score = -410.0;
+#ifdef MY_DEBUG
+                dlog.addLine(Logger::CLEAR,wm.ball().pos(),ball_end_point,255,30,0);
+                char str[16];
+                snprintf( str, 16, "%d", can_num );
+                dlog.addMessage(Logger::CLEAR,ball_end_point.x,ball_end_point.y,str);
+                dlog.addText(Logger::CLEAR,"t%d: Ourgoal:bmangle:%.1f, tangle:%.1f, score:%.1f, (%.1f,%.1f)",can_num,result.ball_move_angle_.degree(),result.tackle_angle_.degree(),shoot_score,ball_end_point.x,ball_end_point.y);
+#endif
+                return shoot_score;
+            }
+        }
+        {
+            const Vector2D ball_end_point = inertia_final_point( wm.ball().pos(),
+                                                                 result.ball_vel_,
+                                                                 SP.ballDecay() );
+            if ( ball_end_point.absX() > SP.pitchHalfLength()
+                 || ball_end_point.absY() > SP.pitchHalfWidth() )
+            {
+                Rect2D pitch = Rect2D::from_center( 0.0, 0.0, SP.pitchLength(), SP.pitchWidth() );
+                Ray2D ball_ray( wm.ball().pos(), ball_move_angle );
+                Vector2D sol1, sol2;
+                int n_sol = pitch.intersection( ball_ray, &sol1, &sol2 );
+                if ( n_sol == 1 )
+                {
+                    double score = sol1.x;
+                    score += 52.5;
+                    score *= (100.0 / 105.0);
 #ifdef DEBUG_PRINT
-    dlog.addText( Logger::CLEAR,
-                  "__ goal_angle_rate=%f",
-                  our_goal_angle_rate, y_rate, score );
-    dlog.addText( Logger::CLEAR,
-                  "__ y_rate=%f",
-                  our_goal_angle_rate, y_rate, score );
-    dlog.addText( Logger::CLEAR,
-                  "__ opp_rate=%f",
-                  opp_rate );
-
-    dlog.addText( Logger::CLEAR,
-                  ">>> score=%f",
-                  score );
+                    dlog.addText( Logger::CLEAR,
+                                  "(predictOpponent) ball will be out. step=%d reach_point=(%.2f %.2f)",
+                                  first_min_step,
+                                  sol1.x, sol1.y );
 #endif
-
-    return score;
-
-#else
-
-    double x_val = ( final_point.x > SP.pitchHalfLength()
-                     ? 1.0
-                     : std::exp( - std::pow( final_point.x - SP.pitchHalfLength(), 2 )
-                                 / ( 2.0 * std::pow( SP.pitchLength() * 0.4, 2 ) ) ) );
-    double y_val = ( final_point.absY() > SP.pitchHalfWidth()
-                     ? 1.0
-                     : std::exp( - std::pow( final_point.absY() - SP.pitchHalfWidth(), 2 )
-                                 / ( 2.0 * std::pow( SP.pitchHalfWidth() * 0.7, 2 ) ) ) );
-
-
-    double opp_goal_dist = SP.theirTeamGoalPos().dist( final_point );
-    double opp_goal_dist_val = std::exp( - std::pow( opp_goal_dist, 2 )
-                                         / ( 2.0 * std::pow( 20.0, 2 ) ) );
-
-    double our_goal_dist = SP.ourTeamGoalPos().dist( final_point );
-    double our_goal_dist_rate = 1.0 - std::exp( - std::pow( our_goal_dist, 2 )
-                                                / ( 2.0 * std::pow( 20.0, 2 ) ) );
-
-
-    double opp_rate = 1.0 - std::exp( - std::pow( (double)opponent_reach_step, 2 )
-                                      / ( 2.0 * std::pow( 30.0, 2 ) ) );
-
-    double score = 0.0;
-
-    score += 1000.0 * x_val;
-#ifdef DEBUG_PRINT
-    dlog.addText( Logger::CLEAR,
-                  "__ x_val %f (%f)", 10000.0 * x_val, score );
+#ifdef MY_DEBUG
+                    dlog.addLine(Logger::CLEAR,wm.ball().pos(),ball_end_point,255,200,0);
+                    char str[16];
+                    snprintf( str, 16, "%d", can_num );
+                    dlog.addMessage(Logger::CLEAR,ball_end_point.x,ball_end_point.y,str);
+                    dlog.addText(Logger::CLEAR,"t%d: Out:bmangle:%.1f, tangle:%.1f, score:%.1f, (%.1f,%.1f)",can_num,result.ball_move_angle_.degree(),result.tackle_angle_.degree(),score,ball_end_point.x,ball_end_point.y);
 #endif
-
-    score += 1000.0 * y_val;
-#ifdef DEBUG_PRINT
-    dlog.addText( Logger::CLEAR,
-                  "__ y_val %f (%f)", 1000.0 * y_val, score );
+                    return score;
+                }
+            }
+        }
+    }
+    else if (opponent_reach_step <= teammate_reach_step){
+        Vector2D final_point = inertia_n_step_point( wm.ball().pos(),
+                                                     result.ball_vel_,
+                                                     opponent_reach_step,
+                                                     SP.ballDecay() );
+        double score = final_point.x;
+        score += 52.5;
+        score *= (100.0 / 105.5);
+        score -= 200.0;
+#ifdef MY_DEBUG
+        dlog.addLine(Logger::CLEAR,wm.ball().pos(),final_point,0,0,0);
+        char str[16];
+        snprintf( str, 16, "%d", can_num );
+        dlog.addMessage(Logger::CLEAR,final_point.x,final_point.y,str);
+        dlog.addText(Logger::CLEAR,"t%d: Opp %d:bmangle:%.1f, tangle:%.1f, score:%.1f, (%.1f,%.1f)",can_num,opp,result.ball_move_angle_.degree(),result.tackle_angle_.degree(),score,final_point.x,final_point.y);
 #endif
+        return score;
+    }else{
+        Vector2D final_point = inertia_n_step_point( wm.ball().pos(),
+                                                     result.ball_vel_,
+                                                     teammate_reach_step,
+                                                     SP.ballDecay() );
+        double score = final_point.x + std::min(0.0,40.0 - final_point.dist(Vector2D(52,0)));
+        score += 52.5;
+        score *= (100.0 / 105.5);
+        score += 100.0;
+        if(use_dif)
+            score += (10.0 * tm_dif);
+        if(use_dif)
+            score += (10.0 * opp_dif);
+        if(final_point.x < -35 && final_point.absY() < 15)
+            score -= 100;
 
-    score += 1000.0 * opp_goal_dist_val;
-#ifdef DEBUG_PRINT
-    dlog.addText( Logger::CLEAR,
-                  "__ opp_goal_dist_val %f (%f)", 1000.0 * opp_goal_dist_val, score );
+#ifdef MY_DEBUG
+        dlog.addLine(Logger::CLEAR,wm.ball().pos(),final_point,255,255,255);
+        char str[16];
+        snprintf( str, 16, "%d", can_num );
+        dlog.addMessage(Logger::CLEAR,final_point.x,final_point.y,str);
+        dlog.addText(Logger::CLEAR,"t%d: Pass to %d:bmangle:%.1f, tangle:%.1f, score:%.1f, (%.1f,%.1f)",can_num,tm,result.ball_move_angle_.degree(),result.tackle_angle_.degree(),score,final_point.x,final_point.y);
 #endif
-
-    score *= our_goal_dist_rate;
-#ifdef DEBUG_PRINT
-    dlog.addText( Logger::CLEAR,
-                  "__ our_goal_dist=%.2f rate=%f (%f)",
-                  our_goal_dist, our_goal_dist_rate, score );
-#endif
-
-    score *= opp_rate;
-#ifdef DEBUG_PRINT
-    dlog.addText( Logger::CLEAR,
-                  "__ opponent_reach_step=%d rate=%f (%f)",
-                  opponent_reach_step, opp_rate, score );
-#endif
-
-    return score;
-
-#endif
+        if(tm!=0){
+            result.type = tackle_pass;
+            result.pass_unum = tm;
+            result.pass_target = final_point;
+        }
+        return score;
+    }
+    //TODO need test and check, why 0?
+    return 0;
 }
 
 
@@ -605,7 +690,9 @@ int
 TackleGenerator::predictOpponentsReachStep( const WorldModel & wm,
                                             const Vector2D & first_ball_pos,
                                             const Vector2D & first_ball_vel,
-                                            const AngleDeg & ball_move_angle )
+                                            const AngleDeg & ball_move_angle,
+                                            int & opp,
+                                            int & opp_dif)
 {
     int first_min_step = 50;
 
@@ -635,8 +722,9 @@ TackleGenerator::predictOpponentsReachStep( const WorldModel & wm,
 #endif
 
     int min_step = first_min_step;
-    for ( AbstractPlayerObject::Cont::const_iterator o = wm.theirPlayers().begin(),
-              end = wm.theirPlayers().end();
+    for ( AbstractPlayerCont::const_iterator
+          o = wm.theirPlayers().begin(),
+          end = wm.theirPlayers().end();
           o != end;
           ++o )
     {
@@ -644,10 +732,13 @@ TackleGenerator::predictOpponentsReachStep( const WorldModel & wm,
                                              first_ball_pos,
                                              first_ball_vel,
                                              ball_move_angle,
-                                             min_step );
+                                             min_step,
+                                             opp_dif);
         if ( step < min_step )
         {
             min_step = step;
+            if((*o)->unum() > 0)
+                opp = (*o)->unum();
         }
     }
 
@@ -666,7 +757,8 @@ TackleGenerator::predictOpponentReachStep( const AbstractPlayerObject * opponent
                                            const Vector2D & first_ball_pos,
                                            const Vector2D & first_ball_vel,
                                            const AngleDeg & ball_move_angle,
-                                           const int max_cycle )
+                                           const int max_cycle,
+                                           int & opp_dif )
 {
     const ServerParam & SP = ServerParam::i();
 
@@ -715,6 +807,7 @@ TackleGenerator::predictOpponentReachStep( const AbstractPlayerObject * opponent
                           cycle,
                           target_dist );
 #endif
+            opp_dif = 0;
             return cycle;
         }
 
@@ -752,6 +845,7 @@ TackleGenerator::predictOpponentReachStep( const AbstractPlayerObject * opponent
                           opponent->pos().x, opponent->pos().y,
                           cycle, dash_dist, n_dash );
 #endif
+            opp_dif = std::min(opp_dif,n_dash+ 2 - cycle);
             continue;
         }
 
@@ -777,6 +871,319 @@ TackleGenerator::predictOpponentReachStep( const AbstractPlayerObject * opponent
         }
 
         n_step -= std::min( 3, opponent->posCount() );
+        opp_dif = std::min(opp_dif,n_step - cycle);
+        if ( n_step <= cycle )
+        {
+#ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+            dlog.addText( Logger::CLEAR,
+                          "____ opponent=%d(%.1f %.1f) step=%d(t:%d,d:%d) bpos=(%.2f %.2f) dist=%.2f dash_dist=%.2f",
+                          opponent->unum(),
+                          opponent->pos().x, opponent->pos().y,
+                          cycle, n_turn, n_dash,
+                          ball_pos.x, ball_pos.y,
+                          target_dist,
+                          dash_dist );
+#endif
+            return cycle;
+        }
+
+    }
+
+    return 1000;
+}
+
+int
+TackleGenerator::predictTeammatesReachStep( const WorldModel & wm,
+                                            const Vector2D & first_ball_pos,
+                                            const Vector2D & first_ball_vel,
+                                            const AngleDeg & ball_move_angle,
+                                            int & tm,
+                                            int & tm_dif)
+{
+    int first_min_step = 50;
+
+#if 1
+    const ServerParam & SP = ServerParam::i();
+    const Vector2D ball_end_point = inertia_final_point( first_ball_pos,
+                                                         first_ball_vel,
+                                                         SP.ballDecay() );
+    if ( ball_end_point.absX() > SP.pitchHalfLength()
+         || ball_end_point.absY() > SP.pitchHalfWidth() )
+    {
+        Rect2D pitch = Rect2D::from_center( 0.0, 0.0, SP.pitchLength(), SP.pitchWidth() );
+        Ray2D ball_ray( first_ball_pos, ball_move_angle );
+        Vector2D sol1, sol2;
+        int n_sol = pitch.intersection( ball_ray, &sol1, &sol2 );
+        if ( n_sol == 1 )
+        {
+            first_min_step = SP.ballMoveStep( first_ball_vel.r(), first_ball_pos.dist( sol1 ) );
+#ifdef DEBUG_PRINT
+            dlog.addText( Logger::CLEAR,
+                          "(predictOpponent) ball will be out. step=%d reach_point=(%.2f %.2f)",
+                          first_min_step,
+                          sol1.x, sol1.y );
+#endif
+        }
+    }
+#endif
+
+    int min_step = first_min_step;
+    for ( AbstractPlayerCont::const_iterator
+          o = wm.ourPlayers().begin(),
+          end = wm.ourPlayers().end();
+          o != end;
+          ++o )
+    {
+        if((*o)->unum() == wm.self().unum())
+            continue;
+        if((*o)->goalie())
+            continue;
+        int step = predictTeammateReachStep( *o,
+                                             first_ball_pos,
+                                             first_ball_vel,
+                                             ball_move_angle,
+                                             min_step,
+                                             tm_dif );
+        if ( step < min_step )
+        {
+            min_step = step;
+            if((*o)->unum() > 0)
+                tm = (*o)->unum();
+        }
+    }
+
+    return ( min_step == first_min_step
+             ? 1000
+             : min_step );
+}
+
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+int
+TackleGenerator::predictTeammateReachStep( const AbstractPlayerObject * teammate,
+                                           const Vector2D & first_ball_pos,
+                                           const Vector2D & first_ball_vel,
+                                           const AngleDeg & ball_move_angle,
+                                           const int max_cycle,
+                                           int & tm_dif )
+{
+    const ServerParam & SP = ServerParam::i();
+
+    const PlayerType * ptype = teammate->playerTypePtr();
+    const double teammate_speed = teammate->vel().r();
+
+    int min_cycle = FieldAnalyzer::estimate_min_reach_cycle( teammate->pos(),
+                                                             ptype->realSpeedMax(),
+                                                             first_ball_pos,
+                                                             ball_move_angle );
+    if ( min_cycle < 0 )
+    {
+        min_cycle = 5;
+    }
+
+    for ( int cycle = min_cycle; cycle < max_cycle; ++cycle )
+    {
+        Vector2D ball_pos = inertia_n_step_point( first_ball_pos,
+                                                  first_ball_vel,
+                                                  cycle,
+                                                  SP.ballDecay() );
+
+        if ( ball_pos.absX() > SP.pitchHalfLength()
+             || ball_pos.absY() > SP.pitchHalfWidth() )
+        {
+#ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+            dlog.addText( Logger::CLEAR,
+                          "__ opponent=%d(%.1f %.1f) step=%d ball is out of pitch. ",
+                          opponent->unum(),
+                          opponent->pos().x, opponent->pos().y,
+                          cycle  );
+#endif
+            return 1000;
+        }
+
+        Vector2D inertia_pos = teammate->inertiaPoint( cycle );
+        double target_dist = inertia_pos.dist( ball_pos );
+
+        if ( target_dist - ptype->kickableArea() < 0.001 )
+        {
+#ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+            dlog.addText( Logger::CLEAR,
+                          "____ opponent=%d(%.1f %.1f) step=%d already there. dist=%.1f",
+                          opponent->unum(),
+                          opponent->pos().x, opponent->pos().y,
+                          cycle,
+                          target_dist );
+#endif
+            tm_dif = 0;
+            return cycle;
+        }
+
+        double dash_dist = target_dist;
+        if ( cycle > 1 )
+        {
+            dash_dist -= ptype->kickableArea();
+            dash_dist += 0.5; // special bonus
+        }
+
+        if ( dash_dist > ptype->realSpeedMax() * cycle )
+        {
+#ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP_LEVEL2
+            dlog.addText( Logger::CLEAR,
+                          "______ opponent=%d(%.1f %.1f) cycle=%d dash_dist=%.1f reachable=%.1f",
+                          opponent->unum(),
+                          opponent->pos().x, opponent->pos().y,
+                          cycle, dash_dist, ptype->realSpeedMax()*cycle );
+#endif
+            continue;
+        }
+
+        //
+        // dash
+        //
+
+        int n_dash = ptype->cyclesToReachDistance( dash_dist );
+
+        if ( n_dash > cycle )
+        {
+            continue;
+        }
+
+        //
+        // turn
+        //
+        int n_turn = ( teammate->bodyCount() > 1
+                       ? 0
+                       : FieldAnalyzer::predict_player_turn_cycle( ptype,
+                                                                   teammate->body(),
+                                                                   teammate_speed,
+                                                                   target_dist,
+                                                                   ( ball_pos - inertia_pos ).th(),
+                                                                   ptype->kickableArea(),
+                                                                   true ) );
+
+        int n_step = ( n_turn == 0
+                       ? n_turn + n_dash
+                       : n_turn + n_dash + 1 ); // 1 step penalty for observation delay
+        if ( teammate->isTackling() )
+        {
+            n_step += 7; // Magic Number
+        }
+
+        n_step += std::min( 2, teammate->posCount() );
+
+        tm_dif = std::min(tm_dif, cycle - n_step);
+        if ( n_step <= cycle )
+        {
+#ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+            dlog.addText( Logger::CLEAR,
+                          "____ opponent=%d(%.1f %.1f) step=%d(t:%d,d:%d) bpos=(%.2f %.2f) dist=%.2f dash_dist=%.2f",
+                          opponent->unum(),
+                          opponent->pos().x, opponent->pos().y,
+                          cycle, n_turn, n_dash,
+                          ball_pos.x, ball_pos.y,
+                          target_dist,
+                          dash_dist );
+#endif
+            return cycle;
+        }
+
+    }
+
+    return 1000;
+}
+int
+TackleGenerator::predictSelfReachStep( const WorldModel & wm,
+                                       const Vector2D & first_ball_pos,
+                                       const Vector2D & first_ball_vel,
+                                       const AngleDeg & ball_move_angle)
+{
+    const ServerParam & SP = ServerParam::i();
+    const Vector2D ball_end_point = inertia_final_point( first_ball_pos,
+                                                         first_ball_vel,
+                                                         SP.ballDecay() );
+
+    const PlayerType * ptype = wm.self().playerTypePtr();
+    const double teammate_speed = wm.self().vel().r();
+
+    int min_cycle = FieldAnalyzer::estimate_min_reach_cycle( wm.self().pos(),
+                                                             ptype->realSpeedMax(),
+                                                             first_ball_pos,
+                                                             ball_move_angle );
+    if ( min_cycle < 0 )
+    {
+        min_cycle = 5;
+    }
+
+    for ( int cycle = min_cycle; cycle < 50; ++cycle )
+    {
+        Vector2D ball_pos = inertia_n_step_point( first_ball_pos,
+                                                  first_ball_vel,
+                                                  cycle,
+                                                  SP.ballDecay() );
+
+        if ( ball_pos.absX() > SP.pitchHalfLength()
+             || ball_pos.absY() > SP.pitchHalfWidth() )
+        {
+#ifdef DEBUG_PREDICT_OPPONENT_REACH_STEP
+            dlog.addText( Logger::CLEAR,
+                          "__ opponent=%d(%.1f %.1f) step=%d ball is out of pitch. ",
+                          opponent->unum(),
+                          opponent->pos().x, opponent->pos().y,
+                          cycle  );
+#endif
+            return 1000;
+        }
+
+        Vector2D inertia_pos = wm.self().inertiaPoint( cycle );
+        double target_dist = inertia_pos.dist( ball_pos );
+
+        if ( target_dist - ptype->kickableArea() < 0.001 )
+        {
+            return cycle;
+        }
+
+        double dash_dist = target_dist;
+        if ( cycle > 1 )
+        {
+            dash_dist -= ptype->kickableArea();
+            dash_dist += 0.5; // special bonus
+        }
+
+        if ( dash_dist > ptype->realSpeedMax() * cycle )
+        {
+            continue;
+        }
+
+        //
+        // dash
+        //
+
+        int n_dash = ptype->cyclesToReachDistance( dash_dist );
+
+        if ( n_dash > cycle )
+        {
+            continue;
+        }
+
+        //
+        // turn
+        //
+        int n_turn = ( wm.self().bodyCount() > 1
+                       ? 0
+                       : FieldAnalyzer::predict_player_turn_cycle( ptype,
+                                                                   wm.self().body(),
+                                                                   teammate_speed,
+                                                                   target_dist,
+                                                                   ( ball_pos - inertia_pos ).th(),
+                                                                   ptype->kickableArea(),
+                                                                   true ) );
+        int n_step = ( n_turn == 0
+                       ? n_turn + n_dash
+                       : n_turn + n_dash + 1 ); // 1 step penalty for observation delay
+        n_step += 10; // Magic Number
 
         if ( n_step <= cycle )
         {

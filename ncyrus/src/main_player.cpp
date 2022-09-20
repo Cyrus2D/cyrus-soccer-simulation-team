@@ -30,8 +30,7 @@
 
 #include "sample_player.h"
 
-#include <rcsc/common/abstract_client.h>
-#include <rcsc/param/cmd_line_parser.h>
+#include <rcsc/common/basic_client.h>
 
 #include <iostream>
 #include <cstdlib> // exit
@@ -42,7 +41,6 @@
 namespace {
 
 SamplePlayer agent;
-std::shared_ptr< rcsc::AbstractClient > client;
 
 /*-------------------------------------------------------------------*/
 void
@@ -75,16 +73,12 @@ main( int argc, char **argv )
         std::exit( EXIT_FAILURE );
     }
 
-    {
-        rcsc::CmdLineParser cmd_parser( argc, argv );
-        if ( ! agent.init( cmd_parser ) )
-        {
-            return EXIT_FAILURE;
-        }
-    }
+    rcsc::BasicClient client;
 
-    client = agent.createConsoleClient();
-    agent.setClient( client );
+    if ( ! agent.init( &client, argc, argv ) )
+    {
+        return EXIT_FAILURE;
+    }
 
     /*
       You should add your copyright message here.
@@ -107,7 +101,7 @@ main( int argc, char **argv )
               << "*****************************************************************\n"
               << std::flush;
 
-    client->run( &agent );
+    client.run( &agent );
 
     return EXIT_SUCCESS;
 }

@@ -61,6 +61,13 @@ namespace {
 double
 s_get_ball_speed_for_pass( const double & distance )
 {
+    double d = 0;
+    double v = 1.3;
+    while (d < distance){
+        v /= ServerParam::i().ballDecay();
+        d += v;
+    }
+    return v;
     if ( distance >= 20.0 )
     {
         //return 3.0;
@@ -136,11 +143,6 @@ ActGen_DirectPass::generate( std::vector< ActionStatePair > * result,
     {
         old_holder_table[i] = false;
     }
-
-#ifdef DEBUG_PRINT
-    ActionChainGraph::writeChainInfoLog( "branch cut checking: history = ",
-                                         current_wm, path, 0.0 );
-#endif
 
     for ( int c = static_cast< int >( path.size() ) - 1; c >= 0; --c )
     {
@@ -218,7 +220,8 @@ ActGen_DirectPass::generate( std::vector< ActionStatePair > * result,
     const SimplePassChecker pass_check;
     int generated_count = 0;
 
-    for ( PredictPlayerObject::Cont::const_iterator it = state.ourPlayers().begin(),
+    for ( PredictPlayerPtrCont::const_iterator
+              it = state.ourPlayers().begin(),
               end = state.ourPlayers().end();
           it != end;
           ++it )
@@ -266,49 +269,167 @@ ActGen_DirectPass::generate( std::vector< ActionStatePair > * result,
             continue;
         }
 
+        Vector2D tm_pos = (*it)->pos();
+        if( tm_pos.x > 35 && tm_pos.absY() < 20 ){
+            for(double d = 0; d <= 5; d+= 5 ){
+                for(double a = 0; a < 360; a+= 90){
+                    Vector2D rel = Vector2D::polar2vector(d,a);
+                    Vector2D target = tm_pos += rel;
+                    const double dist = ( target - holder->pos() ).r();
 
-        //
-        // check direct pass
-        //
-        const double dist = ( (*it)->pos() - holder->pos() ).r();
+                    const double ball_speed = s_get_ball_speed_for_pass( ( target - holder->pos() ).r() );
 
-        const double ball_speed = s_get_ball_speed_for_pass( ( (*it)->pos() - holder->pos() ).r() );
+                    if ( ! pass_check( state, *holder, **it, target, ball_speed ) )
+                    {
+            #ifdef DEBUG_PRINT
+                        dlog.addText( Logger::ACTION_CHAIN,
+                                      "direct: can't pass from %d to %d",
+                                      holder->unum(), (*it)->unum() );
+            #endif
+                        continue;
+                    }
 
-        if ( ! pass_check( state, *holder, **it, (**it).pos(), ball_speed ) )
-        {
 #ifdef DEBUG_PRINT
             dlog.addText( Logger::ACTION_CHAIN,
-                          "direct: can't pass from %d to %d",
+                          "direct: leadpass from %d to %d",
                           holder->unum(), (*it)->unum() );
 #endif
-            continue;
+                    const unsigned long kick_step = 2;
+
+                    const unsigned long spend_time
+                        = calc_length_geom_series( ball_speed,
+                                                   dist,
+                                                   ServerParam::i().ballDecay() )
+                        + kick_step;
+
+                    PredictState::ConstPtr result_state( new PredictState( state,
+                                                                           spend_time,
+                                                                           (*it)->unum(),
+                                                                           target ) );
+
+                    CooperativeAction::Ptr action( new Pass( holder->unum(),
+                                                             (*it)->unum(),
+                                                             target,
+                                                             ball_speed,
+                                                             spend_time,
+                                                             kick_step,
+                                                             false,
+                                                             "actgenDirect",true,0,0,0 ) );
+                    ++s_action_count;
+                    ++generated_count;
+                    action->setIndex( s_action_count );
+                    result->push_back( ActionStatePair( action, result_state ) );
+
+
+                    if(d==0){
+                        break;
+                    }
+                }
+            }
+        }else if(tm_pos.x > state.offsideLineX() - 6){
+            for(double d = 0; d <= 5; d+= 10 ){
+                for(double a = -40; a <= 40; a+= 40){
+                    Vector2D rel = Vector2D::polar2vector(d,a);
+                    Vector2D target = tm_pos += rel;
+                    const double dist = ( target - holder->pos() ).r();
+
+                    const double ball_speed = s_get_ball_speed_for_pass( ( target - holder->pos() ).r() );
+
+                    if ( ! pass_check( state, *holder, **it, target, ball_speed ) )
+                    {
+            #ifdef DEBUG_PRINT
+                        dlog.addText( Logger::ACTION_CHAIN,
+                                      "direct: can't pass from %d to %d",
+                                      holder->unum(), (*it)->unum() );
+            #endif
+                        continue;
+                    }
+#ifdef DEBUG_PRINT
+            dlog.addText( Logger::ACTION_CHAIN,
+                          "direct: thpass from %d to %d",
+                          holder->unum(), (*it)->unum() );
+#endif
+                    const unsigned long kick_step = 2;
+
+                    const unsigned long spend_time
+                        = calc_length_geom_series( ball_speed,
+                                                   dist,
+                                                   ServerParam::i().ballDecay() )
+                        + kick_step;
+
+                    PredictState::ConstPtr result_state( new PredictState( state,
+                                                                           spend_time,
+                                                                           (*it)->unum(),
+                                                                           target ) );
+
+                    CooperativeAction::Ptr action( new Pass( holder->unum(),
+                                                             (*it)->unum(),
+                                                             target,
+                                                             ball_speed,
+                                                             spend_time,
+                                                             kick_step,
+                                                             false,
+                                                             "actgenDirect",true,0,0,0 ) );
+                    ++s_action_count;
+                    ++generated_count;
+                    action->setIndex( s_action_count );
+                    result->push_back( ActionStatePair( action, result_state ) );
+
+
+                    if(d==0){
+                        break;
+                    }
+                }
+            }
+        }else{
+            //
+            // check direct pass
+            //
+            const double dist = ( (*it)->pos() - holder->pos() ).r();
+
+            const double ball_speed = s_get_ball_speed_for_pass( ( (*it)->pos() - holder->pos() ).r() );
+
+            if ( ! pass_check( state, *holder, **it, (**it).pos(), ball_speed ) )
+            {
+    #ifdef DEBUG_PRINT
+                dlog.addText( Logger::ACTION_CHAIN,
+                              "direct: can't pass from %d to %d",
+                              holder->unum(), (*it)->unum() );
+    #endif
+                continue;
+            }
+#ifdef DEBUG_PRINT
+            dlog.addText( Logger::ACTION_CHAIN,
+                          "direct: dpass from %d to %d",
+                          holder->unum(), (*it)->unum() );
+#endif
+            const unsigned long kick_step = 2;
+
+            const unsigned long spend_time
+                = calc_length_geom_series( ball_speed,
+                                           dist,
+                                           ServerParam::i().ballDecay() )
+                + kick_step;
+
+            PredictState::ConstPtr result_state( new PredictState( state,
+                                                                   spend_time,
+                                                                   (*it)->unum(),
+                                                                   (*it)->pos() ) );
+
+            CooperativeAction::Ptr action( new Pass( holder->unum(),
+                                                     (*it)->unum(),
+                                                     (*it)->pos(),
+                                                     ball_speed,
+                                                     spend_time,
+                                                     kick_step,
+                                                     false,
+                                                     "actgenDirect",true,0,0,0 ) );
+            ++s_action_count;
+            ++generated_count;
+            action->setIndex( s_action_count );
+            result->push_back( ActionStatePair( action, result_state ) );
+
         }
-
-        const unsigned long kick_step = 2;
-
-        const unsigned long spend_time
-            = calc_length_geom_series( ball_speed,
-                                       dist,
-                                       ServerParam::i().ballDecay() )
-            + kick_step;
-
-        PredictState::ConstPtr result_state( new PredictState( state,
-                                                               spend_time,
-                                                               (*it)->unum(),
-                                                               (*it)->pos() ) );
-
-        CooperativeAction::Ptr action( new Pass( holder->unum(),
-                                                 (*it)->unum(),
-                                                 (*it)->pos(),
-                                                 ball_speed,
-                                                 spend_time,
-                                                 kick_step,
-                                                 false,
-                                                 "actgenDirect" ) );
-        ++s_action_count;
-        ++generated_count;
-        action->setIndex( s_action_count );
-        result->push_back( ActionStatePair( action, result_state ) );
 
     }
 

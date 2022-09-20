@@ -109,6 +109,25 @@ PredictState::PredictState( const PredictState & rhs,
 /*!
 
  */
+
+PredictState::PredictState( const PredictState & rhs,
+                            unsigned long append_spend_time,
+                            const Vector2D & ball_pos,
+                            const double shoot_open_angle)
+    : M_world( rhs.M_world ),
+      M_spend_time( rhs.M_spend_time + append_spend_time ),
+      M_ball_holder_unum( rhs.M_ball_holder_unum ),
+      M_ball( ball_pos ),
+      M_self_unum( rhs.M_self_unum ),
+      M_our_players( rhs.M_our_players ),
+      M_our_defense_line_x( rhs.M_our_defense_line_x ),
+      M_our_offense_player_line_x( rhs.M_our_offense_player_line_x ),
+      M_shoot_open_angle(shoot_open_angle)
+{
+    updateLines();
+}
+
+
 PredictState::PredictState( const PredictState & rhs,
                             unsigned long append_spend_time,
                             const Vector2D & ball_pos )
@@ -236,17 +255,18 @@ PredictState::updateLines()
 /*!
 
  */
-AbstractPlayerObject::Cont
-PredictState::getPlayers( const PlayerPredicate * predicate ) const
+AbstractPlayerCont
+PredictState::getPlayerCont( const PlayerPredicate * predicate ) const
 {
-    AbstractPlayerObject::Cont ret;
+    AbstractPlayerCont ret;
 
     if ( ! predicate )
     {
         return ret;
     }
 
-    for ( PredictPlayerObject::Cont::const_iterator it = M_our_players.begin(),
+    for ( PredictPlayerPtrCont::const_iterator
+              it = M_our_players.begin(),
               end = M_our_players.end();
           it != end;
           ++it )
@@ -257,7 +277,8 @@ PredictState::getPlayers( const PlayerPredicate * predicate ) const
         }
     }
 
-    for ( PlayerObject::Cont::const_iterator it = M_world->opponentsFromSelf().begin(),
+    for ( PlayerPtrCont::const_iterator
+              it = M_world->opponentsFromSelf().begin(),
               end = M_world->opponentsFromSelf().end();
           it != end;
           ++it )

@@ -38,10 +38,11 @@
 
 using namespace rcsc;
 
-static const double GOALIE_PASS_EVAL_THRESHOLD = 17.5;
-static const double BACK_PASS_EVAL_THRESHOLD = 17.5;
-static const double PASS_EVAL_THRESHOLD = 14.5;
-static const double CHANCE_PASS_EVAL_THRESHOLD = 14.5;
+static double GOALIE_PASS_EVAL_THRESHOLD = 17.5;
+static double BACK_PASS_EVAL_THRESHOLD = 17.5;
+static double PASS_EVAL_THRESHOLD = 14.5;
+static double CHANCE_PASS_EVAL_THRESHOLD = 14.5;
+
 static const double PASS_RECEIVER_PREDICT_STEP = 2.5;
 
 static const double PASS_REFERENCE_SPEED = 2.5;
@@ -53,7 +54,7 @@ static const double FAR_PASS_DIST_THR = 35.0;
 
 static const long VALID_TEAMMATE_ACCURACY = 8;
 static const long VALID_OPPONENT_ACCURACY = 20;
-static const double OPPONENT_DIST_THR2 = std::pow( 5.0, 2 );
+static double OPPONENT_DIST_THR2 = std::pow( 5.0, 2 );
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -188,26 +189,31 @@ SimplePassChecker::operator()( const PredictState & state,
 
     const AngleDeg pass_angle = ( receive_point - from_pos ).th();
     const double OVER_TEAMMATE_IGNORE_DISTANCE2
-        = std::pow( pass_dist + ( receive_point.x >= +25.0 ? 2.0 : 6.0 ), 2 );
+        = std::pow( pass_dist + ( receive_point.x >= +25.0 ? 2.0 : 4.0 ), 2 );
 
     double pass_course_cone = + 360.0;
 
-    for ( PlayerObject::Cont::const_iterator o = state.opponentsFromSelf().begin(),
-              end = state.opponentsFromSelf().end();
-          o != end;
-          ++o )
+    if(receive_point.absY() < 20 && receive_point.x > 30)
+        OPPONENT_DIST_THR2 = 2*2;
+    else
+        OPPONENT_DIST_THR2 = 5*5;
+
+    const PlayerPtrCont::const_iterator o_end = state.opponentsFromSelf().end();
+    for ( PlayerPtrCont::const_iterator opp = state.opponentsFromSelf().begin();
+          opp != o_end;
+          ++opp )
     {
-        if ( (*o)->posCount() > VALID_OPPONENT_ACCURACY )
+        if ( (*opp)->posCount() > VALID_OPPONENT_ACCURACY )
         {
             continue;
         }
 
-        if ( ( (*o)->pos() - receive_point ).r2() < OPPONENT_DIST_THR2 )
+        if ( ( (*opp)->pos() - receive_point ).r2() < OPPONENT_DIST_THR2 )
         {
             return false;
         }
 
-        Vector2D opp_pos = (*o)->inertiaFinalPoint();
+        Vector2D opp_pos = (*opp)->inertiaFinalPoint();
 
         const double opp_dist2 = from_pos.dist2( opp_pos );
 
@@ -227,7 +233,7 @@ SimplePassChecker::operator()( const PredictState & state,
 
         if ( from.isSelf() )
         {
-            const double control_area = (*o)->playerTypePtr()->kickableArea();
+            const double control_area = (*opp)->playerTypePtr()->kickableArea();
             const double hide_radian = std::asin( std::min( control_area / std::sqrt( opp_dist2 ),
                                                       1.0 ) );
             angle_diff = std::max( angle_diff - AngleDeg::rad2deg( hide_radian ), 0.0 );
@@ -239,10 +245,27 @@ SimplePassChecker::operator()( const PredictState & state,
         }
     }
 
+    double NORMAL_EVAL_THRESHOLD = 20;
+    {
+        double avg_dist = pass_dist / 2.0;
+        double q = ServerParam::i().ballDecay();
+        double q_n = 1 - (avg_dist / first_ball_speed * (1.0 - q));
+        double cycle2avg;
+        if(avg_dist < first_ball_speed)
+            cycle2avg = 1;
+        else{
+            cycle2avg = std::log(q_n) / std::log(q);
+        }
+        NORMAL_EVAL_THRESHOLD = atan(cycle2avg / avg_dist) * 180.0 / 3.1415;
+    }
+    GOALIE_PASS_EVAL_THRESHOLD = NORMAL_EVAL_THRESHOLD + 2.0;
+    BACK_PASS_EVAL_THRESHOLD = NORMAL_EVAL_THRESHOLD + 2.0;
+    PASS_EVAL_THRESHOLD = NORMAL_EVAL_THRESHOLD;
+    CHANCE_PASS_EVAL_THRESHOLD = NORMAL_EVAL_THRESHOLD  - 2.5;
 
     double eval_threshold = PASS_EVAL_THRESHOLD;
 
-    if ( to.pos().x - 2.0 <= from.pos().x )
+    if ( to.pos().x - 2.0 <= from.pos().x && receive_point.x < 20.0)
     {
         eval_threshold = BACK_PASS_EVAL_THRESHOLD;
     }

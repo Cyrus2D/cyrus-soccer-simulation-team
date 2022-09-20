@@ -36,7 +36,7 @@
 #include <rcsc/game_time.h>
 #include <rcsc/types.h>
 
-#include <memory>
+#include <boost/shared_ptr.hpp>
 
 /*!
   \class CooperativeAction
@@ -45,8 +45,8 @@
 class CooperativeAction {
 public:
 
-    typedef std::shared_ptr< CooperativeAction > Ptr; //!< pointer type
-    typedef std::shared_ptr< const CooperativeAction > ConstPtr; //!< const pointer type
+    typedef boost::shared_ptr< CooperativeAction > Ptr; //!< pointer type
+    typedef boost::shared_ptr< const CooperativeAction > ConstPtr; //!< const pointer type
 
     /*!
       \enum ActionCategory
@@ -74,6 +74,8 @@ private:
     rcsc::Vector2D M_target_point; //!< action end point
 
     double M_first_ball_speed; //!< first ball speed (if necessary)
+    double M_dribble_dash_angle;
+    rcsc::Vector2D M_player_target_point;
     double M_first_turn_moment; //!< first turn moment (if necessary)
     double M_first_dash_power; //!< first dash speed (if necessary)
     rcsc::AngleDeg M_first_dash_angle; //!< first dash angle (relative to body) (if necessary)
@@ -86,13 +88,19 @@ private:
 
     bool M_final_action; //!< if this value is true, this action is the final one of action chain.
 
+    bool M_safe_with_noise;
     const char * M_description; //!< description message for debugging purpose
+    double M_body_target_angle;
+    rcsc::Vector2D M_first_kick_target;
+    int M_danger = 0;
+
 
     // not used
     CooperativeAction();
     CooperativeAction( const CooperativeAction & );
     CooperativeAction & operator=( const CooperativeAction & );
 protected:
+    rcsc::Vector2D M_intermediate_point;
 
     /*!
       \brief construct with necessary variables
@@ -102,19 +110,43 @@ protected:
       \param duration_step this action's duration step
       \param description description message (must be a literal character string)
      */
+
     CooperativeAction( const ActionCategory & category,
                        const int player_unum,
                        const rcsc::Vector2D & target_point,
                        const int duration_step,
-                       const char * description );
+                       const char * description);
+
+    CooperativeAction( const ActionCategory & category,
+                       const int player_unum,
+                       const rcsc::Vector2D & target_point,
+                       const int duration_step,
+                       const char * description,
+					   const bool safe_with_noise,
+					   const int tm_min_dif_cycle,
+					   const int opp_min_dif_cycle,
+					   double target_body_angle = 0,
+					   rcsc::Vector2D first_kick_target=rcsc::Vector2D::INVALIDATED,
+                       int danger = 0);//pass
+
+    CooperativeAction( const ActionCategory & category,
+                       const int player_unum,
+                       const rcsc::Vector2D & target_point,
+                       const int duration_step,
+                       const char * description,
+                       const int opp_min_dif,
+                       const bool safe_with_pos_count,
+                       const int danger); // drible[advanse,back]
 
     void setCategory( const ActionCategory & category );
     void setPlayerUnum( const int unum );
     void setTargetPlayerUnum( const int unum );
     void setTargetPoint( const rcsc::Vector2D & point );
-
 public:
 
+    int M_tm_min_dif_cycle;
+	int M_opp_min_dif_cycle;
+    double M_shoot_open_angle;
     /*!
       \brief virtual destructor.
      */
@@ -125,6 +157,8 @@ public:
     void setIndex( const int i ) { M_index = i; }
 
     void setFirstBallSpeed( const double & speed );
+    void setDribbleDashAngle( const double & dash_angle);
+    void setPlayerTargetPoint( const rcsc::Vector2D & player_target);
     void setFirstTurnMoment( const double & moment );
     void setFirstDashPower( const double & power );
     void setFirstDashAngle( const rcsc::AngleDeg & angle );
@@ -136,6 +170,7 @@ public:
     void setDashCount( const int count );
 
     void setFinalAction( const bool on );
+    void setShootOpenAngle(const double shoot_open_angle);
 
     void setDescription( const char * description );
 
@@ -163,6 +198,8 @@ public:
      */
     const rcsc::Vector2D & targetPoint() const { return M_target_point; }
 
+    const rcsc::Vector2D & intermediatePoint() const { return M_intermediate_point; }
+
     /*!
      */
     const double & firstBallSpeed() const { return M_first_ball_speed; }
@@ -183,6 +220,7 @@ public:
      */
     int durationStep() const { return M_duration_step; }
 
+    double shoot_open_angle() const { return M_shoot_open_angle;}
     /*!
      */
     int kickCount() const { return M_kick_count; }
@@ -195,11 +233,21 @@ public:
      */
     int dashCount() const { return M_dash_count; }
 
+    bool safeWithNoise() const { return M_safe_with_noise; }
+    int danger() const { return M_danger; }
+    rcsc::Vector2D getPlayerTargetPoint()const{
+        return M_player_target_point;
+    }
+
     /*!
      */
     bool isFinalAction() const { return M_final_action; }
 
 
+    double body_target_angle() const{ return M_body_target_angle; }
+    rcsc::Vector2D first_kick_target() const{ return M_first_kick_target; }
+
+    double dribble_dash_angle() const{ return M_dribble_dash_angle; }
 
     //
     //

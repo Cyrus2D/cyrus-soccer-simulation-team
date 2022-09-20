@@ -55,7 +55,7 @@ private:
     rcsc::VoronoiDiagram M_all_players_voronoi_diagram;
     rcsc::VoronoiDiagram M_teammates_voronoi_diagram;
     rcsc::VoronoiDiagram M_pass_voronoi_diagram;
-
+    bool M_is_anti_offense_state;
     FieldAnalyzer();
 public:
 
@@ -84,7 +84,8 @@ public:
       }
 
     void update( const rcsc::WorldModel & wm );
-
+    void updateAntiOffenseState( const rcsc::WorldModel & wm );
+    bool isAntiOffenseState();
 
 private:
 
@@ -116,7 +117,7 @@ public:
                                   const rcsc::AngleDeg & target_move_angle );
 
     static
-    double estimate_virtual_dash_distance( const rcsc::AbstractPlayerObject * player );
+    double estimate_virtual_dash_distance( const rcsc::AbstractPlayerObject * player, int max_effective_pos_count=-1 );
 
     static
     int predict_player_turn_cycle( const rcsc::PlayerType * player_type,
@@ -170,14 +171,14 @@ public:
                                                      const double field_back_offset );
 
     static
-    bool can_shoot_from( const bool is_self,
+    double can_shoot_from( const bool is_self,
                          const rcsc::Vector2D & pos,
-                         const rcsc::AbstractPlayerObject::Cont & opponents,
+                         const rcsc::AbstractPlayerCont & opponents,
                          const int valid_opponent_threshold );
 
     static
     bool opponent_can_shoot_from( const rcsc::Vector2D & pos,
-                                  const rcsc::AbstractPlayerObject::Cont & teammates,
+                                  const rcsc::AbstractPlayerCont & teammates,
                                   const int valid_teammate_threshold,
                                   const double shoot_dist_threshold = -1.0,
                                   const double shoot_angle_threshold = -1.0,
@@ -186,10 +187,10 @@ public:
                                   const bool calculate_detail = false );
 
 
-    // static
-    // double get_dist_player_nearest_to_point( const rcsc::Vector2D & point,
-    //                                          const rcsc::PlayerObject::Cont & cont,
-    //                                          const int count_thr = -1 );
+    static
+    double get_dist_player_nearest_to_point( const rcsc::Vector2D & point,
+                                             const rcsc::PlayerCont & cont,
+                                             const int count_thr = -1 );
 
     static
     rcsc::Vector2D get_our_team_near_goal_post_pos( const rcsc::Vector2D & point );
@@ -236,6 +237,24 @@ public:
     static
     bool to_be_final_action( const rcsc::WorldModel & wm );
 
+    static bool isRazi(const rcsc::WorldModel & wm);
+    static bool isKN2C(const rcsc::WorldModel & wm);
+    static bool isNexus(const rcsc::WorldModel & wm);
+    static bool isMiracle(const rcsc::WorldModel & wm);
+    static bool isMT(const rcsc::WorldModel & wm);
+    static bool isHFUT(const rcsc::WorldModel & wm);
+    static bool isHelius(const rcsc::WorldModel & wm);
+    static bool isJyo(const rcsc::WorldModel & wm);
+    static bool isFRA(const rcsc::WorldModel & wm);
+    static bool isNamira(const rcsc::WorldModel & wm);
+    static bool isOxsy(const rcsc::WorldModel & wm);
+    static bool isCYRUS(const rcsc::WorldModel & wm);
+    static bool isYushan(const rcsc::WorldModel & wm);
+    static bool isIT(const rcsc::WorldModel & wm);
+    static bool isGLD(const rcsc::WorldModel & wm);
+    static bool isPers(const rcsc::WorldModel & wm);
+    static bool isAlice(const rcsc::WorldModel & wm);
+
 private:
     static
     bool to_be_final_action( const rcsc::Vector2D & ball_pos,
@@ -264,5 +283,24 @@ FieldAnalyzer::estimate_min_reach_cycle( const rcsc::Vector2D & player_pos,
              ? -1
              : std::max( 1, static_cast< int >( std::floor( target_to_player.absY() / player_speed_max ) ) ) );
 }
+
+class SimplePredictPlayer{
+public:
+//    SimplePredictPlayer(){
+//        pos = rcsc::Vector2D::INVALIDATED;
+//        vel = rcsc::Vector2D::INVALIDATED;
+//    }
+    SimplePredictPlayer(rcsc::Vector2D _pos, rcsc::Vector2D _vel, rcsc::AngleDeg _body, double _prob){
+        pos = _pos;
+        vel = _vel;
+        body = _body;
+        prob = _prob;
+    }
+
+    rcsc::Vector2D pos;
+    rcsc::Vector2D vel;
+    rcsc::AngleDeg body;
+    double prob;
+};
 
 #endif

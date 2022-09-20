@@ -34,11 +34,14 @@
 #endif
 
 #include "body_force_shoot.h"
+#include "../data_extractor/offensive_data_extractor.h"
+#include "cooperative_action.h"
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/common/server_param.h>
 #include <rcsc/common/logger.h>
 
+#include <rcsc/action/bhv_shoot.h>
 #include <rcsc/action/body_smart_kick.h>
 #include <rcsc/action/body_kick_one_step.h>
 
@@ -48,7 +51,6 @@
 */
 Body_ForceShoot::Body_ForceShoot()
 {
-
 }
 
 /*-------------------------------------------------------------------*/
@@ -58,9 +60,18 @@ Body_ForceShoot::Body_ForceShoot()
 bool
 Body_ForceShoot::execute( rcsc::PlayerAgent * agent )
 {
+    const rcsc::WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
     rcsc::dlog.addText( rcsc::Logger::ACTION,
                         __FILE__": execute()" );
     agent->debugClient().addMessage( "ForceShoot" );
+
+    if ( rcsc::Bhv_Shoot().execute( agent ) )
+    {
+        rcsc::dlog.addText( rcsc::Logger::ACTION,
+                            __FILE__": ForceShoot -> Body_Shoot2008" );
+
+        return true;
+    }
 
     const rcsc::ServerParam & param = rcsc::ServerParam::i();
 
@@ -70,7 +81,7 @@ Body_ForceShoot::execute( rcsc::PlayerAgent * agent )
                         __FILE__": no course, force kick" );
     agent->debugClient().setTarget( target );
 
-    if ( agent->world().kickableOpponent() )
+    if ( wm.existKickableOpponent() )
     {
         if ( rcsc::Body_KickOneStep( target, param.ballSpeedMax() )
              .execute( agent ) )

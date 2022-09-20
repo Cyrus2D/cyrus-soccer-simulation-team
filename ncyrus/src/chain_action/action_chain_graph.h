@@ -3,7 +3,7 @@
 /*!
   \file action_chain_graph.h
   \brief cooperative action sequence searcher
-*/
+ */
 
 /*
  *Copyright:
@@ -37,7 +37,8 @@
 
 #include <rcsc/geom/vector_2d.h>
 
-#include <memory>
+#include <boost/shared_ptr.hpp>
+
 #include <vector>
 #include <iostream>
 #include <utility>
@@ -50,105 +51,132 @@ class WorldModel;
 class CooperativeAction;
 class PredictState;
 
+class SimpleActionValue{
+public:
+    rcsc::Vector2D target;
+    double eval;
+    int index;
+    SimpleActionValue(rcsc::Vector2D target_, double eval_, int index_=0){
+        this->target = target_;
+        this->eval = eval_;
+        this->index = index_;
+    }
+};
 class ActionChainGraph {
 public:
 
-    typedef std::shared_ptr< ActionChainGraph > Ptr; //!< pointer type alias
-    typedef std::shared_ptr< const ActionChainGraph > ConstPtr; //!< const pointer type alias
+	typedef boost::shared_ptr< ActionChainGraph > Ptr; //!< pointer type alias
+	typedef boost::shared_ptr< const ActionChainGraph > ConstPtr; //!< const pointer type alias
 
 public:
-    static const size_t DEFAULT_MAX_CHAIN_LENGTH;
-    static const size_t DEFAULT_MAX_EVALUATE_LIMIT;
+    static size_t DEFAULT_MAX_CHAIN_LENGTH;
+    static size_t DEFAULT_MAX_EVALUATE_LIMIT;
 
 private:
-    FieldEvaluator::ConstPtr M_evaluator;
-    ActionGenerator::ConstPtr M_action_generator;
+	FieldEvaluator::ConstPtr M_evaluator;
+	ActionGenerator::ConstPtr M_action_generator;
 
-    int M_chain_count;
-    int M_best_chain_count;
+	int M_chain_count;
+	int M_best_chain_count;
 
-    unsigned long M_max_chain_length;
-    long M_max_evaluate_limit;
+	unsigned long M_max_chain_length;
+	long M_max_evaluate_limit;
 
-    static std::vector< std::pair< rcsc::Vector2D, double > > S_evaluated_points;
+	static std::vector< SimpleActionValue > S_evaluated_points;
 
 private:
-    std::vector< ActionStatePair > M_result;
+
+    std::vector< ActionStatePair > M_all_pass;
+    std::vector< ActionStatePair > M_all_dribble;
+
+    std::vector< ActionStatePair > M_best_chain;
+    std::vector< ActionStatePair > M_best_chain_pass;
+    std::vector< ActionStatePair > M_best_chain_danger;
+    std::vector< ActionStatePair > M_result_one_kick;
+    std::vector< ActionStatePair > M_result_one_kick_danger;
+
     double M_best_evaluation;
+    double M_best_evaluation_pass;
+    double M_best_evaluation_danger;
+    double M_best_evaluation_one_kick;
+    double M_best_evaluation_one_kick_danger;
 
-    void calculateResult( const rcsc::WorldModel & wm );
+	void calculateResult( const rcsc::PlayerAgent * agent );
+	void add_hold_to_result(const rcsc::WorldModel & wm);
+	void add_nosafe_to_result();
+    void add_onekick_to_result();
+    void add_onekick_nosafe_to_result();
+    bool choose_better_action(bool chose_onkick = false);
+	void calculateResultChain( const rcsc::WorldModel & wm,
+			unsigned long * n_evaluated );
+	bool doSearch( const rcsc::WorldModel & wm,
+			const PredictState & state,
+			const std::vector< ActionStatePair > & path,
+			std::vector< ActionStatePair > * result,
+			double * result_evaluation,
+			unsigned long * n_evaluated,
+			unsigned long max_chain_length,
+			long max_evaluate_limit );
 
-    void calculateResultChain( const rcsc::WorldModel & wm,
-                               unsigned long * n_evaluated );
-    bool doSearch( const rcsc::WorldModel & wm,
-                   const PredictState & state,
-                   const std::vector< ActionStatePair > & path,
-                   std::vector< ActionStatePair > * result,
-                   double * result_evaluation,
-                   unsigned long * n_evaluated,
-                   unsigned long max_chain_length,
-                   long max_evaluate_limit );
+	void calculateResultBestFirstSearch( const rcsc::WorldModel & wm,
+			unsigned long * n_evaluated );
 
-    void calculateResultBestFirstSearch( const rcsc::WorldModel & wm,
-                                         unsigned long * n_evaluated );
-
-    void debugPrintCurrentState( const rcsc::WorldModel & wm );
+	void debugPrintCurrentState( const rcsc::WorldModel & wm );
 
 
 public:
-    /*!
+	/*!
       \brief constructor
       \param evaluator evaluator of each state
       \param generator action and state generator
       \param agent pointer to player agent
-     */
-    ActionChainGraph( const FieldEvaluator::ConstPtr & evaluator,
-                      const ActionGenerator::ConstPtr & generator,
-                      unsigned long max_chain_length = DEFAULT_MAX_CHAIN_LENGTH,
-                      long max_evaluate_limit = DEFAULT_MAX_EVALUATE_LIMIT );
+	 */
+	bool is_anti_offense(const rcsc::WorldModel & wm);
+	 ActionChainGraph( const FieldEvaluator::ConstPtr & evaluator,
+             const ActionGenerator::ConstPtr & generator);
 
-    void calculate( const rcsc::WorldModel & wm )
-      {
-          calculateResult( wm );
-      }
+	 void calculate( const rcsc::PlayerAgent * agent )
+	 {
+		 calculateResult( agent );
+	 }
 
-    const std::vector< ActionStatePair > & getAllChain() const
-      {
-          return M_result;
-      };
+	 const std::vector< ActionStatePair > & getAllChain() const
+    		  {
+         return M_best_chain;
+    		  };
 
-    const CooperativeAction & getFirstAction() const
-      {
-          return (*(M_result.begin())).action();
-      };
+	 const CooperativeAction & getFirstAction() const
+	 {
+         return (*(M_best_chain.begin())).action();
+	 };
 
-    const PredictState & getFirstState() const
-      {
-          return (*(M_result.begin())).state();
-      };
+	 const PredictState & getFirstState() const
+	 {
+         return (*(M_best_chain.begin())).state();
+	 };
 
-    const PredictState & getFinalResult() const
-      {
-          return (*(M_result.rbegin())).state();
-      };
+	 const PredictState & getFinalResult() const
+	 {
+         return (*(M_best_chain.rbegin())).state();
+	 };
 
 public:
-    static
-    void debug_send_chain( rcsc::PlayerAgent * agent,
-                           const std::vector< ActionStatePair > & path );
+	 static
+	 void debug_send_chain( rcsc::PlayerAgent * agent,
+			 const std::vector< ActionStatePair > & path );
 
-    static
-    void write_chain_log( const std::string & pre_log_message,
-                          const rcsc::WorldModel & world,
-                          const int count,
-                          const std::vector< ActionStatePair > & path,
-                          const double & eval );
+	 static
+	 void write_chain_log( const std::string & pre_log_message,
+			 const rcsc::WorldModel & world,
+			 const int count,
+			 const std::vector< ActionStatePair > & path,
+			 const double & eval );
 
-    static
-    void write_chain_log( const rcsc::WorldModel & world,
-                          const int count,
-                          const std::vector< ActionStatePair > & path,
-                          const double & eval );
+	 static
+	 void write_chain_log( const rcsc::WorldModel & world,
+			 const int count,
+			 const std::vector< ActionStatePair > & path,
+			 const double & eval );
 };
 
 #endif

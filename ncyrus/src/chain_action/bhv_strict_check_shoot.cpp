@@ -34,6 +34,8 @@
 #endif
 
 #include "bhv_strict_check_shoot.h"
+#include "../data_extractor/offensive_data_extractor.h"
+#include "cooperative_action.h"
 
 #include "shoot_generator.h"
 
@@ -50,10 +52,15 @@ using namespace rcsc;
 /*!
 
 */
+int Bhv_StrictCheckShoot::time = 0;
+rcsc::Vector2D Bhv_StrictCheckShoot::target = Vector2D(0, 0);
+double Bhv_StrictCheckShoot::speed = 0;
+
+
 bool
 Bhv_StrictCheckShoot::execute( PlayerAgent * agent )
 {
-    const WorldModel & wm = agent->world();
+    const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
 
     if ( ! wm.self().isKickable() )
     {
@@ -65,7 +72,7 @@ Bhv_StrictCheckShoot::execute( PlayerAgent * agent )
         return false;
     }
 
-    const ShootGenerator::Container & cont = ShootGenerator::instance().courses( wm );
+    const ShootGenerator::Container & cont = ShootGenerator::instance().courses( wm, opp_dist_thr );
 
     // update
     if ( cont.empty() )
@@ -86,6 +93,8 @@ Bhv_StrictCheckShoot::execute( PlayerAgent * agent )
                       __FILE__": no best shoot" );
         return false;
     }
+    if(best_shoot->score_ < -100000)
+        return false;
 
     // it is necessary to evaluate shoot courses
 
@@ -106,6 +115,16 @@ Bhv_StrictCheckShoot::execute( PlayerAgent * agent )
                   best_shoot->first_ball_speed_,
                   one_step_speed );
 
+    Vector2D ballsim = wm.ball().pos();
+    Vector2D ballvelsim = Vector2D::polar2vector(best_shoot->first_ball_speed_,(best_shoot->target_point_ - ballsim).th());
+
+    while(ballsim.x < 55){
+        dlog.addCircle(Logger::SHOOT,ballsim,0.2,255,0,0,true);
+        ballsim += ballvelsim;
+        ballvelsim *= ServerParam::i().ballDecay();
+        if(ballvelsim.r() < 0.1)
+            break;
+    }
     if ( one_step_speed > best_shoot->first_ball_speed_ * 0.99 )
     {
         if ( Body_SmartKick( best_shoot->target_point_,
@@ -115,6 +134,9 @@ Bhv_StrictCheckShoot::execute( PlayerAgent * agent )
         {
              agent->setNeckAction( new Neck_TurnToGoalieOrScan( -1 ) );
              agent->debugClient().addMessage( "Force1Step" );
+             Bhv_StrictCheckShoot::time = wm.time().cycle();
+             Bhv_StrictCheckShoot::target = best_shoot->target_point_;
+             Bhv_StrictCheckShoot::speed = best_shoot->first_ball_speed_;
              return true;
         }
     }
@@ -128,12 +150,41 @@ Bhv_StrictCheckShoot::execute( PlayerAgent * agent )
         {
             agent->setNeckAction( new Neck_TurnToGoalieOrScan( -1 ) );
         }
+        Bhv_StrictCheckShoot::time = wm.time().cycle();
+        Bhv_StrictCheckShoot::target = best_shoot->target_point_;
+        Bhv_StrictCheckShoot::speed = best_shoot->first_ball_speed_;
         return true;
     }
 
     dlog.addText( Logger::SHOOT,
                   __FILE__": failed" );
     return false;
+}
+
+Vector2D Bhv_StrictCheckShoot::get_best_shoot(const WorldModel &wm)
+{
+    const ShootGenerator::Container & cont = ShootGenerator::instance().courses( wm, opp_dist_thr );
+
+    // update
+    if ( cont.empty() )
+    {
+        dlog.addText( Logger::SHOOT,
+                      __FILE__": no shoot course" );
+        return Vector2D::INVALIDATED;
+    }
+
+    ShootGenerator::Container::const_iterator best_shoot
+        = std::min_element( cont.begin(),
+                            cont.end(),
+                            ShootGenerator::ScoreCmp() );
+
+    if ( best_shoot == cont.end() )
+    {
+        dlog.addText( Logger::SHOOT,
+                      __FILE__": no best shoot" );
+        return Vector2D::INVALIDATED;
+    }
+    return best_shoot->target_point_;
 }
 
 
@@ -157,7 +208,7 @@ Bhv_StrictCheckShoot::doTurnNeckToShootPoint( PlayerAgent * agent,
     }
 
 #if 0
-    const WorldModel & wm = agent->world();
+    const WorldModel &wm = OffensiveDataExtractor::i().option.output_worldMode == FULLSTATE ? agent->fullstateWorld() : agent->world();
     if ( wm.seeTime() == wm.time() )
     {
         double current_width = wm.self().viewWidth().width();

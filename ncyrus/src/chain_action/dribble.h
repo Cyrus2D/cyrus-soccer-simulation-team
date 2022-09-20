@@ -54,8 +54,50 @@ public:
              const int kick_count,
              const int turn_count,
              const int dash_count,
-             const char * description = 0 );
-
+             const char * description);//simple, self
+    Dribble( const int dribbler,
+             const rcsc::Vector2D & target_point,
+             const double & ball_speed,
+             const int kick_count,
+             const int turn_count,
+             const int dash_count,
+             const char * description,
+             const int min_opp_dif,
+             const bool safe_with_pos_count,
+             const int danger);//back
+    Dribble( const int dribbler,
+             const rcsc::Vector2D & target_point,
+             const double & ball_speed,
+             const int kick_count,
+             const int turn_count,
+             const int dash_count,
+             const char * description,
+             const double body_angle);
+    Dribble( const int dribbler,
+             const rcsc::Vector2D & target_point,
+             const rcsc::Vector2D & player_target_point,
+             const double & ball_speed,
+             const int kick_count,
+             const int turn_count,
+             const int dash_count,
+             const char * description,
+             const double body_angle,
+             const int min_opp_dif,
+             const bool safe_with_pos_count,
+             const int danger);//using in advance
+    Dribble( const int dribbler,
+              const rcsc::Vector2D & target_point,
+              const rcsc::Vector2D & _intermediate_point,
+              const rcsc::Vector2D & player_target_point,
+              const double & ball_speed,
+              const int kick_count,
+              const int turn_count,
+              const int dash_count,
+              const char * description,
+              const double body_angle,
+              const int min_opp_dif,
+              const bool safe_with_pos_count,
+              const int danger);//using in doublekick
 };
 
 }

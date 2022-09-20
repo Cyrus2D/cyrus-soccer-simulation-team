@@ -67,7 +67,7 @@ public:
         bool opponent_never_reach_; //!< true if goalie never reach the ball
         int kick_step_; //!< estimated kick step
         double score_; //!< evaluated value of this shoot
-
+        double min_dif;
         /*!
           \brief constructor
           \param point shoot target point on the goal line
@@ -128,7 +128,6 @@ private:
 
     //! cached calculated shoot pathes
     Container M_courses;
-
     // private for singleton
     ShootGenerator();
 
@@ -140,16 +139,16 @@ public:
     static
     ShootGenerator & instance();
 
-    void generate( const rcsc::WorldModel & wm );
+    void generate( const rcsc::WorldModel & wm ,double opp_dist_thr);
 
     /*!
       \brief calculate the shoot and return the container
       \param agent const pointer to the agent
       \return const reference to the shoot container
      */
-    const Container & courses( const rcsc::WorldModel & wm )
+    const Container & courses( const rcsc::WorldModel & wm, double thr = 0 )
       {
-          generate( wm );
+          generate( wm , thr);
           return M_courses;
       }
 
@@ -158,21 +157,28 @@ private:
     void clear();
 
     void createShoot( const rcsc::WorldModel & wm,
-                      const rcsc::Vector2D & target_point );
+                      const rcsc::Vector2D & target_point ,
+                      const double & opp_dist_thr);
 
     bool createShoot( const rcsc::WorldModel & wm,
                       const rcsc::Vector2D & target_point,
                       const double & first_ball_speed,
                       const rcsc::AngleDeg & ball_move_angle,
-                      const double & ball_move_dist );
+                      const double & ball_move_dist,
+                      const double & opp_dist_thr);
 
     bool maybeGoalieCatch( const rcsc::PlayerObject * goalie,
                            Course & course );
 
     bool opponentCanReach( const rcsc::PlayerObject * opponent,
-                           Course & course );
+                           Course & course,
+                           const rcsc::WorldModel & wm ,
+                           const double & opp_dist_thr,
+                           int & nearest_step_diff);
 
     void evaluateCourses( const rcsc::WorldModel & wm );
+
+    static bool shouldShootSafe( const rcsc::WorldModel & wm);
 };
 
 #endif

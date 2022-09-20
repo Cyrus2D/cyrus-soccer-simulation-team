@@ -43,7 +43,8 @@ CooperativeAction::CooperativeAction( const ActionCategory & category,
                                       const int player_unum,
                                       const Vector2D & target_point,
                                       const int duration_step,
-                                      const char * description )
+                                      const char * description
+                                      )
     : M_category( category ),
       M_index( -1 ),
       M_player_unum( player_unum ),
@@ -58,11 +59,85 @@ CooperativeAction::CooperativeAction( const ActionCategory & category,
       M_turn_count( 0 ),
       M_dash_count( 0 ),
       M_final_action( false ),
-      M_description( description )
+      M_description( description ),
+      M_body_target_angle(0),
+      M_first_kick_target(Vector2D::INVALIDATED),
+      M_player_target_point(Vector2D::INVALIDATED)
 {
 
 }
+CooperativeAction::CooperativeAction( const ActionCategory & category,
+                                      const int player_unum,
+                                      const Vector2D & target_point,
+                                      const int duration_step,
+                                      const char * description,
+									  const bool safe_with_noise,
+									  const int tm_min_dif_cycle,
+									  const int opp_min_dif_cycle,
+									  double target_body_angle,
+									  rcsc::Vector2D first_kick_target,
+									  int danger
+									  )
+    : M_category( category ),
+      M_index( -1 ),
+      M_player_unum( player_unum ),
+      M_target_player_unum( Unum_Unknown ),
+      M_target_point( target_point ),
+      M_first_ball_speed( 0.0 ),
+      M_first_turn_moment( 0.0 ),
+      M_first_dash_power( 0.0 ),
+      M_first_dash_angle( 0.0 ),
+      M_duration_step( duration_step ),
+      M_kick_count( 0 ),
+      M_turn_count( 0 ),
+      M_dash_count( 0 ),
+      M_final_action( false ),
+      M_description( description ),
+	  M_body_target_angle(target_body_angle),
+	  M_first_kick_target(first_kick_target),
+	  M_safe_with_noise(safe_with_noise),
+	  M_tm_min_dif_cycle(tm_min_dif_cycle),
+	  M_opp_min_dif_cycle(opp_min_dif_cycle),
+      M_danger(danger),
+      M_player_target_point(Vector2D::INVALIDATED)
 
+{
+
+}
+CooperativeAction::CooperativeAction( const ActionCategory & category,
+                                      const int player_unum,
+                                      const Vector2D & target_point,
+                                      const int duration_step,
+                                      const char * description,
+                                      const int opp_min_dif,
+                                      const bool safe_with_pos_count,
+                                      const int danger
+                                      )
+    : M_category( category ),
+      M_index( -1 ),
+      M_player_unum( player_unum ),
+      M_target_player_unum( Unum_Unknown ),
+      M_target_point( target_point ),
+      M_first_ball_speed( 0.0 ),
+      M_first_turn_moment( 0.0 ),
+      M_first_dash_power( 0.0 ),
+      M_first_dash_angle( 0.0 ),
+      M_duration_step( duration_step ),
+      M_kick_count( 0 ),
+      M_turn_count( 0 ),
+      M_dash_count( 0 ),
+      M_final_action( false ),
+      M_description( description ),
+      M_body_target_angle(0),
+      M_first_kick_target(Vector2D::INVALIDATED),
+      M_player_target_point(Vector2D::INVALIDATED),
+      M_opp_min_dif_cycle(opp_min_dif),
+      M_safe_with_noise(safe_with_pos_count),
+      M_danger(danger)
+
+{
+
+}
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -111,6 +186,17 @@ void
 CooperativeAction::setFirstBallSpeed( const double & speed )
 {
     M_first_ball_speed = speed;
+}
+
+
+void
+CooperativeAction::setPlayerTargetPoint( const Vector2D & player_target){
+    M_player_target_point = player_target;
+}
+
+void
+CooperativeAction::setDribbleDashAngle( const double & dash_angle){
+    M_dribble_dash_angle = dash_angle;
 }
 
 /*-------------------------------------------------------------------*/
@@ -191,6 +277,11 @@ void
 CooperativeAction::setFinalAction( const bool on )
 {
     M_final_action = on;
+}
+
+void CooperativeAction::setShootOpenAngle(const double shoot_open_angle)
+{
+    M_shoot_open_angle = shoot_open_angle;
 }
 
 /*-------------------------------------------------------------------*/

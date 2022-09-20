@@ -37,6 +37,7 @@ private:
 public:
 
     bool execute( rcsc::PlayerAgent * agent );
+    bool cr_shoot(rcsc::PlayerAgent * agent);
 };
 
 #endif

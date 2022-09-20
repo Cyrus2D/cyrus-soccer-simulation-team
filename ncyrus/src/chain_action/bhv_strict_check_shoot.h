@@ -34,6 +34,7 @@
 
 #include <rcsc/player/soccer_action.h>
 #include <rcsc/geom/vector_2d.h>
+#include <rcsc/player/world_model.h>
 
 /*!
   \class Bhv_StrictCheckShoot
@@ -47,8 +48,11 @@ public:
     /*!
       \brief accessible from global.
      */
-    Bhv_StrictCheckShoot()
-      { }
+    double opp_dist_thr;
+    Bhv_StrictCheckShoot(double thr)
+    {
+        opp_dist_thr = thr;
+    }
 
     /*!
       \brief execute action
@@ -56,7 +60,11 @@ public:
       \return true if action is performed
      */
     bool execute( rcsc::PlayerAgent * agent );
+    rcsc::Vector2D get_best_shoot(const rcsc::WorldModel & wm);
 
+    static int time;
+    static rcsc::Vector2D target;
+    static double speed;
 private:
 
     bool doTurnNeckToShootPoint( rcsc::PlayerAgent * agent,

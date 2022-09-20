@@ -33,6 +33,7 @@ class SimplePassChecker
     : public PassChecker {
 
 public:
+
     SimplePassChecker()
       { }
 

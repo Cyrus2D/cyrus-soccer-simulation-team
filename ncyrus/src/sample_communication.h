@@ -62,7 +62,9 @@ public:
     int currentSenderUnum() const { return M_current_sender_unum; }
 
     int nextSenderUnum() const { return M_next_sender_unum; }
-
+bool sayUnmark(rcsc::PlayerAgent * agent);
+bool sayBallAndPlayers( rcsc::PlayerAgent * agent );
+bool saySelf( rcsc::PlayerAgent * agent );
 private:
     void updateCurrentSender( const rcsc::PlayerAgent * agent );
 
@@ -74,7 +76,7 @@ private:
     bool shouldSayOpponentGoalie( const rcsc::PlayerAgent * agent );
     bool goalieSaySituation( const rcsc::PlayerAgent * agent );
 
-    bool sayBallAndPlayers( rcsc::PlayerAgent * agent );
+
     bool sayBall( rcsc::PlayerAgent * agent );
     bool sayPlayers( rcsc::PlayerAgent * agent );
     bool sayGoalie( rcsc::PlayerAgent * agent );
@@ -87,12 +89,16 @@ private:
     bool sayTwoOpponents( rcsc::PlayerAgent * agent );
     bool sayThreeOpponents( rcsc::PlayerAgent * agent );
 
-    bool saySelf( rcsc::PlayerAgent * agent );
+
 
     bool sayStamina( rcsc::PlayerAgent * agent );
     bool sayRecovery( rcsc::PlayerAgent * agent );
 
     void attentiontoSomeone( rcsc::PlayerAgent * agent );
+    bool attentiontoPasser( rcsc::PlayerAgent * agent );
+    bool attentiontoReceiver( rcsc::PlayerAgent * agent );
+    bool attentiontoOffMove( rcsc::PlayerAgent * agent );
+    void attentiontoOther( rcsc::PlayerAgent * agent );
 };
 
 #endif

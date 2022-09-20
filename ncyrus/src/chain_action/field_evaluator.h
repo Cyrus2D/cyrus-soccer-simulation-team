@@ -33,7 +33,8 @@
 
 #include <rcsc/player/world_model.h>
 
-#include <memory>
+#include <boost/shared_ptr.hpp>
+
 #include <vector>
 
 /*!
@@ -43,8 +44,8 @@
 class FieldEvaluator {
 public:
 
-    typedef std::shared_ptr< FieldEvaluator > Ptr; //!< pointer type alias
-    typedef std::shared_ptr< const FieldEvaluator > ConstPtr; //!< const pointer type alias
+    typedef boost::shared_ptr< FieldEvaluator > Ptr; //!< pointer type alias
+    typedef boost::shared_ptr< const FieldEvaluator > ConstPtr; //!< const pointer type alias
 
 protected:
     /*!
@@ -67,6 +68,7 @@ public:
      */
     virtual
     double operator() ( const PredictState & state,
+    					const rcsc::WorldModel & wm,
                         const std::vector< ActionStatePair > & path ) const = 0;
 };
 

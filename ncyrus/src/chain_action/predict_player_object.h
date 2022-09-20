@@ -39,7 +39,8 @@
 #include <rcsc/geom/angle_deg.h>
 #include <rcsc/types.h>
 
-#include <memory>
+#include <boost/shared_ptr.hpp>
+
 #include <vector>
 
 /*!
@@ -50,9 +51,8 @@ class PredictPlayerObject
     : public rcsc::AbstractPlayerObject {
 public:
 
-    typedef std::shared_ptr< PredictPlayerObject > Ptr; //! pointer type alias
-    typedef std::shared_ptr< const PredictPlayerObject > ConstPtr; //! pointer type alias
-    typedef std::vector< ConstPtr > Cont; //!< container type alias
+    typedef boost::shared_ptr< PredictPlayerObject > Ptr; //! pointer type alias
+    typedef boost::shared_ptr< const PredictPlayerObject > ConstPtr; //! pointer type alias
 
 protected:
 
@@ -77,6 +77,7 @@ protected:
           M_unum_count = pl.unumCount();
           M_goalie = pl.goalie();
 
+          M_type = pl.type();
           M_player_type = pl.playerTypePtr();
 
           M_pos = pl.pos();
@@ -109,8 +110,8 @@ public:
       \brief initialize member variables
     */
     PredictPlayerObject()
-        : AbstractPlayerObject( -1 ),
-          M_valid( false ),
+        : AbstractPlayerObject()
+        , M_valid( false ),
           M_is_self( false ),
           M_is_ghost( false ),
           M_ghost_count( 0 )
@@ -121,7 +122,6 @@ public:
       \param player base player information
     */
     PredictPlayerObject( const rcsc::AbstractPlayerObject & player )
-        : AbstractPlayerObject( player.id() )
       {
           copyPlayerInfo( player );
       }
@@ -133,7 +133,6 @@ public:
     */
     PredictPlayerObject( const rcsc::AbstractPlayerObject & player,
                          const rcsc::Vector2D & override_pos )
-        : AbstractPlayerObject( player.id() )
       {
           copyPlayerInfo( player );
 
@@ -148,7 +147,7 @@ public:
                          const bool is_self,
                          const rcsc::Vector2D & pos,
                          const rcsc::AngleDeg body_dir )
-        : AbstractPlayerObject( -1 )
+        : AbstractPlayerObject()
         , M_valid( true ),
           M_is_self( is_self ),
           M_is_ghost( false ),
@@ -164,7 +163,8 @@ public:
           M_unum_count = 0;
           M_goalie = false;
 
-          M_player_type = rcsc::PlayerTypeSet::i().get( rcsc::Hetero_Unknown );
+          M_type = rcsc::Hetero_Unknown;
+          M_player_type = rcsc::PlayerTypeSet::i().get( M_type );
 
           M_pos = pos;
           M_pos_count = 0;
@@ -272,5 +272,8 @@ public:
           M_dist_from_ball = dist;
       }
 };
+
+//! container type alias
+typedef std::vector< PredictPlayerObject::Ptr > PredictPlayerPtrCont;
 
 #endif

@@ -47,6 +47,7 @@ public:
            const double & ball_speed,
            const int duration_step,
            const int kick_count,
+           const double shoot_open_angle,
            const char * description = 0 );
 
 };

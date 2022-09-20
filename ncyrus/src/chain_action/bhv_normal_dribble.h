@@ -45,8 +45,11 @@ class Bhv_NormalDribble
     : public rcsc::SoccerBehavior {
 private:
     rcsc::Vector2D M_target_point;
+    rcsc::Vector2D M_intermediate_pos;
+    rcsc::Vector2D M_player_target_point;
 
     double M_first_ball_speed;
+    double M_dash_angle;
     double M_first_turn_moment;
     double M_first_dash_power;
     rcsc::AngleDeg M_first_dash_angle;
@@ -59,6 +62,7 @@ private:
     rcsc::NeckAction::Ptr M_neck_action;
     rcsc::ViewAction::Ptr M_view_action;
 
+    const char * M_dec;
 public:
 
     Bhv_NormalDribble( const CooperativeAction & action,

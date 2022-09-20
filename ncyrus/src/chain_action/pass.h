@@ -49,7 +49,11 @@ public:
           const int duration_step,
           const int kick_count,
           const bool final_action,
-          const char * description );
+          const char * description,
+		  const bool safe_with_noise,
+		  const int tm_min_dif_cycle,
+		  const int opp_min_dif_cycle,
+		  const int pass_danget);
 
 };
 

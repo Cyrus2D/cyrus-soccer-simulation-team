@@ -53,8 +53,8 @@ private:
     const rcsc::AbstractPlayerObject * M_passer; //!< estimated passer
     rcsc::Vector2D M_first_point;
 
-    rcsc::AbstractPlayerObject::Cont M_receiver_candidates;
-    rcsc::AbstractPlayerObject::Cont M_opponents;
+    rcsc::AbstractPlayerCont M_receiver_candidates;
+    rcsc::AbstractPlayerCont M_opponents;
 
     std::vector< CooperativeAction::Ptr > M_courses;
 
@@ -91,13 +91,19 @@ private:
     void createCross( const rcsc::WorldModel & wm,
                       const rcsc::AbstractPlayerObject * receiver );
 
+    int predictReceiverReachStep(
+            const rcsc::AbstractPlayerObject * receiver, const rcsc::Vector2D & pos);
     bool checkOpponent( const rcsc::Vector2D & first_ball_pos,
                         const rcsc::AbstractPlayerObject * receiver,
                         const rcsc::Vector2D & receive_pos,
                         const double & first_ball_speed,
                         const rcsc::AngleDeg & ball_move_angle,
-                        const int max_cycle );
+                        const int max_cycle,int & opp_dif_cycle,const rcsc::WorldModel & wm );
 
+    int newoldpredictOpponentReachStep(const rcsc::WorldModel & wm,
+                                                       const rcsc::AbstractPlayerObject * opponent, const rcsc::Vector2D & first_ball_pos,
+                                                       const rcsc::Vector2D & first_ball_vel, const rcsc::AngleDeg & ball_move_angle,
+                                                       const rcsc::Vector2D & receive_point, const int max_cycle,int & opp_dif_cycle,bool & safe_with_pos_count);
     double getMinimumAngleWidth( const double & target_dist,
                                  const rcsc::AngleDeg & target_angle );
 
