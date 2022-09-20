@@ -39,7 +39,7 @@ private:
 public:
     IntentionWaitAfterSetPlayKick();
 
-    bool finished(  rcsc::PlayerAgent * agent );
+    bool finished( const rcsc::PlayerAgent * agent );
 
     bool execute( rcsc::PlayerAgent * agent );
 

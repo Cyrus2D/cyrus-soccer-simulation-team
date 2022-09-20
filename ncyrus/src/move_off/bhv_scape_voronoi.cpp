@@ -58,7 +58,7 @@ bool go_to_target(PlayerAgent * agent, Vector2D target){
 
 }
 
-bool IntentionScape::finished(  rcsc::PlayerAgent * agent ){
+bool IntentionScape::finished( const rcsc::PlayerAgent * agent ){
     const WorldModel & wm = agent->world();
     if(M_last_ex_time != wm.time().cycle() - 1)
         return true;

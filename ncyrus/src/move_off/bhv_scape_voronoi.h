@@ -53,7 +53,7 @@ public:
         M_start_passer = start_passer;
     }
 
-    bool finished(  rcsc::PlayerAgent * agent );
+    bool finished(  const rcsc::PlayerAgent * agent );
 
     bool execute( rcsc::PlayerAgent * agent );
 };

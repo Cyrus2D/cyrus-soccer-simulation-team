@@ -54,7 +54,7 @@ IntentionWaitAfterSetPlayKick::IntentionWaitAfterSetPlayKick()
 
  */
 bool
-IntentionWaitAfterSetPlayKick::finished(  PlayerAgent * agent )
+IntentionWaitAfterSetPlayKick::finished( const PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
 

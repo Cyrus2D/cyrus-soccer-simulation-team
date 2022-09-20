@@ -227,7 +227,7 @@ void RoleGoalie::doMove(PlayerAgent * agent) {
 	}
 
     int self_cycle = iTable->selfReachCycle();
-    int self_cycle_tackle = iTable->selfReachCycleTackle();
+    int self_cycle_tackle = iTable->selfReachCycle(); //iTable->selfReachCycleTackle(); oldcyrus
     int opp_cycle = iTable->opponentReachCycle();
     int mate_cycle = iTable->teammateReachCycle();
 

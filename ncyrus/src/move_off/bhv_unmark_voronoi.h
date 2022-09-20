@@ -118,7 +118,7 @@ public:
         M_type = type;
     }
 
-    bool finished(  rcsc::PlayerAgent * agent ){
+    bool finished(  const rcsc::PlayerAgent * agent ){
         const WorldModel & wm = agent->world();
         if(M_last_ex_time != wm.time().cycle() - 1)
             return true;
