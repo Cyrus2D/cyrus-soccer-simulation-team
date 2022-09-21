@@ -60,7 +60,7 @@ protected:
     bool M_is_self;
     bool M_is_ghost;
     int M_ghost_count;
-
+    int M_type;
     /*!
       \brief initialize member variables using abstract player object
       \param pl base player information
@@ -77,7 +77,7 @@ protected:
           M_unum_count = pl.unumCount();
           M_goalie = pl.goalie();
 
-          M_type = pl.type();
+          M_type = pl.playerTypePtr()->id();
           M_player_type = pl.playerTypePtr();
 
           M_pos = pl.pos();
