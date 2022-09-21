@@ -1,4 +1,3 @@
-
 # player
 add_executable(sample_player
   strategy.cpp

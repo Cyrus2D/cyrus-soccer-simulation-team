@@ -70,5 +70,11 @@ message(STATUS "  LIBRCSC_INCLUDE_DIR=${LIBRCSC_INCLUDE_DIR}")
 message(STATUS "Build settings:")
 message(STATUS "  BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 
+include("${CMAKE_SOURCE_DIR}/vendor/rapidjson.cmake")
+include_directories(
+    ${RAPIDJSON_INCLUDE_DIR}
+)
+
+
 # sub directories
 add_subdirectory(src)
