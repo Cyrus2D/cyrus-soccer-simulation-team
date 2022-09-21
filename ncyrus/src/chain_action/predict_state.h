@@ -197,9 +197,9 @@ public:
           return ourPlayer( M_world->ourGoalieUnum() );
       }
 
-    const rcsc::PlayerObject * getOpponentGoalie() const
+    const rcsc::PlayerObject * getTheirGoalie() const
       {
-          return M_world->getOpponentGoalie();
+          return M_world->getTheirGoalie();
       }
 
     const rcsc::GameMode & gameMode() const

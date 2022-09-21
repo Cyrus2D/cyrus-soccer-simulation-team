@@ -213,7 +213,7 @@ ShootGenerator::createShoot( const WorldModel & wm,
 {
     const AngleDeg ball_move_angle = ( target_point - M_first_ball_pos ).th();
 
-    const PlayerObject * goalie = wm.getOpponentGoalie();
+    const PlayerObject * goalie = wm.getTheirGoalie();
     if ( goalie
          && 5 < goalie->posCount()
          && goalie->posCount() < 30
@@ -621,7 +621,7 @@ ShootGenerator::evaluateCourses( const WorldModel & wm )
     const double y_dist_thr2 = std::pow( 8.0, 2 );
 
     const ServerParam & SP = ServerParam::i();
-    const PlayerObject * goalie = wm.getOpponentGoalie();
+    const PlayerObject * goalie = wm.getTheirGoalie();
     const AngleDeg goalie_angle = ( goalie
                                     ? ( goalie->pos() - M_first_ball_pos ).th()
                                     : 180.0 );

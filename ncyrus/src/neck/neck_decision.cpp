@@ -125,8 +125,8 @@ void NeckDecisionWithBall::addChainTargets(const WorldModel & wm){
             #ifdef DEBUG_NECK_DECISION
             dlog.addText(Logger::ROLE, "##### Add Shoot (%.1f, %.1f) %.1f", next_target.x, next_target.y, 10.0 * z);
             #endif
-            if (wm.getOpponentGoalie() != nullptr && wm.getOpponentGoalie()->unum() > 0){
-                auto opp_pos = wm.getOpponentGoalie()->pos();
+            if (wm.getTheirGoalie() != nullptr && wm.getTheirGoalie()->unum() > 0){
+                auto opp_pos = wm.getTheirGoalie()->pos();
                 addTarget(opp_pos, 10.0 * z);
                 #ifdef DEBUG_NECK_DECISION
                 dlog.addText(Logger::ROLE, "##### Add Shoot Goalie(%.1f, %.1f) %.1f", opp_pos.x, opp_pos.y, 10.0 * z);
@@ -328,9 +328,9 @@ void NeckDecisionWithBall::addHandyPlayerTargets(const WorldModel & wm){
             addTarget(target, (M_find_action_by_chain ? 10 : 10));
         }
     } else if (M_ball_inertia.x > 30 && M_ball_inertia.absY() < 15) {
-        if (wm.getOpponentGoalie() != NULL && wm.getOpponentGoalie()->unum() > 0) {
-            if (wm.getOpponentGoalie()->seenPosCount() > 2) {
-                target = wm.getOpponentGoalie()->pos();
+        if (wm.getTheirGoalie() != NULL && wm.getTheirGoalie()->unum() > 0) {
+            if (wm.getTheirGoalie()->seenPosCount() > 2) {
+                target = wm.getTheirGoalie()->pos();
                 addTarget(target, 5);
             }
         } else {

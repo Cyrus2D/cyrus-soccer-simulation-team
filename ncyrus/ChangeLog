@@ -4,22 +4,22 @@
 	* m4/ax_cxx_compile_stdcxx_14.m4:
 	* configure.ac:
 	* src/chain_action/tackle_generator.cpp:
-	- C++14ÂÐ±þ
+	- C++14ï¿½Ð±ï¿½
 
 2016-09-12  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* src/Makefile.am:
-	- subdir-objects¥ª¥×¥·¥ç¥ó¤òÄÉ²Ã
+	- subdir-objectsï¿½ï¿½ï¿½×¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É²ï¿½
 
 	* README:
-	- ÀâÌÀÊ¸¤ò½¤Àµ
+	- ï¿½ï¿½ï¿½ï¿½Ê¸ï¿½ï¿½ï¿½ï¿½
 
 2012-05-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* src/bhv_set_play_indirect_free_kick.cpp:
 	* src/bhv_set_play_kick_in.cpp:
 	* src/chain_action/body_force_shoot.cpp:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤ºï½ü¤µ¤ì¤¿¥¢¥¯¥·¥ç¥ó¤ò»È¤ï¤Ê¤¤¼ÂÁõ¤ËÊÑ¹¹
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ì¤¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¤ï¿½Ê¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹ï¿½
 
 2012-05-18  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -33,10 +33,10 @@
 	* src/neck_offensive_intercept_neck.cpp:
 	* src/role_keepaway_keeper.cpp:
 	* src/sample_player.cpp:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤¼ó¿¶¤êÆ°ºî¤Î°ú¿ô¤òÄÉ²Ã
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ó¿¶¤ï¿½Æ°ï¿½ï¿½Î°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É²ï¿½
 
 	* src/chain_action/bhv_chain_action.cpp:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤Neck_TurnToGoalieOrScan¤Î°ú¿ô¤òÄÉ²Ã
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½Neck_TurnToGoalieOrScanï¿½Î°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É²ï¿½
 
 2012-05-13  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -46,27 +46,27 @@
 	* src/bhv_set_play_goal_kick.cpp:
 	* src/bhv_set_play_indirect_free_kick.cpp:
 	* src/bhv_set_play_kick_in.cpp:
-	- librcs¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤setplayCount()¤ògetSetPlayCount()¤Ø½¤Àµ
+	- librcsï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½setplayCount()ï¿½ï¿½getSetPlayCount()ï¿½Ø½ï¿½ï¿½ï¿½
 
 2012-05-12  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* src/chain_action/predict_player_object.h:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤AbstractPlayerObject¤ÎID¤òÀßÄê¤Ç¤­¤ë¤è¤¦¤Ë¤·¤¿
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½AbstractPlayerObjectï¿½ï¿½IDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç¤ï¿½ï¿½ï¿½è¤¦ï¿½Ë¤ï¿½ï¿½ï¿½
 
 2012-05-02  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* src/sample_coach.cpp:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤FreeformMessage¤òshared_ptr¤ËÊÑ¹¹
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½FreeformMessageï¿½ï¿½shared_ptrï¿½ï¿½ï¿½Ñ¹ï¿½
 
 2012-04-30  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* src/sample_coach.cpp:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤CoachPlayerObject::Cont¤Ø½¤Àµ
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½CoachPlayerObject::Contï¿½Ø½ï¿½ï¿½ï¿½
 
 	* src/main_coach.cpp:
 	* src/main_player.cpp:
 	* src/main_trainer.cpp:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤¥³¥Þ¥ó¥É¥é¥¤¥ó¥ª¥×¥·¥ç¥ó¤òCmdLineParser¤ÇÍ¿¤¨¤ë¤è¤¦¤ËÊÑ¹¹
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Þ¥ï¿½É¥é¥¤ï¿½ó¥ª¥×¥ï¿½ï¿½ï¿½ï¿½ï¿½CmdLineParserï¿½ï¿½Í¿ï¿½ï¿½ï¿½ï¿½è¤¦ï¿½ï¿½ï¿½Ñ¹ï¿½
 
 2012-04-15  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -74,7 +74,7 @@
 	* src/chain_action/field_analyzer.cpp:
 	* src/chain_action/field_analyzer.h:
 	* src/chain_action/predict_state.h:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤PlayerCont¤ò»È¤ï¤Ê¤¤¼ÂÁõ¤ËÊÑ¹¹
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½PlayerContï¿½ï¿½È¤ï¿½Ê¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹ï¿½
 
 2012-04-14  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -103,8 +103,8 @@
 	* src/chain_action/tackle_generator.cpp:
 	* src/sample_communication.cpp:
 	* src/sample_field_evaluator.cpp:
-	- AbstractPlayerCont¤òAbstractPlayerObject::Cont¤ØÊÑ¹¹
-	- PlayerPtrCont¤òPlayerObject::Cont¤ØÊÑ¹¹
+	- AbstractPlayerContï¿½ï¿½AbstractPlayerObject::Contï¿½ï¿½ï¿½Ñ¹ï¿½
+	- PlayerPtrContï¿½ï¿½PlayerObject::Contï¿½ï¿½ï¿½Ñ¹ï¿½
 
 2012-04-06  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -114,27 +114,27 @@
 	* src/sample_player.h:
 	* src/sample_trainer.cpp:
 	* src/sample_trainer.h:
-	- init, server_param, player_param, player_type¤Î³Æ¥á¥Ã¥»¡¼¥¸²òÀÏÄ¾¸å¤Î¥³¡¼¥ë¥Ð¥Ã¥¯´Ø¿ô¤òÄÉ²Ã
+	- init, server_param, player_param, player_typeï¿½Î³Æ¥ï¿½Ã¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¾ï¿½ï¿½Î¥ï¿½ï¿½ï¿½ï¿½ï¿½Ð¥Ã¥ï¿½ï¿½Ø¿ï¿½ï¿½ï¿½ï¿½É²ï¿½
 
 2012-03-29  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* src/bhv_goalie_chase_ball.cpp:
-	- librcsc¤ÎLine2D¤ÎÊÑ¹¹¤ËÄÉ½¾
+	- librcscï¿½ï¿½Line2Dï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½
 
 2012-03-19  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* src/sample_player.cpp:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤BallObject::rposPrev()¤ò»ÈÍÑ¤·¤Ê¤¤¼ÂÁõ¤Ë½¤Àµ
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½BallObject::rposPrev()ï¿½ï¿½ï¿½ï¿½Ñ¤ï¿½ï¿½Ê¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë½ï¿½ï¿½ï¿½
 
 2012-03-15  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* src/sample_communication.cpp:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤BallObject::State¤ò»ÈÍÑ¤·¤Ê¤¤¼ÂÁõ¤Ë½¤Àµ
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½BallObject::Stateï¿½ï¿½ï¿½ï¿½Ñ¤ï¿½ï¿½Ê¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë½ï¿½ï¿½ï¿½
 
 2012-02-13  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* src/sample_player.cpp:
-	- ¥È¥ì¡¼¥Ê¥á¥Ã¥»¡¼¥¸¤Î¼õ¿®½èÍý¤Î¥µ¥ó¥×¥ë¤òÄÉ²Ã
+	- ï¿½È¥ì¡¼ï¿½Ê¥ï¿½Ã¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¥ï¿½ï¿½ï¿½×¥ï¿½ï¿½ï¿½É²ï¿½
 
 2011-12-06  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -146,8 +146,8 @@
 	* src/sample_trainer.cpp:
 	* src/strategy.cpp:
 	* src/strategy.h:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤¥¯¥é¥¤¥¢¥ó¥È¥¯¥é¥¹¤Î°·¤¤¤ò½¤Àµ¡¥
-	- Strategy¥¯¥é¥¹¤Î¥Õ¥©¡¼¥á¡¼¥·¥ç¥óÀ¸À®½èÍý¤ò½¤Àµ¡¥
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½é¥¤ï¿½ï¿½ï¿½ï¿½È¥ï¿½ï¿½é¥¹ï¿½Î°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	- Strategyï¿½ï¿½ï¿½é¥¹ï¿½Î¥Õ¥ï¿½ï¿½ï¿½ï¿½á¡¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 2011-11-17  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -158,21 +158,21 @@
 	* src/chain_action/self_pass_generator.cpp:
 	* src/chain_action/shoot_generator.cpp:
 	* src/chain_action/simple_pass_checker.h:
-	- boost¸¡½ÐÍÑautoconf¥Þ¥¯¥í¤ò¹¹¿·¡¥
-	- gcc4.6¤Î-Wunused-but-set-variable·Ù¹ð¤ËÂÐ±þ¡¥
+	- boostï¿½ï¿½ï¿½ï¿½ï¿½ï¿½autoconfï¿½Þ¥ï¿½ï¿½ï¿½ï¿½ò¹¹¿ï¿½ï¿½ï¿½
+	- gcc4.6ï¿½ï¿½-Wunused-but-set-variableï¿½Ù¹ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½
 
 2011-07-02  Hiroki Shimora  <shimora@users.sourceforge.net>
 
 	* src/start.sh.in:
 	* src/keepaway.sh.in:
 	* src/train.sh.in:
-	- ¸ÄÊÌ¤Î¥Ç¥Ð¥Ã¥°¥í¥°½ñ¤­½Ð¤·ÀßÄêÍÑ¥ª¥×¥·¥ç¥ó --debug_* ¤ò¥¹¥¯¥ê¥×
-	¥È¤«¤é¥³¥Þ¥ó¥É¤Ë¤½¤Î¤Þ¤ÞÅÏ¤¹¤è¤¦¤Ë¤·¤¿
+	- ï¿½ï¿½ï¿½Ì¤Î¥Ç¥Ð¥Ã¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ñ¤­½Ð¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¥ï¿½ï¿½×¥ï¿½ï¿½ï¿½ï¿½ --debug_* ï¿½ò¥¹¥ï¿½ï¿½ï¿½ï¿½
+	ï¿½È¤ï¿½ï¿½é¥³ï¿½Þ¥ï¿½É¤Ë¤ï¿½ï¿½Î¤Þ¤ï¿½ï¿½Ï¤ï¿½ï¿½è¤¦ï¿½Ë¤ï¿½ï¿½ï¿½
 
 	* src/start.sh.in:
 	* src/keepaway.sh.in:
 	* src/train.sh.in:
-	- ¥¿¥Ö¤ò¶õÇò¤ËÃÖ´¹
+	- ï¿½ï¿½ï¿½Ö¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½
 
 2011-06-17  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -181,7 +181,7 @@
 	* src/chain_action/predict_state.h:
 	* src/chain_action/shoot_generator.cpp:
 	* src/sample_communication.cpp:
-	- WorldModel::getOpponentGoalie()¤ògetTheirGoalie()¤ËÊÑ¹¹
+	- WorldModel::getTheirGoalie()ï¿½ï¿½getTheirGoalie()ï¿½ï¿½ï¿½Ñ¹ï¿½
 
 2011-06-14  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -209,24 +209,24 @@
 	* src/sample_communication.cpp:
 	* src/sample_player.cpp:
 	* src/strategy.cpp:
-	- WorldModel::existKickable{Opponent,Teammate}()¤ò
-	kickable{Opponent,Teamamte}()¤ØÃÖ´¹
+	- WorldModel::existKickable{Opponent,Teammate}()ï¿½ï¿½
+	kickable{Opponent,Teamamte}()ï¿½ï¿½ï¿½Ö´ï¿½
 
 2011-06-03  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* src/chain_action/predict_player_object.h:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤M_type¤òºï½ü
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½M_typeï¿½ï¿½ï¿½ï¿½
 
 2011-05-30  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* configure.ac:
-	- clang¥é¥¤¥Ö¥é¥ê¤Î¥Á¥§¥Ã¥¯¤òÄÉ²Ã
-	- boost¤ÎÍ×µá¥Ð¡¼¥¸¥ç¥ó¤ò1.38¤Ë¹¹¿·
+	- clangï¿½é¥¤ï¿½Ö¥ï¿½ï¿½Î¥ï¿½ï¿½ï¿½ï¿½Ã¥ï¿½ï¿½ï¿½ï¿½É²ï¿½
+	- boostï¿½ï¿½ï¿½×µï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1.38ï¿½Ë¹ï¿½ï¿½ï¿½
 
 2011-05-26  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* src/sample_coach.cpp:
-	- librcsc¤ÎÊÑ¹¹¤ËÂÐ±þ
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½Ð±ï¿½
 
 2011-05-16  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -242,9 +242,9 @@
 	* src/sample_communication.cpp:
 	* src/sample_player.cpp:
 	* src/sample_trainer.cpp:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤FreeformMessage¤ÈFreeformMessageParser¤ò
-	¼ÂÍÑ¤Ç¤­¤ë¤è¤¦¤Ë¤·¤¿¡¥OpponentPlayerTypeMessage{,Parser}¤òÄÉ²Ã¡¥¥Ñ¡¼
-	¥µ¤Ï¥×¥ì¥¤¥ä¤Î¥³¥ó¥¹¥È¥é¥¯¥¿Æâ¤ÇÅÐÏ¿¤¹¤ë¤³¤È¤òÁÛÄê¡¥
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½FreeformMessageï¿½ï¿½FreeformMessageParserï¿½ï¿½
+	ï¿½ï¿½ï¿½Ñ¤Ç¤ï¿½ï¿½ï¿½è¤¦ï¿½Ë¤ï¿½ï¿½ï¿½ï¿½ï¿½OpponentPlayerTypeMessage{,Parser}ï¿½ï¿½ï¿½É²Ã¡ï¿½ï¿½Ñ¡ï¿½
+	ï¿½ï¿½ï¿½Ï¥×¥ì¥¤ï¿½ï¿½Î¥ï¿½ï¿½ó¥¹¥È¥é¥¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ë¤³ï¿½È¤ï¿½ï¿½ï¿½ï¿½ê¡¥
 
 2011-05-12  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -252,7 +252,7 @@
 	* src/sample_freeform_parser.h:
 	* src/Makefile.am:
 	* src/sample_player.cpp:
-	- SampleFreeformParser¤òÄÉ²Ã¡¥
+	- SampleFreeformParserï¿½ï¿½ï¿½É²Ã¡ï¿½
 
 2011-05-11  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -261,18 +261,18 @@
 	- Official release 3.1.0.
 
 	* src/chain_action/field_analyzer.cpp:
-	- ¥Ü¥í¥Î¥¤¿Þ¤Î·×»»¤ò¥³¥á¥ó¥È¥¢¥¦¥È
+	- ï¿½Ü¥ï¿½ï¿½Î¥ï¿½ï¿½Þ¤Î·×»ï¿½ï¿½ò¥³¥ï¿½ï¿½È¥ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	* src/start.sh.in:
-	- ping¥³¥Þ¥ó¥ÉÄÉ²Ã
+	- pingï¿½ï¿½ï¿½Þ¥ï¿½ï¿½ï¿½É²ï¿½
 
 	* src/sample_coach.cpp:
 	* src/sample_coach.h:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¡¥handleServerParam(), handlePlayerParam(),
-	handlePlayerType()¤òÄÉ²Ã¡¥heteroID()¤òplayerTypeId()¤ØÊÑ¹¹¡¥
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½handleServerParam(), handlePlayerParam(),
+	handlePlayerType()ï¿½ï¿½ï¿½É²Ã¡ï¿½heteroID()ï¿½ï¿½playerTypeId()ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½
 
 	* src/start.sh.in:
-	- ping¥³¥Þ¥ó¥É¤òÄÉ²Ã
+	- pingï¿½ï¿½ï¿½Þ¥ï¿½É¤ï¿½ï¿½É²ï¿½
 
 2011-05-09  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -293,7 +293,7 @@
 	* src/neck_default_intercept_neck.cpp:
 	* src/sample_communication.cpp:
 	* src/sample_field_evaluator.cpp:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¡¥¼ç¤ËWorldModel¤Î¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤Ø¤ÎÂÐ±þ¡¥
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½WorldModelï¿½Î¥ï¿½ï¿½ó¥¿¥Õ¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¤ï¿½ï¿½Ð±ï¿½ï¿½ï¿½
 
 2010-09-01  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -308,7 +308,7 @@
 
 	* src/start-debug.sh:
 	* src/start-offline.sh:
-	- °Ü¿¢À­¸þ¾å¤Î¤¿¤á $@ ¤ò ${1+"$@"} ¤ËÃÖ´¹
+	- ï¿½Ü¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î¤ï¿½ï¿½ï¿½ $@ ï¿½ï¿½ ${1+"$@"} ï¿½ï¿½ï¿½Ö´ï¿½
 
 2010-08-27  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -320,11 +320,11 @@
 	- updated a major version.
 
 	* src/Makefile.am:
-	- ÇÛÉÛÊª¤«¤éÈ´¤±¤Æ¤¤¤¿¥Õ¥¡¥¤¥ë¤òÄÉ²Ã¡¥
+	- ï¿½ï¿½ï¿½ï¿½Êªï¿½ï¿½ï¿½ï¿½È´ï¿½ï¿½ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½Õ¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É²Ã¡ï¿½
 
 	* src/sample_field_evaluator.cpp:
 	* src/sample_field_evaluator.h:
-	- ¥µ¥ó¥×¥ë¤ÎÉ¾²Á´Ø¿ô¤òÍÑ°Õ
+	- ï¿½ï¿½ï¿½ï¿½×¥ï¿½ï¿½É¾ï¿½ï¿½ï¿½Ø¿ï¿½ï¿½ï¿½ï¿½Ñ°ï¿½
 
 	* src/bhv_danger_area_tackle.cpp:
 	* src/bhv_danger_area_tackle.h:
@@ -332,7 +332,7 @@
 	* src/body_kick_to_corner.h:
 	* src/Makefile.am:
 	* src/bhv_basic_offensive_kick.cpp:
-	- Ì¤»ÈÍÑ¤Î¥¢¥¯¥·¥ç¥ó¤òºï½ü
+	- Ì¤ï¿½ï¿½ï¿½Ñ¤Î¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	* src/bhv_custom_before_kick_off.cpp:
 	* src/bhv_custom_before_kick_off.h:
@@ -531,46 +531,46 @@
 	* src/strategy.cpp:
 	* src/strategy.h:
 	* src/train.sh.in:
-	- HELIOS2010¤«¤é¥¢¥¯¥·¥ç¥óÃµº÷¥Õ¥ì¡¼¥à¥ï¡¼¥¯¤ò°Ü¿¢
-	- Keeaway¤Î¥Æ¥ó¥×¥ì¡¼¥È¤òÄÉ²Ã
+	- HELIOS2010ï¿½ï¿½ï¿½é¥¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½Õ¥ì¡¼ï¿½ï¿½ï¡¼ï¿½ï¿½ï¿½ï¿½Ü¿ï¿½
+	- Keeawayï¿½Î¥Æ¥ï¿½×¥ì¡¼ï¿½È¤ï¿½ï¿½É²ï¿½
 
 2010-08-24  Hiroki Shimora  <shimora@users.sourceforge.net>
 
 	* src/role_goalie.cpp:
 	* src/bhv_goalie_chase_ball.cpp:
 	* src/bhv_penalty_kick.cpp:
-	- ¥Ø¥Æ¥í¥­¡¼¥Ñ¡¼¤ËÂÐ±þ¤·¤¿¡¥
-	¤¿¤À¤·¡¤coach ¤Î USE_HETERO_GOALIE ¤ÏÍ­¸ú¤Ë¤Ï¤·¤Æ¤¤¤Ê¤¤¡¥
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾
+	- ï¿½Ø¥Æ¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½coach ï¿½ï¿½ USE_HETERO_GOALIE ï¿½ï¿½Í­ï¿½ï¿½ï¿½Ë¤Ï¤ï¿½ï¿½Æ¤ï¿½ï¿½Ê¤ï¿½ï¿½ï¿½
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½
 
 2010-06-02  Hiroki Shimora  <shimora@users.sourceforge.net>
 
 	* src/player.conf:
 	* src/coach.conf:
-	- librcsc ¤Î Logger::CHAIN ¤«¤é Logger::ACTION_CHAIN ¤Ø¤ÎÊÑ¹¹¤ËÄÉ
-	½¾
+	- librcsc ï¿½ï¿½ Logger::CHAIN ï¿½ï¿½ï¿½ï¿½ Logger::ACTION_CHAIN ï¿½Ø¤ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½ï¿½
+	ï¿½ï¿½
 
 2010-06-01  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* src/coach.conf:
 	* src/player.conf:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½
 
 	* src/bhv_go_to_static_ball.cpp:
-	- HELIOS¤«¤é¥³¥Ô¡¼
+	- HELIOSï¿½ï¿½ï¿½é¥³ï¿½Ô¡ï¿½
 
 2010-05-30  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* src/coach.conf:
 	* src/player.conf:
-	- ¥¯¥é¥¤¥¢¥ó¥È¤Î¥Ð¡¼¥¸¥ç¥ó¤ò14¤Ë¹¹¿·
+	- ï¿½ï¿½ï¿½é¥¤ï¿½ï¿½ï¿½ï¿½È¤Î¥Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½14ï¿½Ë¹ï¿½ï¿½ï¿½
 
 2010-05-29  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* src/bhv_basic_move.cpp:
 	* src/sample_player.cpp:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤WorldModel::defenseLineX()¤ò
-	ourDefenseLineX()¤Ø½¤Àµ
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½WorldModel::defenseLineX()ï¿½ï¿½
+	ourDefenseLineX()ï¿½Ø½ï¿½ï¿½ï¿½
 
 2010-05-14  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -579,17 +579,17 @@
 	* src/main_coach.cpp:
 	* src/main_player.cpp:
 	* src/main_trainer.cpp:
-	- Copyright¤ÎÇ¯¹æ¤ò¹¹¿·¡¥
-	- ¥Ð¡¼¥¸¥ç¥óÉÕ¤­¤À¤Ã¤¿¥¢¥¯¥·¥ç¥ó¤òtypedef¸å¤Î¥¨¥¤¥ê¥¢¥¹Ì¾¤Ë½¤Àµ¡¥
+	- Copyrightï¿½ï¿½Ç¯ï¿½ï¿½ò¹¹¿ï¿½ï¿½ï¿½
+	- ï¿½Ð¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¤ï¿½ï¿½ï¿½ï¿½Ã¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½typedefï¿½ï¿½Î¥ï¿½ï¿½ï¿½ï¿½ê¥¢ï¿½ï¿½Ì¾ï¿½Ë½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	* src/bhv_penalty_kick.cpp:
-	- librcscÊÑ¹¹¤ËÄÉ½¾¡¥PenaltyKickState::isKickTaker()¤òÍøÍÑ¤¹¤ë¤è¤¦
-	¤Ë½¤Àµ¡¥WorldModel::isOurLeft()¤Î»ÈÍÑ¤òÃæ»ß¡¥
+	- librcscï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½PenaltyKickState::isKickTaker()ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¤ï¿½ï¿½ï¿½è¤¦
+	ï¿½Ë½ï¿½ï¿½ï¿½ï¿½ï¿½WorldModel::isOurLeft()ï¿½Î»ï¿½ï¿½Ñ¤ï¿½ï¿½ï¿½ß¡ï¿½
 
 2010-05-07  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
 	* src/bhv_penalty_kick.cpp:
-	- librcscÊÑ¹¹¤ËÄÉ½¾¡¥¥Ú¥Ê¥ë¥Æ¥£¥­¥Ã¥¯»þ¤Î¼«Æ°¥µ¥¤¥ÉÈ¿Å¾¤ËÂÐ±þ¤·¤¿¡¥
+	- librcscï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½Ú¥Ê¥ï¿½Æ¥ï¿½ï¿½ï¿½ï¿½Ã¥ï¿½ï¿½ï¿½ï¿½Î¼ï¿½Æ°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¿Å¾ï¿½ï¿½ï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 2010-04-26  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -624,16 +624,16 @@
 	* src/soccer_role.h:
 	* src/strategy.cpp:
 	* src/strategy.h:
-	- HELIOS¤«¤é¤Î¥Þ¡¼¥¸¡¥¥¤¥ó¥¿¥Õ¥§¡¼¥¹¤ò½¤Àµ¤·¡¤¥»¥Ã¥È¥×¥ì¥¤¥¢¥¯¥·¥ç
-	¥ó¤Î¥³¥ó¥¹¥È¥é¥¯¥¿°ú¿ô¤Ë¥Û¡¼¥à¥Ý¥¸¥·¥ç¥ó¤òÍ×µá¤·¤Ê¤¤¤è¤¦¤ËÊÑ¹¹¡¥
+	- HELIOSï¿½ï¿½ï¿½ï¿½Î¥Þ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ó¥¿¥Õ¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã¥È¥×¥ì¥¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	ï¿½ï¿½Î¥ï¿½ï¿½ó¥¹¥È¥é¥¯ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¥Û¡ï¿½ï¿½ï¿½Ý¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×µá¤·ï¿½Ê¤ï¿½ï¿½è¤¦ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½
 
 2010-04-08  Hiroki Shimora  <shimora@users.sourceforge.net>
 
 	* src/start.sh.in:
-	- --debug-fullstate ¥ª¥×¥·¥ç¥ó¤òºï½ü
-	--fullstate FULLSTATE_TYPE ¥ª¥×¥·¥ç¥ó¤òÄÉ²Ã
-	- help ½ÐÎÏ¤Ë --debug-log-ext EXTENSION ¤Îµ­½Ò¤¬È´¤±¤Æ¤¤¤¿¤Î¤ò½¤Àµ
-	- ÉÔÀµ¤Ê¥ª¥×¥·¥ç¥ó¤òÍ¿¤¨¤¿¤È¤­¤Ë¥á¥Ã¥»¡¼¥¸¤ò½Ð¤¹¤è¤¦ÊÑ¹¹
+	- --debug-fullstate ï¿½ï¿½ï¿½×¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	--fullstate FULLSTATE_TYPE ï¿½ï¿½ï¿½×¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É²ï¿½
+	- help ï¿½ï¿½ï¿½Ï¤ï¿½ --debug-log-ext EXTENSION ï¿½Îµï¿½ï¿½Ò¤ï¿½È´ï¿½ï¿½ï¿½Æ¤ï¿½ï¿½ï¿½ï¿½Î¤ï¿½ï¿½ï¿½
+	- ï¿½ï¿½ï¿½ï¿½ï¿½Ê¥ï¿½ï¿½×¥ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ï¿½ï¿½ï¿½ï¿½È¤ï¿½ï¿½Ë¥ï¿½Ã¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¤ï¿½ï¿½è¤¦ï¿½Ñ¹ï¿½
 
 2010-04-02  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -649,7 +649,7 @@
 	* src/role_side_back.cpp:
 	* src/role_side_forward.cpp:
 	* src/sample_player.cpp:
-	- Vector2D::valid()/isValid() ¤ÎÊÑ¹¹¤ËÄÉ½¾
+	- Vector2D::valid()/isValid() ï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½
 
 2010-01-29  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -711,8 +711,8 @@
 	* src/bhv_goalie_basic_move.cpp:
 	* src/bhv_penalty_kick.cpp:
 	* src/sample_player.cpp:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¤·¡¤¥¢¥¯¥·¥ç¥ó¥¯¥é¥¹Ì¾¤òÅý°ì¤·¤¿
-	- dlog¤Î¥Õ¥¡¥¤¥ëÌ¾½ÐÎÏ¤ÎÊý¿Ë¤ò½¤Àµ
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ó¥¯¥é¥¹Ì¾ï¿½ï¿½ï¿½ï¿½ï¿½ì¤·ï¿½ï¿½
+	- dlogï¿½Î¥Õ¥ï¿½ï¿½ï¿½ï¿½ï¿½Ì¾ï¿½ï¿½ï¿½Ï¤ï¿½ï¿½ï¿½ï¿½Ë¤ï¿½ï¿½ï¿½
 
 2009-05-28  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 
@@ -721,12 +721,12 @@
 	* src/bhv_penalty_kick.cpp:
 	* src/bhv_pre_process.cpp:
 	* src/bhv_their_goal_kick_move.cpp:
-	- Body_Intercept2008¤òBody_Intercept¤Ë¥ê¥Í¡¼¥à¡¥
+	- Body_Intercept2008ï¿½ï¿½Body_Interceptï¿½Ë¥ï¿½Í¡ï¿½ï¿½à¡¥
 
 	* src/player.conf:
 	* src/start.sh.in:
 	* src/strategy.cpp:
-	- librcsc¤ÎÊÑ¹¹¤ËÄÉ½¾¡¥offline clientµ¡Ç½¤ò¥µ¥Ý¡¼¥È¤·¤¿¡¥
+	- librcscï¿½ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½É½ï¿½ï¿½ï¿½offline clientï¿½ï¿½Ç½ï¿½ò¥µ¥Ý¡ï¿½ï¿½È¤ï¿½ï¿½ï¿½ï¿½ï¿½
 
 2009-05-03  Hidehisa Akiyama  <akky@users.sourceforge.jp>
 

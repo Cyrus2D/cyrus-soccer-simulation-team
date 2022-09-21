@@ -878,7 +878,7 @@ SampleCommunication::shouldSayOpponentGoalie( const PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
 
-    const PlayerObject * goalie = wm.getOpponentGoalie();
+    const PlayerObject * goalie = wm.getTheirGoalie();
 
     if ( ! goalie )
     {
@@ -1313,7 +1313,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
         if ( should_say_goalie
              && available_len >= BallGoalieMessage::slength() )
         {
-            const PlayerObject * goalie = wm.getOpponentGoalie();
+            const PlayerObject * goalie = wm.getTheirGoalie();
             agent->addSayMessage( new BallGoalieMessage( agent->effector().queuedNextBallPos(),
                                                          ball_vel,
                                                          goalie->pos() + goalie->vel(),
@@ -1365,7 +1365,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
     if ( wm.ball().pos().x > 34.0
          && wm.ball().pos().absY() < 20.0 )
     {
-        const PlayerObject * goalie = wm.getOpponentGoalie();
+        const PlayerObject * goalie = wm.getTheirGoalie();
         if ( goalie
              && goalie->seenPosCount() == 0
              && goalie->bodyCount() == 0
@@ -2012,7 +2012,7 @@ SampleCommunication::sayBall( PlayerAgent * agent )
     {
         if ( shouldSayOpponentGoalie( agent ) )
         {
-            const PlayerObject * goalie = wm.getOpponentGoalie();
+            const PlayerObject * goalie = wm.getTheirGoalie();
             agent->addSayMessage( new BallGoalieMessage( agent->effector().queuedNextBallPos(),
                                                          ball_vel,
                                                          goalie->pos() + goalie->vel(),
@@ -2116,7 +2116,7 @@ SampleCommunication::sayGoalie( PlayerAgent * agent )
 
     if ( shouldSayOpponentGoalie( agent ) )
     {
-        const PlayerObject * goalie = wm.getOpponentGoalie();
+        const PlayerObject * goalie = wm.getTheirGoalie();
         Vector2D goalie_pos = goalie->pos() + goalie->vel();
         goalie_pos.x = bound( 53.0 - 16.0, goalie_pos.x, 52.9 );
         goalie_pos.y = bound( -19.9, goalie_pos.y, +19.9 );
