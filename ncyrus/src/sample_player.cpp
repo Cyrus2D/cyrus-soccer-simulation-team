@@ -848,7 +848,7 @@ SamplePlayer::doHeardPassReceive()
         this->debugClient().addMessage("hear PrePassMSG");
         IntentionReceive::gotoIntercept(this,heard_pos,true);
         SampleCommunication().sayUnmark(this);
-    }else if( wm.existKickableTeammate() ){
+    }else if( wm.maybeKickableTeammate() ){
         this->debugClient().addMessage("hear kickableTm:goto heard pos");
         this->debugClient().addCircle(heard_pos,0.1);
         IntentionReceive::gotoIntercept(this,heard_pos);

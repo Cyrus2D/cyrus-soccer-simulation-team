@@ -117,7 +117,7 @@ bool RoleGoalie::execute(PlayerAgent * agent) {
 		if (wm.time().cycle() - dangerCycle > 33 && wm.ball().vel().r() > 1.0)
 			isDanger = false;
 
-		if (wm.existKickableOpponent() || wm.existKickableTeammate())
+		if (wm.existKickableOpponent() || wm.maybeKickableTeammate())
 			isDanger = false;
 	}
 

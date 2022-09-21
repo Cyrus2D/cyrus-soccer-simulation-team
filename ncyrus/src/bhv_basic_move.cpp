@@ -1859,7 +1859,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
     }
 
     bool use_tackle_intercept = false;
-    if (wm.existKickableTeammate())
+    if (wm.maybeKickableTeammate())
         return false;
     if (wm.ball().pos().x > -15 || wm.lastKickerSide() == wm.ourSide()) {
         if (!tm_drible && !tm_pass) {

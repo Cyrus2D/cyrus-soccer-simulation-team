@@ -260,7 +260,7 @@ Bhv_GoalieBasicMove::doOffensiveIntercept( PlayerAgent * agent )
     int oppCycles = wm.interceptTable()->opponentReachCycle();
 
     if( myCycles <= oppCycles && myCycles < tmmCycles &&
-            !wm.existKickableTeammate() && !wm.existKickableOpponent() &&
+            !wm.maybeKickableTeammate() && !wm.existKickableOpponent() &&
             wm.gameMode().type() == GameMode::PlayOn )
     {
         //       Body_Intercept().execute( agent );
@@ -408,7 +408,7 @@ Bhv_GoalieBasicMove::getTargetPoint( PlayerAgent * agent )
     const double danger_move_x = -51.5;
 
     int ball_reach_step = 0;
-    if ( ! wm.existKickableTeammate()
+    if ( ! wm.maybeKickableTeammate()
          && ! wm.existKickableOpponent() )
     {
         ball_reach_step

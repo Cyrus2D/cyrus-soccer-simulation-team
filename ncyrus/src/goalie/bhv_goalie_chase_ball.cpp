@@ -432,7 +432,7 @@ Bhv_GoalieChaseBall::is_ball_chase_situation( PlayerAgent  * agent )
     {
         // exist kickable teammate
         // avoid back pass
-        if ( wm.existKickableTeammate() )
+        if ( wm.maybeKickableTeammate() )
         {
             dlog.addText( Logger::TEAM,
                           __FILE__": danger area. exist kickable teammate?" );
@@ -488,7 +488,7 @@ Bhv_GoalieChaseBall::is_ball_chase_situation( PlayerAgent  * agent )
     // Now, I can chase the ball
     // check the ball possessor
 
-    if ( wm.existKickableTeammate()
+    if ( wm.maybeKickableTeammate()
          && ! wm.existKickableOpponent() )
     {
         dlog.addText( Logger::TEAM,
@@ -548,7 +548,7 @@ Bhv_GoalieChaseBall::is_ball_shoot_moving( const PlayerAgent * agent )
                       __FILE__": check shoot moving. opponent kickable " );
         return false;
     }
-    else if ( wm.existKickableTeammate() )
+    else if ( wm.maybeKickableTeammate() )
     {
         dlog.addText( Logger::TEAM,
                       __FILE__": check shoot moving. teammate kickable" );

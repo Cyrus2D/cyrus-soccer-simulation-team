@@ -165,7 +165,7 @@ ShortDribbleGenerator::generate( const WorldModel & wm )
         M_first_ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->selfReachCycle());
         M_first_ball_vel = wm.ball().vel(); // todo RF *decay^2
     }
-    // else if ( ! wm.existKickableTeammate()
+    // else if ( ! wm.maybeKickableTeammate()
     //           && ! wm.existKickableOpponent()
     //           && wm.interceptTable()->selfReachCycle() <= 1 )
     // {

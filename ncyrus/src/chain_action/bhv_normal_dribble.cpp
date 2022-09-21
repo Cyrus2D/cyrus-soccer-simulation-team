@@ -174,7 +174,7 @@ IntentionNormalDribble::finished(  PlayerAgent * agent )
         return true;
     }
 
-    if ( wm.existKickableTeammate()
+    if ( wm.maybeKickableTeammate()
          || wm.existKickableOpponent() )
     {
         dlog.addText( Logger::DRIBBLE,

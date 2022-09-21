@@ -267,7 +267,7 @@ bool SampleCommunication::sayUnmark(PlayerAgent * agent) {
             && wm.audioMemory().pass().front().receiver_ == wm.self().unum())
             rec_prepass = true;
     if(std::rand()%3 == 0
-            && !wm.existKickableTeammate()
+            && !wm.maybeKickableTeammate()
             && !rec_prepass){
         agent->debugClient().addMessage("dontsayunmark");
         return false;
@@ -708,7 +708,7 @@ SampleCommunication::shouldSayBall( const PlayerAgent * agent )
         }
     }
 
-    if ( wm.existKickableTeammate() )
+    if ( wm.maybeKickableTeammate() )
     {
         return false;
     }
@@ -1043,7 +1043,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
     }
     else if ( wm.ball().seenPosCount() > 0
               || wm.ball().seenVelCount() > 1
-              || wm.existKickableTeammate() )
+              || wm.maybeKickableTeammate() )
     {
         objects[0].score_ = -65535.0;
     }
@@ -1273,7 +1273,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
     }
 
     if ( wm.existKickableOpponent()
-         || wm.existKickableTeammate() )
+         || wm.maybeKickableTeammate() )
     {
         ball_vel.assign( 0.0, 0.0 );
     }
@@ -1926,7 +1926,7 @@ SampleCommunication::sayBall( PlayerAgent * agent )
     }
 
 #if 1
-    if ( wm.existKickableTeammate()
+    if ( wm.maybeKickableTeammate()
          //|| wm.existKickableOpponent()
          )
     {
@@ -2004,7 +2004,7 @@ SampleCommunication::sayBall( PlayerAgent * agent )
     // ball & opponent goalie
     //
     if ( send_ball
-         && ( wm.existKickableTeammate()
+         && ( wm.maybeKickableTeammate()
               || our_min <= opp_min + 1 )
          && ball_trap_pos.x > 34.0
          && ball_trap_pos.absY() < 20.0

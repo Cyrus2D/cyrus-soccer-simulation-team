@@ -2158,7 +2158,7 @@ Strategy::get_normal_dash_power( const WorldModel & wm )
                       __FILE__": (get_normal_dash_power) recovering" );
     }
     // exist kickable teammate
-    else if ( wm.existKickableTeammate()
+    else if ( wm.maybeKickableTeammate()
               && wm.ball().distFromSelf() < 20.0 )
     {
         dash_power = std::min( my_inc * 1.1,
