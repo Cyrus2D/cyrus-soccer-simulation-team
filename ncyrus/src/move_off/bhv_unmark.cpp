@@ -493,7 +493,7 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
         agent->debugClient().addMessage("UnmarkDirect");
         agent->doDash(100, 0);
     }
-    if (wm.existKickableOpponent() && wm.ball().distFromSelf() < 18.0) {
+    if (wm.maybeKickableOpponent() && wm.ball().distFromSelf() < 18.0) {
         agent->setNeckAction(new Neck_TurnToBall());
     }
     else {

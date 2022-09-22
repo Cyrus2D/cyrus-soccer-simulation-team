@@ -340,7 +340,7 @@ Body_Intercept2022::doKickableOpponentCheck( PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
     if ( wm.ball().distFromSelf() < 2.0
-         && wm.existKickableOpponent() )
+         && wm.maybeKickableOpponent() )
     {
         const PlayerObject * opp = wm.opponentsFromBall().front();
         if ( opp )
@@ -2093,7 +2093,7 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
         Body_TurnToBall().execute(agent);
     }
 
-    if (wm.existKickableOpponent()
+    if (wm.maybeKickableOpponent()
             && wm.ball().distFromSelf() < 18.0) {
         agent->setNeckAction(new Neck_TurnToBall());
     } else {
@@ -2301,7 +2301,7 @@ bool go_to_goal(PlayerAgent *agent) {
                 }
             }
             agent->debugClient().addMessage("goto goal");
-            if (wm.existKickableOpponent() && wm.ball().distFromSelf() < 18.0 || opp_min <= 2) {
+            if (wm.maybeKickableOpponent() && wm.ball().distFromSelf() < 18.0 || opp_min <= 2) {
                 agent->setNeckAction(new Neck_TurnToBall());
             } else {
                 agent->setNeckAction(new Neck_TurnToBallOrScan());
@@ -2473,7 +2473,7 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
     if (nearest_opp != NULL)
         set_def_neck_with_ball(agent, wm.ball().pos(), nearest_opp, 0);
     else {
-        if (wm.existKickableOpponent() && wm.ball().distFromSelf() < 18.0) {
+        if (wm.maybeKickableOpponent() && wm.ball().distFromSelf() < 18.0) {
             agent->setNeckAction(new Neck_TurnToBall());
         } else {
             agent->setNeckAction(new Neck_TurnToBallOrScan());

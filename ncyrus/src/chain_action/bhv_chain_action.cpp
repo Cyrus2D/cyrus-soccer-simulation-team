@@ -123,7 +123,7 @@ IntentionTurnTo::finished( const PlayerAgent * agent )
 	// check opponent
 	//
 
-	if ( wm.existKickableOpponent() )
+	if ( wm.maybeKickableOpponent() )
 	{
 		dlog.addText( Logger::TEAM,
 				__FILE__": (finished) exist kickable opponent" );

@@ -1699,7 +1699,7 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
 
          bool shoott = wm.ball().vel().r()> 2.0;
      static bool dointercept=false;
-    if(wm.existKickableOpponent())
+    if(wm.maybeKickableOpponent())
     {
     	dointercept=false;
     	shoott=false;
@@ -1717,7 +1717,7 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
         return true;
     }
 
-    if(!wm.existKickableOpponent() && ball.dist(goalcenter) > Next_ball.dist(goalcenter)
+    if(!wm.maybeKickableOpponent() && ball.dist(goalcenter) > Next_ball.dist(goalcenter)
     		&& Next_ball.dist(goalcenter) < me.dist(goalcenter))
     {
     	dointercept = true;
@@ -1989,7 +1989,7 @@ rcsc::Vector2D Bhv_PenaltyKick::getPoint( rcsc::PlayerAgent * agent )
 
   int oppCycles = wm.interceptTable()->opponentReachCycle();
   Vector2D ball_pos;
-  if (wm.existKickableOpponent() )
+  if (wm.maybeKickableOpponent() )
   {
       ball_pos = wm.ball().pos();
       ball_pos += wm.opponentsFromBall().front()->vel();
@@ -2117,7 +2117,7 @@ Bhv_PenaltyKick::doGoalieBasicMove( PlayerAgent * agent )
 
     Vector2D my_pos = wm.self().pos();
     Vector2D ball_pos;
-    if ( wm.existKickableOpponent() )
+    if ( wm.maybeKickableOpponent() )
     {
         ball_pos = wm.opponentsFromBall().front()->pos();
         ball_pos += wm.opponentsFromBall().front()->vel();

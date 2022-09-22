@@ -58,7 +58,7 @@ IntentionWaitAfterSetPlayKick::finished( const PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
 
-    if ( wm.existKickableOpponent() )
+    if ( wm.maybeKickableOpponent() )
     {
         dlog.addText( Logger::TEAM,
                       __FILE__": finished. exist kickable opponent" );

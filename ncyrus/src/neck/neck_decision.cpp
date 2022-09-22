@@ -50,7 +50,7 @@ void NeckDecisionWithBall::advancedWithBall(PlayerAgent *agent){
 
 void NeckDecisionWithBall::simpleWithBall(PlayerAgent *agent) {
     const WorldModel &wm = agent->world();
-    if (wm.existKickableOpponent()
+    if (wm.maybeKickableOpponent()
         && wm.ball().distFromSelf() < 18.0) {
         agent->setNeckAction(new Neck_TurnToBall());
     } else {

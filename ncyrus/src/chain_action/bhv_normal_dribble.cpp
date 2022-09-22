@@ -175,7 +175,7 @@ IntentionNormalDribble::finished(  PlayerAgent * agent )
     }
 
     if ( wm.maybeKickableTeammate()
-         || wm.existKickableOpponent() )
+         || wm.maybeKickableOpponent() )
     {
         dlog.addText( Logger::DRIBBLE,
                       __FILE__": (finished). exist other kickable player" );

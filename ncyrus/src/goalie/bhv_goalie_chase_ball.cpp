@@ -150,7 +150,7 @@ Bhv_GoalieChaseBall::execute( PlayerAgent * agent )
          || intersection.absY() > SP.goalHalfWidth() + 3.0
          )
     {
-        if ( ! wm.existKickableOpponent() )
+        if ( ! wm.maybeKickableOpponent() )
         {
             if ( self_goalie_min <= opp_min_cyc + 2
                  && my_int_pos.x > -SP.pitchHalfLength() - 2.0
@@ -489,7 +489,7 @@ Bhv_GoalieChaseBall::is_ball_chase_situation( PlayerAgent  * agent )
     // check the ball possessor
 
     if ( wm.maybeKickableTeammate()
-         && ! wm.existKickableOpponent() )
+         && ! wm.maybeKickableOpponent() )
     {
         dlog.addText( Logger::TEAM,
                       __FILE__": exist kickable player" );
@@ -542,7 +542,7 @@ Bhv_GoalieChaseBall::is_ball_shoot_moving( const PlayerAgent * agent )
     }
 
     // check opponent kicker
-    if ( wm.existKickableOpponent() )
+    if ( wm.maybeKickableOpponent() )
     {
         dlog.addText( Logger::TEAM,
                       __FILE__": check shoot moving. opponent kickable " );

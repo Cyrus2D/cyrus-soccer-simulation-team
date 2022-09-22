@@ -746,7 +746,7 @@ SamplePlayer::doForceKick()
     if ( wm.gameMode().type() == GameMode::PlayOn
          && ! wm.self().goalie()
          && wm.self().isKickable()
-         && wm.existKickableOpponent() )
+         && wm.maybeKickableOpponent() )
     {
 
         if(Bhv_BasicTackle(0.7).execute(this)){

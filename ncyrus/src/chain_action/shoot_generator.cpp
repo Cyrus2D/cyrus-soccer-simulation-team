@@ -640,11 +640,11 @@ ShootGenerator::evaluateCourses( const WorldModel & wm )
         {
             dlog.addText(Logger::SHOOT,"kickstep=1");
             score += 50.0;
-            if(wm.existKickableOpponent()){
+            if(wm.maybeKickableOpponent()){
                 score += 1000;
             }
         }else{
-            if(wm.existKickableOpponent()){
+            if(wm.maybeKickableOpponent()){
                 score = -1000000;
                         it->score_ = score;
                 continue;

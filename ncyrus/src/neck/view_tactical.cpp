@@ -199,7 +199,7 @@ View_Tactical::doDefault( PlayerAgent * agent )
             }
         }else{
             //const bool teammate_kickable = agent->world().maybeKickableTeammate();
-            //const bool opponent_kickable = agent->world().existKickableOpponent();
+            //const bool opponent_kickable = agent->world().maybeKickableOpponent();
 
             double teammate_ball_dist = 1000.0;
             double opponent_ball_dist = 1000.0;

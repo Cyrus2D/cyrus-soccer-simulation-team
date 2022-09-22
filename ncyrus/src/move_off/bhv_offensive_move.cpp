@@ -322,7 +322,7 @@ bool cyrus_offensive_move::pers_scap(PlayerAgent *agent) {
                             0.5, ServerParam::i().maxDashPower()).execute(agent))
             Body_TurnToPoint(Vector2D(me.x + 10.0, me.y)).execute(agent);
 
-        if (wm.existKickableOpponent()
+        if (wm.maybeKickableOpponent()
                 && wm.ball().distFromSelf() < 12.0)
             agent->setNeckAction(new Neck_TurnToBall());
         else
@@ -355,7 +355,7 @@ bool cyrus_offensive_move::BackFromOffside(PlayerAgent *agent) {
             && wm.self().body().abs() < 20.0 && mate_min < opp_min
             && self_min > mate_min) {
         agent->doDash(100, 180.0);
-        if (wm.existKickableOpponent() && wm.ball().distFromSelf() < 18.0)
+        if (wm.maybeKickableOpponent() && wm.ball().distFromSelf() < 18.0)
             agent->setNeckAction(new Neck_TurnToBall());
         else
             agent->setNeckAction(new Neck_TurnToBallOrScan());

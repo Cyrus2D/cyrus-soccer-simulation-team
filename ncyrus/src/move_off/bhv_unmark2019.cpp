@@ -488,7 +488,7 @@ bool bhv_unmark_2019::execute(PlayerAgent * agent) {
 
 		agent->doDash(100, 0);
 	}
-	if (wm.existKickableOpponent() && wm.ball().distFromSelf() < 18.0) {
+	if (wm.maybeKickableOpponent() && wm.ball().distFromSelf() < 18.0) {
 		agent->setNeckAction(new Neck_TurnToBall());
 	} else {
 		agent->setNeckAction(new Neck_TurnToBallOrScan());

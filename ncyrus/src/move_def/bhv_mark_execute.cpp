@@ -142,7 +142,7 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
                     Body_TurnToBall().execute(agent);
                 }
 
-                if (wm.existKickableOpponent()
+                if (wm.maybeKickableOpponent()
                     && wm.ball().distFromSelf() < 18.0) {
                     agent->setNeckAction(new Neck_TurnToBall());
                 } else {
@@ -270,7 +270,7 @@ bool bhv_mark_execute::defenseBeInBack(PlayerAgent *agent){
         Body_TurnToBall().execute(agent);
     }
 
-    if (wm.existKickableOpponent()
+    if (wm.maybeKickableOpponent()
         && wm.ball().distFromSelf() < 18.0) {
         agent->setNeckAction(new Neck_TurnToBall());
     } else {

@@ -752,7 +752,7 @@ SampleCommunication::shouldSayBall( const PlayerAgent * agent )
 
     if ( ball_vel_changed
          && wm.lastKickerSide() != wm.ourSide()
-         && ! wm.existKickableOpponent() )
+         && ! wm.maybeKickableOpponent() )
     {
         dlog.addText( Logger::COMMUNICATION,
                       __FILE__": (shouldSayBall) ball vel changed. opponent kicked. no opponent kicker" );
@@ -1275,7 +1275,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
                       __FILE__": (sayBallAndPlayers) next cycle kickable." );
     }
 
-    if ( wm.existKickableOpponent()
+    if ( wm.maybeKickableOpponent()
          || wm.maybeKickableTeammate() )
     {
         ball_vel.assign( 0.0, 0.0 );
@@ -1930,7 +1930,7 @@ SampleCommunication::sayBall( PlayerAgent * agent )
 
 #if 1
     if ( wm.maybeKickableTeammate()
-         //|| wm.existKickableOpponent()
+         //|| wm.maybeKickableOpponent()
          )
     {
         return false;
