@@ -1568,7 +1568,7 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
 /////////////////////////////////////////////////////////////////////////////
 
 
-    const PlayerPtrCont & opps = wm.opponentsFromSelf();
+    const PlayerObject::Cont & opps = wm.opponentsFromSelf();
     const PlayerObject * nearest_opp
         = ( opps.empty()
             ? static_cast< PlayerObject * >( 0 )
@@ -1773,8 +1773,9 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
         {
         	view= new View_Synch();
         	agent->setViewAction(view);
-        	if(! Neck_TurnToBallAndPlayer( opp1 ).execute(agent) || wm.ball().posCount()>1)
+        	if(! Neck_TurnToBallAndPlayer( opp1 , 0 ).execute(agent) || wm.ball().posCount()>1)
         	{
+                
         		agent->setNeckAction( new rcsc::Neck_TurnToPoint(static_ball_pos) );
         	}
         }
