@@ -430,7 +430,7 @@ Bhv_SetPlay::is_kicker( const PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
 
-    //if ( setplayCount() < 1 )
+    //if ( getSetPlayCount() < 1 )
     //     if ( wm.lastSetPlayStartTime().cycle() > wm.time().cycle() - 2 )
     //     {
     //         return false;

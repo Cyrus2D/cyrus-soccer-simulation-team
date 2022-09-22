@@ -305,22 +305,22 @@ Bhv_SetPlayFreeKick::doKickWait( PlayerAgent * agent )
         return true;
     }
 
-    if ( wm.setplayCount() <= (wait_is_beter ? 6 : 4) )
+    if ( wm.getSetPlayCount() <= (wait_is_beter ? 6 : 4) )
     {
-        agent->debugClient().addMessage( "FreeKick:Wait%d", wm.setplayCount() );
+        agent->debugClient().addMessage( "FreeKick:Wait%d", wm.getSetPlayCount() );
 
         Body_TurnToPoint( face_point ).execute( agent );
         agent->setNeckAction( new Neck_ScanField() );
         return true;
     }
 
-    if ( wm.setplayCount() >= 15
+    if ( wm.getSetPlayCount() >= 15
          && wm.seeTime() == wm.time()
          && wm.self().stamina() > ServerParam::i().staminaMax() * (wait_is_beter ? 0.9 : 0.7) )
     {
         dlog.addText( Logger::TEAM,
                       __FILE__": (dontKickWait) set play count = %d, force kick mode",
-                      wm.setplayCount() );
+                      wm.getSetPlayCount() );
         return false;
     }
 
@@ -340,7 +340,7 @@ Bhv_SetPlayFreeKick::doKickWait( PlayerAgent * agent )
         Body_TurnToBall().execute( agent );
         agent->setNeckAction( new Neck_ScanField() );
 
-        agent->debugClient().addMessage( "FreeKick:Wait%d", wm.setplayCount() );
+        agent->debugClient().addMessage( "FreeKick:Wait%d", wm.getSetPlayCount() );
         dlog.addText( Logger::TEAM,
                       __FILE__": (doKickWait) no see or recover" );
         return true;
@@ -365,7 +365,7 @@ Bhv_SetPlayFreeKick::doMove( PlayerAgent * agent )
 
     Vector2D target_point = Strategy::i().getPosition( wm.self().unum() );
 
-    if ( wm.setplayCount() > 0
+    if ( wm.getSetPlayCount() > 0
          && wm.self().stamina() > ServerParam::i().staminaMax() * 0.9 )
     {
         const PlayerObject * nearest_opp = agent->world().getOpponentNearestToSelf( 5 );

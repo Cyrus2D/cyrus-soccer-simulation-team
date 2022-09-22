@@ -114,7 +114,7 @@ Bhv_GoalieFreeKick::execute( rcsc::PlayerAgent * agent )
     rcsc::Rect2D our_pen( rcsc::Vector2D( -52.5, -40.0 ),
                           rcsc::Vector2D( -36.0, 40.0 ) );
     if ( time_diff < 50
-         || agent->world().setplayCount() < 3
+         || agent->world().getSetPlayCount() < 3
          || ( time_diff < rcsc::ServerParam::i().dropBallTime() - 35
               && ( agent->world().self().stamina() < rcsc::ServerParam::i().staminaMax() * 0.9
                    || agent->world().existTeammateIn( our_pen, 20, true )
