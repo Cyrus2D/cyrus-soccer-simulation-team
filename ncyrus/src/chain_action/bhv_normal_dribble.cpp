@@ -428,7 +428,7 @@ IntentionNormalDribble::checkOpponent( const WorldModel & wm )
     if ( ball_next.x > ServerParam::i().theirPenaltyAreaLineX()
          && ball_next.absY() < ServerParam::i().penaltyAreaHalfWidth() )
     {
-        const PlayerObject * opp_goalie = wm.getTheirGoalie();
+        const AbstractPlayerObject * opp_goalie = wm.getTheirGoalie();
         if ( opp_goalie
              && opp_goalie->distFromBall() < ( ServerParam::i().catchableArea()
                                                + ServerParam::i().defaultPlayerSpeedMax() )
