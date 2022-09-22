@@ -62,7 +62,7 @@ private:
 
     int M_self_unum;
 
-    PredictPlayerPtrCont M_our_players;
+    PredictPlayerObject::Cont M_our_players;
 
 
     double M_our_defense_line_x;
@@ -155,22 +155,23 @@ public:
           return M_world->theirPlayer( unum );
       }
 
-    const PredictPlayerPtrCont & ourPlayers() const
+    const PredictPlayerObject::Cont & ourPlayers() const
       {
           return M_our_players;
       }
 
-    const rcsc::PlayerCont & opponents() const
+    const rcsc::PlayerObject::Cont & opponents() const
       {
+        
           return M_world->opponents();
       }
 
-    const rcsc::AbstractPlayerCont & theirPlayers() const
+    const rcsc::AbstractPlayerObject::Cont & theirPlayers() const
       {
           return M_world->theirPlayers();
       }
 
-    const rcsc::PlayerPtrCont & opponentsFromSelf() const
+    const rcsc::PlayerObject::Cont & opponentsFromSelf() const
       {
           return M_world->opponentsFromSelf();
       }
@@ -197,7 +198,7 @@ public:
           return ourPlayer( M_world->ourGoalieUnum() );
       }
 
-    const rcsc::PlayerObject * getTheirGoalie() const
+    const rcsc::AbstractPlayerObject * getTheirGoalie() const
       {
           return M_world->getTheirGoalie();
       }
@@ -257,7 +258,7 @@ public:
           return M_world->audioMemory();
       }
 
-    rcsc::AbstractPlayerCont getPlayerCont( const rcsc::PlayerPredicate * predicate ) const;
+    rcsc::AbstractPlayerObject::Cont getPlayers( const rcsc::PlayerPredicate * predicate ) const;
 };
 
 #endif
