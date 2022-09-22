@@ -39,11 +39,12 @@
 
 #include "move_def/bhv_mark_execute.h"
 #include "move_def/bhv_mark_decision_greedy.h"
+
 #include <rcsc/formation/formation.h>
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/player/say_message_builder.h>
-#include <rcsc/player/freeform_parser.h>
+// #include <rcsc/player/freeform_parser.h>
 
 #include <rcsc/common/logger.h>
 #include <rcsc/common/server_param.h>
@@ -52,6 +53,9 @@
 #include <rcsc/common/say_message_parser.h>
 #include <rcsc/player/debug_client.h>
 #include <cmath>
+
+#include <map>
+#include <random>
 
 // #define DEBUG_PRINT
 // #define DEBUG_PRINT_PLAYER_RECORD
@@ -249,8 +253,7 @@ SampleCommunication::execute( PlayerAgent * agent )
 
     return true;
 }
-#include <map>
-#include <random>
+
 bool SampleCommunication::sayUnmark(PlayerAgent * agent) {
 
 //    return true;
