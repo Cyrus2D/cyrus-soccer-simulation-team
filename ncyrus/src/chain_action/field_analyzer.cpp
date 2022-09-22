@@ -568,7 +568,7 @@ struct Player {
 double
 FieldAnalyzer::can_shoot_from( const bool is_self,
                                const Vector2D & pos,
-                               const AbstractPlayerCont & opponents,
+                               const AbstractPlayerObject::Cont & opponents,
                                const int valid_opponent_threshold )
 {
     static const double SHOOT_DIST_THR2 = std::pow( 17.0, 2 );
@@ -605,9 +605,9 @@ FieldAnalyzer::can_shoot_from( const bool is_self,
     std::vector< Player > opponent_candidates;
     opponent_candidates.reserve( opponents.size() );
 
-    const AbstractPlayerCont::const_iterator o_end = opponents.end();
-    for ( AbstractPlayerCont::const_iterator o = opponents.begin();
-          o != o_end;
+    for ( AbstractPlayerObject::Cont::const_iterator o = opponents.begin(),
+                  end = opponents.end();
+          o != end;
           ++o )
     {
         if ( (*o)->posCount() > valid_opponent_threshold )
@@ -710,7 +710,7 @@ FieldAnalyzer::can_shoot_from( const bool is_self,
  */
 bool
 FieldAnalyzer::opponent_can_shoot_from( const Vector2D & pos,
-                                        const AbstractPlayerCont & teammates,
+                                        const AbstractPlayerObject::Cont & teammates,
                                         const int valid_teammate_threshold,
                                         const double shoot_dist_threshold,
                                         const double shoot_angle_threshold,
@@ -767,9 +767,9 @@ FieldAnalyzer::opponent_can_shoot_from( const Vector2D & pos,
     std::vector< Player > teammate_candidates;
     teammate_candidates.reserve( teammates.size() );
 
-    const AbstractPlayerCont::const_iterator t_end = teammates.end();
-    for ( AbstractPlayerCont::const_iterator t = teammates.begin();
-          t != t_end;
+    for ( AbstractPlayerObject::Cont::const_iterator t = teammates.begin(),
+                  end = teammates.end();
+          t != end;
           ++t )
     {
         if ( (*t)->posCount() > valid_teammate_threshold )
@@ -910,41 +910,41 @@ FieldAnalyzer::opponent_can_shoot_from( const Vector2D & pos,
 /*!
 
  */
-double
-FieldAnalyzer::get_dist_player_nearest_to_point( const Vector2D & point,
-                                                 const PlayerCont & players,
-                                                 const int count_thr )
-{
-    double min_dist2 = 65535.0;
-
-    const PlayerCont::const_iterator end = players.end();
-    for ( PlayerCont::const_iterator it = players.begin();
-          it != end;
-          ++it )
-    {
-        if ( (*it).isGhost() )
-        {
-            continue;
-        }
-
-        if ( count_thr != -1 )
-        {
-            if ( (*it).posCount() > count_thr )
-            {
-                continue;
-            }
-        }
-
-        double d2 = (*it).pos().dist2( point );
-
-        if ( d2 < min_dist2 )
-        {
-            min_dist2 = d2;
-        }
-    }
-
-    return std::sqrt( min_dist2 );
-}
+//double
+//FieldAnalyzer::get_dist_player_nearest_to_point( const Vector2D & point,
+//                                                 const PlayerCont & players,
+//                                                 const int count_thr )
+//{
+//    double min_dist2 = 65535.0;
+//
+//    const PlayerCont::const_iterator end = players.end();
+//    for ( PlayerCont::const_iterator it = players.begin();
+//          it != end;
+//          ++it )
+//    {
+//        if ( (*it).isGhost() )
+//        {
+//            continue;
+//        }
+//
+//        if ( count_thr != -1 )
+//        {
+//            if ( (*it).posCount() > count_thr )
+//            {
+//                continue;
+//            }
+//        }
+//
+//        double d2 = (*it).pos().dist2( point );
+//
+//        if ( d2 < min_dist2 )
+//        {
+//            min_dist2 = d2;
+//        }
+//    }
+//
+//    return std::sqrt( min_dist2 );
+//}
 
 /*-------------------------------------------------------------------*/
 /*!

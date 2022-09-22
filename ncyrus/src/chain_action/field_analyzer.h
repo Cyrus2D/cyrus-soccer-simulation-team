@@ -173,12 +173,12 @@ public:
     static
     double can_shoot_from( const bool is_self,
                          const rcsc::Vector2D & pos,
-                         const rcsc::AbstractPlayerCont & opponents,
+                         const rcsc::AbstractPlayerObject::Cont & opponents,
                          const int valid_opponent_threshold );
 
     static
     bool opponent_can_shoot_from( const rcsc::Vector2D & pos,
-                                  const rcsc::AbstractPlayerCont & teammates,
+                                  const rcsc::AbstractPlayerObject::Cont & teammates,
                                   const int valid_teammate_threshold,
                                   const double shoot_dist_threshold = -1.0,
                                   const double shoot_angle_threshold = -1.0,
@@ -187,10 +187,10 @@ public:
                                   const bool calculate_detail = false );
 
 
-    static
-    double get_dist_player_nearest_to_point( const rcsc::Vector2D & point,
-                                             const rcsc::PlayerCont & cont,
-                                             const int count_thr = -1 );
+//    static
+//    double get_dist_player_nearest_to_point( const rcsc::Vector2D & point,
+//                                             const rcsc::PlayerCont & cont,
+//                                             const int count_thr = -1 );
 
     static
     rcsc::Vector2D get_our_team_near_goal_post_pos( const rcsc::Vector2D & point );
