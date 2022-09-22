@@ -214,11 +214,14 @@ private:
 	// factories
 	//
 #ifndef USE_GENERIC_FACTORY
-typedef std::map< std::string, SoccerRole::Creator > RoleFactory;
-	typedef std::map< std::string, rcsc::Formation::Creator > FormationFactory;
+//typedef std::map< std::string, SoccerRole::Creator > RoleFactory;
+//	typedef std::map< std::string, rcsc::Formation::Creator > FormationFactory;
+//
+//	RoleFactory M_role_factory;
+//	FormationFactory M_formation_factory;
+    typedef std::map< std::string, SoccerRole::Creator > RoleFactory;
 
-	RoleFactory M_role_factory;
-	FormationFactory M_formation_factory;
+    RoleFactory M_role_factory;
 #endif
 
 

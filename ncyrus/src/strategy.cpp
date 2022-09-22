@@ -53,7 +53,7 @@
 
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/player/world_model.h>
-
+#include <rcsc/formation/formation_parser.h>
 #include <rcsc/common/logger.h>
 #include <rcsc/common/server_param.h>
 #include <rcsc/param/cmd_line_parser.h>
@@ -144,12 +144,6 @@ Strategy::Strategy()
     M_role_factory[RoleGoalie::name()] = &RoleGoalie::create;
     M_role_factory[RolePlayer::name()] = &RolePlayer::create;
 
-    //
-    // formations
-    //
-
-    M_formation_factory[FormationStatic::name()] = &FormationStatic::create;
-    M_formation_factory[FormationDT::name()] = &FormationDT::create;
 #endif
 
     for ( size_t i = 0; i < M_role_number.size(); ++i )
@@ -538,53 +532,31 @@ Strategy::read( const std::string & formation_dir )
 /*!
 
  */
+
 Formation::Ptr
 Strategy::readFormation( const std::string & filepath )
 {
-    Formation::Ptr f;
-
-    std::ifstream fin( filepath.c_str() );
-    if ( ! fin.is_open() )
+    FormationParser::Ptr parser = FormationParser::create( filepath );
+    if ( ! parser )
     {
-        std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                  << " ***ERROR*** failed to open file [" << filepath << "]"
-                  << std::endl;
-        return f;
+        std::cerr << "(Strategy::createFormation) Could not create a formation parser for " << filepath << std::endl;
+        return Formation::Ptr();
     }
 
-    std::string temp, type;
-    fin >> temp >> type; // read training method type name
-    fin.seekg( 0 );
-
-    f = createFormation( type );
+    Formation::Ptr f = parser->parse( filepath );
 
     if ( ! f )
     {
-        std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                  << " ***ERROR*** failed to create formation [" << filepath << "]"
-                  << std::endl;
-        return f;
+        std::cerr << "(Strategy::createFormation) Could not create a formation from " << filepath << std::endl;
+        return Formation::Ptr();
     }
-
-    //
-    // read data from file
-    //
-    if ( ! f->read( fin ) )
-    {
-        std::cerr << __FILE__ << ':' << __LINE__ << ':'
-                  << " ***ERROR*** failed to read formation [" << filepath << "]"
-                  << std::endl;
-        f.reset();
-        return f;
-    }
-
 
     //
     // check role names
     //
     for ( int unum = 1; unum <= 11; ++unum )
     {
-        const std::string role_name = f->getRoleName( unum );
+        const std::string role_name = f->roleName( unum );
         if ( role_name == "Savior"
              || role_name == "Goalie" )
         {
@@ -633,40 +605,136 @@ Strategy::readFormation( const std::string & filepath )
     return f;
 }
 
+//Formation::Ptr
+//Strategy::readFormation( const std::string & filepath )
+//{
+//    Formation::Ptr f;
+//
+//    std::ifstream fin( filepath.c_str() );
+//    if ( ! fin.is_open() )
+//    {
+//        std::cerr << __FILE__ << ':' << __LINE__ << ':'
+//                  << " ***ERROR*** failed to open file [" << filepath << "]"
+//                  << std::endl;
+//        return f;
+//    }
+//
+//    std::string temp, type;
+//    fin >> temp >> type; // read training method type name
+//    fin.seekg( 0 );
+//
+//    f = createFormation( type );
+//
+//    if ( ! f )
+//    {
+//        std::cerr << __FILE__ << ':' << __LINE__ << ':'
+//                  << " ***ERROR*** failed to create formation [" << filepath << "]"
+//                  << std::endl;
+//        return f;
+//    }
+//
+//    //
+//    // read data from file
+//    //
+//    if ( ! f->read( fin ) )
+//    {
+//        std::cerr << __FILE__ << ':' << __LINE__ << ':'
+//                  << " ***ERROR*** failed to read formation [" << filepath << "]"
+//                  << std::endl;
+//        f.reset();
+//        return f;
+//    }
+//
+//
+//    //
+//    // check role names
+//    //
+//    for ( int unum = 1; unum <= 11; ++unum )
+//    {
+//        const std::string role_name = f->getRoleName( unum );
+//        if ( role_name == "Savior"
+//             || role_name == "Goalie" )
+//        {
+//            if ( M_goalie_unum == Unum_Unknown )
+//            {
+//                M_goalie_unum = unum;
+//            }
+//
+//            if ( M_goalie_unum != unum )
+//            {
+//                std::cerr << __FILE__ << ':' << __LINE__ << ':'
+//                          << " ***ERROR*** Illegal goalie's uniform number"
+//                          << " read unum=" << unum
+//                          << " expected=" << M_goalie_unum
+//                          << std::endl;
+//                f.reset();
+//                return f;
+//            }
+//        }
+//
+//
+//#ifdef USE_GENERIC_FACTORY
+//        SoccerRole::Ptr role = SoccerRole::create( role_name );
+//        if ( ! role )
+//        {
+//            std::cerr << __FILE__ << ':' << __LINE__ << ':'
+//                      << " ***ERROR*** Unsupported role name ["
+//                      << role_name << "] is appered in ["
+//                      << filepath << "]" << std::endl;
+//            f.reset();
+//            return f;
+//        }
+//#else
+//        if ( M_role_factory.find( role_name ) == M_role_factory.end() )
+//        {
+//            std::cerr << __FILE__ << ':' << __LINE__ << ':'
+//                      << " ***ERROR*** Unsupported role name ["
+//                      << role_name << "] is appered in ["
+//                      << filepath << "]" << std::endl;
+//            f.reset();
+//            return f;
+//        }
+//#endif
+//    }
+//
+//    return f;
+//}
+
+
 /*-------------------------------------------------------------------*/
 /*!
 
  */
-Formation::Ptr
-Strategy::createFormation( const std::string & type_name ) const
-{
-    Formation::Ptr f;
-
-#ifdef USE_GENERIC_FACTORY
-    f = Formation::create( type_name );
-#else
-    FormationFactory::const_iterator creator = M_formation_factory.find( type_name );
-    if ( creator == M_formation_factory.end() )
-    {
-        std::cerr << __FILE__ << ": " << __LINE__
-                  << " ***ERROR*** unsupported formation type ["
-                  << type_name << "]"
-                  << std::endl;
-        return f;
-    }
-    f = creator->second();
-#endif
-
-    if ( ! f )
-    {
-        std::cerr << __FILE__ << ": " << __LINE__
-                  << " ***ERROR*** unsupported formation type ["
-                  << type_name << "]"
-                  << std::endl;
-    }
-
-    return f;
-}
+//Formation::Ptr
+//Strategy::createFormation( const std::string & type_name ) const
+//{
+//    Formation::Ptr f;
+//
+//#ifdef USE_GENERIC_FACTORY
+//    f = Formation::create( type_name );
+//#else
+//    FormationFactory::const_iterator creator = M_formation_factory.find( type_name );
+//    if ( creator == M_formation_factory.end() )
+//    {
+//        std::cerr << __FILE__ << ": " << __LINE__
+//                  << " ***ERROR*** unsupported formation type ["
+//                  << type_name << "]"
+//                  << std::endl;
+//        return f;
+//    }
+//    f = creator->second();
+//#endif
+//
+//    if ( ! f )
+//    {
+//        std::cerr << __FILE__ << ": " << __LINE__
+//                  << " ***ERROR*** unsupported formation type ["
+//                  << type_name << "]"
+//                  << std::endl;
+//    }
+//
+//    return f;
+//}
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -781,7 +849,7 @@ Strategy::createRole( const int unum,
                   << " ***ERROR*** faled to create role. Null formation" << std::endl;
         return role;
     }
-    const std::string role_name = f->getRoleName( number );
+    const std::string role_name = f->roleName( number );
 
 #ifdef USE_GENERIC_FACTORY
     role = SoccerRole::create( role_name );
@@ -983,11 +1051,13 @@ Strategy::updatePosition( const WorldModel & wm )
     for ( int unum = 1; unum <= 11; ++unum )
     {
         PositionType type = Position_Center;
-        if ( f->isSideType( unum ) )
+
+        const RoleType role_type = f->roleType( unum );
+        if ( role_type.side() == RoleType::Left )
         {
             type = Position_Left;
         }
-        else if ( f->isSymmetryType( unum ) )
+        else if ( role_type.side() == RoleType::Right )
         {
             type = Position_Right;
         }
@@ -998,10 +1068,10 @@ Strategy::updatePosition( const WorldModel & wm )
                       "__ %d home pos (%.2f %.2f) type=%d",
                       unum,
                       M_positions[unum-1].x, M_positions[unum-1].y,
-                type );
+                      type );
         dlog.addCircle( Logger::TEAM,
                         M_positions[unum-1], 0.5,
-                "#000000" );
+                        "#000000" );
     }
 }
 
@@ -1122,15 +1192,16 @@ Strategy::getPosition( const int unum ) const
 std::vector<const AbstractPlayerObject *>
 Strategy::myLineTmms(const WorldModel &wm, Strategy::PostLine tm_line) {
     std::vector<const AbstractPlayerObject *> results;
-    for (AbstractPlayerCont::const_iterator p = wm.ourPlayers().begin(), end =
-            wm.ourPlayers().end(); p != end; ++p) {
-        if (*p == NULL)
+//    for (AbstractPlayerCont::const_iterator p = wm.ourPlayers().begin(), end =
+//            wm.ourPlayers().end(); p != end; ++p) {
+    for ( const AbstractPlayerObject * p : wm.ourPlayers() ){
+        if (p == NULL)
             continue;
-        if (!(*p)->pos().isValid())
+        if (!p->pos().isValid())
             continue;
 
-        if (Strategy::i().tm_Line((*p)->unum()) == tm_line)
-            results.push_back((*p));
+        if (Strategy::i().tm_Line(p->unum()) == tm_line)
+            results.push_back(p);
     }
     return results;
 }
