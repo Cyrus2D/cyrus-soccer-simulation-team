@@ -58,7 +58,7 @@ bool
 Bhv_SetPlayKickOff::execute( PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
-    const PlayerPtrCont & teammates = wm.teammatesFromBall();
+    const PlayerObject::Cont & teammates = wm.teammatesFromBall();
 
 
     if ( teammates.empty()
