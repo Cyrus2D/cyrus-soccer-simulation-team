@@ -338,6 +338,6 @@ bool IntentionReceive::gotoIntercept( rcsc::PlayerAgent * agent, rcsc::Vector2D 
     if(agent->effector().queuedNextMyPos().x > wm.offsideLineX() && prepass){
         Body_TurnToPoint(target).execute(agent);
     }
-    agent->setNeckAction( new Neck_TurnToBallOrScan() );
+    agent->setNeckAction( new Neck_TurnToBallOrScan( 0 ) );
     return true;
 }
