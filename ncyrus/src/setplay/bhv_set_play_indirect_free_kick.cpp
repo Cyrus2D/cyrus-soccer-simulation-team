@@ -224,10 +224,10 @@ Bhv_SetPlayIndirectFreeKick::doKicker( PlayerAgent * agent )
 
     double min_dist = 100000.0;
     const PlayerObject * receiver = static_cast< const PlayerObject * >( 0 );
-
-    const PlayerPtrCont::const_iterator t_end = wm.teammatesFromBall().end();
-    for ( PlayerPtrCont::const_iterator t = wm.teammatesFromBall().begin();
-          t != t_end;
+    
+    for ( PlayerObject::Cont::const_iterator t = wm.teammatesFromBall().begin(),
+              end = wm.teammatesFromBall().end();
+          t != end;
           ++t )
     {
         if ( (*t)->posCount() > 5 ) continue;
@@ -351,9 +351,9 @@ Bhv_SetPlayIndirectFreeKick::doKickToShooter( PlayerAgent * agent )
     double min_dist = 100000.0;
     const PlayerObject * receiver = static_cast< const PlayerObject * >( 0 );
 
-    const PlayerPtrCont::const_iterator t_end = wm.teammatesFromBall().end();
-    for ( PlayerPtrCont::const_iterator t = wm.teammatesFromBall().begin();
-          t != t_end;
+    for ( PlayerObject::Cont::const_iterator t = wm.teammatesFromBall().begin(),
+              end = wm.teammatesFromBall().end();
+          t != end;
           ++t )
     {
         if ( (*t)->posCount() > 5 ) continue;
@@ -570,7 +570,7 @@ Bhv_SetPlayIndirectFreeKick::doOffenseMove( PlayerAgent * agent )
         }
     }
 
-    agent->setNeckAction( new Neck_TurnToBallOrScan() );
+    agent->setNeckAction( new Neck_TurnToBallOrScan( 0 ) );
 }
 
 /*-------------------------------------------------------------------*/
