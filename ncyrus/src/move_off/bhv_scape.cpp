@@ -270,14 +270,14 @@ bool bhv_scape::run_last_scape(PlayerAgent * agent){
 			agent->doDash(100,0);
 			agent->debugClient().addMessage("KOSSHER");
 
-			agent->setNeckAction( new Neck_TurnToBallOrScan() );
+			agent->setNeckAction( new Neck_TurnToBallOrScan(0) );
 			return true;
 		}else{
 			agent->debugClient().addMessage("SCAPETURNING");
 
 			//			agent->debugClient().addMessage("scape to (%.1f,%.1f)",last_new_scape.M_first_target.x,last_new_scape.M_first_target.y);
 			Body_TurnToAngle((best_target - self_pos).th()).execute(agent);
-			agent->setNeckAction( new Neck_TurnToBallOrScan() );
+			agent->setNeckAction( new Neck_TurnToBallOrScan(0) );
 			return true;
 		}
 
@@ -290,7 +290,7 @@ bool bhv_scape::run_last_scape(PlayerAgent * agent){
 
 //		agent->doPointto(last_new_scape.M_first_target.x,last_new_scape.M_first_target.y);
 
-		agent->setNeckAction( new Neck_TurnToBallOrScan() );
+		agent->setNeckAction( new Neck_TurnToBallOrScan(0) );
 		return true;
 	}
 
@@ -363,18 +363,18 @@ bool bhv_scape::run_last_scape(PlayerAgent * agent){
 //		}
 //		else Body_GoToPoint(ts[witch_t],0.5,100).execute(agent);
 //		agent->doPointto(ts[witch_t].x,ts[witch_t].y);
-//		agent->setNeckAction( new Neck_TurnToBallOrScan() );
+//		agent->setNeckAction( new Neck_TurnToBallOrScan(0) );
 //		return true;
 //	}else{
 //		if(std::abs(wm.self().body().degree()) < 10){
 //			agent->doDash(100,0);
 //			agent->doPointto(ts[witch_t].x,ts[witch_t].y);
-//			agent->setNeckAction( new Neck_TurnToBallOrScan() );
+//			agent->setNeckAction( new Neck_TurnToBallOrScan(0) );
 //			return true;
 //		}else{
 //			Body_TurnToAngle(0).execute(agent);
 //			agent->doPointto(ts[witch_t].x,ts[witch_t].y);
-//			agent->setNeckAction( new Neck_TurnToBallOrScan() );
+//			agent->setNeckAction( new Neck_TurnToBallOrScan(0) );
 //			return true;
 //		}
 //	}
