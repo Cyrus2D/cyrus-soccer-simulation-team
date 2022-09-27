@@ -146,7 +146,7 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
                     && wm.ball().distFromSelf() < 18.0) {
                     agent->setNeckAction(new Neck_TurnToBall());
                 } else {
-                    agent->setNeckAction(new Neck_TurnToBallOrScan());
+                    agent->setNeckAction(new Neck_TurnToBallOrScan(0));
                 }
                 return true;
             }
@@ -274,7 +274,7 @@ bool bhv_mark_execute::defenseBeInBack(PlayerAgent *agent){
         && wm.ball().distFromSelf() < 18.0) {
         agent->setNeckAction(new Neck_TurnToBall());
     } else {
-        agent->setNeckAction(new Neck_TurnToBallOrScan());
+        agent->setNeckAction(new Neck_TurnToBallOrScan(0));
     }
     return true;
 }

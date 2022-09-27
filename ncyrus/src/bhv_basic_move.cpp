@@ -2097,7 +2097,7 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
             && wm.ball().distFromSelf() < 18.0) {
         agent->setNeckAction(new Neck_TurnToBall());
     } else {
-        agent->setNeckAction(new Neck_TurnToBallOrScan());
+        agent->setNeckAction(new Neck_TurnToBallOrScan(0));
     }
 
     return true;
@@ -2304,7 +2304,7 @@ bool go_to_goal(PlayerAgent *agent) {
             if (wm.maybeKickableOpponent() && wm.ball().distFromSelf() < 18.0 || opp_min <= 2) {
                 agent->setNeckAction(new Neck_TurnToBall());
             } else {
-                agent->setNeckAction(new Neck_TurnToBallOrScan());
+                agent->setNeckAction(new Neck_TurnToBallOrScan(0));
             }
             return true;
         }
@@ -2476,7 +2476,7 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
         if (wm.maybeKickableOpponent() && wm.ball().distFromSelf() < 18.0) {
             agent->setNeckAction(new Neck_TurnToBall());
         } else {
-            agent->setNeckAction(new Neck_TurnToBallOrScan());
+            agent->setNeckAction(new Neck_TurnToBallOrScan(0));
         }
     }
     return true;

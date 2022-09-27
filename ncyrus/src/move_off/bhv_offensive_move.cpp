@@ -299,7 +299,7 @@ bool cyrus_offensive_move::pers_scap(PlayerAgent *agent) {
             wm.self().body().abs() < 20.0 &&
             mate_min < opp_min && self_min > mate_min && wm.self().stamina() > 5000 && me.absY() < 33) {
         agent->doDash(100, 0.0);
-        agent->setNeckAction(new Neck_TurnToBallOrScan());
+        agent->setNeckAction(new Neck_TurnToBallOrScan(0));
         return true;
     }
 
@@ -326,7 +326,7 @@ bool cyrus_offensive_move::pers_scap(PlayerAgent *agent) {
                 && wm.ball().distFromSelf() < 12.0)
             agent->setNeckAction(new Neck_TurnToBall());
         else
-            agent->setNeckAction(new Neck_TurnToBallOrScan());
+            agent->setNeckAction(new Neck_TurnToBallOrScan(0));
         return true;
 
     }
@@ -358,7 +358,7 @@ bool cyrus_offensive_move::BackFromOffside(PlayerAgent *agent) {
         if (wm.maybeKickableOpponent() && wm.ball().distFromSelf() < 18.0)
             agent->setNeckAction(new Neck_TurnToBall());
         else
-            agent->setNeckAction(new Neck_TurnToBallOrScan());
+            agent->setNeckAction(new Neck_TurnToBallOrScan(0));
         agent->debugClient().addMessage("back dash");
         return true;
     }

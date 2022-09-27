@@ -54,7 +54,7 @@ void NeckDecisionWithBall::simpleWithBall(PlayerAgent *agent) {
         && wm.ball().distFromSelf() < 18.0) {
         agent->setNeckAction(new Neck_TurnToBall());
     } else {
-        agent->setNeckAction(new Neck_TurnToBallOrScan());
+        agent->setNeckAction(new Neck_TurnToBallOrScan(0));
     }
 }
 
