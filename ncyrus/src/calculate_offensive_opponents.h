@@ -58,21 +58,21 @@ public:
             return;
         for (int i = 1; i <= 11; i++) {
             if (wm.theirPlayer(i) != NULL && wm.theirPlayer(i)->posCount() == 0) {
-                std::cout << "*" << wm.time().cycle() << " " << wm.self().unum() << ": " << wm.theirPlayer(i)->unum()
-                          << " " << wm.theirPlayer(i)->posCount() << std::endl;
-                dlog.addText(Logger::TEAM, "CalculateOffensiveOpponents: opponent %d is observed", i);
+                // std::cout << "*" << wm.time().cycle() << " " << wm.self().unum() << ": " << wm.theirPlayer(i)->unum()
+                //           << " " << wm.theirPlayer(i)->posCount() << std::endl;
+                // dlog.addText(Logger::TEAM, "CalculateOffensiveOpponents: opponent %d is observed", i);
                 update(wm.theirPlayer(i)->pos(), i);
             }
         }
-        dlog.addText(Logger::TEAM,
-                     __FILE__": (updatePlayers) EWMA %s",
-                     CalculateOffensiveOpponents::vec_to_str(opponent_observe_pos_x_EWMA).c_str());
-        dlog.addText(Logger::TEAM,
-                     __FILE__": (updatePlayers) sums %s",
-                     CalculateOffensiveOpponents::vec_to_str(opponent_observe_pos_x_sum).c_str());
-        dlog.addText(Logger::TEAM,
-                     __FILE__": (updatePlayers) counts %s",
-                     CalculateOffensiveOpponents::vec_to_str(opponent_observe_count).c_str());
+        // dlog.addText(Logger::TEAM,
+        //              __FILE__": (updatePlayers) EWMA %s",
+        //              CalculateOffensiveOpponents::vec_to_str(opponent_observe_pos_x_EWMA).c_str());
+        // dlog.addText(Logger::TEAM,
+        //              __FILE__": (updatePlayers) sums %s",
+        //              CalculateOffensiveOpponents::vec_to_str(opponent_observe_pos_x_sum).c_str());
+        // dlog.addText(Logger::TEAM,
+        //              __FILE__": (updatePlayers) counts %s",
+        //              CalculateOffensiveOpponents::vec_to_str(opponent_observe_count).c_str());
         if (wm.time().cycle() > use_observation_cycle && wm.gameMode().type() != GameMode::KickOff_ &&
             wm.gameMode().type() != GameMode::KickIn_) {
             vector<double> ewma_copy = vector<double>(11, 0);
@@ -88,10 +88,10 @@ public:
             for (int i = 0; i < Setting::i()->mDefenseMove->mStaticOffensiveOpp.size(); i++)
                 Setting::i()->mDefenseMove->mStaticOffensiveOpp[i]++; //adjust to unum
 
-            dlog.addText(Logger::TEAM,
-                         __FILE__": (updatePlayers) updated offensive opponents to %s",
-                         CalculateOffensiveOpponents::vec_to_str(
-                                 Setting::i()->mDefenseMove->mStaticOffensiveOpp).c_str());
+            // dlog.addText(Logger::TEAM,
+            //              __FILE__": (updatePlayers) updated offensive opponents to %s",
+            //              CalculateOffensiveOpponents::vec_to_str(
+            //                      Setting::i()->mDefenseMove->mStaticOffensiveOpp).c_str());
         }
     }
 
@@ -114,10 +114,10 @@ public:
                                                                                        Setting::i()->mDefenseMove->mStaticOffensiveOpp.size());
             for (int i = 0; i < Setting::i()->mDefenseMove->mStaticOffensiveOpp.size(); i++)
                 Setting::i()->mDefenseMove->mStaticOffensiveOpp[i]++; //adjust to unum
-            dlog.addText(Logger::TEAM,
-                         __FILE__": (finalize) finalized opponents to %s",
-                         CalculateOffensiveOpponents::vec_to_str(
-                                 Setting::i()->mDefenseMove->mStaticOffensiveOpp).c_str());
+            // dlog.addText(Logger::TEAM,
+            //              __FILE__": (finalize) finalized opponents to %s",
+            //              CalculateOffensiveOpponents::vec_to_str(
+            //                      Setting::i()->mDefenseMove->mStaticOffensiveOpp).c_str());
             finalized = true;
             return true;
         }
