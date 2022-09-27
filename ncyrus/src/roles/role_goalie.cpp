@@ -75,7 +75,8 @@ bool RoleGoalie::execute(PlayerAgent * agent) {
 	static const Rect2D our_penalty(Vector2D(-54, -19.98),
 			Vector2D(-36.02, 19.98));
 
-	const PlayerPtrCont & opps = wm.opponentsFromSelf();
+	const PlayerObject::Cont & opps = wm.opponentsFromSelf();
+
 	const PlayerObject * nearest_opp = (
 			opps.empty() ? static_cast<PlayerObject *>(0) : opps.front());
 	const double nearest_opp_dist = (
@@ -95,7 +96,7 @@ bool RoleGoalie::execute(PlayerAgent * agent) {
 	static int dangerCycle = 0;
 
 	rcsc::Vector2D ball = wm.ball().pos();
-	rcsc::Vector2D prevBall = ball + wm.ball().rposPrev();
+	rcsc::Vector2D prevBall = ball + wm.prevBall().rpos();
 	rcsc::Vector2D nextBall = ball + wm.ball().vel();
 
 	if (wm.lastKickerSide() == wm.ourSide()) {

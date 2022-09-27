@@ -471,13 +471,13 @@ SamplePlayer::handleActionEnd()
                   world().self().lastMove().r(),
                   world().self().lastMove().th().degree() );
 
-    Vector2D diff = world().ball().rpos() - world().ball().rposPrev();
+    Vector2D diff = world().ball().rpos() - world().prevBall().rpos();
     dlog.addText( Logger::WORLD,
                   "WM: BALL rpos=(%lf %lf) prev_rpos=(%lf %lf) diff=(%lf %lf)",
                   world().ball().rpos().x,
                   world().ball().rpos().y,
-                  world().ball().rposPrev().x,
-                  world().ball().rposPrev().y,
+                  world().prevBall().rpos().x,
+                  world().prevBall().rpos().y,
                   diff.x,
                   diff.y );
 
