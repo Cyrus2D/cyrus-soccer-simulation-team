@@ -513,10 +513,10 @@ SelfPassGenerator::canKick( const WorldModel & wm,
     // check opponent kickable area
     //
 
-    const PlayerPtrCont::const_iterator o_end = wm.opponentsFromSelf().end();
-    for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
-          o != o_end;
-          ++o )
+    for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
+            end = wm.opponentsFromSelf().end();
+        o != end;
+        ++o )
     {
         const PlayerType * ptype = (*o)->playerTypePtr();
         Vector2D o_next = (*o)->pos() + (*o)->vel();
@@ -597,10 +597,10 @@ SelfPassGenerator::checkOpponent( const WorldModel & wm,
 
     int min_step = 1000;
 
-    const PlayerPtrCont::const_iterator o_end = wm.opponentsFromSelf().end();
-    for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
-          o != o_end;
-          ++o )
+    for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
+            end = wm.opponentsFromSelf().end();
+        o != end;
+        ++o )
     {
         const Vector2D & opos = ( (*o)->seenPosCount() <= (*o)->posCount()
                                   ? (*o)->seenPos()

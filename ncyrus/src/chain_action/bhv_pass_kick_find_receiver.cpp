@@ -787,9 +787,10 @@ Bhv_PassKickFindReceiver::getKeepBallVel( const rcsc::WorldModel & wm )
 		//
 
 		int min_step = 1000;
-		for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
-				o != wm.opponentsFromSelf().end();
-				++o )
+		for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
+				end = wm.opponentsFromSelf().end();
+			o != end;
+			++o )
 		{
 			if ( (*o)->distFromSelf() > 10.0 )
 			{

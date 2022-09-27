@@ -500,11 +500,11 @@ Bhv_ChainAction::doTurnToForward( PlayerAgent * agent )
 	//                                    : 4.0 );
 	const double opponent_dist_thr = 4.0;
 
-	const PlayerPtrCont::const_iterator o_end = wm.opponentsFromSelf().end();
-	for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
-			o != o_end;
-			++o )
-	{
+    for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
+            end = wm.opponentsFromSelf().end();
+        o != end;
+        ++o )
+    {
 		double dist = (*o)->distFromSelf();
 		dist -= bound( 0, (*o)->posCount(), 3 ) * (*o)->playerTypePtr()->realSpeedMax();
 
@@ -700,9 +700,10 @@ Bhv_ChainAction::getKeepBallVel( const WorldModel & wm )
 		//
 
 		int min_step = 1000;
-		for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
-				o != wm.opponentsFromSelf().end();
-				++o )
+		for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
+				end = wm.opponentsFromSelf().end();
+			o != end;
+			++o )
 		{
 			if ( (*o)->distFromSelf() > 10.0 )
 			{

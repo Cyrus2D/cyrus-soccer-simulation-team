@@ -248,10 +248,10 @@ vector<Vector2D> bhv_scape_voronoi::voronoi_points(rcsc::PlayerAgent *agent) {
 
 
     vector< pair<Vector2D,int> > opps_pos;
-    const PlayerPtrCont::const_iterator o_end = wm.opponentsFromSelf().end();
-    for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
-          o != o_end;
-          ++o )
+    for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
+            end = wm.opponentsFromSelf().end();
+        o != end;
+        ++o )
     {
         if( !(*o)->pos().isValid() )
             continue;

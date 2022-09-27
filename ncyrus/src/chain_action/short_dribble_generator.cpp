@@ -556,10 +556,10 @@ ShortDribbleGenerator::check_intermediate_poses(const WorldModel & wm)
         }
 
         int opp_min_dif = 100;
-        const PlayerPtrCont::const_iterator o_end = wm.opponentsFromSelf().end();
-        for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
-              o != o_end;
-              ++o )
+        for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
+                end = wm.opponentsFromSelf().end();
+            o != end;
+            ++o )
         {
             Vector2D opp_pos = (*o)->pos();
             Vector2D opp_vel = (*o)->vel();
@@ -1107,10 +1107,10 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
         use_tackle = false;
     }
 
-    const PlayerPtrCont::const_iterator o_end = wm.opponentsFromSelf().end();
-    for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
-          o != o_end;
-          ++o )
+    for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
+            end = wm.opponentsFromSelf().end();
+        o != end;
+        ++o )
     {
         if ( (*o)->distFromSelf() > 45.0 ) break;
         const Vector2D ball_to_opp_rel = ( (*o)->pos() - M_first_ball_pos ).rotatedVector( -ball_move_angle );

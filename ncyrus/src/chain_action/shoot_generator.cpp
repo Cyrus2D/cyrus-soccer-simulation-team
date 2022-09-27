@@ -388,10 +388,10 @@ ShootGenerator::createShoot( const WorldModel & wm,
     const double opponent_y_thr = SP.penaltyAreaHalfWidth();
 
     int nearest_step_diff = 5;
-    const PlayerPtrCont::const_iterator end = wm.opponentsFromSelf().end();
-    for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
-          o != end;
-          ++o )
+    for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
+            end = wm.opponentsFromSelf().end();
+        o != end;
+        ++o )
     {
         if ( (*o)->isTackling() ) continue;
         if ( (*o)->pos().x < opponent_x_thr ) continue;

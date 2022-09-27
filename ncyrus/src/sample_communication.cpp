@@ -2044,10 +2044,11 @@ SampleCommunication::sayBall( PlayerAgent * agent )
 
         Vector2D opp_trap_pos = wm.ball().inertiaPoint( opp_min );
 
-        const PlayerPtrCont::const_iterator o_end = wm.opponentsFromBall().end();
-        for ( PlayerPtrCont::const_iterator o = wm.opponentsFromBall().begin();
-              o != o_end;
-              ++o )
+
+        for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromBall().begin(),
+            end = wm.opponentsFromBall().end();
+        o != end;
+        ++o )
         {
             if ( (*o)->seenPosCount() > 0 ) continue;
             if ( (*o)->unum() == Unum_Unknown ) continue;
@@ -2408,10 +2409,10 @@ SampleCommunication::sayPlayers( PlayerAgent * agent )
     }
 
     // set opponent candidates
-    const PlayerPtrCont::const_iterator o_end = wm.opponentsFromSelf().end();
-    for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
-          o != o_end;
-          ++o )
+    for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
+            end = wm.opponentsFromSelf().end();
+        o != end;
+        ++o )
     {
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::COMMUNICATION,
@@ -2662,10 +2663,10 @@ SampleCommunication::sayTwoOpponents( PlayerAgent * agent )
 
     std::vector< const PlayerObject * > candidates;
 
-    const PlayerPtrCont::const_iterator o_end = wm.opponentsFromSelf().end();
-    for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
-          o != o_end;
-          ++o )
+    for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
+            end = wm.opponentsFromSelf().end();
+        o != end;
+        ++o )
     {
         if ( (*o)->seenPosCount() > 0 ) continue;
         if ( (*o)->unumCount() > 0 ) continue;
@@ -2719,10 +2720,10 @@ SampleCommunication::sayThreeOpponents( PlayerAgent * agent )
 
     std::vector< const PlayerObject * > candidates;
 
-    const PlayerPtrCont::const_iterator o_end = wm.opponentsFromSelf().end();
-    for ( PlayerPtrCont::const_iterator o = wm.opponentsFromSelf().begin();
-          o != o_end;
-          ++o )
+    for ( PlayerObject::Cont::const_iterator o = wm.opponentsFromSelf().begin(),
+            end = wm.opponentsFromSelf().end();
+        o != end;
+        ++o )
     {
         if ( (*o)->seenPosCount() > 0 ) continue;
         if ( (*o)->unumCount() > 0 ) continue;
