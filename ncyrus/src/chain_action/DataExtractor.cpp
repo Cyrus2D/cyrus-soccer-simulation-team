@@ -80,7 +80,7 @@
 //    strftime(buffer, sizeof(buffer), "%Y-%m-%d-%H-%M-%S", timeinfo);
 //    std::string str(buffer);
 //    std::string rand_name = std::to_string(SamplePlayer::player_port);
-//    str += "_" + std::to_string(wm.self().unum()) + "_" + wm.opponentTeamName() + "_E" + rand_name + ".csv";
+//    str += "_" + std::to_string(wm.self().unum()) + "_" + wm.theirTeamName() + "_E" + rand_name + ".csv";
 //
 //    fout = std::ofstream((dir + str).c_str());
 //

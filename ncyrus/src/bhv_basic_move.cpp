@@ -2379,7 +2379,7 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
             }
         }
     }
-    //    if (wm.opponentTeamName().compare("KN2C") == 0) {
+    //    if (wm.theirTeamName().compare("KN2C") == 0) {
     //        int our_score = (wm.ourSide() == LEFT
     //                         ? wm.gameMode().scoreLeft()
     //                         : wm.gameMode().scoreRight());

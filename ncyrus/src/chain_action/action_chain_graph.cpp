@@ -756,7 +756,7 @@ double calc_danger_eval_for_chain(const WorldModel & wm,std::vector< ActionState
         if(danger_eval > max_danger_eval)
             max_danger_eval = danger_eval;
     }
-    if(wm.opponentTeamName().compare("ae2")==0||wm.opponentTeamName().compare("FURY")==0||wm.opponentTeamName().compare("PersianGulf2017"))
+    if(wm.theirTeamName().compare("ae2")==0||wm.theirTeamName().compare("FURY")==0||wm.theirTeamName().compare("PersianGulf2017"))
         max_danger_eval/=3.0;
     return max_danger_eval;
 }

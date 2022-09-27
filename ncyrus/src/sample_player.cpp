@@ -253,7 +253,7 @@ SamplePlayer::actionImpl()
 {
     SamplePlayer::player_port = this->config().port();
     Setting::i();
-    Setting::i()->SetTeamName(this->world().opponentTeamName());
+    Setting::i()->SetTeamName(this->world().theirTeamName());
     //
     // update strategy and analyzer
     //
