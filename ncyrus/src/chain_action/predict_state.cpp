@@ -255,18 +255,17 @@ PredictState::updateLines()
 /*!
 
  */
-AbstractPlayerCont
-PredictState::getPlayerCont( const PlayerPredicate * predicate ) const
+AbstractPlayerObject::Cont
+PredictState::getPlayers( const PlayerPredicate * predicate ) const
 {
-    AbstractPlayerCont ret;
+    AbstractPlayerObject::Cont ret;
 
     if ( ! predicate )
     {
         return ret;
     }
 
-    for ( PredictPlayerPtrCont::const_iterator
-              it = M_our_players.begin(),
+    for ( PredictPlayerObject::Cont::const_iterator it = M_our_players.begin(),
               end = M_our_players.end();
           it != end;
           ++it )
@@ -277,8 +276,7 @@ PredictState::getPlayerCont( const PlayerPredicate * predicate ) const
         }
     }
 
-    for ( PlayerPtrCont::const_iterator
-              it = M_world->opponentsFromSelf().begin(),
+    for ( PlayerObject::Cont::const_iterator it = M_world->opponentsFromSelf().begin(),
               end = M_world->opponentsFromSelf().end();
           it != end;
           ++it )

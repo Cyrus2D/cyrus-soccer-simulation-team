@@ -204,7 +204,7 @@ evaluate_state( const PredictState & state )
     if ( FieldAnalyzer::can_shoot_from
          ( holder->unum() == state.self().unum(),
            holder->pos(),
-           state.getPlayerCont( new OpponentOrUnknownPlayerPredicate( state.ourSide() ) ),
+           state.getPlayers( new OpponentOrUnknownPlayerPredicate( state.ourSide() ) ),
            VALID_PLAYER_THRESHOLD ) )
     {
         point += 1.0e+6;
@@ -329,7 +329,7 @@ evaluate_state_penalty( const PredictState & state )
     if ( FieldAnalyzer::can_shoot_from
          ( holder->unum() == state.self().unum(),
            holder->pos(),
-           state.getPlayerCont( new OpponentOrUnknownPlayerPredicate( state.ourSide() ) ),
+           state.getPlayers( new OpponentOrUnknownPlayerPredicate( state.ourSide() ) ),
            VALID_PLAYER_THRESHOLD ) )
     {
         point += 1.0e+6;
@@ -452,7 +452,7 @@ evaluate_state2( const PredictState & state )
     if ( FieldAnalyzer::can_shoot_from
          ( holder->unum() == state.self().unum(),
            holder->pos(),
-           state.getPlayerCont( new OpponentOrUnknownPlayerPredicate( state.ourSide() ) ),
+           state.getPlayers( new OpponentOrUnknownPlayerPredicate( state.ourSide() ) ),
            VALID_PLAYER_THRESHOLD ) )
     {
         point += 1.0e+6;
