@@ -720,18 +720,18 @@ SampleCommunication::shouldSayBall( const PlayerAgent * agent )
 
     const double cur_ball_speed = wm.ball().vel().r();
 
-    const BallObject::State * prev_ball_state = wm.ball().getState( 1 );
-    if ( prev_ball_state )
+    // const BallObject::State * prev_ball_state = wm.ball().getState( 1 );
+    if ( wm.prevBall().velValid() )
     {
-        const double prev_ball_speed = prev_ball_state->vel_.r();
+        const double prev_ball_speed = wm.prevBall().vel().r();
 
-        double angle_diff = ( wm.ball().vel().th() - prev_ball_state->vel_.th() ).abs();
+        double angle_diff = ( wm.ball().vel().th() - wm.prevBall().vel().th() ).abs();
 
         dlog.addText( Logger::COMMUNICATION,
                       __FILE__": (shouldSayBall) check ball vel" );
         dlog.addText( Logger::COMMUNICATION,
                       "prev_vel=(%.2f %.2f) r=%.3f",
-                      prev_ball_state->vel_.x, prev_ball_state->vel_.y,
+                      wm.prevBall().vel().x, wm.prevBall().vel().y,
                       prev_ball_speed );
         dlog.addText( Logger::COMMUNICATION,
                       "cur_vel=(%.2f %.2f) r=%.3f",
@@ -786,9 +786,9 @@ SampleCommunication::shouldSayBall( const PlayerAgent * agent )
     const PlayerObject * ball_nearest_teammate = NULL;
     const PlayerObject * second_ball_nearest_teammate = NULL;
 
-    const PlayerPtrCont::const_iterator t_end = wm.teammatesFromBall().end();
-    for ( PlayerPtrCont::const_iterator t = wm.teammatesFromBall().begin();
-          t != t_end;
+    for ( PlayerObject::Cont::const_iterator t = wm.teammatesFromBall().begin(),
+              end = wm.teammatesFromBall().end();
+          t != end;
           ++t )
     {
         if ( (*t)->isGhost() || (*t)->posCount() >= 10 ) continue;
@@ -881,7 +881,7 @@ SampleCommunication::shouldSayOpponentGoalie( const PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
 
-    const PlayerObject * goalie = wm.getTheirGoalie();
+    const AbstractPlayerObject * goalie = wm.getTheirGoalie();
 
     if ( ! goalie )
     {
@@ -925,8 +925,8 @@ SampleCommunication::goalieSaySituation( const rcsc::PlayerAgent * agent )
 
     int player_count = 0;
 
-    const AbstractPlayerCont::const_iterator end = wm.allPlayers().end();
-    for ( AbstractPlayerCont::const_iterator p = wm.allPlayers().begin();
+    for ( AbstractPlayerObject::Cont::const_iterator p = wm.allPlayers().begin(),
+              end = wm.allPlayers().end();
           p != end;
           ++p )
     {
@@ -1056,23 +1056,25 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
     }
     else if ( objects[0].score_ > 0.0 )
     {
-        const BallObject::State & prev_state = wm.ball().stateRecord().front();
-
-        double angle_diff = ( wm.ball().vel().th() - prev_state.vel_.th() ).abs();
-        double prev_speed = prev_state.vel_.r();
-        double cur_speed = wm.ball().vel().r();
-
-        if ( cur_speed > prev_speed + 0.1
-             || ( prev_speed > 0.5
-                  && cur_speed < prev_speed * ServerParam::i().ballDecay() * 0.5 )
-             || ( prev_speed > 0.5         // Magic Number
-                  && angle_diff > 20.0 ) ) // Magic Number
+        if ( wm.prevBall().velValid() )
         {
-            objects[0].score_ = 1000.0;
-        }
-        else
-        {
-            objects[0].score_ *= 0.5;
+            double angle_diff = ( wm.ball().vel().th() - wm.prevBall().vel().th() ).abs();
+            double prev_speed = wm.prevBall().vel().r();
+            double cur_speed = wm.ball().vel().r();
+
+            if ( cur_speed > prev_speed + 0.1
+                 || ( prev_speed > 0.5
+                      && cur_speed < prev_speed * ServerParam::i().ballDecay() * 0.5 )
+                 || ( prev_speed > 0.5         // Magic Number
+                      && angle_diff > 20.0 ) ) // Magic Number
+            {
+                // ball velocity changed.
+                objects[0].score_ = 1000.0;
+            }
+            else
+            {
+                objects[0].score_ *= 0.5;
+            }
         }
     }
 
@@ -1316,7 +1318,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
         if ( should_say_goalie
              && available_len >= BallGoalieMessage::slength() )
         {
-            const PlayerObject * goalie = wm.getTheirGoalie();
+            const AbstractPlayerObject * goalie = wm.getTheirGoalie();
             agent->addSayMessage( new BallGoalieMessage( agent->effector().queuedNextBallPos(),
                                                          ball_vel,
                                                          goalie->pos() + goalie->vel(),
@@ -1368,7 +1370,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
     if ( wm.ball().pos().x > 34.0
          && wm.ball().pos().absY() < 20.0 )
     {
-        const PlayerObject * goalie = wm.getTheirGoalie();
+        const AbstractPlayerObject * goalie = wm.getTheirGoalie();
         if ( goalie
              && goalie->seenPosCount() == 0
              && goalie->bodyCount() == 0
@@ -1940,9 +1942,9 @@ SampleCommunication::sayBall( PlayerAgent * agent )
     const PlayerObject * ball_nearest_teammate = NULL;
     const PlayerObject * second_ball_nearest_teammate = NULL;
 
-    const PlayerPtrCont::const_iterator t_end = wm.teammatesFromBall().end();
-    for ( PlayerPtrCont::const_iterator t = wm.teammatesFromBall().begin();
-          t != t_end;
+    for ( PlayerObject::Cont::const_iterator t = wm.teammatesFromBall().begin(),
+              end = wm.teammatesFromBall().end();
+          t != end;
           ++t )
     {
         if ( (*t)->isGhost() || (*t)->posCount() >= 10 ) continue;
@@ -2015,7 +2017,7 @@ SampleCommunication::sayBall( PlayerAgent * agent )
     {
         if ( shouldSayOpponentGoalie( agent ) )
         {
-            const PlayerObject * goalie = wm.getTheirGoalie();
+            const AbstractPlayerObject * goalie = wm.getTheirGoalie();
             agent->addSayMessage( new BallGoalieMessage( agent->effector().queuedNextBallPos(),
                                                          ball_vel,
                                                          goalie->pos() + goalie->vel(),
@@ -2120,7 +2122,7 @@ SampleCommunication::sayGoalie( PlayerAgent * agent )
 
     if ( shouldSayOpponentGoalie( agent ) )
     {
-        const PlayerObject * goalie = wm.getTheirGoalie();
+        const AbstractPlayerObject * goalie = wm.getTheirGoalie();
         Vector2D goalie_pos = goalie->pos() + goalie->vel();
         goalie_pos.x = bound( 53.0 - 16.0, goalie_pos.x, 52.9 );
         goalie_pos.y = bound( -19.9, goalie_pos.y, +19.9 );
@@ -2360,7 +2362,7 @@ SampleCommunication::sayPlayers( PlayerAgent * agent )
         }
     }
 
-    AbstractPlayerCont candidates;
+    AbstractPlayerObject::Cont candidates;
     bool include_self = false;
 
     // set self as candidate
@@ -2380,10 +2382,10 @@ SampleCommunication::sayPlayers( PlayerAgent * agent )
     if ( ! opponent_attack )
     {
         // set teammate candidates
-        const PlayerPtrCont::const_iterator t_end = wm.teammatesFromSelf().end();
-        for ( PlayerPtrCont::const_iterator t = wm.teammatesFromSelf().begin();
-              t != t_end;
-              ++t )
+        for ( PlayerObject::Cont::const_iterator t = wm.teammatesFromSelf().begin(),
+                end = wm.teammatesFromSelf().end();
+            t != end;
+            ++t )
         {
             dlog.addText( Logger::COMMUNICATION,
                           __FILE__": (sayPlayers) __ check(1) teammate %d(%.1f %.1f)",
@@ -2471,10 +2473,10 @@ SampleCommunication::sayPlayers( PlayerAgent * agent )
         }
 
         // set teammate candidates
-        const PlayerPtrCont::const_iterator t_end = wm.teammatesFromSelf().end();
-        for ( PlayerPtrCont::const_iterator t = wm.teammatesFromSelf().begin();
-              t != t_end;
-              ++t )
+        for ( PlayerObject::Cont::const_iterator t = wm.teammatesFromSelf().begin(),
+                end = wm.teammatesFromSelf().end();
+            t != end;
+            ++t )
         {
             dlog.addText( Logger::COMMUNICATION,
                           __FILE__": (sayPlayers) __ check(2) teammate %d(%.1f %.1f)",
@@ -2520,7 +2522,7 @@ SampleCommunication::sayPlayers( PlayerAgent * agent )
         std::sort( candidates.begin(), candidates.end(), AbstractPlayerSelfDistCmp() );
     }
 
-    AbstractPlayerCont::const_iterator first = candidates.begin();
+    AbstractPlayerObject::Cont::const_iterator first = candidates.begin();
     int first_unum = ( (*first)->side() == wm.ourSide()
                        ? (*first)->unum()
                        : (*first)->unum() + 11 );
@@ -2528,11 +2530,11 @@ SampleCommunication::sayPlayers( PlayerAgent * agent )
     if ( candidates.size() >= 3
          && len + ThreePlayerMessage::slength() <= ServerParam::i().playerSayMsgSize() )
     {
-        AbstractPlayerCont::const_iterator second = first; ++second;
+        AbstractPlayerObject::Cont::const_iterator second = first; ++second;
         int second_unum = ( (*second)->side() == wm.ourSide()
                             ? (*second)->unum()
                             : (*second)->unum() + 11 );
-        AbstractPlayerCont::const_iterator third = second; ++third;
+        AbstractPlayerObject::Cont::const_iterator third = second; ++third;
         int third_unum = ( (*third)->side() == wm.ourSide()
                            ? (*third)->unum()
                            : (*third)->unum() + 11 );
@@ -2556,7 +2558,7 @@ SampleCommunication::sayPlayers( PlayerAgent * agent )
     else if ( candidates.size() >= 2
               && len + TwoPlayerMessage::slength() <= ServerParam::i().playerSayMsgSize() )
     {
-        AbstractPlayerCont::const_iterator second = first; ++second;
+        AbstractPlayerObject::Cont::const_iterator second = first; ++second;
         int second_unum = ( (*second)->side() == wm.ourSide()
                             ? (*second)->unum()
                             : (*second)->unum() + 11 );
@@ -2818,10 +2820,10 @@ SampleCommunication::saySelf( PlayerAgent * agent )
         const PlayerObject * ball_nearest_teammate = NULL;
         const PlayerObject * second_ball_nearest_teammate = NULL;
 
-        const PlayerPtrCont::const_iterator t_end = wm.teammatesFromBall().end();
-        for ( PlayerPtrCont::const_iterator t = wm.teammatesFromBall().begin();
-              t != t_end;
-              ++t )
+        for ( PlayerObject::Cont::const_iterator t = wm.teammatesFromBall().begin(),
+              end = wm.teammatesFromBall().end();
+          t != end;
+          ++t )
         {
             if ( (*t)->isGhost() || (*t)->posCount() >= 10 ) continue;
 
@@ -2961,10 +2963,10 @@ SampleCommunication::attentiontoSomeone( PlayerAgent * agent )
         else
         {
             std::vector< const PlayerObject * > candidates;
-            const PlayerPtrCont::const_iterator end = wm.teammatesFromSelf().end();
-            for ( PlayerPtrCont::const_iterator p = wm.teammatesFromSelf().begin();
-                  p != end;
-                  ++p )
+            for ( PlayerObject::Cont::const_iterator p = wm.teammatesFromSelf().begin(),
+              end = wm.teammatesFromSelf().end();
+             p != end;
+                ++p )
             {
                 if ( (*p)->goalie() ) continue;
                 if ( (*p)->unum() == Unum_Unknown ) continue;
