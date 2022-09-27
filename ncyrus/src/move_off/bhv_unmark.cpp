@@ -277,7 +277,7 @@ Vector2D bhv_unmark::penalty_unmark(const WorldModel & wm) {
             bool can_goal = false;
             bool opp_can_reach = false;
             can_goal = FieldAnalyzer::can_shoot_from(true, tmp_target,
-                                                     wm.getPlayerCont(
+                                                     wm.getPlayers(
                                                              new OpponentOrUnknownPlayerPredicate(wm.ourSide())),
                                                      VALID_PLAYER_THRESHOLD);
             double eval =/* max(100 - tmp_target.dist(ball_inner), 0.0)
@@ -497,7 +497,7 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
         agent->setNeckAction(new Neck_TurnToBall());
     }
     else {
-        agent->setNeckAction(new Neck_TurnToBallOrScan());
+        agent->setNeckAction(new Neck_TurnToBallOrScan(0));
     }
     return true;
 }
