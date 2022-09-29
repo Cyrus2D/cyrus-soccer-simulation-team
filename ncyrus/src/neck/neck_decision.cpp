@@ -359,7 +359,8 @@ void NeckDecisionWithBall::addHandyPlayerTargets(const WorldModel & wm){
 }
 
 void NeckDecisionWithBall::neckEvaluator(const WorldModel & wm){
-    M_best_neck = AngleDeg::INVALIDATED;
+    // M_best_neck = AngleDeg::INVALIDATED; // CYRUS_LIB
+    M_best_neck = AngleDeg(numeric_limits<double>::max());
     M_best_eval = -1;
     double max_target_eval = 0;
     for (auto & target: M_target){
@@ -437,7 +438,8 @@ void NeckDecisionWithBall::execute(PlayerAgent * agent){
     #ifdef DEBUG_NECK_DECISION
     dlog.addText(Logger::PLAN, "Set neck execute");
     #endif
-    if (M_best_neck.isValid()) {
+    // if (M_best_neck.isValid()) { // CYRUS_LIB
+    if (M_best_neck != numeric_limits<double>::max()) { 
         #ifdef DEBUG_NECK_DECISION
         dlog.addLine(Logger::PLAN, M_self_pos, M_self_pos + Vector2D::polar2vector(10, M_best_neck), 255, 0, 0);
         dlog.addText(Logger::PLAN, "Set neck to %.1f", M_best_neck.degree());
