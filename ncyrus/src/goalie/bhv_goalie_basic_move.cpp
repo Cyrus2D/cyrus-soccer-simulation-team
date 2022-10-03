@@ -37,7 +37,7 @@
 
 #include <rcsc/action/body_intercept.h>
 #include <rcsc/action/basic_actions.h>
-#include <rcsc/action/body_goalie_go_to_point.h>
+// #include <rcsc/action/body_goalie_go_to_point.h> CYRUS_LIB
 #include <rcsc/action/body_go_to_point.h>
 #include <rcsc/action/body_stop_dash.h>
 #include <rcsc/action/bhv_go_to_point_look_ball.h>
@@ -1210,8 +1210,8 @@ bool Bhv_GoalieBasicMove::doHeliosGolie(PlayerAgent *agent)
     double body_diff = (body_target - self_body).degree();
     double body_diff_abs = (body_target - self_body).abs();
 
-    int cycle_dash = wm.self().playerType().cyclesToReachDistance(target.dist(self_pos));
-    int cycle_dash_back_dash = wm.self().playerType().cyclesToReachDistance(target.dist(self_pos), 180.0);
+    int cycle_dash = wm.self().playerTypePtr()-> (target.dist(self_pos));
+    int cycle_dash_back_dash = wm.self().playerTypePtr()->cyclesToReachDistance(target.dist(self_pos), 180.0);
     int cycle_turn = FieldAnalyzer::predict_player_turn_cycle(wm.self().playerTypePtr(),
                                                               wm.self().body(),
                                                               wm.self().vel().r(),
