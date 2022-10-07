@@ -1210,8 +1210,9 @@ bool Bhv_GoalieBasicMove::doHeliosGolie(PlayerAgent *agent)
     double body_diff = (body_target - self_body).degree();
     double body_diff_abs = (body_target - self_body).abs();
 
-    int cycle_dash = wm.self().playerTypePtr()-> (target.dist(self_pos));
-    int cycle_dash_back_dash = wm.self().playerTypePtr()->cyclesToReachDistance(target.dist(self_pos), 180.0);
+    int cycle_dash = wm.self().playerTypePtr()-> cyclesToReachDistance(target.dist(self_pos));
+    // int cycle_dash_back_dash = wm.self().playerTypePtr()->cyclesToReachDistance(target.dist(self_pos), 180.0); CYRUS_LIB
+    int cycle_dash_back_dash = wm.self().playerTypePtr()->cyclesToReachDistance(target.dist(self_pos));
     int cycle_turn = FieldAnalyzer::predict_player_turn_cycle(wm.self().playerTypePtr(),
                                                               wm.self().body(),
                                                               wm.self().vel().r(),
