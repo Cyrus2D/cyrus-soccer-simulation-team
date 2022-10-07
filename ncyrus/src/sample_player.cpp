@@ -272,10 +272,10 @@ SamplePlayer::actionImpl()
     ActionChainHolder::instance().setFieldEvaluator( M_field_evaluator );
     ActionChainHolder::instance().setActionGenerator( M_action_generator );
 
-    if (!this->config().useSyncMode() && ServerParam::i().synchMode()){
-        std::cout<<"defense training mode"<<std::endl;
-        std::this_thread::sleep_for (std::chrono::seconds(1));
-    }
+    // if (!this->config().useSyncMode() && ServerParam::i().synchMode()){ CYRUS_LIB
+    //     std::cout<<"defense training mode"<<std::endl;
+    //     std::this_thread::sleep_for (std::chrono::seconds(1));
+    // }
 
     //
     // special situations (tackle, objects accuracy, intention...)
@@ -301,7 +301,7 @@ SamplePlayer::actionImpl()
         const AbstractPlayerObject * tm = world().ourPlayer(i);
         if(tm == nullptr || tm->unum() < 1)
             continue;
-        dlog.addText(Logger::TEAM, "%d %d %.1f", i, tm->seenStaminaCount(),tm->seenStamina());
+        // dlog.addText(Logger::TEAM, "%d %d %.1f", i, tm->seenStaminaCount(),tm->seenStamina()); // CYRUS_LIB
     }
     //
     // create current role
