@@ -33,7 +33,7 @@
 #include <rcsc/coach/coach_command.h>
 #include <rcsc/coach/coach_config.h>
 #include <rcsc/coach/coach_debug_client.h>
-#include <rcsc/common/basic_client.h>
+#include <rcsc/common/abstract_client.h>
 #include <rcsc/common/logger.h>
 #include <rcsc/common/player_param.h>
 #include <rcsc/common/server_param.h>
