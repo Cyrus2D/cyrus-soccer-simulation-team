@@ -236,7 +236,7 @@ Bhv_GoalieBasicMove::doOffensivePositioning( PlayerAgent * agent )
                              dashPower );
         //        Body_GoalieGoToPoint( Vector2D(-50.5,getTargetPoint(agent).y),
         //                              0.8, dashPower ).execute( agent );
-        agent->setNeckAction( new Neck_TurnToBallOrScan() );
+        agent->setNeckAction( new Neck_TurnToBallOrScan(0) );
 
         return true;
     }
@@ -269,7 +269,7 @@ Bhv_GoalieBasicMove::doOffensiveIntercept( PlayerAgent * agent )
         if ( wm.ball().distFromSelf() < ServerParam::i().visibleDistance() )
             agent->setNeckAction( new Neck_TurnToLowConfTeammate() );
         else
-            agent->setNeckAction( new Neck_TurnToBallOrScan() );
+            agent->setNeckAction( new Neck_TurnToBallOrScan(0) );
 
         return true;
     }
@@ -859,8 +859,11 @@ Bhv_GoalieBasicMove::doCorrectX( PlayerAgent * agent,
         if ( ! wm.maybeKickableOpponent()
              && wm.ball().distFromSelf() > 30.0 )
         {
-            if ( ! Body_GoalieGoToPoint( move_point, x_buf, dash_power
+            // if ( ! Body_GoalieGoToPoint( move_point, x_buf, dash_power
+            //                     ).execute( agent ) ) CYRUS_LIB
+            if ( ! Body_GoToPoint( move_point, x_buf, dash_power
                                          ).execute( agent ) )
+                                         
             {
                 AngleDeg body_angle = ( wm.self().body().degree() > 0.0
                                         ? 90.0
@@ -1097,7 +1100,9 @@ Bhv_GoalieBasicMove::doGoToPointLookBall( PlayerAgent * agent,
         agent->debugClient().addMessage( "Goalie:GoTo" );
         dlog.addText( Logger::TEAM,
                       __FILE__": doGoToPointLookBall. use GoToPoint" );
-        if ( Body_GoalieGoToPoint( target_point, dist_thr, dash_power
+        // if ( ! Body_GoalieGoToPoint( target_point, dist_thr, dash_power
+        //                     ).execute( agent ) ) CYRUS_LIB
+        if ( Body_GoToPoint( target_point, dist_thr, dash_power
         ).execute( agent ) )
         {
             dlog.addText( Logger::TEAM,
