@@ -69,9 +69,9 @@
 #include <rcsc/player/say_message_builder.h>
 #include <rcsc/player/audio_sensor.h>
 // #include <rcsc/player/freeform_parser.h>
-#include <rcsc/player/stamina_with_pointto.h>
+// #include <rcsc/player/stamina_with_pointto.h> // CURIS_LIB
 
-#include <rcsc/common/basic_client.h>
+#include <rcsc/common/abstract_client.h>
 #include <rcsc/common/logger.h>
 #include <rcsc/common/server_param.h>
 #include <rcsc/common/player_param.h>
@@ -325,7 +325,7 @@ SamplePlayer::actionImpl()
     if ( role_ptr->acceptExecution( world() ) )
     {
         role_ptr->execute( this );
-        StaminaWithPointto::doPointtoForStamina(this);
+        //StaminaWithPointto::doPointtoForStamina(this); CYRUS_LIB
 
         return;
     }
@@ -336,7 +336,7 @@ SamplePlayer::actionImpl()
     if ( world().gameMode().type() == GameMode::PlayOn )
     {
         role_ptr->execute( this );
-        StaminaWithPointto::doPointtoForStamina(this);
+        //StaminaWithPointto::doPointtoForStamina(this); CYRUS_LIB
         if ( M_communication )
         {
             M_communication->execute( this );
@@ -360,7 +360,7 @@ SamplePlayer::actionImpl()
     // other set play mode
     //
     Bhv_SetPlay().execute( this );
-    StaminaWithPointto::doPointtoForStamina(this);
+    //StaminaWithPointto::doPointtoForStamina(this); CYRUS_LIB
     if ( M_communication )
     {
         M_communication->execute( this );
@@ -811,8 +811,8 @@ SamplePlayer::doHeardPassReceive()
     Vector2D intercept_pos = wm.ball().inertiaPoint( self_min );
     Vector2D heard_pos = wm.audioMemory().pass().front().receive_pos_;
     int heard_cycle = wm.self().playerTypePtr()->cyclesToReachDistance(heard_pos.dist(wm.self().pos()));
-    bool prepass_received = wm.audioMemory().pass().front().prepass;
-    bool cross_pass = wm.audioMemory().pass().front().cross;
+    bool prepass_received = false; // wm.audioMemory().pass().front().prepass; CYRUS_LIB
+    bool cross_pass = false; // wm.audioMemory().pass().front().cross; CYRUS_LIB
     int sender = wm.audioMemory().pass().front().sender_;
     int fastest_tm = wm.interceptTable()->fastestTeammate()->unum();
     Vector2D self_pos = wm.self().inertiaPoint(1);
