@@ -46,6 +46,8 @@
 #include <rcsc/common/server_param.h>
 #include <rcsc/geom/rect_2d.h>
 
+using namespace rcsc;
+
 /*-------------------------------------------------------------------*/
 /*!
   execute action
@@ -162,26 +164,24 @@ Bhv_GoalieFreeKick::execute( rcsc::PlayerAgent * agent )
 /*!
 
 */
-rcsc::Vector2D
-Bhv_GoalieFreeKick::getKickPoint( const rcsc::PlayerAgent * agent )
+Vector2D
+Bhv_GoalieFreeKick::getKickPoint( const PlayerAgent * agent )
 {
     static const double base_x = -43.0;
     static const double base_y = 10.0;
 
-    std::vector< std::pair< rcsc::Vector2D, double > > candidates;
+    std::vector< std::pair< Vector2D, double > > candidates;
     candidates.reserve( 4 );
-    candidates.push_back( std::make_pair( rcsc::Vector2D( base_x, base_y ), 0.0 ) );
-    candidates.push_back( std::make_pair( rcsc::Vector2D( base_x, -base_y ), 0.0 ) );
-    candidates.push_back( std::make_pair( rcsc::Vector2D( base_x, 0.0 ), 0.0 ) );
+    candidates.push_back( std::make_pair( Vector2D( base_x, base_y ), 0.0 ) );
+    candidates.push_back( std::make_pair( Vector2D( base_x, -base_y ), 0.0 ) );
+    candidates.push_back( std::make_pair( Vector2D( base_x, 0.0 ), 0.0 ) );
 
-    const rcsc::PlayerPtrCont::const_iterator opps_end
-        = agent->world().opponentsFromSelf().end();
-    for ( rcsc::PlayerPtrCont::const_iterator o
-              = agent->world().opponentsFromSelf().begin();
-          o != opps_end;
+    for ( PlayerObject::Cont::const_iterator o = agent->world().opponentsFromSelf().begin(),
+              end = agent->world().opponentsFromSelf().end();
+          o != end;
           ++o )
     {
-        for ( std::vector< std::pair< rcsc::Vector2D, double > >::iterator it = candidates.begin();
+        for ( std::vector< std::pair< Vector2D, double > >::iterator it = candidates.begin();
               it != candidates.end();
               ++it )
         {
@@ -189,9 +189,9 @@ Bhv_GoalieFreeKick::getKickPoint( const rcsc::PlayerAgent * agent )
         }
     }
 
-    rcsc::Vector2D best_pos = candidates.front().first;
+    Vector2D best_pos = candidates.front().first;
     double min_cong = 10000.0;
-    for ( std::vector< std::pair< rcsc::Vector2D, double > >::iterator it = candidates.begin();
+    for ( std::vector< std::pair< Vector2D, double > >::iterator it = candidates.begin();
           it != candidates.end();
           ++it )
     {
