@@ -59,7 +59,7 @@ Bhv_BasicOffensiveKick::execute( PlayerAgent * agent )
 
     const WorldModel & wm = agent->world();
 
-    const PlayerPtrCont & opps = wm.opponentsFromSelf();
+    const PlayerObject::Cont & opps = wm.opponentsFromSelf();
     const PlayerObject * nearest_opp
         = ( opps.empty()
             ? static_cast< PlayerObject * >( 0 )
@@ -77,9 +77,9 @@ Bhv_BasicOffensiveKick::execute( PlayerAgent * agent )
         if ( pass_point.x > wm.self().pos().x - 1.0 )
         {
             bool safety = true;
-            const PlayerPtrCont::const_iterator opps_end = opps.end();
-            for ( PlayerPtrCont::const_iterator it = opps.begin();
-                  it != opps_end;
+            for ( PlayerObject::Cont::const_iterator it = opps.begin(),
+                      end = opps.end();
+                  it != end;
                   ++it )
             {
                 if ( (*it)->pos().dist( pass_point ) < 4.0 )
