@@ -106,18 +106,18 @@ Bhv_GoalieChaseBall::execute( PlayerAgent * agent )
         dlog.addText( Logger::TEAM,
                       __FILE__": execute normal intercept2" );
 
-        Vector2D my_int_tackle_pos = wm.ball().inertiaPoint(wm.interceptTable()->selfReachCycleTackle());
-        if ( my_int_tackle_pos.x > - SP.pitchHalfLength() - 1.0
-             && my_int_tackle_pos.x < SP.ourPenaltyAreaLineX() - pen_thr
-             && my_int_tackle_pos.absY() < SP.penaltyAreaHalfWidth() - pen_thr )
-        {
-            dlog.addText( Logger::TEAM,
-                          __FILE__": execute tackle intercept" );
-            agent->debugClient().addMessage( "Intercept tackle" );
-            Body_Intercept( false ).executeTackle( agent );
-            agent->setNeckAction( new Neck_TurnToBall() );
-            return true;
-        }
+        // Vector2D my_int_tackle_pos = wm.ball().inertiaPoint(wm.interceptTable()->selfReachCycleTackle());  // CURUS_LIB
+        // if ( my_int_tackle_pos.x > - SP.pitchHalfLength() - 1.0
+        //      && my_int_tackle_pos.x < SP.ourPenaltyAreaLineX() - pen_thr
+        //      && my_int_tackle_pos.absY() < SP.penaltyAreaHalfWidth() - pen_thr )
+        // {
+        //     dlog.addText( Logger::TEAM,
+        //                   __FILE__": execute tackle intercept" );
+        //     agent->debugClient().addMessage( "Intercept tackle" );
+        //     Body_Intercept( false ).executeTackle( agent );  // CURUS_LIB
+        //     agent->setNeckAction( new Neck_TurnToBall() );
+        //     return true;
+        // }
         if(bhv_tackle_intercept::intercept_cycle(wm).first!=1000 && wm.ball().inertiaPoint(bhv_tackle_intercept::intercept_cycle(wm).first).x > -52.5){
             if(bhv_tackle_intercept().execute(agent)){
                 dlog.addText( Logger::TEAM,
@@ -349,7 +349,7 @@ Bhv_GoalieChaseBall::is_ball_chase_situation( PlayerAgent  * agent )
     const ServerParam & SP = ServerParam::i();
 
     int self_min = wm.interceptTable()->selfReachCycle();
-    int self_min_tackle = wm.interceptTable()->selfReachCycleTackle();
+    int self_min_tackle = wm.interceptTable()->selfReachCycle(); // selfReachCycleTackle(); // CYRUS_LIB
     int opp_min = wm.interceptTable()->opponentReachCycle();
     int mate_min = wm.interceptTable()->teammateReachCycle();
 
@@ -558,7 +558,7 @@ Bhv_GoalieChaseBall::is_ball_shoot_moving( const PlayerAgent * agent )
     const Line2D ball_line( wm.ball().pos(), wm.ball().vel().th() );
     const double intersection_y = ball_line.getY( -SP.pitchHalfLength() );
 
-    if ( std::fabs( ball_line.getB() ) > 0.1
+    if ( std::fabs( ball_line.b() ) > 0.1
          && std::fabs( intersection_y ) < SP.goalHalfWidth() + 2.0 )
     {
         const Vector2D end_point
@@ -569,9 +569,9 @@ Bhv_GoalieChaseBall::is_ball_shoot_moving( const PlayerAgent * agent )
             dlog.addText( Logger::TEAM,
                           __FILE__": shoot to Y(%.1f). ball_line a=%.1f, b=%.1f, c=%.1f",
                           intersection_y,
-                          ball_line.getA(),
-                          ball_line.getB(),
-                          ball_line.getC() );
+                          ball_line.a(),
+                          ball_line.b(),
+                          ball_line.c() );
             return true;
         }
     }
