@@ -579,7 +579,7 @@ SamplePlayer::doPreprocess()
                       wm.self().tackleExpires() );
         // face neck to ball
         this->setViewAction( new View_Tactical() );
-        this->setNeckAction( new Neck_TurnToBallOrScan() );
+        this->setNeckAction( new Neck_TurnToBallOrScan(0) );
         return true;
     }
 
