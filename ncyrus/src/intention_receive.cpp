@@ -86,7 +86,7 @@ IntentionReceive::IntentionReceive( const Vector2D & target_point,
 
  */
 bool
-IntentionReceive::finished(  PlayerAgent * agent )
+IntentionReceive::finished( const PlayerAgent * agent ) // CYRUS_LIB
 {
     if ( M_step <= 0 )
     {

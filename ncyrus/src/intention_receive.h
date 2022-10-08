@@ -53,7 +53,7 @@ public:
                       const int passer,
                       const bool prepass);
 
-    bool finished(  rcsc::PlayerAgent * agent );
+    bool finished( const rcsc::PlayerAgent * agent ); // CYRUS_LIB
 
     bool execute( rcsc::PlayerAgent * agent );
     static bool gotoIntercept( rcsc::PlayerAgent * agent, rcsc::Vector2D target, bool prepass = false);
