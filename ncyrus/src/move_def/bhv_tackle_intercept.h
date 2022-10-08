@@ -23,6 +23,9 @@
 #include <rcsc/action/neck_turn_to_ball.h>
 #include <rcsc/player/action_effector.h>
 #include <rcsc/geom.h>
+
+#include <rcsc/common/logger.h>
+
 using namespace std;
 using namespace rcsc;
 
