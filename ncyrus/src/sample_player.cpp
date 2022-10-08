@@ -41,6 +41,8 @@
 #include "roles/soccer_role.h"
 
 #include "sample_communication.h"
+// #include "keepaway_communication.h" // HEL_LIB
+#include "sample_freeform_message_parser.h" // CYRUS_LIB ADDED
 
 #include "setplay/bhv_penalty_kick.h"
 #include "setplay/bhv_set_play.h"
@@ -78,7 +80,7 @@
 #include <rcsc/common/audio_memory.h>
 #include <rcsc/common/say_message_parser.h>
 #include "move_off/bhv_unmark.h"
-// #include <rcsc/common/free_message_parser.h>
+#include <rcsc/common/free_message_parser.h>
 
 #include "setting.h"
 Setting * Setting::instance = nullptr;
@@ -100,50 +102,79 @@ using namespace rcsc;
  */
 SamplePlayer::SamplePlayer()
     : PlayerAgent(),
-      M_communication(),
-      M_field_evaluator( createFieldEvaluator() ),
-      M_action_generator( createActionGenerator() )
+      M_communication()
 {
-    boost::shared_ptr< AudioMemory > audio_memory( new AudioMemory );
+    M_field_evaluator = createFieldEvaluator();
+    M_action_generator = createActionGenerator();
+
+    std::shared_ptr< AudioMemory > audio_memory( new AudioMemory );
 
     M_worldmodel.setAudioMemory( audio_memory );
+
+    addSayMessageParser( new BallMessageParser( audio_memory ) );
+    addSayMessageParser( new PassMessageParser( audio_memory ) );
+    addSayMessageParser( new InterceptMessageParser( audio_memory ) );
+    addSayMessageParser( new GoalieMessageParser( audio_memory ) );
+    addSayMessageParser( new GoalieAndPlayerMessageParser( audio_memory ) );
+    addSayMessageParser( new OffsideLineMessageParser( audio_memory ) );
+    addSayMessageParser( new DefenseLineMessageParser( audio_memory ) );
+    addSayMessageParser( new WaitRequestMessageParser( audio_memory ) );
+    addSayMessageParser( new PassRequestMessageParser( audio_memory ) );
+    addSayMessageParser( new DribbleMessageParser( audio_memory ) );
+    addSayMessageParser( new BallGoalieMessageParser( audio_memory ) );
+    addSayMessageParser( new OnePlayerMessageParser( audio_memory ) );
+    addSayMessageParser( new TwoPlayerMessageParser( audio_memory ) );
+    addSayMessageParser( new ThreePlayerMessageParser( audio_memory ) );
+    addSayMessageParser( new SelfMessageParser( audio_memory ) );
+    addSayMessageParser( new TeammateMessageParser( audio_memory ) );
+    addSayMessageParser( new OpponentMessageParser( audio_memory ) );
+    addSayMessageParser( new BallPlayerMessageParser( audio_memory ) );
+    addSayMessageParser( new StaminaMessageParser( audio_memory ) );
+    addSayMessageParser( new RecoveryMessageParser( audio_memory ) );
 
     //
     // set communication message parser
     //
-    addSayMessageParser( SayMessageParser::Ptr( new MarkMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new BallMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new PassMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new PrePassMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new PreCrossMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new InterceptMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new GoalieMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new GoalieAndPlayerMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new OffsideLineMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new DefenseLineMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new WaitRequestMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new PassRequestMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new DribbleMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new BallGoalieMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new OnePlayerMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new OnePlayerMessageParser1( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new OnePlayerMessageParser2( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new TwoPlayerMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new TwoPlayerMessageParser01( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new TwoPlayerMessageParser02( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser001( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser002( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser011( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser012( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser022( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new SelfMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new TeammateMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new OpponentMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new BallPlayerMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new StaminaMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new RecoveryMessageParser( audio_memory ) ) );
 
+    // CYRUS_LIB
+    // addSayMessageParser( SayMessageParser::Ptr( new MarkMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new PrePassMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new PreCrossMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new OnePlayerMessageParser1( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new OnePlayerMessageParser2( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new TwoPlayerMessageParser01( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new TwoPlayerMessageParser02( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser001( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser002( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser011( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser012( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser022( audio_memory ) ) );
+    ////////////
+
+
+
+    // addSayMessageParser( SayMessageParser::Ptr( new SelfMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new TeammateMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new OpponentMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new BallPlayerMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new StaminaMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new RecoveryMessageParser( audio_memory ) ) );
+
+    // addSayMessageParser( SayMessageParser::Ptr( new BallMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new PassMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new TwoPlayerMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new InterceptMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new GoalieMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new GoalieAndPlayerMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new OffsideLineMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new DefenseLineMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new WaitRequestMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new PassRequestMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new DribbleMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new BallGoalieMessageParser( audio_memory ) ) );
+    // addSayMessageParser( SayMessageParser::Ptr( new OnePlayerMessageParser( audio_memory ) ) );
+    
     // addSayMessageParser( SayMessageParser::Ptr( new FreeMessageParser< 9 >( audio_memory ) ) );
     // addSayMessageParser( SayMessageParser::Ptr( new FreeMessageParser< 8 >( audio_memory ) ) );
     // addSayMessageParser( SayMessageParser::Ptr( new FreeMessageParser< 7 >( audio_memory ) ) );
@@ -157,7 +188,8 @@ SamplePlayer::SamplePlayer()
     //
     // set freeform message parser
     //
-    setFreeformParser( FreeformParser::Ptr( new FreeformParser( M_worldmodel ) ) );
+    // setFreeformParser( FreeformParser::Ptr( new FreeformParser( M_worldmodel ) ) );
+    addFreeformMessageParser( new OpponentPlayerTypeMessageParser( M_worldmodel ) );
 
     //
     // set action generators
@@ -232,7 +264,8 @@ SamplePlayer::initImpl( CmdLineParser & cmd_parser )
                   << std::endl;
     }
 
-    OffensiveDataExtractor::active = config().dataExtract();
+    OffensiveDataExtractor::active = false; // config().dataExtract(); CYRUS_LIB
+    
     //bhv_unmarkes::load_dnn();
 
     return true;
@@ -869,7 +902,6 @@ SamplePlayer::doHeardPassReceive()
         this->debugClient().addMessage("hear gotoIntercept");
         IntentionReceive::gotoIntercept(this,heard_pos);
     }
-
     this->setIntention( new IntentionReceive( heard_pos,
                                               ServerParam::i().maxDashPower(),
                                               0.9,
