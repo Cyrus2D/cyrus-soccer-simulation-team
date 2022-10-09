@@ -73,18 +73,18 @@ MarkPositionFinder::getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldMo
     double tm_tired_x = 0;
 
 
-    for(int t = 2; t <= 11; t++){
-        if(Strategy::i().tm_Line(t) == Strategy::PostLine::back){
-            const AbstractPlayerObject * tm = wm.ourPlayer(t);
-            if(tm != nullptr && tm->unum() > 0){
-                if(tm->seenStaminaCount() < 15 && tm->seenStamina() < 4500){
-                    tm_is_tired = true;
-                    tm_tired_x = tm->pos().x;
-                    break;
-                }
-            }
-        }
-    }
+    // for(int t = 2; t <= 11; t++){ ,// CYRUS_LIB
+    //     if(Strategy::i().tm_Line(t) == Strategy::PostLine::back){
+    //         const AbstractPlayerObject * tm = wm.ourPlayer(t);
+    //         if(tm != nullptr && tm->unum() > 0){
+    //             if(tm->seenStaminaCount() < 15 && tm->seenStamina() < 4500){
+    //                 tm_is_tired = true;
+    //                 tm_tired_x = tm->pos().x;
+    //                 break;
+    //             }
+    //         }
+    //     }
+    // }
 
     bool isGoalieForward=Setting::i()->mStrategySetting->mIsGoalForward;
     double tm_def_hpos_x = isGoalieForward?Strategy::i().getPosition(3).x:Strategy::i().getPosition(2).x;
