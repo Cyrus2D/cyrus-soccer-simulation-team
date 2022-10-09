@@ -30,6 +30,8 @@
 
 #include "sample_coach.h"
 
+#include "sample_freeform_message.h"
+
 #include <rcsc/coach/coach_command.h>
 #include <rcsc/coach/coach_config.h>
 #include <rcsc/coach/coach_debug_client.h>
@@ -43,7 +45,8 @@
 #include <rcsc/param/param_map.h>
 #include <rcsc/param/cmd_line_parser.h>
 
-#include <rcsc/coach/global_world_model.h>
+// #include <rcsc/coach/global_world_model.h>
+#include <rcsc/coach/coach_world_model.h>
 
 static bool first6subcycle=false;
 static bool second6subcycle=false;
@@ -89,30 +92,30 @@ SampleCoach::SampleCoach()
     // register audio memory & say message parsers
     //
 
-    boost::shared_ptr< AudioMemory > audio_memory( new AudioMemory );
+    std::shared_ptr< AudioMemory > audio_memory( new AudioMemory );
 
     M_worldmodel.setAudioMemory( audio_memory );
 
-    addSayMessageParser( SayMessageParser::Ptr( new BallMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new PassMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new InterceptMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new GoalieMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new GoalieAndPlayerMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new OffsideLineMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new DefenseLineMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new WaitRequestMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new PassRequestMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new DribbleMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new BallGoalieMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new OnePlayerMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new TwoPlayerMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new SelfMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new TeammateMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new OpponentMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new BallPlayerMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new StaminaMessageParser( audio_memory ) ) );
-    addSayMessageParser( SayMessageParser::Ptr( new RecoveryMessageParser( audio_memory ) ) );
+    addSayMessageParser( new BallMessageParser( audio_memory ) );
+    addSayMessageParser( new PassMessageParser( audio_memory ) );
+    addSayMessageParser( new InterceptMessageParser( audio_memory ) );
+    addSayMessageParser( new GoalieMessageParser( audio_memory ) );
+    addSayMessageParser( new GoalieAndPlayerMessageParser( audio_memory ) );
+    addSayMessageParser( new OffsideLineMessageParser( audio_memory ) );
+    addSayMessageParser( new DefenseLineMessageParser( audio_memory ) );
+    addSayMessageParser( new WaitRequestMessageParser( audio_memory ) );
+    addSayMessageParser( new PassRequestMessageParser( audio_memory ) );
+    addSayMessageParser( new DribbleMessageParser( audio_memory ) );
+    addSayMessageParser( new BallGoalieMessageParser( audio_memory ) );
+    addSayMessageParser( new OnePlayerMessageParser( audio_memory ) );
+    addSayMessageParser( new TwoPlayerMessageParser( audio_memory ) );
+    addSayMessageParser( new ThreePlayerMessageParser( audio_memory ) );
+    addSayMessageParser( new SelfMessageParser( audio_memory ) );
+    addSayMessageParser( new TeammateMessageParser( audio_memory ) );
+    addSayMessageParser( new OpponentMessageParser( audio_memory ) );
+    addSayMessageParser( new BallPlayerMessageParser( audio_memory ) );
+    addSayMessageParser( new StaminaMessageParser( audio_memory ) );
+    addSayMessageParser( new RecoveryMessageParser( audio_memory ) );
 
     // addSayMessageParser( SayMessageParser::Ptr( new FreeMessageParser< 9 >( audio_memory ) ) );
     // addSayMessageParser( SayMessageParser::Ptr( new FreeMessageParser< 8 >( audio_memory ) ) );
@@ -518,7 +521,7 @@ SampleCoach::doFirstSubstitute()
           unum != ordered_unum.end();
           ++unum )
     {
-        const GlobalPlayerObject * p = world().teammate( *unum );
+        const CoachPlayerObject * p = world().teammate( *unum );
         if ( ! p )
         {
             std::cerr << config().teamName() << " coach: "
@@ -884,11 +887,26 @@ SampleCoach::sayPlayerTypes()
         return;
     }
 
+    std::shared_ptr< FreeformMessage > ptr( new OpponentPlayerTypeMessage( M_opponent_player_types[0],
+                                                                           M_opponent_player_types[1],
+                                                                           M_opponent_player_types[2],
+                                                                           M_opponent_player_types[3],
+                                                                           M_opponent_player_types[4],
+                                                                           M_opponent_player_types[5],
+                                                                           M_opponent_player_types[6],
+                                                                           M_opponent_player_types[7],
+                                                                           M_opponent_player_types[8],
+                                                                           M_opponent_player_types[9],
+                                                                           M_opponent_player_types[10] ) );
+    this->addFreeformMessage( ptr );
+
+    s_last_send_time = world().time();
+
+
     std::string msg;
     msg.reserve( 128 );
 
     msg = "(player_types ";
-
     for ( int unum = 1; unum <= 11; ++unum )
     {
         char buf[8];
@@ -896,18 +914,16 @@ SampleCoach::sayPlayerTypes()
                   unum, M_opponent_player_types[unum - 1] );
         msg += buf;
     }
-
-    msg += ")";
-
-    doSayFreeform( msg );
-
-    s_last_send_time = world().time();
+    msg += ')';
 
     std::cout << config().teamName()
               << " coach: "
               << world().time()
               << " sent freeform " << msg
               << std::endl;
+              
+    // doSayFreeform( msg ); CYRUS_LIB
+
 }
 
 /*-------------------------------------------------------------------*/
