@@ -120,7 +120,7 @@ Body_Intercept2022::execute( PlayerAgent * agent )
                   table->selfCache().size(),
                   best_intercept.reachCycle(),
                   best_intercept.turnCycle(), best_intercept.dashCycle(),
-                  best_intercept.dashPower(), best_intercept.dashAngle().degree() );
+                  best_intercept.dashPower()); // CYRUS_LIB, best_intercept.dashAngle().degree() );
 
     Vector2D target_point = wm.ball().inertiaPoint( best_intercept.reachCycle() );
     agent->debugClient().setTarget( target_point );
@@ -155,11 +155,11 @@ Body_Intercept2022::execute( PlayerAgent * agent )
     {
         Vector2D my_inertia = wm.self().inertiaPoint( best_intercept.reachCycle() );
         AngleDeg target_angle = ( target_point - my_inertia ).th();
-        if ( best_intercept.dashAngle().abs() > 179 )
-        {
-            // back dash
-            target_angle -= 180.0;
-        }
+        // if ( best_intercept.dashAngle().abs() > 179 ) // CYRUS_LIB
+        // {
+        //     // back dash
+        //     target_angle -= 180.0;
+        // }
 
         dlog.addText( Logger::INTERCEPT,
                       __FILE__": turn.first.%s target_body_angle = %.1f",
@@ -224,21 +224,21 @@ Body_Intercept2022::executeTackle( PlayerAgent * agent )
     const InterceptTable * table = wm.interceptTable();
 
     /////////////////////////////////////////////
-    if ( table->selfReachCycleTackle() > 100 )
-    {
-        Vector2D final_point = wm.ball().inertiaFinalPoint();
-        agent->debugClient().setTarget( final_point );
+    // if ( table->selfReachCycleTackle() > 100 ) CYRUS_LIB
+    // {
+    //     Vector2D final_point = wm.ball().inertiaFinalPoint();
+    //     agent->debugClient().setTarget( final_point );
 
-        dlog.addText( Logger::INTERCEPT,
-                      __FILE__": no solution... Just go to ball end point (%.2f %.2f)",
-                      final_point.x, final_point.y );
-        agent->debugClient().addMessage( "InterceptNoSolution" );
-        Body_GoToPoint( final_point,
-                        2.0,
-                        ServerParam::i().maxDashPower()
-                        ).execute( agent );
-        return true;
-    }
+    //     dlog.addText( Logger::INTERCEPT,
+    //                   __FILE__": no solution... Just go to ball end point (%.2f %.2f)",
+    //                   final_point.x, final_point.y );
+    //     agent->debugClient().addMessage( "InterceptNoSolution" );
+    //     Body_GoToPoint( final_point,
+    //                     2.0,
+    //                     ServerParam::i().maxDashPower()
+    //                     ).execute( agent );
+    //     return true;
+    // }
 
     /////////////////////////////////////////////
     int ignore_intercept = 0;
@@ -250,10 +250,10 @@ Body_Intercept2022::executeTackle( PlayerAgent * agent )
     dlog.addText( Logger::INTERCEPT,
                   __FILE__": solution size= %d. selected best cycle is %d"
                   " (turn:%d + dash:%d) power=%.1f dir=%.1f",
-                  table->selfCacheTackle().size(),
+                //   table->selfCacheTackle().size(), CYRUS_LIB
                   best_intercept.reachCycle(),
                   best_intercept.turnCycle(), best_intercept.dashCycle(),
-                  best_intercept.dashPower(), best_intercept.dashAngle().degree() );
+                  best_intercept.dashPower() ); // CYRUS_LIB , best_intercept.dashAngle().degree() );
 
     Vector2D target_point = wm.ball().inertiaPoint( best_intercept.reachCycle() );
     agent->debugClient().setTarget( target_point );
@@ -433,8 +433,8 @@ Body_Intercept2022::getBestIntercept( const WorldModel & wm,
             ignore_intercept += 1;
             continue;
         }
-        if ( M_save_recovery
-             && cache[i].mode() != InterceptInfo::NORMAL )
+        if ( M_save_recovery ) 
+            //  && cache[i].mode() != InterceptInfo::NORMAL ) CYRUS_LIB
         {
             continue;
         }
@@ -467,11 +467,11 @@ Body_Intercept2022::getBestIntercept( const WorldModel & wm,
              && cycle < opp_min - 1 )
         {
             bool can_catch = false;
-            if (cache[i].dashAngle().abs() < 1.0)
+            // if (cache[i].dashAngle().abs() < 1.0) CYRUS_LIB
+            //     can_catch = true;
+            // else if (cache[i].dashAngle().abs() < 179.0) CYRUS_LIB
+            if (((ball_pos - cache[i].selfPos()).th() - wm.self().body()).abs() < 90.0)
                 can_catch = true;
-            else if (cache[i].dashAngle().abs() < 179.0)
-                if (((ball_pos - cache[i].selfPos()).th() - wm.self().body()).abs() < 90.0)
-                    can_catch = true;
             if ( can_catch
                  || cache[i].ballDist() < 0.01 )
             {
@@ -958,7 +958,7 @@ Body_Intercept2022::getBestInterceptTackle( const WorldModel & wm,
                                       int &ignore_intercept) const
 {
     const ServerParam & SP = ServerParam::i();
-    const std::vector< InterceptInfo > & cache = table->selfCacheTackle();
+    const std::vector< InterceptInfo > & cache = table-> selfCache();// selfCacheTackle(); // CYRUS_LIB
 
     if ( cache.empty() )
     {
@@ -1007,8 +1007,8 @@ Body_Intercept2022::getBestInterceptTackle( const WorldModel & wm,
                       ball_vel.x, ball_vel.y,
                       cache[i].ballDist() );
 #endif
-        if ( M_save_recovery
-             && cache[i].mode() != InterceptInfo::NORMAL )
+        if ( M_save_recovery )
+            //  && cache[i].mode() != InterceptInfo::NORMAL ) CYRUS_LIB 
         {
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::INTERCEPT,
@@ -1274,7 +1274,7 @@ Body_Intercept2022::getBestIntercept_Test( const WorldModel & /*wm*/,
     const int opp_min = table->opponentReachCycle();
     const PlayerObject * opponent = table->fastestOpponent();
 
-    const std::size_t MAX = cache.size();
+    const std::size_t MAX = 0 // cache.size(); CYRUS_LIB
 
     for ( std::size_t i = 0; i < MAX; ++i )
     {
@@ -1436,19 +1436,19 @@ Body_Intercept2022::doInertiaDash( PlayerAgent * agent,
     const WorldModel & wm = agent->world();
     const PlayerType & ptype = wm.self().playerType();
 
-    if ( info.reachCycle() == 1 )
-    {
-        agent->debugClient().addMessage( "Intercept1Dash%.0f|%.0f",
-                                         info.dashPower(), info.dashAngle().degree() );
-        agent->doDash( info.dashPower(), info.dashAngle() );
-        return true;
-    }
+    // if ( info.reachCycle() == 1 ) CYRUS_LIB
+    // {
+    //     // agent->debugClient().addMessage( "Intercept1Dash%.0f|%.0f",
+    //     //                                  info.dashPower(), info.dashAngle().degree() ); 
+    //     agent->doDash( info.dashPower(), info.dashAngle() );
+    //     return true;
+    // }
 
     Vector2D target_rel = target_point - wm.self().pos();
     target_rel.rotate( - wm.self().body() );
 
     AngleDeg accel_angle = wm.self().body();
-    if ( info.dashAngle().abs() > 179.0 ) accel_angle += 180.0;
+    // if ( info.dashAngle().abs() > 179.0 ) accel_angle += 180.0;
 
     Vector2D ball_vel = wm.ball().vel() * std::pow( ServerParam::i().ballDecay(),
                                                     info.reachCycle() );
@@ -1501,7 +1501,7 @@ Body_Intercept2022::doInertiaDash( PlayerAgent * agent,
 
     if ( wm.ball().seenPosCount() <= 2
          && wm.ball().vel().r() * std::pow( ServerParam::i().ballDecay(), info.reachCycle() ) < ptype.kickableArea() * 1.5
-         && info.dashAngle().abs() < 5.0
+        //  && info.dashAngle().abs() < 5.0 CYRUS_LIB
          && target_rel.absX() < ( ptype.kickableArea()
                                   + ptype.dashRate( wm.self().effort() )
                                   * ServerParam::i().maxDashPower()
@@ -1518,7 +1518,7 @@ Body_Intercept2022::doInertiaDash( PlayerAgent * agent,
         Vector2D rel_vel = wm.self().vel().rotatedVector( - wm.self().body() );
         double required_accel = first_speed - rel_vel.x;
         used_power = required_accel / wm.self().dashRate();
-        used_power /= ServerParam::i().dashDirRate( info.dashAngle().degree() );
+        // used_power /= ServerParam::i().dashDirRate( info.dashAngle().degree() ); CYRUS_LIB
 
         //if ( info.dashPower() < 0.0 ) used_power = -used_power;
 
@@ -1528,8 +1528,8 @@ Body_Intercept2022::doInertiaDash( PlayerAgent * agent,
             used_power = wm.self().getSafetyDashPower( used_power );
         }
 
-        agent->debugClient().addMessage( "InterceptInertiaDash%d:%.0f|%.0f",
-                                         info.reachCycle(), used_power, info.dashAngle().degree() );
+        // agent->debugClient().addMessage( "InterceptInertiaDash%d:%.0f|%.0f",
+        //                                  info.reachCycle(), used_power, info.dashAngle().degree() ); CYRUS_LIB
         dlog.addText( Logger::INTERCEPT,
                       __FILE__": doInertiaDash. x_diff=%.2f first_speed=%.2f"
                       " accel=%.2f power=%.1f",
@@ -1538,8 +1538,8 @@ Body_Intercept2022::doInertiaDash( PlayerAgent * agent,
     }
     else
     {
-        agent->debugClient().addMessage( "InterceptDash%d:%.0f|%.0f",
-                                         info.reachCycle(), used_power, info.dashAngle().degree() );
+        // agent->debugClient().addMessage( "InterceptDash%d:%.0f|%.0f",
+        //                                  info.reachCycle(), used_power, info.dashAngle().degree() ); CYRUS_LIB
         dlog.addText( Logger::INTERCEPT,
                       __FILE__": doInertiaDash. normal dash. x_diff=%.2f ",
                       target_rel.x );
@@ -1591,7 +1591,7 @@ Body_Intercept2022::doInertiaDash( PlayerAgent * agent,
         return true;
     }
 
-    agent->doDash( used_power, info.dashAngle() );
+    agent->doDash( used_power , info.turnAngle()); // info.dashAngle() ); CYRUS_LIB
     return true;
 }
 
@@ -1728,12 +1728,12 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
     int cycle_intercept_tackle = intercept_tackle_info.first;
 
     {
-        int self_tackle_min = wm.interceptTable()->selfReachCycleTackle();
+        // int self_tackle_min = wm.interceptTable()->selfReachCycleTackle(); CYRUS_LIB
         Vector2D balliner = wm.ball().inertiaPoint(self_min);
-        Vector2D balliner_tackle = wm.ball().inertiaPoint(self_tackle_min);
+        // Vector2D balliner_tackle = wm.ball().inertiaPoint(self_tackle_min); CYRUS_LIB
         Vector2D balltackle = wm.ball().inertiaPoint(cycle_intercept_tackle);
         dlog.addCircle(Logger::INTERCEPT, balliner,1,0,0,0, true);
-        dlog.addCircle(Logger::INTERCEPT, balliner_tackle,0.5,255,255,255, true);
+        // dlog.addCircle(Logger::INTERCEPT, balliner_tackle,0.5,255,255,255, true); CYRUS_LIB
         dlog.addCircle(Logger::INTERCEPT, balltackle,0.25,255,0,0, true);
     }
 
@@ -1977,13 +1977,13 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
     if (wm.ball().inertiaPoint(oppCycles).x > 35 && wm.ball().inertiaPoint(oppCycles).absY() < 20)
         diff = 0;
     agent->debugClient().addMessage("tc:%d", cycle_intercept_tackle);
-    int self_min_tackle = wm.interceptTable()->selfReachCycle();
+    // int self_min_tackle = wm.interceptTable()->selfReachCycle(); CYRUS_LIB
 
-    if (self_min_tackle < 10 && self_min_tackle < opp_min - diff &&
-            self_min_tackle < mate_min - diff) {
-        agent->debugClient().addMessage("TackleIntercept");
-        return Body_Intercept2022(false).executeTackle(agent);
-    }
+    // if (self_min_tackle < 10 && self_min_tackle < opp_min - diff && CYRUS_LIB
+    //         self_min_tackle < mate_min - diff) {
+    //     agent->debugClient().addMessage("TackleIntercept");
+    //     return Body_Intercept2022(false).executeTackle(agent);
+    // }
     if (cycle_intercept_tackle != 1000 && cycle_intercept_tackle < opp_min - diff &&
             cycle_intercept_tackle < mate_min - diff) {
         agent->debugClient().addMessage("Intercept->Tackle");
@@ -2106,7 +2106,7 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
 bool Bhv_BasicMove::TurnToTackle(rcsc::PlayerAgent *agent) {
     const WorldModel &wm = agent->world();
     const int self_min = wm.interceptTable()->selfReachCycle();
-    const int self_min_tackle = wm.interceptTable()->selfReachCycleTackle();
+    // const int self_min_tackle = wm.interceptTable()->selfReachCycleTackle(); CYRUS_LIB
     const int mate_min = wm.interceptTable()->teammateReachCycle();
     const int opp_min = wm.interceptTable()->opponentReachCycle();
 
@@ -2116,13 +2116,13 @@ bool Bhv_BasicMove::TurnToTackle(rcsc::PlayerAgent *agent) {
         return false;
     if (self_min <= 2)
         return false;
-    if(self_min_tackle < opp_min && self_min_tackle < mate_min)
-    {
-        Body_Intercept2022(false).executeTackle(agent);
-        agent->setNeckAction(new Neck_TurnToBall());
-        agent->debugClient().addMessage("tackle intercept execute");
-        return true;
-    }
+    // if(self_min_tackle < opp_min && self_min_tackle < mate_min) CYRUS_LIB
+    // {
+    //     Body_Intercept2022(false).executeTackle(agent);
+    //     agent->setNeckAction(new Neck_TurnToBall());
+    //     agent->debugClient().addMessage("tackle intercept execute");
+    //     return true;
+    // }
     Vector2D next_ball = wm.ball().inertiaPoint(1);
     if (next_ball.dist(wm.self().inertiaPoint(1)) < 1.7) {
         Body_TurnToPoint(next_ball).execute(agent);
@@ -2164,7 +2164,7 @@ bool can_opp_shoot_to_goal(const WorldModel &wm) {
                 int dc;
                 int dt;
                 int dv;
-                int intercept_cycle = tm->cycles_to_cut_ball(wm, ball_pos_sim, c, true, dc, dt, dv);
+                int intercept_cycle = 5; // tm->cycles_to_cut_ball(wm, ball_pos_sim, c, true, dc, dt, dv); CYRUS_LIB
                 if (intercept_cycle <= c) {
                     can_intercept = true;
                     break;
@@ -2469,7 +2469,7 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
     if (!Body_GoToPoint(target_point, dist_thr, dash_power).execute(agent)) {
         Body_TurnToPoint(target_point).execute(agent);
     }
-    AbstractPlayerObject *nearest_opp = wm.opponentsFromSelf().at(0);
+    const AbstractPlayerObject *nearest_opp = wm.opponentsFromSelf().at(0); // CYRUS_LIB add const
     if (nearest_opp != NULL)
         set_def_neck_with_ball(agent, wm.ball().pos(), nearest_opp, 0);
     else {
