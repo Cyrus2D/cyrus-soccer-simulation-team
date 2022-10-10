@@ -198,9 +198,13 @@ SimplePassChecker::operator()( const PredictState & state,
     else
         OPPONENT_DIST_THR2 = 5*5;
 
-    const PlayerPtrCont::const_iterator o_end = state.opponentsFromSelf().end();
-    for ( PlayerPtrCont::const_iterator opp = state.opponentsFromSelf().begin();
-          opp != o_end;
+    // const PlayerPtrCont::const_iterator o_end = state.opponentsFromSelf().end();
+    // for ( PlayerPtrCont::const_iterator opp = state.opponentsFromSelf().begin();
+    //       opp != o_end;
+    //       ++opp )
+    for ( PlayerObject::Cont::const_iterator opp = state.opponentsFromSelf().begin(),
+              end = state.opponentsFromSelf().end();
+          opp != end;
           ++opp )
     {
         if ( (*opp)->posCount() > VALID_OPPONENT_ACCURACY )
