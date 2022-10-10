@@ -66,9 +66,7 @@ ActGen_Shoot::generate( std::vector< ActionStatePair > * result,
         return;
     }
 
-
-    AbstractPlayerCont opponents
-        = state.getPlayerCont( new OpponentOrUnknownPlayerPredicate( wm ) );
+    AbstractPlayerObject::Cont opponents = state.getPlayers(new OpponentOrUnknownPlayerPredicate(wm));
 
     double open_angle = FieldAnalyzer::can_shoot_from( holder->unum() == wm.self().unum(),
                                                        holder->pos(),
