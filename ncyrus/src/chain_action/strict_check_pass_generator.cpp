@@ -61,18 +61,24 @@ using namespace rcsc;
 
 namespace {
 
-inline
-void debug_paint_failed_pass(const int count, const Vector2D & receive_point, boost::int32_t logger) {
-    dlog.addRect(logger, receive_point.x - 0.1, receive_point.y - 0.1,
-                 0.2, 0.2, "#ff0000");
-    if (count >= 0) {
-        char num[8];
-        snprintf(num, 8, "%d", count);
-        dlog.addMessage(logger, receive_point, num);
-    }
+    inline void
+    debug_paint_failed_pass(const int count,
+                            const Vector2D &receive_point,
+                            std::int32_t logger)
+    {
+        dlog.addRect(Logger::PASS,
+                    receive_point.x - 0.1, receive_point.y - 0.1,
+                    0.2, 0.2,
+                    "#ff0000");
+        if (count >= 0)
+        {
+            char num[8];
+            snprintf(num, 8, "%d", count);
+            dlog.addMessage(logger, receive_point, num);
+        }
+}
 }
 
-}
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -324,8 +330,13 @@ void StrictCheckPassGenerator::updateReceivers(const WorldModel & wm) {
 
     const bool is_self_passer = (M_passer->unum() == wm.self().unum());
 
-    for (AbstractPlayerCont::const_iterator p = wm.ourPlayers().begin(), end =
-         wm.ourPlayers().end(); p != end; ++p) {
+    // for (AbstractPlayerCont::const_iterator p = wm.ourPlayers().begin(), end =
+    //      wm.ourPlayers().end(); p != end; ++p) {
+    for ( AbstractPlayerObject::Cont::const_iterator p = wm.ourPlayers().begin(),
+              end = wm.ourPlayers().end();
+          p != end;
+          ++p )
+    {
         if (*p == M_passer)
             continue;
 
@@ -438,8 +449,13 @@ void StrictCheckPassGenerator::updateOpponents(const WorldModel & wm) {
     const Opponent & o = M_opponents.back();
     dlog.addText( Logger::PASS, "====================== Update Opponents ===================");
     #endif
-    for (AbstractPlayerCont::const_iterator p = wm.theirPlayers().begin(), end =
-         wm.theirPlayers().end(); p != end; ++p) {
+    // for (AbstractPlayerCont::const_iterator p = wm.theirPlayers().begin(), end =
+    //      wm.theirPlayers().end(); p != end; ++p) {
+    for ( AbstractPlayerObject::Cont::const_iterator p = wm.theirPlayers().begin(),
+              end = wm.theirPlayers().end();
+          p != end;
+          ++p )
+    {
         M_opponents.push_back(Opponent(*p));
         #ifdef DEBUG_PASS_UPDATE_OPPONENT
         const Opponent & o = M_opponents.back();
@@ -467,19 +483,23 @@ void StrictCheckPassGenerator::createCourses(const WorldModel & wm) {
     #endif
     const ReceiverCont::iterator end = M_receiver_candidates.end();
     M_pass_type = 'D';
-    M_pass_logger = Logger::D_PASS;
+    // M_pass_logger = Logger::D_PASS; CYRUS_LIB
+    M_pass_logger = Logger::PASS;
     for (ReceiverCont::iterator p = M_receiver_candidates.begin(); p != end;
          ++p) {
         createDirectPass(wm, *p);
     }
     M_pass_type = 'L';
-    M_pass_logger = Logger::L_PASS;
+    // M_pass_logger = Logger::L_PASS; CYRUS_LIB
+    M_pass_logger = Logger::PASS;
     for (ReceiverCont::iterator p = M_receiver_candidates.begin(); p != end;
          ++p) {
         createLeadingPass(wm, *p);
     }
     M_pass_type = 'T';
-    M_pass_logger = Logger::TH_PASS;
+    // M_pass_logger = Logger::TH_PASS; CYRUS_LIB
+    M_pass_logger = Logger::PASS;
+
     for (ReceiverCont::iterator p = M_receiver_candidates.begin(); p != end;
          ++p) {
         createThroughPass(wm, *p);
@@ -703,10 +723,10 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
     static const double ANGLE_STEP = 360.0 / ANGLE_DIVS;
     double DIST_DIVS = 7;
     static const double DIST_STEP = 1.1;
-    if(receiver.player_!= nullptr && receiver.player_->unum() > 0){
-        if(receiver.player_->seenStaminaCount() < 15 && receiver.player_->seenStamina() < 3500)
-            DIST_DIVS = 1;
-    }
+    // if(receiver.player_!= nullptr && receiver.player_->unum() > 0){ CYRUS_LIB
+    //     if(receiver.player_->seenStaminaCount() < 15 && receiver.player_->seenStamina() < 3500)
+    //         DIST_DIVS = 1;
+    // }
     const ServerParam & SP = ServerParam::i();
     const PlayerType * ptype = receiver.player_->playerTypePtr();
 
@@ -729,8 +749,8 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
     // distance loop
     //
     for (int d = 1; d <= DIST_DIVS; ++d) {
-        if (!PlayerAgent::canProcessMore())
-            return;
+        // if (!PlayerAgent::canProcessMore()) CYRUS_LIB
+        //     return;
         double player_move_dist = DIST_STEP * d;
         int a_step = (
                     player_move_dist * 2.0 * M_PI / ANGLE_DIVS < 0.6 ? 2 : 1);
@@ -937,10 +957,10 @@ void StrictCheckPassGenerator::createThroughPass(const WorldModel & wm,
     double MAX_MOVE_DIST = 30.0 + 0.001;
     static const double MOVE_DIST_STEP = 2.0;//2
 
-    if(receiver.player_!= nullptr && receiver.player_->unum() > 0)
-        if(receiver.player_->seenStaminaCount() < 15 && receiver.player_->seenStamina() < 3500){
-            return;
-        }
+    // if(receiver.player_!= nullptr && receiver.player_->unum() > 0) CYRUS_LIB
+    //     if(receiver.player_->seenStaminaCount() < 15 && receiver.player_->seenStamina() < 3500){
+    //         return;
+    //     }
     const ServerParam & SP = ServerParam::i();
     const PlayerType * ptype = receiver.player_->playerTypePtr();
     const AngleDeg receiver_vel_angle = receiver.vel_.th();
@@ -1015,8 +1035,8 @@ void StrictCheckPassGenerator::createThroughPass(const WorldModel & wm,
     // angle loop
     //
     for (int a = 0; a <= ANGLE_DIVS; ++a) {
-        if (!PlayerAgent::canProcessMore())
-            return;
+        // if (!PlayerAgent::canProcessMore()) CYRUS_LIB
+        //     return;
         const AngleDeg angle = MIN_ANGLE + (ANGLE_STEP * a);
         const Vector2D unit_rvec = Vector2D::from_polar(1.0, angle);
 
@@ -1299,7 +1319,7 @@ void StrictCheckPassGenerator::createPassCommon(const WorldModel & wm,
                 const AbstractPlayerObject * opp_near_me = wm.theirPlayer(wm.opponentsFromSelf().front()->unum());
                 if(opp_near_me != NULL && opp_near_me->unum() > 0){
                     int dc,tc,vc;
-                    opp_near_cycle = opp_near_me->cycles_to_cut_ball(wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body());
+                    opp_near_cycle = 2; // opp_near_me->cycles_to_cut_ball(wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body()); CYRUS_LIB
                     if(kick_count > opp_near_cycle){
                         #ifdef DEBUG_PASS
                         dlog.addText(M_pass_logger,"|  cont for kick count and opp near kick:%d oppcycle:%d", kick_count, opp_near_cycle);
@@ -1840,17 +1860,17 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
             if(M_first_point.x < 30 || our_score < opp_score)
                 safe_dist_thr += 0.2;
 
-        c_step = opponent.player_->cycles_to_cut_ball_with_safe_thr_dist(wm,
-                                                                         ball_pos,
-                                                                         cycle,
-                                                                         false,
-                                                                         dash_step,
-                                                                         turn_step,
-                                                                         view_step,
-                                                                         opp_pos,
-                                                                         opp_vel,
-                                                                         safe_dist_thr, true);
-
+        // c_step = opponent.player_->cycles_to_cut_ball_with_safe_thr_dist(wm, CYRUS_LIB
+        //                                                                  ball_pos,
+        //                                                                  cycle,
+        //                                                                  false,
+        //                                                                  dash_step,
+        //                                                                  turn_step,
+        //                                                                  view_step,
+        //                                                                  opp_pos,
+        //                                                                  opp_vel,
+        //                                                                  safe_dist_thr, true);
+        c_step = 6; // CYRUS_LIB
         int bonus_step = 0;
         if (opponent.player_->isTackling()) {
             bonus_step = -5; // Magic Number
