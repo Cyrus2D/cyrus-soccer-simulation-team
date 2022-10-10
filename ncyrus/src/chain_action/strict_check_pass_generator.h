@@ -53,7 +53,7 @@ class WorldModel;
 class StrictCheckPassGenerator {
 public:
     static std::vector<bool> Receivers_unum;
-    boost::int32_t M_pass_logger;
+    std::int32_t M_pass_logger;
     struct Receiver {
         const rcsc::AbstractPlayerObject * player_;
         rcsc::Vector2D pos_;
