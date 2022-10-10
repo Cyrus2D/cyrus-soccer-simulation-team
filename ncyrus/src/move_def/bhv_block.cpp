@@ -449,7 +449,12 @@ void bhv_block::get_start_dribble(const WorldModel &wm, Vector2D &start_dribble,
     int opp_min = wm.interceptTable()->opponentReachCycle();
     int self_min = wm.interceptTable()->selfReachCycle();
     tm_min = std::min(tm_min,self_min);
-    double ball2opp = wm.ball().calc_travel_step(ball_pos.dist(opp_pos), wm.ball().vel().r());
+
+    // double ball2opp = wm.ball().calc_travel_step(ball_pos.dist(opp_pos), wm.ball().vel().r()); CYURS_LIB fixed but check
+    double ball2opp = calc_length_geom_series( wm.ball().vel().r(),
+                                    ball_pos.dist(opp_pos),
+                                    ServerParam::i().ballDecay());
+
     start_dribble = wm.ball().inertiaPoint(opp_min);
     if(start_dribble.absY() > 15 && start_dribble.x > -20){
         if(ball2opp < tm_min && opp_min > 3){
@@ -503,7 +508,7 @@ void bhv_block::block_cycle(const WorldModel &wm, int unum, int &cycle, Vector2D
         Vector2D tm_pos = tm->pos();
         Vector2D tm_vel = tm->vel();
         int dc,tc,vc;
-        wm.ourPlayer(wm.self().unum())->cycles_to_cut_ball(wm, ball, drible_step, false, dc, tc, vc, tm_pos, tm_vel);
+        // wm.ourPlayer(wm.self().unum())->cycles_to_cut_ball(wm, ball, drible_step, false, dc, tc, vc, tm_pos, tm_vel); CYRUS_LIB
         int dash_step = dc + tc;
         if (dash_step <= drible_step) {
             target = ball;
@@ -672,7 +677,8 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
             dlog.addText(Logger::BLOCK, "is valid k%d c%d d%.2f", fastest_opp->isKickable(),cycle,target.dist(fastest_opp->pos()));
             #endif
             if (fastest_opp->isKickable() && cycle <= 2 && target.dist(fastest_opp->pos()) < 1.2){
-                AngleDeg dir = AngleDeg::INVALIDATED;
+                // AngleDeg dir = AngleDeg::INVALIDATED; CYRUS_LIB
+                AngleDeg dir = AngleDeg(numeric_limits<double>::max());
                 if (target.x > -10){
                     dir = -180.0;
                 }
