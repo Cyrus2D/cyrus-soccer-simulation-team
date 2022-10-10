@@ -254,7 +254,7 @@ Bhv_ChainAction::execute( PlayerAgent * agent )
 				__FILE__" (Bhv_ChainAction) shoot" );
 		if ( Body_ForceShoot().execute( agent ) )
 		{
-			agent->setNeckAction( new Neck_TurnToGoalieOrScan() );
+			agent->setNeckAction( new Neck_TurnToGoalieOrScan(0) );
 			return true;
         }else{
             return hold_ball(agent);
