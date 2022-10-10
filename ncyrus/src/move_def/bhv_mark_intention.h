@@ -24,6 +24,8 @@
 #include <rcsc/player/say_message_builder.h>
 #include <rcsc/action/neck_turn_to_ball_and_player.h>
 
+#include <rcsc/common/logger.h>
+
 class IntentionMark
         : public rcsc::SoccerIntention {
 private:
