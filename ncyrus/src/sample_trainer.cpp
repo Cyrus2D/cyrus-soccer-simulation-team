@@ -32,8 +32,10 @@
 
 #include <rcsc/trainer/trainer_command.h>
 #include <rcsc/trainer/trainer_config.h>
-#include <rcsc/coach/global_world_model.h>
-#include <rcsc/common/basic_client.h>
+// #include <rcsc/coach/global_world_model.h>
+// #include <rcsc/common/basic_client.h>
+#include <rcsc/coach/coach_world_model.h>
+#include <rcsc/common/abstract_client.h>
 #include <rcsc/common/player_param.h>
 #include <rcsc/common/player_type.h>
 #include <rcsc/common/server_param.h>
@@ -329,7 +331,7 @@ SampleTrainer::doSubstitute()
 
 		if ( ! world().teamNameLeft().empty() )
 		{
-			UniformSmallInt uni( 0, PlayerParam::i().ptMax() );
+            UniformInt uni( 0, PlayerParam::i().ptMax() );
 			doChangePlayerType( world().teamNameLeft(),
 					1,
 					uni() );
@@ -366,7 +368,7 @@ SampleTrainer::doKeepaway()
 
 bool SampleTrainer::exist_opp_kickable(){
 	for(int i=1;i<=11;i++){
-		const GlobalPlayerObject * opp = world().teammate(i);
+		const CoachPlayerObject * opp = world().teammate(i);
 		if(opp!=NULL){
 			const PlayerType * ptype = opp->playerTypePtr();
 			if(opp->pos().dist(world().ball().pos()) < ptype->kickableArea())
