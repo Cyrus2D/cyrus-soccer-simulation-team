@@ -1064,14 +1064,14 @@ ActionChainGraph::calculateResultBestFirstSearch( const WorldModel & wm,
                 #endif
                 return;
             }
-            if ( !PlayerAgent::canProcessMore() )
-            {
-                #ifdef ACTION_CHAIN_DEBUG
-                dlog.addText( Logger::ACTION_CHAIN,
-                              "***** over max evaluation time *****" );
-                #endif
-                return;
-            }
+            // if ( !PlayerAgent::canProcessMore() ) CYRUS_LIB
+            // {
+            //     #ifdef ACTION_CHAIN_DEBUG
+            //     dlog.addText( Logger::ACTION_CHAIN,
+            //                   "***** over max evaluation time *****" );
+            //     #endif
+            //     return;
+            // }
             queue.push( std::pair< std::vector< ActionStatePair >, double >
                         ( candidate_series, ev ) );
         }

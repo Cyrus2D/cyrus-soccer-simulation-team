@@ -280,8 +280,8 @@ ShortDribbleGenerator::createCourses( const WorldModel & wm )
     dlog.addText( Logger::DRIBBLE,"start advance sim");
     for ( int a = 0; a < angle_div; a+=1 )
     {
-        if (!PlayerAgent::canProcessMore())
-            return;
+        // if (!PlayerAgent::canProcessMore()) CYRUS_LIB
+        //     return;
         AngleDeg dash_angle = wm.self().body() + ( angle_step * a );
 
         //
