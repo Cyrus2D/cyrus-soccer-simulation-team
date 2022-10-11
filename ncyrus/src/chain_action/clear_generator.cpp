@@ -378,8 +378,7 @@ ClearGenerator::predictOpponentsReachStep( const WorldModel & wm,
     int min_step = 50;
     int out_of_pitch_step = -1;
 
-    for ( AbstractPlayerCont::const_iterator
-              o = wm.theirPlayers().begin(),
+    for ( AbstractPlayerObject::Cont::const_iterator o = wm.theirPlayers().begin(),
               end = wm.theirPlayers().end();
           o != end;
           ++o )
