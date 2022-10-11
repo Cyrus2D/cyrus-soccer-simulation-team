@@ -213,7 +213,9 @@ ShootGenerator::createShoot( const WorldModel & wm,
 {
     const AngleDeg ball_move_angle = ( target_point - M_first_ball_pos ).th();
 
-    const PlayerObject * goalie = wm.getTheirGoalie();
+    // const PlayerObject * goalie = wm.getTheirGoalie();
+    const AbstractPlayerObject * goalie = wm.getTheirGoalie();
+
     if ( goalie
          && 5 < goalie->posCount()
          && goalie->posCount() < 30
@@ -521,16 +523,17 @@ ShootGenerator::opponentCanReach( const PlayerObject * opponent,
         int n_dash;
         int n_view;
 
-        int opp_cycle = opponent->cycles_to_cut_ball(wm,
-                                                     ball_pos,
-                                                     cycle,
-                                                     (wm.gameMode().type() == GameMode::PenaltyTaken_? true : false),
-                                                     n_dash,
-                                                     n_turn,
-                                                     n_view,
-                                                     opp_pos,
-                                                     opp_vel);
+        // int opp_cycle opponent->cycles_to_cut_ball(wm, CYRUS_LIB
+        //                                              ball_pos,
+        //                                              cycle,
+        //                                              (wm.gameMode().type() == GameMode::PenaltyTaken_? true : false),
+        //                                              n_dash,
+        //                                              n_turn,
+        //                                              n_view,
+        //                                              opp_pos,
+        //                                              opp_vel);
 
+        int opp_cycle = 2; // CYRUS_LIB
         int bonus_step = bound( 0, opponent->posCount(), 1 );
         int penalty_step = 0; //-3;
 
@@ -568,16 +571,16 @@ ShootGenerator::opponentCanReach( const PlayerObject * opponent,
             int n_turn;
             int n_dash;
             int n_view;
-            int opp_cycle = opponent->cycles_to_cut_ball(wm,
-                                                         ball_pos,
-                                                         cycle,
-                                                         true,
-                                                         n_dash,
-                                                         n_turn,
-                                                         n_view,
-                                                         opp_pos,
-                                                         opp_vel);
-
+            // int opp_cycle = opponent->cycles_to_cut_ball(wm, CYRUS_LIB
+            //                                              ball_pos,
+            //                                              cycle,
+            //                                              true,
+            //                                              n_dash,
+            //                                              n_turn,
+            //                                              n_view,
+            //                                              opp_pos,
+            //                                              opp_vel);
+            int opp_cycle = 2; // CYRUS_LIB
             int bonus_step = bound( 0, opponent->posCount(), 2 );
             int penalty_step = 0; //-3;
 
@@ -621,7 +624,9 @@ ShootGenerator::evaluateCourses( const WorldModel & wm )
     const double y_dist_thr2 = std::pow( 8.0, 2 );
 
     const ServerParam & SP = ServerParam::i();
-    const PlayerObject * goalie = wm.getTheirGoalie();
+    // const PlayerObject * goalie = wm.getTheirGoalie();
+    const AbstractPlayerObject * goalie = wm.getTheirGoalie();
+
     const AngleDeg goalie_angle = ( goalie
                                     ? ( goalie->pos() - M_first_ball_pos ).th()
                                     : 180.0 );
