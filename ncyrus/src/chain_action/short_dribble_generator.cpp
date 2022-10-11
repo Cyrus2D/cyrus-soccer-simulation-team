@@ -568,17 +568,17 @@ ShortDribbleGenerator::check_intermediate_poses(const WorldModel & wm)
             int opp_turn_cycle;
             int opp_dash_cycle;
             int opp_view_cycle;
-            int opp_cycle = (*o)->cycles_to_cut_ball_with_safe_thr_dist(wm,
-                                                                        intermediate_point,
-                                                                        1,
-                                                                        use_tackle,
-                                                                        opp_dash_cycle,
-                                                                        opp_turn_cycle,
-                                                                        opp_view_cycle,
-                                                                        opp_pos,
-                                                                        opp_vel,
-                                                                        control_aria_safe_thr);
-            
+            // int opp_cycle = (*o)->cycles_to_cut_ball_with_safe_thr_dist(wm, CYRUS_LIB
+            //                                                             intermediate_point,
+            //                                                             1,
+            //                                                             use_tackle,
+            //                                                             opp_dash_cycle,
+            //                                                             opp_turn_cycle,
+            //                                                             opp_view_cycle,
+            //                                                             opp_pos,
+            //                                                             opp_vel,
+            //                                                             control_aria_safe_thr);
+            int opp_cycle = 2; // CYRUS_LIB
             int opp_reach_cycle = opp_cycle;
             if (opp_reach_cycle <= 1){
                 candid.possible = false;
@@ -1169,21 +1169,21 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
             int opp_turn_cycle;
             int opp_dash_cycle;
             int opp_view_cycle;
-            int opp_cycle = (*o)->cycles_to_cut_ball_with_safe_thr_dist(wm,
-                                                                         ball_pos,
-                                                                         c,
-                                                                         use_tackle,
-                                                                         opp_dash_cycle,
-                                                                         opp_turn_cycle,
-                                                                         opp_view_cycle,
-                                                                         opp_pos,
-                                                                         opp_vel,
-                                                                         control_aria_safe_thr);
-
+            // int opp_cycle = (*o)->cycles_to_cut_ball_with_safe_thr_dist(wm, // CYRUS_LIB
+            //                                                              ball_pos,
+            //                                                              c,
+            //                                                              use_tackle,
+            //                                                              opp_dash_cycle,
+            //                                                              opp_turn_cycle,
+            //                                                              opp_view_cycle,
+            //                                                              opp_pos,
+            //                                                              opp_vel,
+            //                                                              control_aria_safe_thr);
+            int opp_cycle = 2; // CYRUS_LIB
             dlog.addText(Logger::DRIBBLE,"----c:%d,opptc:%d,oppdc:%d,oppc:%d,bonus_step:%d",c,opp_turn_cycle,opp_dash_cycle,opp_cycle,bonus_step);
             if(  FieldAnalyzer::isMiracle(wm)
                   || FieldAnalyzer::isKN2C(wm) ){
-//                opp_cycle = opp_turn_cycle + opp_dash_cycle;
+            //                opp_cycle = opp_turn_cycle + opp_dash_cycle;
             }
             int opp_reach_cycle = opp_cycle - bonus_step;
             int opp_reach_cycle_noisy = opp_cycle - bonus_step_noisy;
