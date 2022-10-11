@@ -51,8 +51,9 @@ class PredictPlayerObject
     : public rcsc::AbstractPlayerObject {
 public:
 
-    typedef boost::shared_ptr< PredictPlayerObject > Ptr; //! pointer type alias
-    typedef boost::shared_ptr< const PredictPlayerObject > ConstPtr; //! pointer type alias
+    typedef std::shared_ptr< PredictPlayerObject > Ptr; //! pointer type alias
+    typedef std::shared_ptr< const PredictPlayerObject > ConstPtr; //! pointer type alias
+    typedef std::vector< ConstPtr > Cont; //!< container type alias
 
 protected:
 
