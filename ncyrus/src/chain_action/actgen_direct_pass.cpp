@@ -220,8 +220,7 @@ ActGen_DirectPass::generate( std::vector< ActionStatePair > * result,
     const SimplePassChecker pass_check;
     int generated_count = 0;
 
-    for ( PredictPlayerPtrCont::const_iterator
-              it = state.ourPlayers().begin(),
+    for ( PredictPlayerObject::Cont::const_iterator it = state.ourPlayers().begin(),
               end = state.ourPlayers().end();
           it != end;
           ++it )
