@@ -53,8 +53,11 @@ private:
     const rcsc::AbstractPlayerObject * M_passer; //!< estimated passer
     rcsc::Vector2D M_first_point;
 
-    rcsc::AbstractPlayerCont M_receiver_candidates;
-    rcsc::AbstractPlayerCont M_opponents;
+    // rcsc::AbstractPlayerCont M_receiver_candidates;
+    // rcsc::AbstractPlayerCont M_opponents;
+
+    rcsc::AbstractPlayerObject::Cont M_receiver_candidates;
+    rcsc::AbstractPlayerObject::Cont M_opponents;
 
     std::vector< CooperativeAction::Ptr > M_courses;
 

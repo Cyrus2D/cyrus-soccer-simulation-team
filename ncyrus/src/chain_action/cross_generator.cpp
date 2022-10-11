@@ -279,9 +279,8 @@ CrossGenerator::updateReceivers( const WorldModel & wm )
 
     const bool is_self_passer = ( M_passer->unum() == wm.self().unum() );
 
-    for ( AbstractPlayerCont::const_iterator
-          p = wm.ourPlayers().begin(),
-          end = wm.ourPlayers().end();
+    for ( AbstractPlayerObject::Cont::const_iterator p = wm.ourPlayers().begin(),
+              end = wm.ourPlayers().end();
           p != end;
           ++p )
     {
@@ -336,9 +335,8 @@ CrossGenerator::updateOpponents( const WorldModel & wm )
     const Vector2D goal = ServerParam::i().theirTeamGoalPos();
     const AngleDeg goal_angle_from_ball = ( goal - M_first_point ).th();
 
-    for ( AbstractPlayerCont::const_iterator
-          p = wm.theirPlayers().begin(),
-          end = wm.theirPlayers().end();
+    for ( AbstractPlayerObject::Cont::const_iterator p = wm.theirPlayers().begin(),
+              end = wm.theirPlayers().end();
           p != end;
           ++p )
     {
@@ -371,7 +369,7 @@ CrossGenerator::updateOpponents( const WorldModel & wm )
 void
 CrossGenerator::createCourses( const WorldModel & wm )
 {
-    for ( AbstractPlayerCont::const_iterator p = M_receiver_candidates.begin();
+    for ( AbstractPlayerObject::Cont::const_iterator p = M_receiver_candidates.begin();
           p != M_receiver_candidates.end();
           ++p )
     {
@@ -533,7 +531,7 @@ CrossGenerator::createCross( const WorldModel & wm,
                         const AbstractPlayerObject * opp_near_me = wm.theirPlayer(wm.opponentsFromSelf().front()->unum());
                         if(opp_near_me != NULL && opp_near_me->unum() > 0){
                             int dc,tc,vc;
-                            if(kick_count - 1> opp_near_me->cycles_to_cut_ball(wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body()))
+                            if(kick_count - 1 > 3) // CYRUS_LIB opp_near_me->cycles_to_cut_ball(wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body()))
                                 continue;
                         }
                     }
@@ -658,8 +656,8 @@ CrossGenerator::checkOpponent( const Vector2D & first_ball_pos,
     const Vector2D first_ball_vel
             = Vector2D( receive_pos - first_ball_pos ).setLength( first_ball_speed );
 
-    const AbstractPlayerCont::const_iterator end = M_opponents.end();
-    for ( AbstractPlayerCont::const_iterator o = M_opponents.begin();
+    for ( AbstractPlayerObject::Cont::const_iterator o = M_opponents.begin(),
+              end = M_opponents.end();
           o != end;
           ++o )
     {
@@ -785,16 +783,17 @@ int CrossGenerator::newoldpredictOpponentReachStep(const WorldModel & wm,
         int dash_step;
         int view_step;
 
-        int c_step = opponent->cycles_to_cut_ball_with_safe_thr_dist(wm,
-                                                                     ball_pos,
-                                                                     cycle,
-                                                                     false,
-                                                                     dash_step,
-                                                                     turn_step,
-                                                                     view_step,
-                                                                     opp_pos,
-                                                                     opp_vel,
-                                                                     FieldAnalyzer::isFRA(wm)? 0.3 : 0.1);
+        // int c_step = opponent->cycles_to_cut_ball_with_safe_thr_dist(wm, // CYRUS_LIB
+        //                                                              ball_pos,
+        //                                                              cycle,
+        //                                                              false,
+        //                                                              dash_step,
+        //                                                              turn_step,
+        //                                                              view_step,
+        //                                                              opp_pos,
+        //                                                              opp_vel,
+        //                                                              FieldAnalyzer::isFRA(wm)? 0.3 : 0.1);
+        int c_step = 2; // CYRUS_LIB
         int bonus_step = 0;
         if (opponent->isTackling()) {
             bonus_step = -5; // Magic Number
@@ -859,17 +858,18 @@ int CrossGenerator::newoldpredictOpponentReachStep(const WorldModel & wm,
             for(auto&p : predictpos){
 
                 int dc,tc,vc;
-                int sc =opponent->cycles_to_cut_ball_with_safe_thr_dist(wm,
-                                                                        ball_pos,
-                                                                        cycle,
-                                                                        false,
-                                                                        dc,
-                                                                        tc,
-                                                                        vc,
-                                                                        p.pos,
-                                                                        p.vel,
-                                                                        0.1,
-                                                                        p.body);
+                // int sc =opponent->cycles_to_cut_ball_with_safe_thr_dist(wm, // CYRUS_LIB
+                //                                                         ball_pos,
+                //                                                         cycle,
+                //                                                         false,
+                //                                                         dc,
+                //                                                         tc,
+                //                                                         vc,
+                //                                                         p.pos,
+                //                                                         p.vel,
+                //                                                         0.1,
+                //                                                         p.body);
+                int sc = 2; // CYRUS_LIB
                 dc -= pos_count_effect/2.0;
                 tc -= body_count_effect/2.0;
 //                if(FieldAnalyzer::isFRA(wm) || FieldAnalyzer::isMT(wm) || FieldAnalyzer::isHFUT(wm)|| FieldAnalyzer::isYushan(wm) || FieldAnalyzer::isHelius(wm) || FieldAnalyzer::isCYRUS(wm)
@@ -939,8 +939,8 @@ CrossGenerator::getMinimumAngleWidth( const double & target_dist,
 {
     double min_angle_diff = 180.0;
 
-    const AbstractPlayerCont::const_iterator end = M_opponents.end();
-    for ( AbstractPlayerCont::const_iterator o = M_opponents.begin();
+    for ( AbstractPlayerObject::Cont::const_iterator o = M_opponents.begin(),
+              end = M_opponents.end();
           o != end;
           ++ o )
     {
