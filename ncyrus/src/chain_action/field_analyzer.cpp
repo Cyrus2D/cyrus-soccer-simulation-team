@@ -388,7 +388,7 @@ FieldAnalyzer::predict_player_reach_cycle( const AbstractPlayerObject * player,
 /*!
 
  */
-int Body_SmartKick::M_kick_table[36][30] = {};
+// int Body_SmartKick::M_kick_table[36][30] = {};
 int
 FieldAnalyzer::predict_kick_count( const WorldModel & wm,
                                    const AbstractPlayerObject * kicker,
@@ -1053,8 +1053,7 @@ FieldAnalyzer::get_pass_count( const PredictState & state,
 
 
     int pass_count = 0;
-    for ( PredictPlayerPtrCont::const_iterator
-              it = state.ourPlayers().begin(),
+    for ( PredictPlayerObject::Cont::const_iterator it = state.ourPlayers().begin(),
               end = state.ourPlayers().end();
           it != end;
           ++it )
@@ -1176,8 +1175,7 @@ FieldAnalyzer::get_blocker( const WorldModel & wm,
 
     const AngleDeg attack_angle = ( base_pos - opponent_pos ).th();
 
-    for ( AbstractPlayerCont::const_iterator
-              t = wm.ourPlayers().begin(),
+    for ( AbstractPlayerObject::Cont::const_iterator t = wm.ourPlayers().begin(),
               end = wm.ourPlayers().end();
           t != end;
           ++t )
@@ -1318,9 +1316,8 @@ FieldAnalyzer::updateVoronoiDiagram( const WorldModel & wm )
     M_pass_voronoi_diagram.clear();
 
     const SideID our = wm.ourSide();
-
-    const AbstractPlayerCont::const_iterator end = wm.allPlayers().end();
-    for ( AbstractPlayerCont::const_iterator p = wm.allPlayers().begin();
+    for ( AbstractPlayerObject::Cont::const_iterator p = wm.allPlayers().begin(),
+              end = wm.allPlayers().end();
           p != end;
           ++p )
     {
