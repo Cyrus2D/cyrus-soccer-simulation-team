@@ -41,7 +41,7 @@
 #include <rcsc/common/server_param.h>
 #include <rcsc/common/logger.h>
 
-#include <rcsc/action/bhv_shoot.h>
+// #include <rcsc/action/bhv_shoot.h> CYRUS_LIB
 #include <rcsc/action/body_smart_kick.h>
 #include <rcsc/action/body_kick_one_step.h>
 
@@ -65,13 +65,13 @@ Body_ForceShoot::execute( rcsc::PlayerAgent * agent )
                         __FILE__": execute()" );
     agent->debugClient().addMessage( "ForceShoot" );
 
-    if ( rcsc::Bhv_Shoot().execute( agent ) )
-    {
-        rcsc::dlog.addText( rcsc::Logger::ACTION,
-                            __FILE__": ForceShoot -> Body_Shoot2008" );
+    // if ( rcsc::Bhv_Shoot().execute( agent ) ) CYRUS_LIB
+    // {
+    //     rcsc::dlog.addText( rcsc::Logger::ACTION,
+    //                         __FILE__": ForceShoot -> Body_Shoot2008" );
 
-        return true;
-    }
+    //     return true;
+    // }
 
     const rcsc::ServerParam & param = rcsc::ServerParam::i();
 
