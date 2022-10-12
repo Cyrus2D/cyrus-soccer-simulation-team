@@ -55,6 +55,7 @@
 
 // #define DEBUG_PREDICT_OPPONENT_REACH_STEP
 // #define DEBUG_PREDICT_OPPONENT_REACH_STEP_LEVEL2
+
 #define MY_DEBUG
 
 using namespace rcsc;
@@ -253,7 +254,7 @@ TackleGenerator::generate( const WorldModel & wm )
 
 
 #ifdef DEBUG_PROFILE
-    MSecTimer timer;
+    Timer timer;
 #endif
     calculate( wm );
 
@@ -722,9 +723,8 @@ TackleGenerator::predictOpponentsReachStep( const WorldModel & wm,
 #endif
 
     int min_step = first_min_step;
-    for ( AbstractPlayerCont::const_iterator
-          o = wm.theirPlayers().begin(),
-          end = wm.theirPlayers().end();
+    for ( AbstractPlayerObject::Cont::const_iterator o = wm.theirPlayers().begin(),
+              end = wm.theirPlayers().end();
           o != end;
           ++o )
     {
@@ -928,9 +928,8 @@ TackleGenerator::predictTeammatesReachStep( const WorldModel & wm,
 #endif
 
     int min_step = first_min_step;
-    for ( AbstractPlayerCont::const_iterator
-          o = wm.ourPlayers().begin(),
-          end = wm.ourPlayers().end();
+    for ( AbstractPlayerObject::Cont::const_iterator o = wm.ourPlayers().begin(),
+              end = wm.ourPlayers().end();
           o != end;
           ++o )
     {
