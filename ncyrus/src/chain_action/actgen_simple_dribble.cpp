@@ -150,14 +150,18 @@ ActGen_SimpleDribble::generate( std::vector< ActionStatePair > * result,
             // check opponent
             //
             bool exist_opponent = false;
-            for ( PlayerCont::const_iterator o = state.opponents().begin();
-                  o != state.opponents().end();
+            for ( AbstractPlayerObject::Cont::const_iterator o = state.theirPlayers().begin();
+                  o != state.theirPlayers().end();
                   ++o )
             {
-                double opp_move_dist = o->pos().dist( target_point );
+                // double opp_move_dist = o->pos().dist( target_point ); CYRUS_LIB
+                // int o_step
+                //     = 0 // turn step
+                //     + o->playerTypePtr()->cyclesToReachDistance( opp_move_dist - ptype->kickableArea() );
+                double opp_move_dist = (*o)->pos().dist( target_point );
                 int o_step
-                    = 0 // turn step
-                    + o->playerTypePtr()->cyclesToReachDistance( opp_move_dist - ptype->kickableArea() );
+                    = 1 // turn step
+                    + (*o)->playerTypePtr()->cyclesToReachDistance( opp_move_dist - ptype->kickableArea() );
 
                 if ( o_step - bonus_step <= holder_reach_step )
                 {
