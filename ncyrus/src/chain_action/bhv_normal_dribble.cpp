@@ -133,7 +133,7 @@ public:
         //        M_neck_action = ViewAction::Ptr();
         //        M_view_action = NeckAction::Ptr();
     }
-    bool finished(  PlayerAgent * agent );
+    bool finished( const PlayerAgent * agent );
 
     bool execute( PlayerAgent * agent );
 
@@ -156,7 +156,7 @@ private:
 
 */
 bool
-IntentionNormalDribble::finished(  PlayerAgent * agent )
+IntentionNormalDribble::finished( const PlayerAgent * agent )
 {
     if ( M_turn_step + M_dash_step == 0 )
     {
@@ -387,7 +387,7 @@ IntentionNormalDribble::execute( PlayerAgent * agent )
         int current_len = agent->effector().getSayMessageLength();
         int available_len = ServerParam::i().playerSayMsgSize() - current_len;
 
-        if(wm.interceptTable()->selfReachCycle() < 3 && PrePassMessage::slength() <= available_len){
+        if(wm.interceptTable()->selfReachCycle() < 3 ){ // && PrePassMessage::slength() <= available_len){ CYRUS_LIB
             const ActionChainGraph & chain_graph = ActionChainHolder::i().graph();
             const CooperativeAction & first_action = chain_graph.getFirstAction();
             switch (first_action.category()) {
