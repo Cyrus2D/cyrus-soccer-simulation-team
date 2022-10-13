@@ -73,6 +73,9 @@ protected:
     void handleActionEnd();
 
     virtual
+    void handleInitMessage();
+
+    virtual
     void handleServerParam();
     virtual
     void handlePlayerParam();

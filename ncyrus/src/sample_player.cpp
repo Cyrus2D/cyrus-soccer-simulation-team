@@ -405,6 +405,16 @@ SamplePlayer::actionImpl()
 
  */
 void
+SamplePlayer::handleInitMessage()
+{
+
+}
+
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+void
 SamplePlayer::handleActionStart()
 {
 

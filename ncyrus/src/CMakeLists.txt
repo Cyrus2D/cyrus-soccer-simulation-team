@@ -19,6 +19,8 @@ roles/role_goalie.cpp
 roles/role_player.cpp
 roles/role_sample.cpp
 sample_field_evaluator.cpp
+sample_freeform_message_parser.cpp
+sample_freeform_message.cpp
 move_off/bhv_scape.cpp
 move_off/bhv_unmark2019.cpp
 move_off/bhv_offensive_move.cpp
