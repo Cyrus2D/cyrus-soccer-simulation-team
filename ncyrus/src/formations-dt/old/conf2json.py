@@ -71,7 +71,7 @@ for filename in confFiles:
                             # print(words)
                             cnt += 1
                             if words[0] == '1':
-                                str_out+= f'"{{number" : 1,"name" : "Goalie", "type" : "Unknown", "side" : "C", "pair" : {words[2]} }},'
+                                str_out+= f'{{"number" : 1,"name" : "Goalie", "type" : "Unknown", "side" : "C", "pair" : {words[2]} }},'
                             elif float(words[0]) < 11:
                                 str_out+=f'{{"number" : {words[0]},"name" : "Player", "type" : "Unknown","side" : "C", "pair" : {words[2]}}},'
                             else:
@@ -124,10 +124,10 @@ for filename in confFiles:
         try:
             json_test = json.loads(str_out)
             print(f"{filename} JSON loaded!")
-            str_out= json.dumps(json_test)        
+            str_out= json.dumps(json_test, indent=2)
             with open(f'json/{filename}', 'w') as f:
                 f.write(str_out)
         except:
-            print(str_out)
+            # print(str_out)
             print(f" ### {filename} JSON problem!")
 
