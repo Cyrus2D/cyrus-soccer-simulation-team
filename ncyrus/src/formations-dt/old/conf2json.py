@@ -31,10 +31,10 @@ for filename in confFiles:
         method = lines[0].split()[1]
         str_out+= f'"method" : "{method}",'
         if method == 'Static':
-            str_out+= '"role" : [\n{"number" : 1,"name" : "Goalie", "type" : "Unknown", "side" : "C", "pair" : 0},'
+            str_out+= '"role" : [\n{"number" : 1,"name" : "Goalie", "type" : "G", "side" : "C", "pair" : 0},' # CYRUS_LIB
             for i in range(2,11):
-                str_out+= f'{{"number" : {i},"name" : "Player", "type" : "Unknown","side" : "C", "pair" : 0}},'
-            str_out+= '{"number" : 11,"name" : "Player", "type" : "Unknown","side" : "C", "pair" : 0}],'
+                str_out+= f'{{"number" : {i},"name" : "Player", "type" : "MF","side" : "C", "pair" : 0}},' # CYRUS_LIB
+            str_out+= '{"number" : 11,"name" : "Player", "type" : "MF","side" : "C", "pair" : 0}],' # CYRUS_LIB
             str_out+= '"data" : [\n{\n"index" : 0,\n"ball" : { "x" :   0.00, "y" :   0.00 },'
             cnt = 0
             for line in lines:
@@ -71,11 +71,11 @@ for filename in confFiles:
                             # print(words)
                             cnt += 1
                             if words[0] == '1':
-                                str_out+= f'{{"number" : 1,"name" : "Goalie", "type" : "Unknown", "side" : "C", "pair" : {words[2]} }},'
+                                str_out+= f'{{"number" : 1,"name" : "Goalie", "type" : "G", "side" : "C", "pair" : {words[2]} }},' # CYRUS_LIB
                             elif float(words[0]) < 11:
-                                str_out+=f'{{"number" : {words[0]},"name" : "Player", "type" : "Unknown","side" : "C", "pair" : {words[2]}}},'
+                                str_out+=f'{{"number" : {words[0]},"name" : "Player", "type" : "MF","side" : "C", "pair" : {words[2]}}},' # CYRUS_LIB
                             else:
-                                str_out+=f'{{"number" : {words[0]},"name" : "Player", "type" : "Unknown","side" : "C", "pair" : {words[2]}}}],'
+                                str_out+=f'{{"number" : {words[0]},"name" : "Player", "type" : "MF","side" : "C", "pair" : {words[2]}}}],' # CYRUS_LIB
                                 if cnt != 11:
                                     print(f" ### PROBLEM IN Roles {filename}")
                                 cnt = 0
