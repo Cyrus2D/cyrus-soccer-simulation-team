@@ -58,7 +58,7 @@ for filename in confFiles:
             groups = 0
             cnt = 0
             gcnt = 0
-            str_out+= '"role" : [{'
+            str_out+= '"role" : ['
             for line in lines:
                 line = " ".join(line.split())
                 words = [w.strip() for w in line.split(' ')]
