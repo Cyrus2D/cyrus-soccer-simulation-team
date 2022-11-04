@@ -31,6 +31,7 @@
 #include "hold_ball.h"
 #include "../setting.h"
 #include "../data_extractor/offensive_data_extractor_v1.h"
+#include "sample_player.h"
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/common/server_param.h>
@@ -1064,14 +1065,14 @@ ActionChainGraph::calculateResultBestFirstSearch( const WorldModel & wm,
                 #endif
                 return;
             }
-            // if ( !PlayerAgent::canProcessMore() ) CYRUS_LIB
-            // {
-            //     #ifdef ACTION_CHAIN_DEBUG
-            //     dlog.addText( Logger::ACTION_CHAIN,
-            //                   "***** over max evaluation time *****" );
-            //     #endif
-            //     return;
-            // }
+             if ( !SamplePlayer::canProcessMore() )
+             {
+                 #ifdef ACTION_CHAIN_DEBUG
+                 dlog.addText( Logger::ACTION_CHAIN,
+                               "***** over max evaluation time *****" );
+                 #endif
+                 return;
+             }
             queue.push( std::pair< std::vector< ActionStatePair >, double >
                         ( candidate_series, ev ) );
         }

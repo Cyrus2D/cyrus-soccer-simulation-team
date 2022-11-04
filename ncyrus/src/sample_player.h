@@ -50,6 +50,11 @@ public:
     virtual
     ~SamplePlayer();
 
+    static rcsc::Timer M_cycle_time_start;
+    static int M_cycle_max_time;
+    static double cycleTimeUtilNow();
+    static void setCycleMaxTime(int max_time);
+    static bool canProcessMore();
 protected:
 
     /*!

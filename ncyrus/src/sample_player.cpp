@@ -284,6 +284,7 @@ CalculateOffensiveOpponents* CalculateOffensiveOpponents::instance= nullptr;
 void
 SamplePlayer::actionImpl()
 {
+    M_cycle_time_start.restart();
     SamplePlayer::player_port = this->config().port();
     Setting::i();
     Setting::i()->SetTeamName(this->world().theirTeamName());
@@ -1010,4 +1011,25 @@ SamplePlayer::createActionGenerator() const
                        2, ActGen_RangeActionChainLengthFilter::MAX ) );
 
     return ActionGenerator::ConstPtr( g );
+}
+
+Timer SamplePlayer::M_cycle_time_start = Timer();
+int SamplePlayer::M_cycle_max_time = 70;
+//oldcyrus this value should be read from config
+
+double
+SamplePlayer::cycleTimeUtilNow(){
+    return SamplePlayer::M_cycle_time_start.elapsedReal();
+}
+
+void
+SamplePlayer::setCycleMaxTime(int max_time){
+    SamplePlayer::M_cycle_max_time = max_time;
+}
+
+bool SamplePlayer::canProcessMore(){
+    if (SamplePlayer::cycleTimeUtilNow() > SamplePlayer::M_cycle_max_time){
+        return false;
+    }
+    return true;
 }

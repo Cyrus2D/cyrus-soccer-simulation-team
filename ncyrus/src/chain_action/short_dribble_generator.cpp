@@ -37,6 +37,7 @@
 
 #include "dribble.h"
 #include "field_analyzer.h"
+#include "sample_player.h"
 
 #include <rcsc/player/world_model.h>
 #include <rcsc/player/intercept_table.h>
@@ -280,8 +281,8 @@ ShortDribbleGenerator::createCourses( const WorldModel & wm )
     dlog.addText( Logger::DRIBBLE,"start advance sim");
     for ( int a = 0; a < angle_div; a+=1 )
     {
-        // if (!PlayerAgent::canProcessMore()) CYRUS_LIB
-        //     return;
+        if ( !SamplePlayer::canProcessMore() )
+             return;
         AngleDeg dash_angle = wm.self().body() + ( angle_step * a );
 
         //
