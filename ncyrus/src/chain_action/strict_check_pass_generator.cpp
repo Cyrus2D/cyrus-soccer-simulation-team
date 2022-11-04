@@ -36,6 +36,7 @@
 
 #include "pass.h"
 #include "field_analyzer.h"
+#include "sample_player.h"
 
 #include <rcsc/player/world_model.h>
 #include <rcsc/player/intercept_table.h>
