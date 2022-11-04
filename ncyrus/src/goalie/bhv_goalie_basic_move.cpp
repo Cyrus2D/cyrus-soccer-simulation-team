@@ -1142,7 +1142,7 @@ bool Bhv_GoalieBasicMove::doHeliosGolie(PlayerAgent *agent)
     if(!load_dnn){
         load_dnn = true;
         golie_dnn = new DeepNueralNetwork();
-        golie_dnn->ReadFromKeras("./helios_golie_origin");
+        golie_dnn->ReadFromKeras("./data/deep/helios_golie_origin");
     }
     MatrixXd input(2,1);
     input(0,0) = (ball_pos.x + 52.5) / 105.0;
