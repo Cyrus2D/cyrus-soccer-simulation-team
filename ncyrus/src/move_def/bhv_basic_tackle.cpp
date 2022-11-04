@@ -172,7 +172,7 @@ bool Bhv_BasicTackle::can_tackle( const rcsc::WorldModel & wm){
     }
 
 
-    if(wm.maybeKickableOpponent() && (ballpos.x < 30 || self_min >= 3) ){
+    if(wm.kickableOpponent() && (ballpos.x < 30 || self_min >= 3) ){
         return true;
     }
     if(ball_will_be_in_our_goal){

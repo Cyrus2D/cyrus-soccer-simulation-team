@@ -150,7 +150,7 @@ Bhv_GoalieChaseBall::execute( PlayerAgent * agent )
          || intersection.absY() > SP.goalHalfWidth() + 3.0
          )
     {
-        if ( ! wm.maybeKickableOpponent() )
+        if ( ! wm.kickableOpponent() )
         {
             if ( self_goalie_min <= opp_min_cyc + 2
                  && my_int_pos.x > -SP.pitchHalfLength() - 2.0
@@ -432,7 +432,7 @@ Bhv_GoalieChaseBall::is_ball_chase_situation( PlayerAgent  * agent )
     {
         // exist kickable teammate
         // avoid back pass
-        if ( wm.maybeKickableTeammate() )
+        if ( wm.kickableTeammate() )
         {
             dlog.addText( Logger::TEAM,
                           __FILE__": danger area. exist kickable teammate?" );
@@ -488,8 +488,8 @@ Bhv_GoalieChaseBall::is_ball_chase_situation( PlayerAgent  * agent )
     // Now, I can chase the ball
     // check the ball possessor
 
-    if ( wm.maybeKickableTeammate()
-         && ! wm.maybeKickableOpponent() )
+    if ( wm.kickableTeammate()
+         && ! wm.kickableOpponent() )
     {
         dlog.addText( Logger::TEAM,
                       __FILE__": exist kickable player" );
@@ -542,13 +542,13 @@ Bhv_GoalieChaseBall::is_ball_shoot_moving( const PlayerAgent * agent )
     }
 
     // check opponent kicker
-    if ( wm.maybeKickableOpponent() )
+    if ( wm.kickableOpponent() )
     {
         dlog.addText( Logger::TEAM,
                       __FILE__": check shoot moving. opponent kickable " );
         return false;
     }
-    else if ( wm.maybeKickableTeammate() )
+    else if ( wm.kickableTeammate() )
     {
         dlog.addText( Logger::TEAM,
                       __FILE__": check shoot moving. teammate kickable" );

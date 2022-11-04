@@ -790,7 +790,7 @@ SamplePlayer::doForceKick()
     if ( wm.gameMode().type() == GameMode::PlayOn
          && ! wm.self().goalie()
          && wm.self().isKickable()
-         && wm.maybeKickableOpponent() )
+         && wm.kickableOpponent() )
     {
 
         if(Bhv_BasicTackle(0.7).execute(this)){
@@ -892,7 +892,7 @@ SamplePlayer::doHeardPassReceive()
         this->debugClient().addMessage("hear PrePassMSG");
         IntentionReceive::gotoIntercept(this,heard_pos,true);
         SampleCommunication().sayUnmark(this);
-    }else if( wm.maybeKickableTeammate() ){
+    }else if( wm.kickableTeammate() ){
         this->debugClient().addMessage("hear kickableTm:goto heard pos");
         this->debugClient().addCircle(heard_pos,0.1);
         IntentionReceive::gotoIntercept(this,heard_pos);

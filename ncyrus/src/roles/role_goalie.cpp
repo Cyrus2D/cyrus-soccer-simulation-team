@@ -118,7 +118,7 @@ bool RoleGoalie::execute(PlayerAgent * agent) {
 		if (wm.time().cycle() - dangerCycle > 33 && wm.ball().vel().r() > 1.0)
 			isDanger = false;
 
-		if (wm.maybeKickableOpponent() || wm.maybeKickableTeammate())
+		if (wm.kickableOpponent() || wm.kickableTeammate())
 			isDanger = false;
 	}
 
@@ -138,7 +138,7 @@ bool RoleGoalie::execute(PlayerAgent * agent) {
 
 		if (our_penalty.contains(agent->world().ball().pos())
 				&& (nearestTmmPos.dist(wm.ball().pos()) > 2.0
-						|| wm.maybeKickableOpponent()) && !kicking
+						|| wm.kickableOpponent()) && !kicking
 				&& (!isDanger
 						|| (wm.ball().vel().r() > 2.6
 								&& agent->world().ball().inertiaPoint(5).x

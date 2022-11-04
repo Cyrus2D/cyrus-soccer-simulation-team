@@ -260,7 +260,7 @@ Bhv_GoalieBasicMove::doOffensiveIntercept( PlayerAgent * agent )
     int oppCycles = wm.interceptTable()->opponentReachCycle();
 
     if( myCycles <= oppCycles && myCycles < tmmCycles &&
-            !wm.maybeKickableTeammate() && !wm.maybeKickableOpponent() &&
+            !wm.kickableTeammate() && !wm.kickableOpponent() &&
             wm.gameMode().type() == GameMode::PlayOn )
     {
         //       Body_Intercept().execute( agent );
@@ -408,8 +408,8 @@ Bhv_GoalieBasicMove::getTargetPoint( PlayerAgent * agent )
     const double danger_move_x = -51.5;
 
     int ball_reach_step = 0;
-    if ( ! wm.maybeKickableTeammate()
-         && ! wm.maybeKickableOpponent() )
+    if ( ! wm.kickableTeammate()
+         && ! wm.kickableOpponent() )
     {
         ball_reach_step
                 = std::min( wm.interceptTable()->teammateReachCycle(),
@@ -473,7 +473,7 @@ Bhv_GoalieBasicMove::getTargetPoint( PlayerAgent * agent )
         const Vector2D base_point( - ServerParam::i().pitchHalfLength() - x_back,
                                    0.0 );
         Vector2D ball_point;
-        if ( wm.maybeKickableOpponent() )
+        if ( wm.kickableOpponent() )
         {
             ball_point = base_pos;
             agent->debugClient().addMessage( "Pos(2)" );
@@ -844,7 +844,7 @@ Bhv_GoalieBasicMove::doCorrectX( PlayerAgent * agent,
     }
 
     int opp_min_cyc = wm.interceptTable()->opponentReachCycle();
-    if ( ( ! wm.maybeKickableOpponent() && opp_min_cyc >= 4 )
+    if ( ( ! wm.kickableOpponent() && opp_min_cyc >= 4 )
          || wm.ball().distFromSelf() > 18.0 )
     {
         double dash_power = getBasicDashPower( agent, move_point );
@@ -856,7 +856,7 @@ Bhv_GoalieBasicMove::doCorrectX( PlayerAgent * agent,
         agent->debugClient().setTarget( move_point );
         agent->debugClient().addCircle( move_point, x_buf );
 
-        if ( ! wm.maybeKickableOpponent()
+        if ( ! wm.kickableOpponent()
              && wm.ball().distFromSelf() > 30.0 )
         {
             // if ( ! Body_GoalieGoToPoint( move_point, x_buf, dash_power
@@ -942,7 +942,7 @@ Bhv_GoalieBasicMove::doCorrectBodyDir( PlayerAgent * agent,
          || opp_ball_dist > 7.0
          || wm.ball().distFromSelf() > 20.0
          || ( std::fabs( move_point.y - wm.self().pos().y ) < 1.0 // y diff
-              && ! wm.maybeKickableOpponent() ) )
+              && ! wm.kickableOpponent() ) )
     {
         dlog.addText( Logger::TEAM,
                       __FILE__": body face to %.1f.  angle_diff=%.1f %s",

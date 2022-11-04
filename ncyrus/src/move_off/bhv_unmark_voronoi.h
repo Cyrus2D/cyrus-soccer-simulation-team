@@ -122,7 +122,7 @@ public:
         const WorldModel & wm = agent->world();
         if(M_last_ex_time != wm.time().cycle() - 1)
             return true;
-        if(wm.maybeKickableOpponent())
+        if(wm.kickableOpponent())
             return true;
         if(M_target_point.x > wm.offsideLineX() - 0.3)
             return true;

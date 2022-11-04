@@ -159,7 +159,7 @@ IntentionPassKickFindReceiver::finished( const PlayerAgent * agent ) // CYRUS_LI
 	// check opponent
 	//
 
-	if ( wm.maybeKickableOpponent() )
+	if ( wm.kickableOpponent() )
 	{
 		dlog.addText( Logger::TEAM,
 				__FILE__": (finished) exist kickable opponent" );

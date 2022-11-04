@@ -270,7 +270,7 @@ bool SampleCommunication::sayUnmark(PlayerAgent * agent) {
             && wm.audioMemory().pass().front().receiver_ == wm.self().unum())
             rec_prepass = true;
     if(std::rand()%3 == 0
-            && !wm.maybeKickableTeammate()
+            && !wm.kickableTeammate()
             && !rec_prepass){
         agent->debugClient().addMessage("dontsayunmark");
         return false;
@@ -711,7 +711,7 @@ SampleCommunication::shouldSayBall( const PlayerAgent * agent )
         }
     }
 
-    if ( wm.maybeKickableTeammate() )
+    if ( wm.kickableTeammate() )
     {
         return false;
     }
@@ -752,7 +752,7 @@ SampleCommunication::shouldSayBall( const PlayerAgent * agent )
 
     if ( ball_vel_changed
          && wm.lastKickerSide() != wm.ourSide()
-         && ! wm.maybeKickableOpponent() )
+         && ! wm.kickableOpponent() )
     {
         dlog.addText( Logger::COMMUNICATION,
                       __FILE__": (shouldSayBall) ball vel changed. opponent kicked. no opponent kicker" );
@@ -1046,7 +1046,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
     }
     else if ( wm.ball().seenPosCount() > 0
               || wm.ball().seenVelCount() > 1
-              || wm.maybeKickableTeammate() )
+              || wm.kickableTeammate() )
     {
         objects[0].score_ = -65535.0;
     }
@@ -1277,8 +1277,8 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
                       __FILE__": (sayBallAndPlayers) next cycle kickable." );
     }
 
-    if ( wm.maybeKickableOpponent()
-         || wm.maybeKickableTeammate() )
+    if ( wm.kickableOpponent()
+         || wm.kickableTeammate() )
     {
         ball_vel.assign( 0.0, 0.0 );
     }
@@ -1931,8 +1931,8 @@ SampleCommunication::sayBall( PlayerAgent * agent )
     }
 
 #if 1
-    if ( wm.maybeKickableTeammate()
-         //|| wm.maybeKickableOpponent()
+    if ( wm.kickableTeammate()
+         //|| wm.kickableOpponent()
          )
     {
         return false;
@@ -2009,7 +2009,7 @@ SampleCommunication::sayBall( PlayerAgent * agent )
     // ball & opponent goalie
     //
     if ( send_ball
-         && ( wm.maybeKickableTeammate()
+         && ( wm.kickableTeammate()
               || our_min <= opp_min + 1 )
          && ball_trap_pos.x > 34.0
          && ball_trap_pos.absY() < 20.0
