@@ -212,3 +212,8 @@ file(COPY
   formations-dt player.conf coach.conf start-debug.sh start-offline.sh
   DESTINATION ${PROJECT_BINARY_DIR}/src/
   )
+
+file(
+  COPY data
+  DESTINATION ${PROJECT_BINARY_DIR}/src
+  )

@@ -284,6 +284,7 @@ CalculateOffensiveOpponents* CalculateOffensiveOpponents::instance= nullptr;
 void
 SamplePlayer::actionImpl()
 {
+    M_cycle_time_start.restart();
     SamplePlayer::player_port = this->config().port();
     Setting::i();
     Setting::i()->SetTeamName(this->world().theirTeamName());
@@ -789,7 +790,7 @@ SamplePlayer::doForceKick()
     if ( wm.gameMode().type() == GameMode::PlayOn
          && ! wm.self().goalie()
          && wm.self().isKickable()
-         && wm.maybeKickableOpponent() )
+         && wm.kickableOpponent() )
     {
 
         if(Bhv_BasicTackle(0.7).execute(this)){
@@ -891,7 +892,7 @@ SamplePlayer::doHeardPassReceive()
         this->debugClient().addMessage("hear PrePassMSG");
         IntentionReceive::gotoIntercept(this,heard_pos,true);
         SampleCommunication().sayUnmark(this);
-    }else if( wm.maybeKickableTeammate() ){
+    }else if( wm.kickableTeammate() ){
         this->debugClient().addMessage("hear kickableTm:goto heard pos");
         this->debugClient().addCircle(heard_pos,0.1);
         IntentionReceive::gotoIntercept(this,heard_pos);
@@ -1010,4 +1011,25 @@ SamplePlayer::createActionGenerator() const
                        2, ActGen_RangeActionChainLengthFilter::MAX ) );
 
     return ActionGenerator::ConstPtr( g );
+}
+
+Timer SamplePlayer::M_cycle_time_start = Timer();
+int SamplePlayer::M_cycle_max_time = 70;
+//oldcyrus this value should be read from config
+
+double
+SamplePlayer::cycleTimeUtilNow(){
+    return SamplePlayer::M_cycle_time_start.elapsedReal();
+}
+
+void
+SamplePlayer::setCycleMaxTime(int max_time){
+    SamplePlayer::M_cycle_max_time = max_time;
+}
+
+bool SamplePlayer::canProcessMore(){
+    if (SamplePlayer::cycleTimeUtilNow() > SamplePlayer::M_cycle_max_time){
+        return false;
+    }
+    return true;
 }

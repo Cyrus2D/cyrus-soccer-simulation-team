@@ -340,7 +340,7 @@ Body_Intercept2022::doKickableOpponentCheck( PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
     if ( wm.ball().distFromSelf() < 2.0
-         && wm.maybeKickableOpponent() )
+         && wm.kickableOpponent() )
     {
         const PlayerObject * opp = wm.opponentsFromBall().front();
         if ( opp )
@@ -1859,7 +1859,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
     }
 
     bool use_tackle_intercept = false;
-    if (wm.maybeKickableTeammate())
+    if (wm.kickableTeammate())
         return false;
     if (wm.ball().pos().x > -15 || wm.lastKickerSide() == wm.ourSide()) {
         if (!tm_drible && !tm_pass) {
@@ -2093,7 +2093,7 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
         Body_TurnToBall().execute(agent);
     }
 
-    if (wm.maybeKickableOpponent()
+    if (wm.kickableOpponent()
             && wm.ball().distFromSelf() < 18.0) {
         agent->setNeckAction(new Neck_TurnToBall());
     } else {
@@ -2301,7 +2301,7 @@ bool go_to_goal(PlayerAgent *agent) {
                 }
             }
             agent->debugClient().addMessage("goto goal");
-            if (wm.maybeKickableOpponent() && wm.ball().distFromSelf() < 18.0 || opp_min <= 2) {
+            if (wm.kickableOpponent() && wm.ball().distFromSelf() < 18.0 || opp_min <= 2) {
                 agent->setNeckAction(new Neck_TurnToBall());
             } else {
                 agent->setNeckAction(new Neck_TurnToBallOrScan(0));
@@ -2473,7 +2473,7 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
     if (nearest_opp != NULL)
         set_def_neck_with_ball(agent, wm.ball().pos(), nearest_opp, 0);
     else {
-        if (wm.maybeKickableOpponent() && wm.ball().distFromSelf() < 18.0) {
+        if (wm.kickableOpponent() && wm.ball().distFromSelf() < 18.0) {
             agent->setNeckAction(new Neck_TurnToBall());
         } else {
             agent->setNeckAction(new Neck_TurnToBallOrScan(0));

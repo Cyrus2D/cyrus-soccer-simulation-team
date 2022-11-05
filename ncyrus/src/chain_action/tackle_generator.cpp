@@ -314,7 +314,7 @@ TackleGenerator::calculate( const WorldModel & wm )
 
 #ifdef ASSUME_OPPONENT_KICK
         if ( shootable_area
-             && wm.maybeKickableOpponent() )
+             && wm.kickableOpponent() )
         {
             accel += shoot_accel;
             double d = accel.r();

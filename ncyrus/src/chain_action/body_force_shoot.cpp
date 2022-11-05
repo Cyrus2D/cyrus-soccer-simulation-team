@@ -81,7 +81,7 @@ Body_ForceShoot::execute( rcsc::PlayerAgent * agent )
                         __FILE__": no course, force kick" );
     agent->debugClient().setTarget( target );
 
-    if ( wm.maybeKickableOpponent() )
+    if ( wm.kickableOpponent() )
     {
         if ( rcsc::Body_KickOneStep( target, param.ballSpeedMax() )
              .execute( agent ) )

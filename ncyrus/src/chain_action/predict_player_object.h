@@ -39,7 +39,7 @@
 #include <rcsc/geom/angle_deg.h>
 #include <rcsc/types.h>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <vector>
 

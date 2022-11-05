@@ -37,7 +37,7 @@
 
 #include <rcsc/geom/vector_2d.h>
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <vector>
 #include <iostream>
@@ -65,8 +65,8 @@ public:
 class ActionChainGraph {
 public:
 
-	typedef boost::shared_ptr< ActionChainGraph > Ptr; //!< pointer type alias
-	typedef boost::shared_ptr< const ActionChainGraph > ConstPtr; //!< const pointer type alias
+	typedef std::shared_ptr< ActionChainGraph > Ptr; //!< pointer type alias
+	typedef std::shared_ptr< const ActionChainGraph > ConstPtr; //!< const pointer type alias
 
 public:
     static size_t DEFAULT_MAX_CHAIN_LENGTH;

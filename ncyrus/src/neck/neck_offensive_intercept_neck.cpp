@@ -65,7 +65,7 @@ Neck_OffensiveInterceptNeck::execute( PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
 
-    if ( wm.maybeKickableOpponent() )
+    if ( wm.kickableOpponent() )
     {
         const PlayerObject * opp = wm.interceptTable()->fastestOpponent();
         if ( opp )

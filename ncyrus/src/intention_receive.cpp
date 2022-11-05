@@ -108,7 +108,7 @@ IntentionReceive::finished( const PlayerAgent * agent ) // CYRUS_LIB
         return true;
     }
 
-    if ( agent->world().maybeKickableTeammate() && M_ex_step >=2 )
+    if ( agent->world().kickableTeammate() && M_ex_step >=2 )
     {
         dlog.addText( Logger::TEAM,
                       __FILE__": exist kickable teammate" );
@@ -256,7 +256,7 @@ IntentionReceive::execute( PlayerAgent * agent )
                 IntentionReceive::gotoIntercept(agent,wm.ball().inertiaPoint(opp_min));
         }
     }
-    else if( wm.maybeKickableTeammate() ){
+    else if( wm.kickableTeammate() ){
         agent->debugClient().addMessage("hear kickableTm:goto heard pos");
         agent->debugClient().addCircle(M_target_point,0.1);
         IntentionReceive::gotoIntercept(agent,M_target_point);

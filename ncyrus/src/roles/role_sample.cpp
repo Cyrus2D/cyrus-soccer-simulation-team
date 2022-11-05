@@ -65,7 +65,7 @@ bool
 RoleSample::execute( PlayerAgent * agent )
 {
     bool kickable = agent->world().self().isKickable();
-    if ( agent->world().maybeKickableTeammate()
+    if ( agent->world().kickableTeammate()
          && agent->world().teammatesFromBall().front()->distFromBall()
          < agent->world().ball().distFromSelf() )
     {

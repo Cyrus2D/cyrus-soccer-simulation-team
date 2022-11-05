@@ -36,6 +36,7 @@
 
 #include "pass.h"
 #include "field_analyzer.h"
+#include "sample_player.h"
 
 #include <rcsc/player/world_model.h>
 #include <rcsc/player/intercept_table.h>
@@ -749,8 +750,8 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
     // distance loop
     //
     for (int d = 1; d <= DIST_DIVS; ++d) {
-        // if (!PlayerAgent::canProcessMore()) CYRUS_LIB
-        //     return;
+        if ( !SamplePlayer::canProcessMore() )
+             return;
         double player_move_dist = DIST_STEP * d;
         int a_step = (
                     player_move_dist * 2.0 * M_PI / ANGLE_DIVS < 0.6 ? 2 : 1);
@@ -1035,8 +1036,8 @@ void StrictCheckPassGenerator::createThroughPass(const WorldModel & wm,
     // angle loop
     //
     for (int a = 0; a <= ANGLE_DIVS; ++a) {
-        // if (!PlayerAgent::canProcessMore()) CYRUS_LIB
-        //     return;
+        if ( !SamplePlayer::canProcessMore() )
+             return;
         const AngleDeg angle = MIN_ANGLE + (ANGLE_STEP * a);
         const Vector2D unit_rvec = Vector2D::from_polar(1.0, angle);
 
