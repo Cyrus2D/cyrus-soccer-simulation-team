@@ -50,8 +50,8 @@ private:
     void addPredictorTargets(const WorldModel & wm);
     void addHandyTargets(const WorldModel & wm);
     void addHandyPlayerTargets(const WorldModel & wm);
-    void neckEvaluator(const WorldModel & wm);
-    void execute(PlayerAgent * agent);
+    bool neckEvaluator(const WorldModel & wm);
+    void execute(PlayerAgent * agent, bool isValid);
     void getDribblingOppDanger(const WorldModel & wm,
                                Vector2D & start,
                                Vector2D & target,

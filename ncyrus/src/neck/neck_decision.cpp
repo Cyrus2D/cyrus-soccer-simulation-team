@@ -44,8 +44,8 @@ void NeckDecisionWithBall::advancedWithBall(PlayerAgent *agent){
     addChainTargets(wm);
     addHandyPlayerTargets(wm);
     addHandyTargets(wm);
-    neckEvaluator(wm);
-    execute(agent);
+    bool isValid = neckEvaluator(wm);
+    execute(agent, isValid);
 }
 
 void NeckDecisionWithBall::simpleWithBall(PlayerAgent *agent) {
@@ -358,9 +358,11 @@ void NeckDecisionWithBall::addHandyPlayerTargets(const WorldModel & wm){
     }
 }
 
-void NeckDecisionWithBall::neckEvaluator(const WorldModel & wm){
-    // M_best_neck = AngleDeg::INVALIDATED; // CYRUS_LIB
-    M_best_neck = AngleDeg(numeric_limits<double>::max());
+bool NeckDecisionWithBall::neckEvaluator(const WorldModel & wm){
+    // M_best_neck = AngleDeg::INVALIDATED; // CYRUS_LIB F0
+    // M_best_neck = AngleDeg(numeric_limits<double>::max()); CYRUS_LIB F1
+    M_best_neck = AngleDeg();
+    bool isValid = false;
     M_best_eval = -1;
     double max_target_eval = 0;
     for (auto & target: M_target){
@@ -417,6 +419,7 @@ void NeckDecisionWithBall::neckEvaluator(const WorldModel & wm){
         if (eval > M_best_eval) {
             M_best_eval = eval;
             M_best_neck = AngleDeg(neck);
+            isValid = true;
         }
         evals.push_back(neckEval(angle_index, max(eval, 0.0), neck));
         angle_index += 1;
@@ -431,15 +434,16 @@ void NeckDecisionWithBall::neckEvaluator(const WorldModel & wm){
     #ifdef DEBUG_NECK_DECISION
     dlog.addText(Logger::ROLE, "Best Neck: %.1f", M_best_neck.degree());
     #endif
+    return isValid;
 }
 
-void NeckDecisionWithBall::execute(PlayerAgent * agent){
+void NeckDecisionWithBall::execute(PlayerAgent * agent, bool isValid){
     const WorldModel & wm = agent->world();
     #ifdef DEBUG_NECK_DECISION
     dlog.addText(Logger::PLAN, "Set neck execute");
     #endif
     // if (M_best_neck.isValid()) { // CYRUS_LIB
-    if (M_best_neck != numeric_limits<double>::max()) { 
+    if (isValid) { //&& M_best_neck != numeric_limits<double>::max()) {  // CYRUS_LIB F1
         #ifdef DEBUG_NECK_DECISION
         dlog.addLine(Logger::PLAN, M_self_pos, M_self_pos + Vector2D::polar2vector(10, M_best_neck), 255, 0, 0);
         dlog.addText(Logger::PLAN, "Set neck to %.1f", M_best_neck.degree());
