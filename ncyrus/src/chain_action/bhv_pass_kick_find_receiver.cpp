@@ -87,7 +87,7 @@ public:
   M_receive_point( receive_point )
 { }
 
-    bool finished( const PlayerAgent * agent ); // CYRUS_LIB CONST
+    bool finished( const PlayerAgent * agent ); // CLIB CONST
 
 	bool execute( PlayerAgent * agent );
 
@@ -100,7 +100,7 @@ private:
 
  */
 bool
-IntentionPassKickFindReceiver::finished( const PlayerAgent * agent ) // CYRUS_LIB CONST
+IntentionPassKickFindReceiver::finished( const PlayerAgent * agent ) // CLIB CONST
 {
 	++M_step;
 

@@ -678,8 +678,8 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
             dlog.addText(Logger::BLOCK, "is valid k%d c%d d%.2f", fastest_opp->isKickable(),cycle,target.dist(fastest_opp->pos()));
             #endif
             if (fastest_opp->isKickable() && cycle <= 2 && target.dist(fastest_opp->pos()) < 1.2){
-                // AngleDeg dir = AngleDeg::INVALIDATED; CYRUS_LIB F0
-                // AngleDeg dir = AngleDeg(numeric_limits<double>::max()); CYRUS_LIB F1
+                // AngleDeg dir = AngleDeg::INVALIDATED; CLIB F0
+                // AngleDeg dir = AngleDeg(numeric_limits<double>::max()); CLIB 1
                 AngleDeg dir = AngleDeg();
                 if (target.x > -10){
                     dir = -180.0;
