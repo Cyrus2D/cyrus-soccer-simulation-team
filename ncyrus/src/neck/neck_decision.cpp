@@ -442,7 +442,7 @@ void NeckDecisionWithBall::execute(PlayerAgent * agent, bool isValid){
     #ifdef DEBUG_NECK_DECISION
     dlog.addText(Logger::PLAN, "Set neck execute");
     #endif
-    // if (M_best_neck.isValid()) { // CYRUS_LIB
+    // if (M_best_neck.isValid()) { // CYRUS_LIB F0
     if (isValid) { //&& M_best_neck != numeric_limits<double>::max()) {  // CYRUS_LIB F1
         #ifdef DEBUG_NECK_DECISION
         dlog.addLine(Logger::PLAN, M_self_pos, M_self_pos + Vector2D::polar2vector(10, M_best_neck), 255, 0, 0);
