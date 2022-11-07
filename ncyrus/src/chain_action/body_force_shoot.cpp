@@ -63,7 +63,7 @@ Body_ForceShoot::execute( rcsc::PlayerAgent * agent )
     rcsc::dlog.addText( rcsc::Logger::ACTION,
                         __FILE__": execute()" );
     agent->debugClient().addMessage( "ForceShoot" );
-
+    // bhv_shoot2008 CLIB 
 
     const rcsc::ServerParam & param = rcsc::ServerParam::i();
 
