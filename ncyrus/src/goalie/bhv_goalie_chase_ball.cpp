@@ -349,7 +349,7 @@ Bhv_GoalieChaseBall::is_ball_chase_situation( PlayerAgent  * agent )
     const ServerParam & SP = ServerParam::i();
 
     int self_min = wm.interceptTable()->selfReachCycle();
-    int self_min_tackle = wm.interceptTable()->selfReachCycle(); // selfReachCycleTackle(); // CYRUS_LIB
+    int self_min_tackle = wm.interceptTable()->selfReachCycleTackle();
     int opp_min = wm.interceptTable()->opponentReachCycle();
     int mate_min = wm.interceptTable()->teammateReachCycle();
 

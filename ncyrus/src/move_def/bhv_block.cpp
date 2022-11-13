@@ -508,7 +508,7 @@ void bhv_block::block_cycle(const WorldModel &wm, int unum, int &cycle, Vector2D
         Vector2D tm_pos = tm->pos();
         Vector2D tm_vel = tm->vel();
         int dc,tc,vc;
-        // wm.ourPlayer(wm.self().unum())->cycles_to_cut_ball(wm, ball, drible_step, false, dc, tc, vc, tm_pos, tm_vel); CYRUS_LIB
+        wm.ourPlayer(wm.self().unum())->cycles_to_cut_ball(wm, ball, drible_step, false, dc, tc, vc, tm_pos, tm_vel);
         int dash_step = dc + tc;
         if (dash_step <= drible_step) {
             target = ball;

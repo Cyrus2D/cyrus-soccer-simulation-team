@@ -375,13 +375,13 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
             }
             if (tm->isTackling())
                 mark_eval[o][t] += 15;
-            // if (t == 5) { CYRUS_LIB
-            //     if (tm->seenStaminaCount() < 10) {
-            //         if (tm->seenStamina() < 4000) {
-            //             mark_eval[o][t] += 10;
-            //         }
-            //     }
-            // }
+            if (t == 5) {
+                if (tm->seenStaminaCount() < 10) {
+                    if (tm->seenStamina() < 4000) {
+                        mark_eval[o][t] += 10;
+                    }
+                }
+            }
             #ifdef DEBUG_MARK_DECISIONS
             dlog.addText(Logger::MARK, "------DefDec mark off tm %d opp %d eval %.2f", t, o, mark_eval[o][t]);
             #endif
