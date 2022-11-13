@@ -1023,7 +1023,7 @@ int SamplePlayer::M_cycle_max_time = 70;
 
 double
 SamplePlayer::cycleTimeUtilNow(){
-    return SamplePlayer::M_cycle_time_start.elapsedReal();
+    return SamplePlayer::M_cycle_time_start.elapsedReal(Timer::Sec);
 }
 
 void
