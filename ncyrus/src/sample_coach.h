@@ -2,23 +2,18 @@
 
 /*
  *Copyright:
-
  Copyright (C) Hidehisa AKIYAMA
-
  This code is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation; either version 3, or (at your option)
  any later version.
-
  This code is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
-
  You should have received a copy of the GNU General Public License
  along with this code; see the file COPYING.  If not, write to
  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-
  *EndCopyright:
  */
 
@@ -34,12 +29,12 @@
 
 
 namespace rcsc {
-class PlayerType;
+    class PlayerType;
 }
 
 
 class SampleCoach
-    : public rcsc::CoachAgent {
+        : public rcsc::CoachAgent {
 private:
     typedef std::vector< const rcsc::PlayerType * > PlayerTypePtrCont;
 
@@ -69,21 +64,13 @@ protected:
     virtual
     void actionImpl();
 
-    /*!
-      this method is automatically called just after receiving server_param message.
-     */
+
+    virtual
+    void handleInitMessage();
     virtual
     void handleServerParam();
-
-    /*!
-      this method is automatically called just after receiving player_param message.
-     */
     virtual
     void handlePlayerParam();
-
-    /*!
-      this method is automatically called just after receiving player_type message.
-     */
     virtual
     void handlePlayerType();
 
@@ -98,8 +85,6 @@ private:
                        const int type );
 
     int getFastestType( PlayerTypePtrCont & candidates );
-    int getKickerType( PlayerTypePtrCont & candidates );
-    int getStaminaType( PlayerTypePtrCont & candidates );
 
     void sayPlayerTypes();
 
