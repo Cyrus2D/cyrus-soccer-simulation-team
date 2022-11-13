@@ -1071,13 +1071,13 @@ Bhv_PassKickFindReceiver::doSayPrePass( PlayerAgent * agent,
             ball_vel = agent->effector().queuedNextBallVel();
         }
 
-        // if(std::string(pass.description()).compare (std::string("cross")) == 0){ CYRUS_LIB
-        //     agent->addSayMessage( new PreCrossMessage( receiver_unum,
-        //             receive_pos + target_buf ) );
-        // }else{
-		// 	agent->addSayMessage( new PrePassMessage( receiver_unum,
-		// 			receive_pos + target_buf ) );
-        // }
+         if(std::string(pass.description()).compare (std::string("cross")) == 0){
+             agent->addSayMessage( new PreCrossMessage( receiver_unum,
+                     receive_pos + target_buf ) );
+         }else{
+		 	agent->addSayMessage( new PrePassMessage( receiver_unum,
+		 			receive_pos + target_buf ) );
+         }
     }else
     agent->debugClient().addMessage("cant say pass");
 }

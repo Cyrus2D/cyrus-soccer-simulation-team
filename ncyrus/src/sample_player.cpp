@@ -131,24 +131,28 @@ SamplePlayer::SamplePlayer()
     addSayMessageParser( new BallPlayerMessageParser( audio_memory ) );
     addSayMessageParser( new StaminaMessageParser( audio_memory ) );
     addSayMessageParser( new RecoveryMessageParser( audio_memory ) );
-
+    addSayMessageParser( new PrePassMessageParser( audio_memory ) );
+    addSayMessageParser( new PreCrossMessageParser( audio_memory ) );
+    addSayMessageParser( new OnePlayerMessageParser1( audio_memory ) );
+    addSayMessageParser( new OnePlayerMessageParser2( audio_memory ) );
+    addSayMessageParser( new TwoPlayerMessageParser01( audio_memory ) );
+    addSayMessageParser( new TwoPlayerMessageParser02( audio_memory ) );
+    addSayMessageParser( new TwoPlayerMessageParser11( audio_memory ) );
+    addSayMessageParser( new TwoPlayerMessageParser12( audio_memory ) );
+    addSayMessageParser( new TwoPlayerMessageParser22( audio_memory ) );
+    addSayMessageParser( new ThreePlayerMessageParser001( audio_memory ) );
+    addSayMessageParser( new ThreePlayerMessageParser002( audio_memory ) );
+    addSayMessageParser( new ThreePlayerMessageParser011( audio_memory ) );
+    addSayMessageParser( new ThreePlayerMessageParser012( audio_memory ) );
+    addSayMessageParser( new ThreePlayerMessageParser022( audio_memory ) );
+    addSayMessageParser( new ThreePlayerMessageParser111( audio_memory ) );
+    addSayMessageParser( new ThreePlayerMessageParser112( audio_memory ) );
+    addSayMessageParser( new ThreePlayerMessageParser122( audio_memory ) );
+    addSayMessageParser( new ThreePlayerMessageParser222( audio_memory ) );
     //
     // set communication message parser
     //
 
-    // CYRUS_LIB
-    // addSayMessageParser( SayMessageParser::Ptr( new MarkMessageParser( audio_memory ) ) );
-    // addSayMessageParser( SayMessageParser::Ptr( new PrePassMessageParser( audio_memory ) ) );
-    // addSayMessageParser( SayMessageParser::Ptr( new PreCrossMessageParser( audio_memory ) ) );
-    // addSayMessageParser( SayMessageParser::Ptr( new OnePlayerMessageParser1( audio_memory ) ) );
-    // addSayMessageParser( SayMessageParser::Ptr( new OnePlayerMessageParser2( audio_memory ) ) );
-    // addSayMessageParser( SayMessageParser::Ptr( new TwoPlayerMessageParser01( audio_memory ) ) );
-    // addSayMessageParser( SayMessageParser::Ptr( new TwoPlayerMessageParser02( audio_memory ) ) );
-    // addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser001( audio_memory ) ) );
-    // addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser002( audio_memory ) ) );
-    // addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser011( audio_memory ) ) );
-    // addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser012( audio_memory ) ) );
-    // addSayMessageParser( SayMessageParser::Ptr( new ThreePlayerMessageParser022( audio_memory ) ) );
     ////////////
 
 
