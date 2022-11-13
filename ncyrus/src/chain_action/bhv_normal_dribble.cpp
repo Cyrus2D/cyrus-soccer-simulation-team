@@ -387,7 +387,7 @@ IntentionNormalDribble::execute( PlayerAgent * agent )
         int current_len = agent->effector().getSayMessageLength();
         int available_len = ServerParam::i().playerSayMsgSize() - current_len;
 
-        if(wm.interceptTable()->selfReachCycle() < 3 ){ // && PrePassMessage::slength() <= available_len){ CYRUS_LIB
+        if(wm.interceptTable()->selfReachCycle() < 3 && PrePassMessage::slength() <= available_len){
             const ActionChainGraph & chain_graph = ActionChainHolder::i().graph();
             const CooperativeAction & first_action = chain_graph.getFirstAction();
             switch (first_action.category()) {

@@ -484,21 +484,21 @@ void StrictCheckPassGenerator::createCourses(const WorldModel & wm) {
     #endif
     const ReceiverCont::iterator end = M_receiver_candidates.end();
     M_pass_type = 'D';
-    // M_pass_logger = Logger::D_PASS; CYRUS_LIB
+    M_pass_logger = Logger::D_PASS;
     M_pass_logger = Logger::PASS;
     for (ReceiverCont::iterator p = M_receiver_candidates.begin(); p != end;
          ++p) {
         createDirectPass(wm, *p);
     }
     M_pass_type = 'L';
-    // M_pass_logger = Logger::L_PASS; CYRUS_LIB
+    M_pass_logger = Logger::L_PASS;
     M_pass_logger = Logger::PASS;
     for (ReceiverCont::iterator p = M_receiver_candidates.begin(); p != end;
          ++p) {
         createLeadingPass(wm, *p);
     }
     M_pass_type = 'T';
-    // M_pass_logger = Logger::TH_PASS; CYRUS_LIB
+    M_pass_logger = Logger::TH_PASS;
     M_pass_logger = Logger::PASS;
 
     for (ReceiverCont::iterator p = M_receiver_candidates.begin(); p != end;
@@ -724,10 +724,10 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
     static const double ANGLE_STEP = 360.0 / ANGLE_DIVS;
     double DIST_DIVS = 7;
     static const double DIST_STEP = 1.1;
-    // if(receiver.player_!= nullptr && receiver.player_->unum() > 0){ CYRUS_LIB
-    //     if(receiver.player_->seenStaminaCount() < 15 && receiver.player_->seenStamina() < 3500)
-    //         DIST_DIVS = 1;
-    // }
+    if(receiver.player_!= nullptr && receiver.player_->unum() > 0){
+     if(receiver.player_->seenStaminaCount() < 15 && receiver.player_->seenStamina() < 3500)
+         DIST_DIVS = 1;
+    }
     const ServerParam & SP = ServerParam::i();
     const PlayerType * ptype = receiver.player_->playerTypePtr();
 
@@ -958,10 +958,10 @@ void StrictCheckPassGenerator::createThroughPass(const WorldModel & wm,
     double MAX_MOVE_DIST = 30.0 + 0.001;
     static const double MOVE_DIST_STEP = 2.0;//2
 
-    // if(receiver.player_!= nullptr && receiver.player_->unum() > 0) CYRUS_LIB
-    //     if(receiver.player_->seenStaminaCount() < 15 && receiver.player_->seenStamina() < 3500){
-    //         return;
-    //     }
+    if(receiver.player_!= nullptr && receiver.player_->unum() > 0)
+        if(receiver.player_->seenStaminaCount() < 15 && receiver.player_->seenStamina() < 3500){
+         return;
+        }
     const ServerParam & SP = ServerParam::i();
     const PlayerType * ptype = receiver.player_->playerTypePtr();
     const AngleDeg receiver_vel_angle = receiver.vel_.th();
@@ -1320,7 +1320,7 @@ void StrictCheckPassGenerator::createPassCommon(const WorldModel & wm,
                 const AbstractPlayerObject * opp_near_me = wm.theirPlayer(wm.opponentsFromSelf().front()->unum());
                 if(opp_near_me != NULL && opp_near_me->unum() > 0){
                     int dc,tc,vc;
-                    opp_near_cycle = 2; // opp_near_me->cycles_to_cut_ball(wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body()); CYRUS_LIB
+                    opp_near_cycle = opp_near_me->cycles_to_cut_ball(wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body().degree());
                     if(kick_count > opp_near_cycle){
                         #ifdef DEBUG_PASS
                         dlog.addText(M_pass_logger,"|  cont for kick count and opp near kick:%d oppcycle:%d", kick_count, opp_near_cycle);
@@ -1861,17 +1861,16 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
             if(M_first_point.x < 30 || our_score < opp_score)
                 safe_dist_thr += 0.2;
 
-        // c_step = opponent.player_->cycles_to_cut_ball_with_safe_thr_dist(wm, CYRUS_LIB
-        //                                                                  ball_pos,
-        //                                                                  cycle,
-        //                                                                  false,
-        //                                                                  dash_step,
-        //                                                                  turn_step,
-        //                                                                  view_step,
-        //                                                                  opp_pos,
-        //                                                                  opp_vel,
-        //                                                                  safe_dist_thr, true);
-        c_step = 6; // CYRUS_LIB
+        c_step = opponent.player_->cycles_to_cut_ball_with_safe_thr_dist(wm,
+                                                                         ball_pos,
+                                                                         cycle,
+                                                                         false,
+                                                                         dash_step,
+                                                                         turn_step,
+                                                                         view_step,
+                                                                         opp_pos,
+                                                                         opp_vel,
+                                                                         safe_dist_thr, true);
         int bonus_step = 0;
         if (opponent.player_->isTackling()) {
             bonus_step = -5; // Magic Number

@@ -531,7 +531,7 @@ CrossGenerator::createCross( const WorldModel & wm,
                         const AbstractPlayerObject * opp_near_me = wm.theirPlayer(wm.opponentsFromSelf().front()->unum());
                         if(opp_near_me != NULL && opp_near_me->unum() > 0){
                             int dc,tc,vc;
-                            if(kick_count - 1 > 3) // CYRUS_LIB opp_near_me->cycles_to_cut_ball(wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body()))
+                            if(kick_count - 1 > opp_near_me->cycles_to_cut_ball(wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body().degree()))
                                 continue;
                         }
                     }
@@ -783,17 +783,16 @@ int CrossGenerator::newoldpredictOpponentReachStep(const WorldModel & wm,
         int dash_step;
         int view_step;
 
-        // int c_step = opponent->cycles_to_cut_ball_with_safe_thr_dist(wm, // CYRUS_LIB
-        //                                                              ball_pos,
-        //                                                              cycle,
-        //                                                              false,
-        //                                                              dash_step,
-        //                                                              turn_step,
-        //                                                              view_step,
-        //                                                              opp_pos,
-        //                                                              opp_vel,
-        //                                                              FieldAnalyzer::isFRA(wm)? 0.3 : 0.1);
-        int c_step = 2; // CYRUS_LIB
+         int c_step = opponent->cycles_to_cut_ball_with_safe_thr_dist(wm,
+                                                                      ball_pos,
+                                                                      cycle,
+                                                                      false,
+                                                                      dash_step,
+                                                                      turn_step,
+                                                                      view_step,
+                                                                      opp_pos,
+                                                                      opp_vel,
+                                                                      FieldAnalyzer::isFRA(wm)? 0.3 : 0.1);
         int bonus_step = 0;
         if (opponent->isTackling()) {
             bonus_step = -5; // Magic Number
@@ -858,18 +857,17 @@ int CrossGenerator::newoldpredictOpponentReachStep(const WorldModel & wm,
             for(auto&p : predictpos){
 
                 int dc,tc,vc;
-                // int sc =opponent->cycles_to_cut_ball_with_safe_thr_dist(wm, // CYRUS_LIB
-                //                                                         ball_pos,
-                //                                                         cycle,
-                //                                                         false,
-                //                                                         dc,
-                //                                                         tc,
-                //                                                         vc,
-                //                                                         p.pos,
-                //                                                         p.vel,
-                //                                                         0.1,
-                //                                                         p.body);
-                int sc = 2; // CYRUS_LIB
+                 int sc =opponent->cycles_to_cut_ball_with_safe_thr_dist(wm,
+                                                                         ball_pos,
+                                                                         cycle,
+                                                                         false,
+                                                                         dc,
+                                                                         tc,
+                                                                         vc,
+                                                                         p.pos,
+                                                                         p.vel,
+                                                                         0.1,
+                                                                         p.body.degree());
                 dc -= pos_count_effect/2.0;
                 tc -= body_count_effect/2.0;
 //                if(FieldAnalyzer::isFRA(wm) || FieldAnalyzer::isMT(wm) || FieldAnalyzer::isHFUT(wm)|| FieldAnalyzer::isYushan(wm) || FieldAnalyzer::isHelius(wm) || FieldAnalyzer::isCYRUS(wm)

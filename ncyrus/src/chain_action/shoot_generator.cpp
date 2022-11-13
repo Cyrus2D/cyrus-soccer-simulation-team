@@ -523,17 +523,16 @@ ShootGenerator::opponentCanReach( const PlayerObject * opponent,
         int n_dash;
         int n_view;
 
-        // int opp_cycle opponent->cycles_to_cut_ball(wm, CYRUS_LIB
-        //                                              ball_pos,
-        //                                              cycle,
-        //                                              (wm.gameMode().type() == GameMode::PenaltyTaken_? true : false),
-        //                                              n_dash,
-        //                                              n_turn,
-        //                                              n_view,
-        //                                              opp_pos,
-        //                                              opp_vel);
+        int opp_cycle = opponent->cycles_to_cut_ball(wm,
+                                                    ball_pos,
+                                                    cycle,
+                                                    (wm.gameMode().type() == GameMode::PenaltyTaken_? true : false),
+                                                    n_dash,
+                                                    n_turn,
+                                                    n_view,
+                                                    opp_pos,
+                                                    opp_vel);
 
-        int opp_cycle = 2; // CYRUS_LIB
         int bonus_step = bound( 0, opponent->posCount(), 1 );
         int penalty_step = 0; //-3;
 
@@ -571,16 +570,15 @@ ShootGenerator::opponentCanReach( const PlayerObject * opponent,
             int n_turn;
             int n_dash;
             int n_view;
-            // int opp_cycle = opponent->cycles_to_cut_ball(wm, CYRUS_LIB
-            //                                              ball_pos,
-            //                                              cycle,
-            //                                              true,
-            //                                              n_dash,
-            //                                              n_turn,
-            //                                              n_view,
-            //                                              opp_pos,
-            //                                              opp_vel);
-            int opp_cycle = 2; // CYRUS_LIB
+             int opp_cycle = opponent->cycles_to_cut_ball(wm,
+                                                          ball_pos,
+                                                          cycle,
+                                                          true,
+                                                          n_dash,
+                                                          n_turn,
+                                                          n_view,
+                                                          opp_pos,
+                                                          opp_vel);
             int bonus_step = bound( 0, opponent->posCount(), 2 );
             int penalty_step = 0; //-3;
 
