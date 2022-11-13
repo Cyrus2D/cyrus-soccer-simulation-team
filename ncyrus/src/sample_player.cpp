@@ -901,17 +901,17 @@ SamplePlayer::doHeardPassReceive()
         this->debugClient().addCircle(heard_pos,0.1);
         IntentionReceive::gotoIntercept(this,heard_pos);
         this->setNeckAction( new Neck_TurnToBall() );
-    }else if (Body_Intercept2022(heard_pos,2,first_ball).execute( this)){
+    }else if (Body_Intercept2009(heard_pos,2,first_ball).execute( this)){
         this->debugClient().addMessage("hear intercept2.0");
-    }else if (Body_Intercept2022(heard_pos,4,first_ball).execute( this)){
+    }else if (Body_Intercept2009(heard_pos,4,first_ball).execute( this)){
         this->debugClient().addMessage("hear intercept4.0");
-    }else if (Body_Intercept2022(heard_pos,6,first_ball).execute( this)){
+    }else if (Body_Intercept2009(heard_pos,6,first_ball).execute( this)){
         this->debugClient().addMessage("hear intercept6.0");
     }else if (self_min > 5
               && heard_cycle > 5){
         this->debugClient().addMessage("s,h > 5,gotoIntercept");
         IntentionReceive::gotoIntercept(this,heard_pos);
-    }else if (Body_Intercept2022(false,first_ball).execute( this)){
+    }else if (Body_Intercept2009(false,first_ball).execute( this)){
         this->debugClient().addMessage("hear intercept");
     }else{
         this->debugClient().addMessage("hear gotoIntercept");

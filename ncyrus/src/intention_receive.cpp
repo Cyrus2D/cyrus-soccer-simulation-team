@@ -242,11 +242,11 @@ IntentionReceive::execute( PlayerAgent * agent )
         {
             agent->debugClient().addMessage("hear PassMSG OppCanInter");
             if(M_ex_step < 5 || M_step > 7){
-                if (Body_Intercept2022(M_target_point,2,chain_target).execute( agent)){
+                if (Body_Intercept2009(M_target_point,2,chain_target).execute( agent)){
                     agent->debugClient().addMessage("hear intercept2.0");
-                }else if (Body_Intercept2022(M_target_point,4,chain_target).execute( agent)){
+                }else if (Body_Intercept2009(M_target_point,4,chain_target).execute( agent)){
                     agent->debugClient().addMessage("hear intercept4.0");
-                }else if (Body_Intercept2022(M_target_point,6,chain_target).execute( agent)){
+                }else if (Body_Intercept2009(M_target_point,6,chain_target).execute( agent)){
                     agent->debugClient().addMessage("hear intercept6.0");
                 }else{
                     IntentionReceive::gotoIntercept(agent,wm.ball().inertiaPoint(opp_min));
@@ -261,17 +261,17 @@ IntentionReceive::execute( PlayerAgent * agent )
         agent->debugClient().addCircle(M_target_point,0.1);
         IntentionReceive::gotoIntercept(agent,M_target_point);
         agent->setNeckAction( new Neck_TurnToBall() );
-    }else if (Body_Intercept2022(M_target_point,2,chain_target).execute( agent)){
+    }else if (Body_Intercept2009(M_target_point,2,chain_target).execute( agent)){
         agent->debugClient().addMessage("hear intercept2.0");
-    }else if (Body_Intercept2022(M_target_point,4,chain_target).execute( agent)){
+    }else if (Body_Intercept2009(M_target_point,4,chain_target).execute( agent)){
         agent->debugClient().addMessage("hear intercept4.0");
-    }else if (Body_Intercept2022(M_target_point,6,chain_target).execute( agent)){
+    }else if (Body_Intercept2009(M_target_point,6,chain_target).execute( agent)){
         agent->debugClient().addMessage("hear intercept6.0");
     }else if (self_min > 5
               && heard_cycle > 5){
         agent->debugClient().addMessage("s,h > 5,gotoIntercept");
         IntentionReceive::gotoIntercept(agent,M_target_point);
-    }else if (Body_Intercept2022(false,chain_target).execute( agent)){
+    }else if (Body_Intercept2009(false,chain_target).execute( agent)){
         agent->debugClient().addMessage("hear intercept");
     }else{
         agent->debugClient().addMessage("hear gotoIntercept");
