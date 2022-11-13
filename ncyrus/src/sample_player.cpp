@@ -71,7 +71,7 @@
 #include <rcsc/player/say_message_builder.h>
 #include <rcsc/player/audio_sensor.h>
 // #include <rcsc/player/freeform_parser.h>
-// #include <rcsc/player/stamina_with_pointto.h> // CURIS_LIB
+#include <rcsc/player/stamina_with_pointto.h>
 
 #include <rcsc/common/abstract_client.h>
 #include <rcsc/common/logger.h>
@@ -339,7 +339,7 @@ SamplePlayer::actionImpl()
         const AbstractPlayerObject * tm = world().ourPlayer(i);
         if(tm == nullptr || tm->unum() < 1)
             continue;
-        // dlog.addText(Logger::TEAM, "%d %d %.1f", i, tm->seenStaminaCount(),tm->seenStamina()); // CYRUS_LIB
+         dlog.addText(Logger::TEAM, "%d %d %.1f", i, tm->seenStaminaCount(),tm->seenStamina());
     }
     //
     // create current role
@@ -363,7 +363,7 @@ SamplePlayer::actionImpl()
     if ( role_ptr->acceptExecution( world() ) )
     {
         role_ptr->execute( this );
-        //StaminaWithPointto::doPointtoForStamina(this); CYRUS_LIB
+        StaminaWithPointto::doPointtoForStamina(this);
 
         return;
     }
@@ -374,7 +374,7 @@ SamplePlayer::actionImpl()
     if ( world().gameMode().type() == GameMode::PlayOn )
     {
         role_ptr->execute( this );
-        //StaminaWithPointto::doPointtoForStamina(this); CYRUS_LIB
+        StaminaWithPointto::doPointtoForStamina(this);
         if ( M_communication )
         {
             M_communication->execute( this );
@@ -398,7 +398,7 @@ SamplePlayer::actionImpl()
     // other set play mode
     //
     Bhv_SetPlay().execute( this );
-    //StaminaWithPointto::doPointtoForStamina(this); CYRUS_LIB
+    StaminaWithPointto::doPointtoForStamina(this);
     if ( M_communication )
     {
         M_communication->execute( this );
@@ -859,8 +859,8 @@ SamplePlayer::doHeardPassReceive()
     Vector2D intercept_pos = wm.ball().inertiaPoint( self_min );
     Vector2D heard_pos = wm.audioMemory().pass().front().receive_pos_;
     int heard_cycle = wm.self().playerTypePtr()->cyclesToReachDistance(heard_pos.dist(wm.self().pos()));
-    bool prepass_received = false; // wm.audioMemory().pass().front().prepass; CYRUS_LIB
-    bool cross_pass = false; // wm.audioMemory().pass().front().cross; CYRUS_LIB
+    bool prepass_received = wm.audioMemory().pass().front().is_pre_pass_;
+    bool cross_pass = wm.audioMemory().pass().front().is_cross_;
     int sender = wm.audioMemory().pass().front().sender_;
     int fastest_tm = wm.interceptTable()->fastestTeammate()->unum();
     Vector2D self_pos = wm.self().inertiaPoint(1);
