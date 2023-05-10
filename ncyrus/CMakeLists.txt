@@ -19,7 +19,7 @@ set(CMAKE_CXX_FLAGS "-W -Wall")
 set(TEAM_DIR_LIB "")
 set(LIB_DIR "${TEAM_DIR_LIB}")
 if(LIB_DIR STREQUAL "")
-  set(LIB_DIR "$ENV{HOME}/.local;$ENV{HOME}/local")
+  set(LIB_DIR "$ENV{HOME}/.local/cyruslib;$ENV{HOME}/local/cyruslib")
 endif()
 set(LIBRCSC_INSTALL_DIR "${LIB_DIR}" CACHE PATH "The path where librcsc is installed.")
 
