@@ -58,7 +58,7 @@ jobs:
     - name: Release Binary
       run: |
         mkdir CYRUS
-        cp build/src/* CYRUS/
+        cp build/src/* CYRUS/ -r
         cd CYRUS
         rm CMakeFiles cmake_install.cmake Makefile -r 
         mkdir lib
