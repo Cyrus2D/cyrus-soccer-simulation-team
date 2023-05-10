@@ -1,0 +1,75 @@
+=======
+はじめに
+=======
+agent2dはlibrcscを使用したシンプルなチームの実装例です．RoboCup Soccer
+Simulator(rcssserver)バージョン14で動作させることを想定しています．
+
+- RoboCup Soccer Simulator Homepage: http://sserver.sf.net/
+- RoboCup Official Homepage: http://www.robocup.org/
+
+- librcsc Homepage: http://rctools.sourceforge.jp/
+
+==========
+REFERENCES
+==========
+論文等での参照先としては以下をご利用ください．
+
+Hidehisa Akiyama, Tomoharu Nakashima, HELIOS Base: An Open Source
+Package for the RoboCup Soccer 2D Simulation, In Sven Behnke, Manuela
+Veloso, Arnoud Visser, and Rong Xiong editors, RoboCup2013: Robot
+World XVII, Lecture Notes in Artificial Intelligence, Springer Verlag,
+Berlin, 2014.
+
+@inbook{akiyama2014,
+  author="Hidehisa AKIYAMA and Tomoharu NAKASHIMA",
+  editor="Sven Behnke and Manuela Veloso and Arnoud Visser and Rong Xiong",
+  title="HELIOS Base: An Open Source Package for the RoboCup Soccer 2D Simulation",
+  booktitle="RoboCup 2013: Robot World Cup XVII",
+  series="Lecture Notes in Artificial Intelligence",
+  year="2014",
+  publisher="Springer",
+  address="Berlin",
+  pages="528--535",
+  isbn="978-3-662-44468-9",
+  doi="10.1007/978-3-662-44468-9_46",
+  url="http://dx.doi.org/10.1007/978-3-662-44468-9_46"
+}
+
+============
+要求ライブラリ
+============
+agent2d-3.1.0 は以下のライブラリを要求します．
+
+ - boost-1.32 or later
+ - librcsc-4.0.x
+
+=====
+ビルド
+=====
+パッケージを展開したディレクトリ内部で以下のコマンドを実行します:
+
+./configure
+make
+
+librcscをシステムのディレクトリにインストールしていない場合，以下のよ
+うにconfigureの'--with-librcsc'オプションによってlibrcscのインストール
+パスを指定しなければなりません．
+
+./configure --with-librcsc=/path/to/librcsc/prefix
+
+この場合，環境変数 LD_LIBRARY_PATH も設定する必要があるかもしれません．
+
+=================
+インストール時の設定
+=================
+agent2dをビルドする前に，パッケージに含まれるconfigureスクリプトのオプ
+ションによって設定を変更することができます．configureで指定できるオプ
+ションの詳細は，'configure --help'を実行することで参照できます．
+
+==========
+チームの起動
+==========
+agent2dのチームを起動するには，srcディレクトリ内で以下のコマンドをタイ
+プします．
+
+`./start.sh'
