@@ -19,17 +19,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Check out my other private repo
-      uses: actions/checkout@master
-      with:
-       repository: Cyrus2D/cyruslib
 #     - name: Install Dep
 #       run: |
 #         sudo apt update
 #         sudo apt install build-essential libboost-all-dev autoconf automake libtool cmake
 #         sudo apt install libeigen3-dev
-#    - name: Install Lib
-#      run: |
-#        git clone https://github.com/Cyrus2D/cyruslib.git
-#        git clone git@github.com:Cyrus2D/cyruslib.git 
+    - name: Install Lib 
+      run: |
+        git clone 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@github.com:Cyrus2D/cyruslib.git 
+
+
 
