@@ -17,8 +17,8 @@ fi
 
 teamname="CYRUS"
 
-player="./cyrus_player"
-coach="./cyrus_coach"
+player="./sample_player"
+coach="./sample_coach"
 
 config="player.conf"
 config_dir="formations-dt"
