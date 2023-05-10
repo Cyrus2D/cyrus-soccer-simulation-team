@@ -55,7 +55,27 @@ jobs:
         cd build
         cmake ..
         make -j8
-        
-
-
-
+    - name: Release Binary
+      run: |
+        mkdir CYRUS
+        cp build/src/* CYRUS/
+        cd CYRUS
+        rm CMakeFiles cmake_install.cmake Makefile -r 
+        mkdir lib
+        cp /home/runner/local/cyruslib/lib/lib* lib/
+        cp ../script/start .
+        cp ../script/kill .
+        cd ..
+        tar -czvf CYRUS.tar.gz CYRUS
+    - name: set release date
+      run: |
+        echo "TIME=$(date --rfc-3339=date)" >> ${GITHUB_ENV}
+    - name: Release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        #repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: CYRUS.tar.gz
+        asset_name: CYRUS.tar.gz
+        tag: ${{ env.TIME }}
+        overwrite: false
+        body: "CYRUS Binary"
