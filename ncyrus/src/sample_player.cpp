@@ -1032,8 +1032,8 @@ SamplePlayer::setCycleMaxTime(int max_time){
 }
 
 bool SamplePlayer::canProcessMore(){
-    if (SamplePlayer::cycleTimeUtilNow() > SamplePlayer::M_cycle_max_time){
-        return false;
-    }
+//    if (SamplePlayer::cycleTimeUtilNow() > SamplePlayer::M_cycle_max_time){
+//        return false;
+//    }
     return true;
 }
