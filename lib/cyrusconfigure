@@ -1,4 +1,0 @@
-HERE=`pwd`
-path=${HERE}/../team/src/cyruslib
-echo $path
-./configure --prefix=$path
