@@ -67,4 +67,4 @@ jobs:
         asset_name: results.txt
         tag: Test ${{ env.commit }}
         overwrite: false
-        body: results.txt
+        body: $( cat results.txt )
