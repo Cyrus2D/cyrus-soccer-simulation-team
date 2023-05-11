@@ -32,5 +32,6 @@ jobs:
         make install
     - name: Build Team
       run: |
+        cd build
         cmake -DTEAM_DIR_LIB=${{env.teamdir}}/build/src/cyruslib ..
         make -j20
