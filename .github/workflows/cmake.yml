@@ -75,7 +75,7 @@ jobs:
       with:
         #repo_token: ${{ secrets.GITHUB_TOKEN }}
         file: CYRUS.tar.gz
-        asset_name: CYRUS.tar.gz
+        asset_name: CYRUS${{ env.TIME }}.tar.gz
         tag: ${{ env.TIME }}
         overwrite: false
         body: "CYRUS Binary"
