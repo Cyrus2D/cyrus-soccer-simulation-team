@@ -18,30 +18,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Prepare
-      run: |
-        echo "teamdir=$(pwd)" >> ${GITHUB_ENV}
-        mkdir build && cd build && mkdir src
-    - name: Install Lib 
-      run: |
-        git clone https://${{ secrets.token }}@github.com/Cyrus2D/cyruslib.git
-        cd cyruslib
-        mkdir build && cd build
-        cmake -DTEAM_DIR=${{ env.teamdir }}/build/src/cyruslib ..
-        make -j20
-        make install
-    - name: Build Team
-      run: |
-        cd build
-        cmake -DTEAM_DIR_LIB=${{env.teamdir}}/build/src/cyruslib ..
-        make -j20
-        cd src
-        cp github.sh auto.sh
-    - name: Run Test
-      run: |
-        cd /data1/nader/workspace/robo/AutoTest2D
-        ./test.sh -n gittest -l p1 -p 6000 -r yush22 -t 20 -ro 1  -cb ${{env.teamdir}}/build/src/
-        sleep 120s
     - name: Get Results
       run: |
         cd /data1/nader/workspace/robo/AutoTest2D
