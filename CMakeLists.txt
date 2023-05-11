@@ -16,8 +16,11 @@ endif()
 set(CMAKE_CXX_FLAGS "-W -Wall")
 
 # check librcsc
-set(TEAM_DIR_LIB "")
+if(NOT DEFINED TEAM_DIR_LIB)
+	set(TEAM_DIR_LIB "")
+endif()
 set(LIB_DIR "${TEAM_DIR_LIB}")
+message("${TEAM_DIR_LIB}")
 if(LIB_DIR STREQUAL "")
   set(LIB_DIR "$ENV{HOME}/.local/cyruslib;$ENV{HOME}/local/cyruslib")
 endif()
