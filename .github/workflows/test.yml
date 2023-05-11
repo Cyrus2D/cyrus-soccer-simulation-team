@@ -21,25 +21,35 @@ jobs:
     - name: Prepare
       run: |
         echo "teamdir=$(pwd)" >> ${GITHUB_ENV}
+        mkdir build && cd build && mkdir src
+    - name: Install Lib 
+      run: |
+        git clone https://${{ secrets.token }}@github.com/Cyrus2D/cyruslib.git
+        cd cyruslib
+        mkdir build && cd build
+        cmake -DTEAM_DIR=${{ env.teamdir }}/build/src/cyruslib ..
+        make -j20
+        make install
+    - name: Build Team
+      run: |
+        cd build
+        cmake -DTEAM_DIR_LIB=${{env.teamdir}}/build/src/cyruslib ..
+        make -j20
+        cd src
+        cp github.sh auto.sh
+    - name: Run Test
+      run: |
+        cd /data1/nader/workspace/robo/AutoTest2D
+        ./test.sh -n gittest -l p1 -p 6000 -r yush22 -t 20 -ro 2  -cb ${{env.teamdir}}/build/src/
+        sleep 250s
     - name: Get Results
       run: |
         cd /data1/nader/workspace/robo/AutoTest2D
         ./result.sh gittest
-        echo a
         ./result.sh gittest | tail -n 9 >> ${{env.teamdir}}/results.txt
-        echo b
         echo "time=$(date)" >> ${GITHUB_ENV}
-        echo ${{ env.time }}
-        echo b
         echo "commit=$(git rev-parse --short HEAD)" >> ${GITHUB_ENV}
-        echo ${{ env.commit }}
-    #- name: Create a GitHub release
-     # uses: ncipollo/release-action@v1
-      #with:
-       # tag: ${{ env.commit }}
-        #name: Release ${{ env.commit }}
-        #body: ${{ env.result }}
-    - name: Read package.json
+    - name: Read results
       id: package
       uses: juliangruber/read-file-action@v1
       with:
@@ -52,4 +62,3 @@ jobs:
         tag: Test${{ env.commit }}
         overwrite: false
         body: "${{ steps.package.outputs.content }}"
-        
