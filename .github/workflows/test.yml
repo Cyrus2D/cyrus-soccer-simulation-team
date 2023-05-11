@@ -72,6 +72,6 @@ jobs:
       with:
         file: results.txt
         asset_name: ${{ env.time }}results.txt
-        tag: Test-${{ env.commit }}-${{ env.libcommit }}
+        tag: Test-${{ env.commit }}-${{ env.libcommit }}-${{ inputs.opponent}}
         overwrite: false
         body: "${{ steps.package.outputs.content }}"
