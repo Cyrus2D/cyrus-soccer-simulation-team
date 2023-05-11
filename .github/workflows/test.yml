@@ -41,8 +41,8 @@ jobs:
     - name: Run Test
       run: |
         cd /data1/nader/workspace/robo/AutoTest2D
-        ./test.sh -n gittest -l p1 -p 6000 -r yush22 -t 20 -ro 2  -cb ${{env.teamdir}}/build/src/
-        sleep 250s
+        ./test.sh -n gittest -l p1 -p 6000 -r yush22 -t 20 -ro 5  -cb ${{env.teamdir}}/build/src/
+        sleep 600s
     - name: Get Results
       run: |
         cd /data1/nader/workspace/robo/AutoTest2D
