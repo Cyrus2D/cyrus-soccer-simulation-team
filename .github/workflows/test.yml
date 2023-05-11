@@ -52,7 +52,7 @@ jobs:
         echo "time=$(date)" >> ${GITHUB_ENV}
         echo ${{ env.time }}
         echo b
-        echo "commit=$(git rev-parse --short '$GITHUB_SHA')" >> ${GITHUB_ENV}
+        echo "commit=$(git rev-parse --short HEAD)" >> ${GITHUB_ENV}
         echo ${{ env.commit }}
     #- name: Create a GitHub release
      # uses: ncipollo/release-action@v1
@@ -65,6 +65,6 @@ jobs:
       with:
         file: results.txt
         asset_name: results.txt
-        tag: Release ${{ env.commit }}
+        tag: Test ${{ env.commit }}
         overwrite: false
-        body: ""
+        body: results.txt
