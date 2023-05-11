@@ -49,7 +49,7 @@ jobs:
       with:
         file: results.txt
         asset_name: results.txt
-        tag: Test ${{ env.commit }}
+        tag: Test${{ env.commit }}
         overwrite: false
         body: "${{ steps.package.outputs.content }}"
         
