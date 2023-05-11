@@ -36,7 +36,7 @@ jobs:
         cmake -DTEAM_DIR_LIB=${{env.teamdir}}/build/src/cyruslib ..
         make -j20
         cd src
-        sed -i 's/LIBPATH=\/home\/nader\/local\/cyruslib\/lib/${{ env.teamdir }}\/build\/src\/cyruslib\/lib/g' auto.sh
+        cp github.sh auto.sh
     - name: Run Test
       run: |
         cd /data1/nader/workspace/robo/AutoTest2D
