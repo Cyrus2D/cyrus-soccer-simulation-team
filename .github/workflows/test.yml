@@ -27,7 +27,7 @@ jobs:
         git clone https://${{ secrets.token }}@github.com/Cyrus2D/cyruslib.git
         cd cyruslib
         mkdir build && cd build
-        cmake -DTEAM_DIR=${{ env.teamdir }}/build/src/ ..
+        cmake -DTEAM_DIR=${{ env.teamdir }}/build/src/cyruslib ..
         make -j20
         make install
     - name: Build Team
