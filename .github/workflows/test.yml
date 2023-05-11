@@ -26,6 +26,7 @@ jobs:
       run: |
         git clone https://${{ secrets.token }}@github.com/Cyrus2D/cyruslib.git
         cd cyruslib
+        echo "libcommit=$(git rev-parse --short HEAD)" >> ${GITHUB_ENV}
         mkdir build && cd build
         cmake -DTEAM_DIR=${{ env.teamdir }}/build/src/cyruslib ..
         make -j20
@@ -59,6 +60,6 @@ jobs:
       with:
         file: results.txt
         asset_name: ${{ env.time }}results.txt
-        tag: Test${{ env.commit }}
+        tag: Test-${{ env.commit }}-${{ env.libcommit }}
         overwrite: false
         body: "${{ steps.package.outputs.content }}"
