@@ -209,7 +209,7 @@ file(
 
 # copy other files to the binary direcotry
 file(COPY
-  formations-dt player.conf coach.conf start-debug.sh start-offline.sh auto.sh
+  formations-dt player.conf coach.conf start-debug.sh start-offline.sh auto.sh github.sh
   DESTINATION ${PROJECT_BINARY_DIR}/src/
   )
 
