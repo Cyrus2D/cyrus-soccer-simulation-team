@@ -40,14 +40,14 @@ jobs:
     - name: Run Test
       run: |
         cd /data1/nader/workspace/robo/AutoTest2D
-        ./test.sh -n gittest -l p1 -p 6000 -r yush22 -t 20 -ro 2  -cb ${{env.teamdir}}/build/src/
-        sleep 250s
+        ./test.sh -n gittest -l p1 -p 6000 -r yush22 -t 10 -ro 2  -cb ${{env.teamdir}}/build/src/
+        sleep 120s
     - name: Get Results
       run: |
         cd /data1/nader/workspace/robo/AutoTest2D
         ./result.sh gittest
         echo "result=$(./result.sh gittest | tail -n 8)" >> ${GITHUB_ENV} 
-        echo "time=$(date)" >> ${GITHUB_ENV} >> ${GITHUB_ENV}
+        echo "time=$(date)" >> ${GITHUB_ENV}
         echo "commit=$(git rev-parse --short '$GITHUB_SHA')" >> ${GITHUB_ENV}
     - name: Create a GitHub release
       uses: ncipollo/release-action@v1
