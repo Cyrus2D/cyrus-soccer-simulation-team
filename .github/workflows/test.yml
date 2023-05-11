@@ -39,6 +39,11 @@ jobs:
        # tag: ${{ env.commit }}
         #name: Release ${{ env.commit }}
         #body: ${{ env.result }}
+    - name: Read package.json
+      id: package
+      uses: juliangruber/read-file-action@v1
+      with:
+        path: ./results.txt
     - name: Release
       uses: svenstaro/upload-release-action@v2
       with:
@@ -46,4 +51,5 @@ jobs:
         asset_name: results.txt
         tag: Test ${{ env.commit }}
         overwrite: false
-        body: $( cat results.txt )
+        body: "${{ steps.package.outputs.content }}"
+        
