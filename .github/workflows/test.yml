@@ -2,9 +2,21 @@ name: Test
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [ "master" ]
-
+    inputs:
+      opponent:
+        description: 'Opponent'
+        required: true
+        default: 'yush22'
+        type: choice
+        options:
+        - yush22
+        - hel22
+      round:
+        description: 'Round * 20'
+        required: true
+        default: '5'
+        type: string
+        
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
@@ -41,8 +53,8 @@ jobs:
     - name: Run Test
       run: |
         cd /data1/nader/workspace/robo/AutoTest2D
-        ./test.sh -n gittest -l p1 -p 6000 -r yush22 -t 20 -ro 5  -cb ${{env.teamdir}}/build/src/
-        sleep 600s
+        ./test.sh -n gittest -l p1 -p 6000 -r ${{ inputs.opponent }} -t 20 -ro ${{ inputs.round }}  -cb ${{env.teamdir}}/build/src/
+        sleep $(("120"*${{inputs.round}}))s
     - name: Get Results
       run: |
         cd /data1/nader/workspace/robo/AutoTest2D
