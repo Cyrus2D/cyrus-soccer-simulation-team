@@ -18,63 +18,19 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Install Dep
+    - name: Prepare
       run: |
-         sudo apt update
-         sudo apt install build-essential libboost-all-dev autoconf automake libtool cmake
-         sudo apt install libeigen3-dev
+        mkdir build && cd build && mkdir src
+        echo "teamdir=$(pwd)" >> ${GITHUB_ENV}
     - name: Install Lib 
       run: |
         git clone https://${{ secrets.token }}@github.com/Cyrus2D/cyruslib.git
         cd cyruslib
         mkdir build && cd build
-        cmake ..
-        make -j8
+        cmake -DTEAM_DIR=${{ env.teamdir }}/build/src/ ..
+        make -j20
         make install
-    - name: Install CppDnn
-      run: |
-        git clone https://github.com/Cyrus2D/CppDNN.git
-        cd CppDNN
-        mkdir build
-        cd build
-        cmake ..
-        make
-        sudo make install
-    - name: Install Rapidjson
-      run: |
-        git clone https://github.com/Tencent/rapidjson.git
-        cd rapidjson
-        mkdir build && cd build
-        cmake ..
-        make -j8
-        sudo make install
     - name: Build Team
       run: |
-        mkdir build
-        cd build
-        cmake ..
-        make -j8
-    - name: Release Binary
-      run: |
-        mkdir CYRUS
-        cp build/src/* CYRUS/ -r
-        cd CYRUS
-        rm CMakeFiles cmake_install.cmake Makefile -r 
-        mkdir lib
-        cp /home/runner/local/cyruslib/lib/lib* lib/
-        cp ../script/start .
-        cp ../script/kill .
-        cd ..
-        tar -czvf CYRUS.tar.gz CYRUS
-    - name: set release date
-      run: |
-        echo "TIME=$(date --rfc-3339=date)" >> ${GITHUB_ENV}
-    - name: Release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        #repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: CYRUS.tar.gz
-        asset_name: CYRUS${{ env.TIME }}.tar.gz
-        tag: ${{ env.TIME }}
-        overwrite: false
-        body: "CYRUS Binary"
+        cmake -DTEAM_DIR_LIB=${{env.teamdir}}/build/src/cyruslib ..
+        make -j20
