@@ -57,11 +57,11 @@ jobs:
         sleep $(("120"*${{inputs.round}}))s
     - name: Get Results
       run: |
+        echo "commit=$(git rev-parse --short HEAD)" >> ${GITHUB_ENV}
         cd /data1/nader/workspace/robo/AutoTest2D
         ./result.sh gittest
         ./result.sh gittest | tail -n 9 >> ${{env.teamdir}}/results.txt
         echo "time=$(date +%Y-%m-%d-%M-%S)" >> ${GITHUB_ENV}
-        echo "commit=$(git rev-parse --short HEAD)" >> ${GITHUB_ENV}
     - name: Read results
       id: package
       uses: juliangruber/read-file-action@v1
@@ -72,6 +72,6 @@ jobs:
       with:
         file: results.txt
         asset_name: ${{ env.time }}results.txt
-        tag: Test-${{ env.commit }}-${{ env.libcommit }}-${{ inputs.opponent}}
+        tag: Test-${{ inputs.opponent}}-${{ env.commit }}-${{ env.libcommit }}
         overwrite: false
         body: "${{ steps.package.outputs.content }}"
