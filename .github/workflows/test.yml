@@ -47,17 +47,24 @@ jobs:
         cd /data1/nader/workspace/robo/AutoTest2D
         ./result.sh gittest
         echo a
-        echo "result=$(./result.sh gittest | tail -n 9)" >> ${GITHUB_ENV} 
-        echo ${{ env.result }}
+        ./result.sh gittest | tail -n 9 >> ${{env.teamdir}}/results.txt
         echo b
         echo "time=$(date)" >> ${GITHUB_ENV}
         echo ${{ env.time }}
         echo b
         echo "commit=$(git rev-parse --short '$GITHUB_SHA')" >> ${GITHUB_ENV}
         echo ${{ env.commit }}
-    - name: Create a GitHub release
-      uses: ncipollo/release-action@v1
+    #- name: Create a GitHub release
+     # uses: ncipollo/release-action@v1
+      #with:
+       # tag: ${{ env.commit }}
+        #name: Release ${{ env.commit }}
+        #body: ${{ env.result }}
+    - name: Release
+      uses: svenstaro/upload-release-action@v2
       with:
-        tag: ${{ env.commit }}
-        name: Release ${{ env.commit }}
-        body: ${{ env.result }}
+        file: results.txt
+        asset_name: results.txt
+        tag: Release ${{ env.commit }}
+        overwrite: false
+        body: ""
