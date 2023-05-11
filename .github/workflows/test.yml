@@ -47,7 +47,7 @@ jobs:
         cd /data1/nader/workspace/robo/AutoTest2D
         ./result.sh gittest
         ./result.sh gittest | tail -n 9 >> ${{env.teamdir}}/results.txt
-        echo "time=$(date)" >> ${GITHUB_ENV}
+        echo "time=$(date +%Y-%m-%d-%M-%S)" >> ${GITHUB_ENV}
         echo "commit=$(git rev-parse --short HEAD)" >> ${GITHUB_ENV}
     - name: Read results
       id: package
@@ -58,7 +58,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         file: results.txt
-        asset_name: results.txt
+        asset_name: ${{ env.time }}results.txt
         tag: Test${{ env.commit }}
         overwrite: false
         body: "${{ steps.package.outputs.content }}"
