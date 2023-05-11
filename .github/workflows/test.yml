@@ -18,6 +18,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: Prepare
+      run: |
+        echo "teamdir=$(pwd)" >> ${GITHUB_ENV}
     - name: Get Results
       run: |
         cd /data1/nader/workspace/robo/AutoTest2D
