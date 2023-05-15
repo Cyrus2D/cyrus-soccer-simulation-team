@@ -106,7 +106,7 @@ public:
         body = body_;
     }
 };
-
+#include <rcsc/player/object_table.h>
 class PlayerPredictedObj{
 public:
     SideID side;
@@ -119,8 +119,26 @@ public:
     }
     PlayerPredictedObj(){}
 
-    void update(const WorldModel & wm, const AbstractPlayerObject * p)
+    void update(const WorldModel & wm, const PlayerObject* p)
     {
+        if (p->seenPosCount() == 0)
+        {
+            Vector2D rpos = p->pos() - wm.self().pos();
+            double seen_dist = rpos.length();
+            AngleDeg seen_dir = rpos.th();
+            double avg_dist;
+            double dist_err;
+            if ( object_table.getMovableObjInfo( seen_dist,
+                                                 &avg_dist,
+                                                 &dist_err ) )
+            {
+                dlog.addSector(Logger::WORLD, wm.self().pos(), seen_dist - dist_err, seen_dist + dist_err, seen_dir - 1.0, 2.0, "#FF0000");
+                dlog.addSector(Logger::WORLD, wm.self().pos(), avg_dist - dist_err, avg_dist + dist_err, seen_dir - 2.0, 4.0, "#0000FF");
+            }
+        }
+
+
+
 //        if seen pos == 0
 //          remove candidates
 //          update old candidates
@@ -157,7 +175,7 @@ public:
         auto & wm = agent->world();
         last_updated_cycle = wm.time().cycle();
         last_update_stopped = wm.time().stopped();
-        for (auto & p: wm.ourPlayers())
+        for (auto & p: wm.teammates())
         {
             if (p->unum() <= 0)
                 continue;
@@ -167,7 +185,7 @@ public:
             }
             teammates[p->unum()].update(wm, p);
         }
-        for (auto & p: wm.theirPlayers())
+        for (auto & p: wm.opponents())
         {
             if (p->unum() <= 0)
                 continue;
