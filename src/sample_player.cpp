@@ -37,7 +37,7 @@
 #include "sample_field_evaluator.h"
 #include "chain_action/bhv_pass_kick_find_receiver.h"
 #include "data_extractor/offensive_data_extractor.h"
-
+#include "denoising/denoising.h"
 #include "roles/soccer_role.h"
 
 #include "sample_communication.h"
@@ -84,7 +84,8 @@
 
 #include "setting.h"
 Setting * Setting::instance = nullptr;
-
+Denoising * Denoising::instance = nullptr;
+CyrusDenoiser * CyrusDenoiser::instance = nullptr;
 #include <rcsc/param/param_map.h>
 #include <rcsc/param/cmd_line_parser.h>
 #include "neck/neck_decision.h"
@@ -300,6 +301,8 @@ SamplePlayer::actionImpl()
     if(FieldAnalyzer::isOxsy(world()))
         CalculateOffensiveOpponents::getInstance()->updatePlayers(world());
 
+    CyrusDenoiser::i()->update(this);
+    CyrusDenoiser::i()->debug();
     //
     // prepare action chain
     //

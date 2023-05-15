@@ -100,6 +100,7 @@ target_include_directories(sample_player
   ${PROJECT_SOURCE_DIR}/src/move_off
   ${PROJECT_SOURCE_DIR}/src/roles
   ${PROJECT_SOURCE_DIR}/src/setplay
+  ${PROJECT_SOURCE_DIR}/src/denoising
   ${PROJECT_BINARY_DIR}
   PUBLIC
   ${Boost_INCLUDE_DIRS}
