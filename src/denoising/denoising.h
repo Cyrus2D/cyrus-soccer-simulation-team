@@ -92,6 +92,28 @@ public:
     }
 };
 
+#include <random>
+static std::default_random_engine gen;
+double get_random(double min=0.0, double max=1.0)
+{
+    static std::uniform_real_distribution<double> dis(0.0, 1.0);
+    return dis(gen) * (max - min) + min;
+
+
+}
+
+double get_random_normal(double mean, double std_dev, double min=0.0, double max=1.0)
+{
+//    static std::default_random_engine gen;
+    static std::normal_distribution<double> dis(mean, std_dev); // range [0, 1)
+    while (true){
+        double rnd = dis(gen);
+        if (rnd >= min && rnd <= max)
+            return rnd;
+    }
+    return 0.0;
+}
+
 class PlayerStateCandidate{
 public:
     Vector2D pos;
@@ -105,39 +127,210 @@ public:
         vel = vel_;
         body = body_;
     }
+
+    PlayerStateCandidate gen_random_next_by_dash(const WorldModel & wm, const PlayerObject* p) const
+    {
+        const ServerParam & SP = ServerParam::i();
+        auto p_type = p->playerTypePtr();
+        double dash_dir = get_random_normal(0, 25.0, -180.0, +180.0);
+        dash_dir = AngleDeg(dash_dir).degree();
+        double accel_dist = SP.maxDashPower() * p_type->effortMax() * SP.dashDirRate( dash_dir ) * p_type->dashPowerRate();
+        Vector2D accel = Vector2D::polar2vector(accel_dist, AngleDeg(body + dash_dir));
+        Vector2D move = accel + vel;
+        return {pos + move, move * p_type->playerDecay(), body};
+    }
+
+    PlayerStateCandidate gen_random_next_by_turn(const WorldModel & wm, const PlayerObject* p) const
+    {
+        const ServerParam & SP = ServerParam::i();
+        auto p_type = p->playerTypePtr();
+        double max_turn = p_type->effectiveTurn( SP.maxMoment(), vel.r() );
+        double turn_moment = get_random(-max_turn, max_turn);
+        return {pos + vel, vel * p_type->playerDecay(), AngleDeg(body + turn_moment).degree()};
+    }
+
+    PlayerStateCandidate gen_random_next_by_nothing(const WorldModel & wm, const PlayerObject* p) const
+    {
+        auto p_type = p->playerTypePtr();
+        return {pos + vel, vel * p_type->playerDecay(), body};
+    }
+
+    PlayerStateCandidate gen_random_next(const WorldModel & wm, const PlayerObject* p) const
+    {
+        double rnd = get_random(0.0, 2.0);
+        if (p->isKickable())
+            return gen_random_next_by_nothing(wm, p);
+        if (rnd < 0.7)
+            return gen_random_next_by_dash(wm, p);
+        return gen_random_next_by_turn(wm, p);
+    }
 };
 #include <rcsc/player/object_table.h>
+
+
 class PlayerPredictedObj{
 public:
     SideID side;
     int unum;
     vector<PlayerStateCandidate> candidates;
+    ObjectTable object_table;
+
     PlayerPredictedObj (SideID side_, int unum_)
+    :object_table()
     {
         side = side_;
         unum = unum_;
+
     }
     PlayerPredictedObj(){}
 
+    void generate_new_candidates(const WorldModel & wm, const PlayerObject* p)
+    {
+        auto self_pos = wm.self().pos();
+        Vector2D rpos = p->pos() - wm.self().pos();
+        double seen_dist = p->seen_dist();
+        AngleDeg seen_dir = rpos.th();
+        double body = -360;
+        if (p->bodyCount() == 0)
+            body = p->body().degree();
+        Vector2D vel = Vector2D::INVALIDATED;
+        if (p->seenVelCount() == 0)
+            vel = p->vel();
+        double avg_dist;
+        double dist_err;
+        if ( object_table.getMovableObjInfo( seen_dist,
+                                             &avg_dist,
+                                             &dist_err ) )
+        {
+            dlog.addSector(Logger::WORLD, wm.self().pos(), avg_dist - dist_err, avg_dist + dist_err, seen_dir - 1.0, 2.0, "#0000FF");
+            candidates.clear();
+            dlog.addText(Logger::WORLD, "########generate new candidates");
+            dlog.addText(Logger::WORLD, "$$$$ seen_dist: %.2f avg_dist: %.2f dist_err: %.2f dir: %.2f",
+                         seen_dist,
+                         avg_dist,
+                         dist_err,
+                         seen_dir);
+            for (int i = 0; i < 20; i++){
+                double r1 = get_random(0.0, 2.0 * dist_err);
+                double tmp_dist = avg_dist - dist_err + r1;
+                double r2 = get_random(0.0, 2.0);
+                double tmp_dir = seen_dir.degree() - 1.0 + r2;
+                auto tmp_vel = vel;
+                if (!tmp_vel.isValid()){
+                    tmp_vel = Vector2D::polar2vector(get_random(0.0, p->playerTypePtr()->realSpeedMax() * p->playerTypePtr()->playerDecay()),
+                                                     get_random(-180.0, 180.0));
+                }
+                double tmp_body = body;
+                if (tmp_body == -360.0)
+                    tmp_body = get_random(-180.0, 180.0);
+                dlog.addText(Logger::WORLD, "## tmp_dist: %.2f tmp_dir: %.2f r1: %.2f r2: %.2f", tmp_dist, tmp_dir, r1, r2);
+                PlayerStateCandidate candidate(self_pos + Vector2D::polar2vector(tmp_dist, tmp_dir),
+                                               tmp_vel, tmp_body);
+                candidates.push_back(candidate);
+            }
+        }
+    }
+
+    void check_candidates(const WorldModel & wm, const PlayerObject* p)
+    {
+        dlog.addText(Logger::WORLD, "########check candidates");
+        auto self_pos = wm.self().pos();
+        Vector2D rpos = p->pos() - wm.self().pos();
+        double seen_dist = p->seen_dist();
+        AngleDeg seen_dir = rpos.th();
+        double body = -360;
+        if (p->bodyCount() == 0)
+            body = p->body().degree();
+        Vector2D vel = Vector2D::INVALIDATED;
+        if (p->seenVelCount() == 0)
+            vel = p->vel();
+        double avg_dist;
+        double dist_err;
+        if ( object_table.getMovableObjInfo( seen_dist,
+                                             &avg_dist,
+                                             &dist_err ) ) {
+            dlog.addSector(Logger::WORLD, wm.self().pos(), avg_dist - dist_err, avg_dist + dist_err, seen_dir - 1.0, 2.0, "#00FF00");
+            Sector2D seen_sec = Sector2D(wm.self().pos(), avg_dist - dist_err, avg_dist + dist_err, AngleDeg(seen_dir - 1.0),
+                                         AngleDeg(seen_dir + 1.0));
+            vector<PlayerStateCandidate> tmp;
+            for (PlayerStateCandidate t: candidates){
+                if (seen_sec.contains(t.pos)){
+                    tmp.push_back(t);
+                    if (vel.isValid())
+                        tmp.at(tmp.size() - 1).vel = vel;
+                    if (body != -360.0)
+                        tmp.at(tmp.size() - 1).body = body;
+                    dlog.addCircle(Logger::WORLD, t.pos, 0.1, "#00FF00");
+                }
+            }
+            candidates = tmp;
+//            auto new_end = std::remove_if(candidates.begin(), candidates.end(),
+//                                          [&](const PlayerStateCandidate& candid)
+//                                          { return !seen_sec.contains(candid.pos); });
+//            if (new_end == candidates.begin())
+//                candidates.clear();
+//            else
+//                candidates.erase(new_end, candidates.end());
+        }
+        else
+            candidates.clear();
+    }
+
+    void update_candidates(const WorldModel & wm, const PlayerObject* p)
+    {
+        dlog.addText(Logger::WORLD, "########update candidates");
+        vector<PlayerStateCandidate> new_candidates;
+        if (candidates.empty())
+            return;
+        int gen_size = 200 / candidates.size();
+        if (gen_size == 0){
+            gen_size = 1;
+        }
+        for (auto & c: candidates)
+        {
+            dlog.addText(Logger::WORLD, "==== (%.1f, %.1f), (%.1f, %.1f), %.1f", c.pos.x, c.pos.y, c.vel.x, c.vel.y, c.body);
+            for (int i = 0; i < gen_size; i++)
+            {
+                auto new_c = c.gen_random_next(wm, p);
+                new_candidates.push_back(new_c);
+                dlog.addText(Logger::WORLD, "====== (%.1f, %.1f), (%.1f, %.1f), %.1f", new_c.pos.x, new_c.pos.y, new_c.vel.x, new_c.vel.y, new_c.body);
+            }
+        }
+//        candidates.reserve(candidates.size() + new_candidates.size() ); // preallocate memory
+        candidates = new_candidates;
+    }
     void update(const WorldModel & wm, const PlayerObject* p)
     {
+        dlog.addText(Logger::WORLD, "==================================== %d %d size %d", p->side(), p->unum(), candidates.size());
         if (p->seenPosCount() == 0)
         {
-            Vector2D rpos = p->pos() - wm.self().pos();
-            double seen_dist = rpos.length();
-            AngleDeg seen_dir = rpos.th();
-            double avg_dist;
-            double dist_err;
-            if ( object_table.getMovableObjInfo( seen_dist,
-                                                 &avg_dist,
-                                                 &dist_err ) )
+            check_candidates(wm, p);
+            if (candidates.empty())
             {
-                dlog.addSector(Logger::WORLD, wm.self().pos(), seen_dist - dist_err, seen_dist + dist_err, seen_dir - 1.0, 2.0, "#FF0000");
-                dlog.addSector(Logger::WORLD, wm.self().pos(), avg_dist - dist_err, avg_dist + dist_err, seen_dir - 2.0, 4.0, "#0000FF");
+                generate_new_candidates(wm, p);
+                for (auto & c: candidates){
+                    dlog.addCircle(Logger::WORLD, c.pos, 0.1, "#0000FF");
+                }
+            }
+
+        }
+        else
+        {
+            update_candidates(wm, p);
+            for (auto & c: candidates){
+                dlog.addCircle(Logger::WORLD, c.pos, 0.1, "#FFFFFF");
             }
         }
 
-
+        Vector2D avg(0,0);
+        if (!candidates.empty()){
+            for (auto & c: candidates){
+                avg += c.pos;
+            }
+            avg.x = avg.x / double (candidates.size());
+            avg.y = avg.y / double (candidates.size());
+            dlog.addCircle(Logger::WORLD, avg, 0.2, "#FFFFFF", true);
+        }
 
 //        if seen pos == 0
 //          remove candidates
@@ -145,14 +338,13 @@ public:
 //          add new candidates
 //        else
 //          update old candidates
-        candidates.clear();
-        candidates.push_back(p->pos() - Vector2D(1,1));
+
     }
 
     void debug()
     {
-        for (auto &c: candidates)
-            dlog.addCircle(Logger::WORLD, c.pos, 0.1, 250, 0, 0);
+//        for (auto &c: candidates)
+//            dlog.addCircle(Logger::WORLD, c.pos, 0.1, 250, 0, 0);
     }
 };
 
@@ -177,6 +369,8 @@ public:
         last_update_stopped = wm.time().stopped();
         for (auto & p: wm.teammates())
         {
+            if (p == nullptr)
+                continue;
             if (p->unum() <= 0)
                 continue;
             if (teammates.find(p->unum()) == teammates.end() )
@@ -187,22 +381,25 @@ public:
         }
         for (auto & p: wm.opponents())
         {
+            if (p == nullptr)
+                continue;
             if (p->unum() <= 0)
                 continue;
             if (opponents.find(p->unum()) == opponents.end() )
             {
                 opponents.insert(make_pair(p->unum(), PlayerPredictedObj(p->side(), p->unum())));
             }
-            opponents[p->unum()].update(wm, p);
+            if (opponents.find(p->unum()) != opponents.end() )
+                opponents[p->unum()].update(wm, p);
         }
     }
 
     void debug()
     {
-        for (auto p: teammates)
-            p.second.debug();
-        for (auto p: opponents)
-            p.second.debug();
+//        for (auto p: teammates)
+//            p.second.debug();
+//        for (auto p: opponents)
+//            p.second.debug();
     }
 };
 #endif //CYRUS_DENOISING_H
