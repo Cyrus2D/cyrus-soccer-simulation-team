@@ -8,6 +8,8 @@
 #include <vector>
 #include <rcsc/player/player_agent.h>
 #include <iostream>
+#include "../dkm/dkm.hpp"
+
 using namespace rcsc;
 using namespace std;
 class Denoising {
@@ -323,14 +325,32 @@ public:
         }
 
         Vector2D avg(0,0);
+        std::vector<std::array<double, 2>> pos_arr;
         if (!candidates.empty()){
             for (auto & c: candidates){
                 avg += c.pos;
+                pos_arr.push_back({c.pos.x, c.pos.y});
             }
             avg.x = avg.x / double (candidates.size());
             avg.y = avg.y / double (candidates.size());
             dlog.addCircle(Logger::WORLD, avg, 0.2, "#FFFFFF", true);
+            auto labels = std::get<1>(dkm::kmeans_lloyd(pos_arr, 3));
+
+            for (int i = 0; i < labels.size(); i++){
+                const auto& c = candidates[i];
+                if (labels[i] == 0){
+                    dlog.addCircle(Logger::WORLD, c.pos, 0.1, "#000000");
+                }
+                else if (labels[i] == 1){
+                    dlog.addCircle(Logger::WORLD, c.pos, 0.1, "#00FF00");
+                }
+                else if (labels[i] == 2){
+                    dlog.addCircle(Logger::WORLD, c.pos, 0.1, "#FF0000");
+                }
+            }
         }
+
+
 
 //        if seen pos == 0
 //          remove candidates
