@@ -175,6 +175,7 @@ public:
     SideID side;
     int unum;
     vector<PlayerStateCandidate> candidates;
+    vector<PlayerStateCandidate> candidates_means;
     ObjectTable object_table;
 
     PlayerPredictedObj (SideID side_, int unum_)
@@ -301,7 +302,7 @@ public:
 //        candidates.reserve(candidates.size() + new_candidates.size() ); // preallocate memory
         candidates = new_candidates;
     }
-    void update(const WorldModel & wm, const PlayerObject* p)
+    void update(const WorldModel & wm, const PlayerObject* p, int cluster_count)
     {
         dlog.addText(Logger::WORLD, "==================================== %d %d size %d", p->side(), p->unum(), candidates.size());
         if (p->seenPosCount() == 0)
@@ -334,8 +335,26 @@ public:
             avg.x = avg.x / double (candidates.size());
             avg.y = avg.y / double (candidates.size());
             dlog.addCircle(Logger::WORLD, avg, 0.2, "#FFFFFF", true);
-            auto labels = std::get<1>(dkm::kmeans_lloyd(pos_arr, 3));
+            auto clustering_res = dkm::kmeans_lloyd(pos_arr, cluster_count);
+            auto means = get<0>(clustering_res);
+            auto labels = get<1>(clustering_res);
+            candidates_means.clear();
+            for  (int i = 0; i < means.size(); i++) {
+                candidates_means.emplace_back(Vector2D(means[i].at(0), means[i].at(1)));
 
+            }
+//            auto labels = std::get<1>(dkm::kmeans_lloyd(pos_arr, 3));
+            for  (int i = 0; i < means.size(); i++){
+                if (i == 0){
+                    dlog.addCircle(Logger::WORLD, Vector2D(means[i].at(0), means[i].at(1)), 0.2, "#000000", true);
+                }
+                else if (i == 1){
+                    dlog.addCircle(Logger::WORLD, Vector2D(means[i].at(0), means[i].at(1)), 0.2, "#00FF00", true);
+                }
+                else if (i == 2){
+                    dlog.addCircle(Logger::WORLD, Vector2D(means[i].at(0), means[i].at(1)), 0.2, "#FF0000", true);
+                }
+            }
             for (int i = 0; i < labels.size(); i++){
                 const auto& c = candidates[i];
                 if (labels[i] == 0){
@@ -372,6 +391,8 @@ class CyrusDenoiser{
 public:
     map<int, PlayerPredictedObj> teammates;
     map<int, PlayerPredictedObj> opponents;
+    vector<PlayerStateCandidate> empty_vector;
+    int cluster_count = 3;
     long last_updated_cycle = -1;
     long last_update_stopped = 0;
     GameMode::Type last_updated_game_mode = GameMode::Type::TimeOver;
@@ -397,7 +418,7 @@ public:
             {
                 teammates.insert(make_pair(p->unum(), PlayerPredictedObj(p->side(), p->unum())));
             }
-            teammates[p->unum()].update(wm, p);
+            teammates[p->unum()].update(wm, p, cluster_count);
         }
         for (auto & p: wm.opponents())
         {
@@ -410,10 +431,18 @@ public:
                 opponents.insert(make_pair(p->unum(), PlayerPredictedObj(p->side(), p->unum())));
             }
             if (opponents.find(p->unum()) != opponents.end() )
-                opponents[p->unum()].update(wm, p);
+                opponents[p->unum()].update(wm, p, cluster_count);
         }
     }
 
+    const vector<PlayerStateCandidate> & get_cluster_means(const WorldModel & wm, SideID side, int unum)
+    {
+        auto & players_list = (wm.self().side() == side? teammates: opponents);
+        if (players_list.find(unum) == players_list.end()){
+            return empty_vector;
+        }
+        return players_list[unum].candidates_means;
+    }
     void debug()
     {
 //        for (auto p: teammates)
