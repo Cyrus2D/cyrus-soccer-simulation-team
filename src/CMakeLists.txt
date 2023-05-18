@@ -87,7 +87,8 @@ chain_action/neck_turn_to_receiver.cpp
 chain_action/tackle_generator.cpp
 chain_action/actgen_self_pass.cpp
 chain_action/actgen_strict_check_pass.cpp
-		dkm/dkm.hpp)
+		dkm/dkm.hpp
+		denoising/denoising.cpp)
 
 target_include_directories(sample_player
   PRIVATE
