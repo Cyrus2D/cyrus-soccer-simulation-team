@@ -37,6 +37,7 @@ public:
     Vector2D vel;
     double body = -360;
     double prob = 1.0;
+    int cycle = 0;
 
     PlayerStateCandidate(Vector2D pos_, Vector2D vel_ = Vector2D::INVALIDATED, double body_ = -360);
 
@@ -47,7 +48,10 @@ public:
     PlayerStateCandidate gen_random_next_by_nothing(const WorldModel &wm, const PlayerObject *p) const;
 
     PlayerStateCandidate gen_random_next(const WorldModel &wm, const PlayerObject *p) const;
+
+    vector<PlayerStateCandidate> gen_max_next_candidates(const WorldModel &wm, const PlayerObject *p) const;
 };
+
 
 class PlayerPredictedObj {
 public:
@@ -56,6 +60,7 @@ public:
     vector<PlayerStateCandidate> candidates;
     vector<PlayerStateCandidate> candidates_means;
     ObjectTable object_table;
+    Vector2D average_pos;
 
     PlayerPredictedObj(SideID side_, int unum_);
 
@@ -88,7 +93,7 @@ public:
 
     void update(PlayerAgent *agent);
 
-    const vector<PlayerStateCandidate> &get_cluster_means(const WorldModel &wm, SideID side, int unum);
+    const vector<PlayerStateCandidate> get_cluster_means(const WorldModel &wm, SideID side, int unum);
 
     void debug();
 };
