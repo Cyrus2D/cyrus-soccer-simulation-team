@@ -151,13 +151,33 @@ vector<PlayerStateCandidate> PlayerStateCandidate::gen_max_next_candidates(const
     auto p_type = p->playerTypePtr();
     const ServerParam &SP = ServerParam::i();
     for (int i = 0; i < 6; i += 1){
-        double dash_dir = i * 60.0;
-        double accel_dist = SP.maxDashPower() * p_type->effortMax() * SP.dashDirRate(0) * p_type->dashPowerRate();//todo 0 -> body
-        Vector2D accel = Vector2D::polar2vector(accel_dist, AngleDeg(dash_dir));
-        Vector2D move = accel + vel;
-        PlayerStateCandidate tmp (pos + move, move * p_type->playerDecay(), dash_dir);
-        tmp.cycle = cycle + 1;
-        res.push_back(tmp);
+        if (p->bodyCount() == 0) {
+            double dash_dir = i * 60.0;
+            double accel_dist = SP.maxDashPower()
+                                * p_type->effortMax()
+                                * SP.dashDirRate(dash_dir)
+                                * p_type->dashPowerRate();
+            Vector2D accel = Vector2D::polar2vector(accel_dist, AngleDeg(dash_dir + body));
+            Vector2D move = accel + vel;
+            PlayerStateCandidate tmp_dash(pos + move, move * p_type->playerDecay(), body);
+            PlayerStateCandidate tmp_turn(pos, vel * p_type->playerDecay(), body + dash_dir);
+            tmp_dash.cycle = cycle + 1;
+            tmp_turn.cycle = cycle + 1;
+            res.push_back(tmp_dash);
+            res.push_back(tmp_turn);
+        }
+        else {
+            double dash_dir = i * 60.0;
+            double accel_dist = SP.maxDashPower()
+                                * p_type->effortMax()
+                                * SP.dashDirRate(0)
+                                * p_type->dashPowerRate();
+            Vector2D accel = Vector2D::polar2vector(accel_dist, AngleDeg(dash_dir));
+            Vector2D move = accel + vel;
+            PlayerStateCandidate tmp_dash(pos + move, move * p_type->playerDecay(), dash_dir);
+            tmp_dash.cycle = cycle + 1;
+            res.push_back(tmp_dash);
+        }
     }
     return res;
 }
@@ -211,10 +231,16 @@ void PlayerPredictedObj::generate_new_candidates(const WorldModel &wm, const Pla
                     tmp_vel = Vector2D(0, 0);
                 }
                 double tmp_body = body;
-                if (tmp_body == -360.0)
-                    tmp_body = -180;
-                PlayerStateCandidate candidate(pos, tmp_vel, tmp_body);
-                candidates.push_back(candidate);
+                if (tmp_body == -360.0) {
+                    for (int b = 0; b < 6; b+= 1){
+                        tmp_body = -180. + 360./6.*b;
+                        PlayerStateCandidate candidate(pos, tmp_vel, tmp_body);
+                        candidates.push_back(candidate);
+                    }
+                } else {
+                    PlayerStateCandidate candidate(pos, tmp_vel, tmp_body);
+                    candidates.push_back(candidate);
+                }
             }
         }
     }
@@ -270,7 +296,7 @@ void PlayerPredictedObj::update_candidates(const WorldModel &wm, const PlayerObj
     vector<PlayerStateCandidate> new_candidates;
     if (candidates.empty())
         return;
-    if (candidates.size() > 200)
+    if (candidates.size() > 400)
         return;
     for (auto &c: candidates) {
         dlog.addText(Logger::WORLD, "==== (%.1f, %.1f), (%.1f, %.1f), %.1f", c.pos.x, c.pos.y, c.vel.x, c.vel.y,
@@ -284,7 +310,7 @@ void PlayerPredictedObj::update_candidates(const WorldModel &wm, const PlayerObj
     {
         bool is_far = true;
         for (auto &c: candidates){
-            if (c.pos.dist(nc.pos) < 0.3){
+            if (c.pos.dist(nc.pos) < 0.3 && std::abs(nc.body - c.body) < 30){
                 is_far = false;
                 break;
             }
@@ -340,7 +366,17 @@ void PlayerPredictedObj::update(const WorldModel &wm, const PlayerObject *p, int
             if (c.cycle > max_cycle)
                 max_cycle = c.cycle;
         for (auto & c: candidates){
-            dlog.addCircle(Logger::WORLD, c.pos, 0.1, int(double (c.cycle) / double (max_cycle) * 255), 0, 0, false);
+            dlog.addCircle(Logger::WORLD,
+                           c.pos,
+                           0.1,
+                           int(double (c.cycle) / double (max_cycle) * 255),
+                           int(double (c.cycle) / double (max_cycle) * 255),
+                           int(double (c.cycle) / double (max_cycle) * 255),
+                           false);
+            dlog.addLine(Logger::WORLD,
+                         c.pos,
+                         Vector2D::polar2vector(0.1, c.body) + c.pos,
+                         int(double (c.cycle) / double (max_cycle) * 255), 0, 0);
         }
 //            auto labels = std::get<1>(dkm::kmeans_lloyd(pos_arr, 3));
 //        for (int i = 0; i < means.size(); i++) {
