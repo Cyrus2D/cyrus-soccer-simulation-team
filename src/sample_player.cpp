@@ -318,6 +318,9 @@ SamplePlayer::actionImpl()
     //     std::this_thread::sleep_for (std::chrono::seconds(1));
     // }
 
+    extract();
+
+
     //
     // special situations (tackle, objects accuracy, intention...)
     //
@@ -1040,3 +1043,90 @@ bool SamplePlayer::canProcessMore(){
     }
     return true;
 }
+
+
+void SamplePlayer::extract() {
+    static bool first_time = true;
+
+    if (world().self().unum() != 9 and world().self().unum() != 5) {
+        return;
+    }
+    if (world().gameMode().type() != rcsc::GameMode::PlayOn) {
+        return;
+    }
+
+    if (first_time) {
+        time_t rawtime;
+        struct tm *timeinfo;
+        char buffer[80];
+
+        time(&rawtime);
+        timeinfo = localtime(&rawtime);
+
+        std::string dir = "/data1/aref/2d/data/";
+        strftime(buffer, sizeof(buffer), "%Y-%m-%d-%H-%M-%S", timeinfo);
+        std::string str(buffer);
+        std::string rand_name = std::to_string(SamplePlayer::player_port);
+        str += "_" + std::to_string(world().self().unum()) + "_E" + rand_name + ".csv";
+        std::cout << "***********************************************" << std::endl;
+        std::cout << dir + str << std::endl;
+        fout = std::ofstream((dir + str).c_str());
+        first_time = false;
+    }
+
+    fout << world().time().cycle() << ",";
+    fout << world().ball().pos().x << "," << world().ball().pos().y << "," << world().ball().posCount() << ",";
+    fout << world().ball().vel().x << "," << world().ball().vel().y << "," << world().ball().velCount() << ","
+         << "0,0,";
+    for (int i = 1; i <= 11; i++) {
+        const AbstractPlayerObject *opp = world().ourPlayer(i);
+        if (opp == nullptr) {
+            fout << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << ","
+                 << "nan" << "," << "nan" << ",";
+        } else {
+            fout << opp->pos().x << "," << opp->pos().y << "," << opp->posCount() << ",";
+            fout << opp->vel().x << "," << opp->vel().y << "," << opp->velCount() << ",";
+            fout << opp->body() << "," << opp->bodyCount() << ",";
+        }
+    }
+    for (int i = 1; i <= 11; i++) {
+        const AbstractPlayerObject *opp = world().theirPlayer(i);
+        if (opp == nullptr) {
+            fout << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << ","
+                 << "nan" << "," << "nan" << ",";
+        } else {
+            fout << opp->pos().x << "," << opp->pos().y << "," << opp->posCount() << ",";
+            fout << opp->vel().x << "," << opp->vel().y << "," << opp->velCount() << ",";
+            fout << opp->body() << "," << opp->bodyCount() << ",";
+        }
+    }
+
+    fout << fullstateWorld().time().cycle() << ",";
+    fout << fullstateWorld().ball().pos().x << "," << fullstateWorld().ball().pos().y << "," << fullstateWorld().ball().posCount() << ",";
+    fout << fullstateWorld().ball().vel().x << "," << fullstateWorld().ball().vel().y << "," << fullstateWorld().ball().velCount() << ","
+         << "0,0,";
+    for (int i = 1; i <= 11; i++) {
+        const AbstractPlayerObject *opp = fullstateWorld().ourPlayer(i);
+        if (opp == nullptr) {
+            fout << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << ","
+                 << "nan" << "," << "nan" << ",";
+        } else {
+            fout << opp->pos().x << "," << opp->pos().y << "," << opp->posCount() << ",";
+            fout << opp->vel().x << "," << opp->vel().y << "," << opp->velCount() << ",";
+            fout << opp->body() << "," << opp->bodyCount() << ",";
+        }
+    }
+    for (int i = 1; i <= 11; i++) {
+        const AbstractPlayerObject *opp = fullstateWorld().theirPlayer(i);
+        if (opp == nullptr) {
+            fout << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << ","
+                 << "nan" << "," << "nan" << ",";
+        } else {
+            fout << opp->pos().x << "," << opp->pos().y << "," << opp->posCount() << ",";
+            fout << opp->vel().x << "," << opp->vel().y << "," << opp->velCount() << ",";
+            fout << opp->body() << "," << opp->bodyCount() << ",";
+        }
+    }
+    fout << std::endl;
+}
+
