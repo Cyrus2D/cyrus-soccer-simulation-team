@@ -50,6 +50,8 @@ View_Tactical::execute( PlayerAgent * agent )
 {
     dlog.addText( Logger::TEAM,
                   __FILE__": View_Tactical" );
+    agent->doChangeView(ViewWidth::NARROW);
+    return true;
 
     // when our free kick mode, view width is set to WIDE
     switch ( agent->world().gameMode().type() ) {

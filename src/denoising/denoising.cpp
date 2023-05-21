@@ -148,10 +148,23 @@ PlayerStateCandidate PlayerStateCandidate::gen_random_next(const WorldModel &wm,
 
 vector<PlayerStateCandidate> PlayerStateCandidate::gen_max_next_candidates(const WorldModel &wm, const PlayerObject *p) const{
     vector<PlayerStateCandidate> res;
-    auto p_type = p->playerTypePtr();
     const ServerParam &SP = ServerParam::i();
-    for (int i = 0; i < 6; i += 1){
-        if (p->bodyCount() == 0) {
+
+    auto p_type = p->playerTypePtr();
+    const double max_turn = p_type->effectiveTurn( SP.maxMoment(), vel.r() );
+
+    if (-180. < body && body < 180. && cycle == 0) {
+        for (int i = 0; i < 6; i += 1) {
+            double dash_dir = i * 60.0;
+            if (std::abs(dash_dir) < max_turn) {
+                PlayerStateCandidate tmp_turn(pos, vel * p_type->playerDecay(), body + dash_dir);
+                res.push_back(tmp_turn);
+                tmp_turn.cycle = cycle + 1;
+            }
+        }
+    }
+    if (-180. < body && body < 180.){
+        for (int i = 0; i < 6; i += 1) {
             double dash_dir = i * 60.0;
             double accel_dist = SP.maxDashPower()
                                 * p_type->effortMax()
@@ -160,13 +173,12 @@ vector<PlayerStateCandidate> PlayerStateCandidate::gen_max_next_candidates(const
             Vector2D accel = Vector2D::polar2vector(accel_dist, AngleDeg(dash_dir + body));
             Vector2D move = accel + vel;
             PlayerStateCandidate tmp_dash(pos + move, move * p_type->playerDecay(), body);
-            PlayerStateCandidate tmp_turn(pos, vel * p_type->playerDecay(), body + dash_dir);
             tmp_dash.cycle = cycle + 1;
-            tmp_turn.cycle = cycle + 1;
             res.push_back(tmp_dash);
-            res.push_back(tmp_turn);
         }
-        else {
+    }
+    else{
+        for (int i = 0; i < 6; i += 1) {
             double dash_dir = i * 60.0;
             double accel_dist = SP.maxDashPower()
                                 * p_type->effortMax()
@@ -231,16 +243,8 @@ void PlayerPredictedObj::generate_new_candidates(const WorldModel &wm, const Pla
                     tmp_vel = Vector2D(0, 0);
                 }
                 double tmp_body = body;
-                if (tmp_body == -360.0) {
-                    for (int b = 0; b < 6; b+= 1){
-                        tmp_body = -180. + 360./6.*b;
-                        PlayerStateCandidate candidate(pos, tmp_vel, tmp_body);
-                        candidates.push_back(candidate);
-                    }
-                } else {
-                    PlayerStateCandidate candidate(pos, tmp_vel, tmp_body);
-                    candidates.push_back(candidate);
-                }
+                PlayerStateCandidate candidate(pos, tmp_vel, tmp_body);
+                candidates.push_back(candidate);
             }
         }
     }
@@ -301,7 +305,7 @@ void PlayerPredictedObj::update_candidates(const WorldModel &wm, const PlayerObj
     for (auto &c: candidates) {
         dlog.addText(Logger::WORLD, "==== (%.1f, %.1f), (%.1f, %.1f), %.1f", c.pos.x, c.pos.y, c.vel.x, c.vel.y,
                      c.body);
-        auto next_candidates = c.gen_max_next_candidates(wm, p);
+        auto next_candidates = c.gen_max_next_candidates(wm, p); // todo not add candids on 2 or  cycles old candids
         for (auto n: next_candidates)
             new_candidates.push_back(n);
     }
@@ -310,7 +314,7 @@ void PlayerPredictedObj::update_candidates(const WorldModel &wm, const PlayerObj
     {
         bool is_far = true;
         for (auto &c: candidates){
-            if (c.pos.dist(nc.pos) < 0.3 && std::abs(nc.body - c.body) < 30){
+            if (c.pos.dist(nc.pos) < 0.3 /*&& std::abs(nc.body - c.body) < 30*/){
                 is_far = false;
                 break;
             }
