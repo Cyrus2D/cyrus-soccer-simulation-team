@@ -356,6 +356,7 @@ void PlayerPredictedObj::update(const WorldModel &wm, const PlayerObject *p, int
 
     Vector2D avg(0, 0);
     std::vector<std::array<double, 2>> pos_arr;
+    average_pos.invalidate();
     if (!candidates.empty()) {
         for (auto &c: candidates) {
             avg += c.pos;
