@@ -93,6 +93,8 @@ Setting * Setting::instance = nullptr;
 #include <sstream>
 #include <string>
 #include <cstdlib>
+#include <torch/torch.h>
+#include <iostream>
 
 using namespace rcsc;
 
@@ -288,6 +290,8 @@ CalculateOffensiveOpponents* CalculateOffensiveOpponents::instance= nullptr;
 void
 SamplePlayer::actionImpl()
 {
+    torch::Tensor tensor = torch::rand({2, 3});
+    std::cout << tensor << std::endl;
     M_cycle_time_start.restart();
     SamplePlayer::player_port = this->config().port();
     Setting::i();
