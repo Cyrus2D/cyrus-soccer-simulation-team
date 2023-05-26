@@ -457,6 +457,27 @@ void CyrusDenoiser::update(PlayerAgent *agent) {
         if (opponents.find(p->unum()) != opponents.end())
             opponents[p->unum()].update(wm, p, cluster_count);
     }
+
+//    update world model!!
+    auto & wm_not_const = agent->world_not_const();
+    for (auto &p: wm_not_const.M_teammates_from_self) {
+        if (p == nullptr)
+            continue;
+        if (p->unum() <= 0)
+            continue;
+        if(p->seenPosCount() == 0)
+            if (teammates[p->unum()].average_pos.isValid())
+                p->M_pos = teammates[p->unum()].average_pos;
+    }
+    for (auto &p: wm.M_opponents_from_self) {
+        if (p == nullptr)
+            continue;
+        if (p->unum() <= 0)
+            continue;
+        if(p->seenPosCount() == 0)
+            if (opponents[p->unum()].average_pos.isValid())
+                p->M_pos = opponents[p->unum()].average_pos;
+    }
     cout<<"######"<<wm.time().cycle()<<endl;
     double base = 0;
     double cyrus = 0;
