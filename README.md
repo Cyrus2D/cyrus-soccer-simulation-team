@@ -44,6 +44,12 @@ You may also need to set the environment variable `LD_LIBRARY_PATH`.
 
 See `./configure --help` for others options.
 
+## Pytorch
+'''
+wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-2.0.1%2Bcpu.zip
+unzip libtorch-cxx11-abi-shared-with-deps-2.0.1%2Bcpu.zip
+cp libtorch (inside) to cyrus
+'''
 
 ## References
 
