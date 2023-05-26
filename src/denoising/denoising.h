@@ -38,6 +38,7 @@ public:
     double body = -360;
     double prob = 1.0;
     int cycle = 0;
+    bool last_action_is_turn = false;
 
     PlayerStateCandidate(Vector2D pos_, Vector2D vel_ = Vector2D::INVALIDATED, double body_ = -360);
 
@@ -50,6 +51,14 @@ public:
     PlayerStateCandidate gen_random_next(const WorldModel &wm, const PlayerObject *p) const;
 
     vector<PlayerStateCandidate> gen_max_next_candidates(const WorldModel &wm, const PlayerObject *p) const;
+
+    bool is_close(const PlayerStateCandidate & other){
+        if (pos.dist(other.pos) < 0.2)
+            if (AngleDeg(body - other.body).abs() < 30.0)
+                if ((vel - other.vel).r() < 0.2)
+                    return true;
+        return false;
+    }
 };
 
 
@@ -62,18 +71,23 @@ public:
     ObjectTable object_table;
     Vector2D average_pos;
 
+    double count = 0;
+    double base_noise = 0;
+    double cyrus_noise = 0;
+
     PlayerPredictedObj(SideID side_, int unum_);
 
     PlayerPredictedObj();
 
     void generate_new_candidates(const WorldModel &wm, const PlayerObject *p);
 
-    void check_candidates(const WorldModel &wm, const PlayerObject *p);
+    void filter_candidates(const WorldModel &wm, const PlayerObject *p);
 
     void update_candidates(const WorldModel &wm, const PlayerObject *p);
 
     void update(const WorldModel &wm, const PlayerObject *p, int cluster_count);
 
+    void remove_similar_candidates();
     void debug();
 };
 
