@@ -111,7 +111,10 @@ target_link_libraries(sample_player
   ${LIBRCSC_LIB}
   Boost::system
   ZLIB::ZLIB
+  "${TORCH_LIBRARIES}"
   )
+
+set_property(TARGET sample_player PROPERTY CXX_STANDARD 14)
 
 set_target_properties(sample_player
   PROPERTIES
