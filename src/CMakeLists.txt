@@ -219,3 +219,7 @@ file(
   COPY data
   DESTINATION ${PROJECT_BINARY_DIR}/src
   )
+file(
+  COPY vertices
+  DESTINATION ${PROJECT_BINARY_DIR}/src
+)
