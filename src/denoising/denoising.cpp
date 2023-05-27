@@ -18,6 +18,85 @@ Denoising *Denoising::i() {
     return instance;
 }
 
+Polygon2D mutual_convex(const Polygon2D &p1p, const Polygon2D &p2p) {
+    std::vector<Vector2D> vertices;
+    for (const auto &p: p1p.vertices()) {
+        if (p2p.contains(p))
+            vertices.push_back(p);
+    }
+    for (const auto &p: p2p.vertices()) {
+        if (p1p.contains(p))
+            vertices.push_back(p);
+    }
+    std::vector<std::tuple<Line2D, double, double>> p1l;
+    std::vector<std::tuple<Line2D, double, double>> p2l;
+    for (uint i = 0; i < p1p.vertices().size() - 1; i++) {
+        p1l.emplace_back(std::tuple<Line2D, double, double>
+                                 {
+                                         {p1p.vertices()[i], p1p.vertices()[i + 1]},
+                                         std::min(p1p.vertices()[i].x, p1p.vertices()[i + 1].x),
+                                         std::max(p1p.vertices()[i].x, p1p.vertices()[i + 1].x)
+                                 });
+    }
+    p1l.emplace_back(std::tuple<Line2D, double, double>
+                             {
+                                     {p1p.vertices()[p1p.vertices().size() - 1], p1p.vertices()[0]},
+                                     std::min(p1p.vertices()[p1p.vertices().size() - 1].x, p1p.vertices()[0].x),
+                                     std::max(p1p.vertices()[p1p.vertices().size() - 1].x, p1p.vertices()[0].x)
+                             });
+    for (int i = 0; i < p2p.vertices().size() - 1; i++) {
+        p2l.emplace_back(std::tuple<Line2D, double, double>
+                                 {
+                                         {p2p.vertices()[i], p2p.vertices()[i + 1]},
+                                         std::min(p2p.vertices()[i].x, p2p.vertices()[i + 1].x),
+                                         std::max(p2p.vertices()[i].x, p2p.vertices()[i + 1].x)
+                                 });
+    }
+    p2l.emplace_back(std::tuple<Line2D, double, double>
+                             {
+                                     {p2p.vertices()[p2p.vertices().size() - 1], p2p.vertices()[0]},
+                                     std::min(p2p.vertices()[p2p.vertices().size() - 1].x, p2p.vertices()[0].x),
+                                     std::max(p2p.vertices()[p2p.vertices().size() - 1].x, p2p.vertices()[0].x)
+                             });
+
+
+    for (const auto &d1: p1l) {
+        const auto &l1 = std::get<0>(d1);
+        const auto &min1_x = std::get<1>(d1);
+        const auto &max1_x = std::get<2>(d1);
+        for (const auto &d2: p2l) {
+            const auto &l2 = std::get<0>(d2);
+            const auto &min2_x = std::get<1>(d2);
+            const auto &max2_x = std::get<2>(d2);
+            Vector2D inter = l1.intersection(l2);
+            if (!inter.isValid()) {
+                continue;
+            }
+            if (!(min1_x < inter.x && inter.x < max1_x)) {
+                continue;
+            }
+            if (!(min2_x < inter.x && inter.x < max2_x)) {
+                continue;
+            }
+            vertices.emplace_back(inter);
+        }
+    }
+
+    ConvexHull mutual(vertices);
+    mutual.compute();
+    return mutual.toPolygon();
+
+}
+
+void draw_poly(const Polygon2D &p, const char* color){
+    const auto& vertices = p.vertices();
+    for(int i = 0; i < vertices.size()-1; i++){
+        dlog.addLine(Logger::WORLD, vertices[i], vertices[i+1], color);
+    }
+    dlog.addLine(Logger::WORLD, vertices[0], vertices[vertices.size() - 1], color);
+}
+
+
 void Denoising::update(PlayerAgent *agent) {
     if (!ServerParam::i().fullstateLeft())
         return;
@@ -202,7 +281,12 @@ PlayerPredictedObj::PlayerPredictedObj(SideID side_, int unum_)
         : object_table() {
     side = side_;
     unum = unum_;
+    last_seen_time = GameTime(0, 0);
+    std::string file_name = "vertices/v-" + std::to_string(unum-1);
+    std::ifstream fin(file_name);
+    area = nullptr;
 
+    player_data.init(fin, unum);
 }
 
 PlayerPredictedObj::PlayerPredictedObj() {
@@ -297,31 +381,118 @@ void PlayerPredictedObj::check_candidates(const WorldModel &wm, const PlayerObje
 
 void PlayerPredictedObj::update_candidates(const WorldModel &wm, const PlayerObject *p) {
     dlog.addText(Logger::WORLD, "########update candidates");
-    vector<PlayerStateCandidate> new_candidates;
-    if (candidates.empty())
-        return;
-    if (candidates.size() > 400)
-        return;
-    for (auto &c: candidates) {
-        dlog.addText(Logger::WORLD, "==== (%.1f, %.1f), (%.1f, %.1f), %.1f", c.pos.x, c.pos.y, c.vel.x, c.vel.y,
-                     c.body);
-        auto next_candidates = c.gen_max_next_candidates(wm, p); // todo not add candids on 2 or  cycles old candids
-        for (auto n: next_candidates)
-            new_candidates.push_back(n);
+    Vector2D rpos = p->pos() - wm.self().pos();
+    double seen_dist = p->seen_dist();
+    AngleDeg seen_dir = rpos.th();
+    double avg_dist;
+    double dist_err;
+    std::cout << "A" << std::endl;
+    if (area == nullptr) {
+        if (object_table.getMovableObjInfo(seen_dist,
+                                           &avg_dist,
+                                           &dist_err)) {
+            std::cout << "B" << std::endl;
+            std::vector<Vector2D> poses = {
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir - 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist + dist_err, seen_dir - 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir + 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist + dist_err, seen_dir + 0.5),
+            };
+            ConvexHull tmp(poses);
+            tmp.compute();
+            area = new Polygon2D(tmp.toPolygon().vertices());
+            std::cout << "BB" << std::endl;
+            draw_poly(*area, "#FFFFFF");
+        }
     }
-//        candidates.reserve(candidates.size() + new_candidates.size() ); // preallocate memory
-    for (auto nc: new_candidates)
-    {
-        bool is_far = true;
-        for (auto &c: candidates){
-            if (c.pos.dist(nc.pos) < 0.3 /*&& std::abs(nc.body - c.body) < 30*/){
-                is_far = false;
-                break;
+    else{
+        if (object_table.getMovableObjInfo(seen_dist,
+                                           &avg_dist,
+                                           &dist_err)) {
+            std::cout << "C" << std::endl;
+            std::vector<Vector2D> poses = {
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir - 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist + dist_err, seen_dir - 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir + 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist + dist_err, seen_dir + 0.5),
+            };
+            ConvexHull new_area(poses);
+            new_area.compute();
+            int index;
+            if (wm.time().cycle() == last_seen_time.cycle()){
+                index = wm.time().stopped() - last_seen_time.stopped() - 1;
+            }
+            else{
+                index = wm.time().cycle() - last_seen_time.cycle() - 1;
+            }
+            std::cout << "C1" << std::endl;
+            std::cout << "index=" << index << std::endl;
+            dlog.addText(Logger::WORLD, "unum=%d", unum);
+            dlog.addText(Logger::WORLD, "last_time=%d, index=%d",last_seen_time.cycle(), index);
+            if (0 <= index && index < 9){
+                std::vector<Vector2D> vertices;
+                const ConvexHull* prob_area = player_data.convexes[index];
+                dlog.addText(Logger::WORLD, "pd.c.v=%d", player_data.convexes[index]->vertices().size());
+                std::cout << "C2" << std::endl;
+                std::cout << area->vertices().size() << std::endl;
+                Vector2D center = area->xyCenter();
+                std::cout << "C21" << std::endl;
+                for (const auto& v: prob_area->vertices()){
+                    std::cout << v << std::endl;
+                    std::cout << center << std::endl;
+                    std::cout << v + center << std::endl;
+                    vertices.push_back(v + center);
+                }
+                std::cout << "C3" << std::endl;
+                Polygon2D prob_poly(vertices);
+                Polygon2D mutual_area = mutual_convex(prob_poly, new_area.toPolygon());
+                delete area;
+                area = nullptr;
+                std::cout << "C4" << std::endl;
+                draw_poly(prob_poly, "#FF0000");
+                draw_poly(new_area.toPolygon(), "#0000FF");
+                std::cout << "C5" << std::endl;
+                if (mutual_area.vertices().size() > 2) {
+                    area = new Polygon2D(mutual_area.vertices());
+                    draw_poly(*area, "#000000");
+                    std::cout << "C6" << std::endl;
+                }
+                std::cout << "CC" << std::endl;
+            }
+            else {
+                delete area;
+                area = new Polygon2D(new_area.vertices());
+                draw_poly(*area, "#000000");
             }
         }
-        if (is_far)
-            candidates.push_back(nc);
     }
+    last_seen_time = wm.time();
+
+//    vector<PlayerStateCandidate> new_candidates;
+//    if (candidates.empty())
+//        return;
+//    if (candidates.size() > 400)
+//        return;
+//    for (auto &c: candidates) {
+//        dlog.addText(Logger::WORLD, "==== (%.1f, %.1f), (%.1f, %.1f), %.1f", c.pos.x, c.pos.y, c.vel.x, c.vel.y,
+//                     c.body);
+//        auto next_candidates = c.gen_max_next_candidates(wm, p); // todo not add candids on 2 or  cycles old candids
+//        for (auto n: next_candidates)
+//            new_candidates.push_back(n);
+//    }
+////        candidates.reserve(candidates.size() + new_candidates.size() ); // preallocate memory
+//    for (auto nc: new_candidates)
+//    {
+//        bool is_far = true;
+//        for (auto &c: candidates){
+//            if (c.pos.dist(nc.pos) < 0.3 /*&& std::abs(nc.body - c.body) < 30*/){
+//                is_far = false;
+//                break;
+//            }
+//        }
+//        if (is_far)
+//            candidates.push_back(nc);
+//    }
 
 }
 
@@ -331,16 +502,16 @@ void PlayerPredictedObj::update(const WorldModel &wm, const PlayerObject *p, int
     if (p->seenPosCount() == 0) {
 //        candidates.clear();
         update_candidates(wm, p);
-        check_candidates(wm, p);
-        if (candidates.empty()) {
-            generate_new_candidates(wm, p);
-//            for (auto &c: candidates) {
-//                dlog.addCircle(Logger::WORLD, c.pos, 0.1, "#0000FF");
-//            }
-        }
+//        check_candidates(wm, p);
+//        if (candidates.empty()) {
+//            generate_new_candidates(wm, p);
+////            for (auto &c: candidates) {
+////                dlog.addCircle(Logger::WORLD, c.pos, 0.1, "#0000FF");
+////            }
+//        }
 
     } else {
-        update_candidates(wm, p);
+//        update_candidates(wm, p);
 //        for (auto &c: candidates) {
 //            dlog.addCircle(Logger::WORLD, c.pos, 0.1, "#FFFFFF");
 //        }

@@ -10,9 +10,49 @@
 #include <map>
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/object_table.h>
+#include <rcsc/geom/convex_hull.h>
 
 using namespace rcsc;
 using namespace std;
+
+Polygon2D mutual_convex(const Polygon2D &p1p, const Polygon2D &p2p);
+void draw_poly(const Polygon2D &p, const char* color);
+
+class PlayerPositionConvex {
+public:
+    std::vector<ConvexHull *> convexes;
+    int unum;
+
+    PlayerPositionConvex()
+            : unum(-1),
+              convexes() {}
+
+    void init(std::ifstream &fin, int unum_) {
+        unum = unum_;
+
+        std::string tmp;
+        for (int i = 0; i < 9; i++) {
+            int v_num;
+            fin >> tmp;
+            fin >> tmp;
+
+            fin >> v_num;
+            std::vector<Vector2D> vertices;
+            for (int vi = 0; vi < v_num; vi++) {
+                double x, y;
+                fin >> x >> y;
+                vertices.emplace_back(x, y);
+                std::cout << unum << " -> "
+                          << i << "(" << v_num << "): "
+                          << x << ", " << y << std::endl;
+            }
+            convexes.push_back(new ConvexHull(vertices));
+            convexes.back()->compute();
+        }
+    }
+
+};
+
 
 class Denoising {
 public:
@@ -61,6 +101,9 @@ public:
     vector<PlayerStateCandidate> candidates_means;
     ObjectTable object_table;
     Vector2D average_pos;
+    PlayerPositionConvex player_data;
+    Polygon2D* area;
+    GameTime last_seen_time;
 
     PlayerPredictedObj(SideID side_, int unum_);
 
@@ -97,5 +140,7 @@ public:
 
     void debug();
 };
+
+
 
 #endif //CYRUS_DENOISING_H
