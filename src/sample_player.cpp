@@ -1044,13 +1044,9 @@ bool SamplePlayer::canProcessMore(){
     return true;
 }
 
-
 void SamplePlayer::extract() {
     static bool first_time = true;
 
-//    if (world().self().unum() != 9 and world().self().unum() != 5) {
-//        return;
-//    }
     if (world().gameMode().type() != rcsc::GameMode::PlayOn) {
         return;
     }
@@ -1079,36 +1075,24 @@ void SamplePlayer::extract() {
     fout << world().ball().vel().x << "," << world().ball().vel().y << "," << world().ball().velCount() << ","
          << "0,0,";
     for (int i = 1; i <= 11; i++) {
-        const PlayerObject* opp = (PlayerObject*)(world().ourPlayer(i));
+        const AbstractPlayerObject *opp = world().ourPlayer(i);
         if (opp == nullptr) {
-            fout << "nan" << "," << "nan" << "," << "nan" << ","
-                 << "nan" << "," << "nan" << "," << "nan" << ","
-                 << "nan" << "," << "nan" << "," << "nan" << ","
-                 << "nan" << "," << "nan" << ","
+            fout << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << ","
                  << "nan" << "," << "nan" << ",";
         } else {
-            const Vector2D rpos = world().self().pos() - opp->seenPos();
-            fout << opp->pos().x << "," << opp->pos().y << "," << opp->posCount() << ",";  // 3
-            fout << opp->vel().x << "," << opp->vel().y << "," << opp->velCount() << ",";  // 3
-            fout << opp->seen_dist() << "," << opp->seen_angle() << "," << opp->seenPosCount() << ","; // 3
-            fout << rpos.x << "," << rpos.y << ","; // 2
-            fout << opp->body() << "," << opp->bodyCount() << ","; // 2 -> 13
+            fout << opp->pos().x << "," << opp->pos().y << "," << opp->posCount() << ",";
+            fout << opp->vel().x << "," << opp->vel().y << "," << opp->velCount() << ",";
+            fout << opp->body() << "," << opp->bodyCount() << ",";
         }
     }
     for (int i = 1; i <= 11; i++) {
-        const PlayerObject* opp = (PlayerObject*)(world().theirPlayer(i));
+        const AbstractPlayerObject *opp = world().theirPlayer(i);
         if (opp == nullptr) {
-            fout << "nan" << "," << "nan" << "," << "nan" << ","
-                 << "nan" << "," << "nan" << "," << "nan" << ","
-                 << "nan" << "," << "nan" << "," << "nan" << ","
-                 << "nan" << "," << "nan" << ","
+            fout << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << ","
                  << "nan" << "," << "nan" << ",";
         } else {
-            const Vector2D rpos = world().self().pos() - opp->seenPos();
             fout << opp->pos().x << "," << opp->pos().y << "," << opp->posCount() << ",";
             fout << opp->vel().x << "," << opp->vel().y << "," << opp->velCount() << ",";
-            fout << opp->seen_dist() << "," << opp->seen_angle() << "," << opp->seenPosCount() << ",";
-            fout << rpos.x << "," << rpos.y << ",";
             fout << opp->body() << "," << opp->bodyCount() << ",";
         }
     }
@@ -1120,33 +1104,24 @@ void SamplePlayer::extract() {
     for (int i = 1; i <= 11; i++) {
         const AbstractPlayerObject *opp = fullstateWorld().ourPlayer(i);
         if (opp == nullptr) {
-            fout << "nan" << "," << "nan" << "," << "nan" << ","
-                 << "nan" << "," << "nan" << "," << "nan" << ","
-                 << "nan" << "," << "nan" << ","
+            fout << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << ","
                  << "nan" << "," << "nan" << ",";
         } else {
-            const Vector2D rpos = world().self().pos() - opp->pos();
             fout << opp->pos().x << "," << opp->pos().y << "," << opp->posCount() << ",";
             fout << opp->vel().x << "," << opp->vel().y << "," << opp->velCount() << ",";
-            fout << rpos.x << "," << rpos.y << ",";
             fout << opp->body() << "," << opp->bodyCount() << ",";
         }
     }
     for (int i = 1; i <= 11; i++) {
         const AbstractPlayerObject *opp = fullstateWorld().theirPlayer(i);
         if (opp == nullptr) {
-            fout << "nan" << "," << "nan" << "," << "nan" << ","
-                 << "nan" << "," << "nan" << "," << "nan" << ","
-                 << "nan" << "," << "nan" << ","
+            fout << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << "," << "nan" << ","
                  << "nan" << "," << "nan" << ",";
         } else {
-            const Vector2D rpos = world().self().pos() - opp->pos();
             fout << opp->pos().x << "," << opp->pos().y << "," << opp->posCount() << ",";
             fout << opp->vel().x << "," << opp->vel().y << "," << opp->velCount() << ",";
-            fout << rpos.x << "," << rpos.y << ",";
             fout << opp->body() << "," << opp->bodyCount() << ",";
         }
     }
     fout << std::endl;
 }
-
