@@ -56,7 +56,7 @@ public:
     vector<PlayerStateCandidate> candidates_means;
     ObjectTable object_table;
     Vector2D average_pos;
-    ulong max_candidates_size = 500;
+    ulong max_candidates_size = 1000;
 
     PlayerPredictions(SideID side_, int unum_);
 

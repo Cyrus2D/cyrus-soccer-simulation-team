@@ -177,6 +177,29 @@ void PlayerPredictions::generate_new_candidates(const WorldModel &wm, const Play
             }
         }
     }
+    if (!candidates_removed_by_filtering.empty()){
+        int choose_count = candidates.size() / 2;
+        V_PSC tmp;
+        vector<pair<double, PSC>> dist_candidates;
+        for (auto c: candidates){
+            dist_candidates.emplace_back(1000, c);
+            for (auto & f: candidates_removed_by_filtering){
+                dist_candidates.back().first = min(dist_candidates.back().first, c.pos.dist(f.pos));
+            }
+        }
+        sort(dist_candidates.begin(), dist_candidates.end(),
+             [](const pair<double, PSC> & a, const pair<double, PSC> & b) -> bool
+             {
+                 return a.first < b.first;
+             });
+
+        for (int i = 0; i < choose_count; i ++){
+            if (dist_candidates.at(i).first < 3.0)
+                tmp.push_back(dist_candidates.at(i).second);
+        }
+        if (!tmp.empty())
+            candidates = tmp;
+    }
 }
 
 void PlayerPredictions::filter_candidates(const WorldModel &wm, const PlayerObject *p) {
@@ -202,6 +225,7 @@ void PlayerPredictions::filter_candidates(const WorldModel &wm, const PlayerObje
         Sector2D seen_sec = Sector2D(wm.self().pos(), avg_dist - dist_err, avg_dist + dist_err,
                                      AngleDeg(seen_dir - 0.6),
                                      AngleDeg(seen_dir + 0.6));
+        candidates_removed_by_filtering.clear();
         V_PSC tmp;
         for (PSC t: candidates) {
             bool ignored = false;
@@ -223,10 +247,8 @@ void PlayerPredictions::filter_candidates(const WorldModel &wm, const PlayerObje
             else{
                 ignored = true;
             }
-            #ifdef DEBUG_ACTION_DENOISER
             if (ignored)
                 candidates_removed_by_filtering.push_back(t);
-            #endif
         }
         candidates = tmp;
     } else
