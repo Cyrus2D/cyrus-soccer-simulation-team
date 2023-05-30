@@ -56,15 +56,19 @@ public:
     vector<PlayerStateCandidate> candidates_means;
     ObjectTable object_table;
     Vector2D average_pos;
-    ulong max_candidates_size = 1000;
+    ulong max_candidates_size = 500;
 
     PlayerPredictions(SideID side_, int unum_);
 
     PlayerPredictions();
 
-    void generate_new_candidates(const WorldModel &wm, const PlayerObject *p);
+    void generate_new_candidates_by_see(const WorldModel &wm, const PlayerObject *p);
 
-    void filter_candidates(const WorldModel &wm, const PlayerObject *p);
+    void generate_new_candidates_by_hear(const WorldModel &wm, const PlayerObject *p);
+
+    void filter_candidates_by_see(const WorldModel &wm, const PlayerObject *p);
+
+    void filter_candidates_by_hear(const WorldModel &wm, const PlayerObject *p);
 
     void update_candidates(const WorldModel &wm, const PlayerObject *p);
 
@@ -74,6 +78,9 @@ public:
 
     void remove_similar_candidates();
 
+    bool player_heard(const WorldModel & wm, const PlayerObject * p);
+
+    bool player_seen(const PlayerObject * p);
     void debug();
 };
 
