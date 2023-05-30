@@ -479,6 +479,8 @@ LDA * LDA::i() {
 }
 
 void LDA::update_tests(PlayerAgent *agent){
+    if (!ServerParam::i().fullstateLeft())
+        return;
     auto &wm = agent->world();
     struct PlayerTestRes {
         double count = 0.0;
