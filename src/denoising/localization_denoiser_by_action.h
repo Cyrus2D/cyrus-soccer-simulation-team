@@ -78,9 +78,9 @@ public:
 
     void remove_similar_candidates();
 
-    bool player_heard(const WorldModel & wm, const PlayerObject * p);
+    bool player_heard(const WorldModel & wm, const AbstractPlayerObject * p);
 
-    bool player_seen(const PlayerObject * p);
+    bool player_seen(const AbstractPlayerObject * p);
     void debug();
 };
 
@@ -103,6 +103,8 @@ public:
     void update_tests(PlayerAgent *agent);
 
     vector<PlayerStateCandidate> get_cluster_means(const WorldModel &wm, SideID side, int unum);
+
+    void update_world_model(PlayerAgent * agent);
 
     void debug();
 };

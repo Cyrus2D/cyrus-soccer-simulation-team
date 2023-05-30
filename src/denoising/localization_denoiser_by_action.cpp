@@ -410,7 +410,7 @@ void PlayerPredictions::clustering(int cluster_count){
     }
 }
 
-bool PlayerPredictions::player_heard(const WorldModel & wm, const PlayerObject * p){
+bool PlayerPredictions::player_heard(const WorldModel & wm, const AbstractPlayerObject * p){
     auto memory = wm.audioMemory().player();
     if (wm.audioMemory().playerTime().cycle() != wm.time().cycle())
         return false;
@@ -425,7 +425,7 @@ bool PlayerPredictions::player_heard(const WorldModel & wm, const PlayerObject *
     return false;
 }
 
-bool PlayerPredictions::player_seen(const PlayerObject * p){
+bool PlayerPredictions::player_seen(const AbstractPlayerObject * p){
     return p->seenPosCount() == 0;
 }
 
@@ -487,8 +487,10 @@ void LDA::update_tests(PlayerAgent *agent){
     };
     static vector<PlayerTestRes> player_test_res(23, PlayerTestRes());
     for (auto & p: teammates){
-        if (wm.ourPlayer(p.first) != nullptr
-            && wm.ourPlayer(p.first)->posCount() == 0
+        auto t = wm.ourPlayer(p.first);
+        if (t != nullptr
+            && p.second.player_heard(wm, t)
+            && p.second.player_seen(t)
             && p.second.average_pos.isValid()){
             auto xxx = LDA::i()->get_cluster_means(wm, p.second.side, p.second.unum);
             Vector2D full_pos = agent->fullstateWorld().ourPlayer(p.first)->pos();
@@ -503,8 +505,10 @@ void LDA::update_tests(PlayerAgent *agent){
         }
     }
     for (auto & p: opponents){
-        if (wm.theirPlayer(p.first) != nullptr
-            && wm.theirPlayer(p.first)->posCount() == 0
+        auto o = wm.theirPlayer(p.first);
+        if (o != nullptr
+            && p.second.player_heard(wm, o)
+            && p.second.player_seen(o)
             && p.second.average_pos.isValid()){
             auto xxx = LDA::i()->get_cluster_means(wm, p.second.side, p.second.unum);
             Vector2D full_pos = agent->fullstateWorld().theirPlayer(p.first)->pos();
@@ -540,6 +544,30 @@ void LDA::update_tests(PlayerAgent *agent){
 
 }
 
+void LDA::update_world_model(PlayerAgent * agent){
+//    update world model!!
+    auto &wm = agent->world();
+    auto & wm_not_const = agent->world_not_const();
+    for (auto &p: wm_not_const.M_teammates_from_self) {
+        if (p == nullptr)
+            continue;
+        if (p->unum() <= 0)
+            continue;
+        if(teammates[p->unum()].player_seen(p) || teammates[p->unum()].player_heard(wm, p))
+            if (teammates[p->unum()].average_pos.isValid())
+                p->M_pos = teammates[p->unum()].average_pos;
+    }
+    for (auto &p: wm.M_opponents_from_self) {
+        if (p == nullptr)
+            continue;
+        if (p->unum() <= 0)
+            continue;
+        if(opponents[p->unum()].player_seen(p) || opponents[p->unum()].player_heard(wm, p))
+            if (opponents[p->unum()].average_pos.isValid())
+                p->M_pos = opponents[p->unum()].average_pos;
+    }
+}
+
 void LDA::update(PlayerAgent *agent) {
     auto &wm = agent->world();
     if (wm.time().cycle() == last_updated_cycle && wm.time().stopped() == last_update_stopped)
@@ -572,28 +600,7 @@ void LDA::update(PlayerAgent *agent) {
             opponents[p->unum()].update(wm, p, cluster_count);
     }
     update_tests(agent);
-
-//    update world model!!
-//    auto & wm_not_const = agent->world_not_const();
-//    for (auto &p: wm_not_const.M_teammates_from_self) {
-//        if (p == nullptr)
-//            continue;
-//        if (p->unum() <= 0)
-//            continue;
-//        if(p->seenPosCount() == 0)
-//            if (teammates[p->unum()].average_pos.isValid())
-//                p->M_pos = teammates[p->unum()].average_pos;
-//    }
-//    for (auto &p: wm.M_opponents_from_self) {
-//        if (p == nullptr)
-//            continue;
-//        if (p->unum() <= 0)
-//            continue;
-//        if(p->seenPosCount() == 0)
-//            if (opponents[p->unum()].average_pos.isValid())
-//                p->M_pos = opponents[p->unum()].average_pos;
-//    }
-
+    update_world_model(agent);
 }
 
 V_PSC LDA::get_cluster_means(const WorldModel &wm, SideID side, int unum) {
