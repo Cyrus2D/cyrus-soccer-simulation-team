@@ -610,8 +610,10 @@ void LDA::update_world_model(PlayerAgent * agent){
         if (p->unum() <= 0)
             continue;
         if(teammates[p->unum()].player_seen(p) || teammates[p->unum()].player_heard(wm, p))
-            if (teammates[p->unum()].average_pos.isValid())
+            if (teammates[p->unum()].average_pos.isValid()){
+                p->M_base_pos = p->M_pos;
                 p->M_pos = teammates[p->unum()].average_pos;
+            }
     }
     for (auto &p: wm_not_const.M_opponents_from_self) {
         if (p == nullptr)
@@ -619,8 +621,10 @@ void LDA::update_world_model(PlayerAgent * agent){
         if (p->unum() <= 0)
             continue;
         if(opponents[p->unum()].player_seen(p) || opponents[p->unum()].player_heard(wm, p))
-            if (opponents[p->unum()].average_pos.isValid())
+            if (opponents[p->unum()].average_pos.isValid()){
+                p->M_base_pos = p->M_pos;
                 p->M_pos = opponents[p->unum()].average_pos;
+            }
     }
 }
 
@@ -652,7 +656,6 @@ void LDA::update(PlayerAgent *agent) {
         if (opponents.find(p->unum()) == opponents.end()) {
             opponents.insert(make_pair(p->unum(), PlayerPredictions(p->side(), p->unum())));
         }
-        if (opponents.find(p->unum()) != opponents.end())
             opponents[p->unum()].update(wm, p, cluster_count);
     }
     update_tests(agent);
@@ -670,7 +673,10 @@ V_PSC LDA::get_cluster_means(const WorldModel &wm, SideID side, int unum) {
 }
 
 void LDA::debug(PlayerAgent * agent) {
-//    for (auto & p: agent->world().allPlayers()){
-//        dlog.addCircle(Logger::WORLD, p->pos(), 0.1, 255, 0, 0, true);
-//    }
+    #ifdef DEBUG_ACTION_DENOISER
+    for (auto & p: agent->world().allPlayers()){
+        dlog.addCircle(Logger::WORLD, p->M_base_pos, 0.1, 0, 0, 255, true);
+        dlog.addCircle(Logger::WORLD, p->pos(), 0.1, 255, 0, 0, true);
+    }
+    #endif
 }
