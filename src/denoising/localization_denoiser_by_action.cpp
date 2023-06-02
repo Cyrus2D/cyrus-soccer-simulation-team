@@ -21,16 +21,6 @@ typedef vector<PlayerStateCandidate> V_PSC;
 typedef PlayerStateCandidate PSC;
 typedef LocalizationDenoiserByAction LDA;
 
-double LDA::t1 = 0.0;
-double LDA::t2 = 0.0;
-double LDA::t3 = 0.0;
-double LDA::t4 = 0.0;
-double LDA::t5 = 0.0;
-double LDA::t6 = 0.0;
-double LDA::t7 = 0.0;
-double LDA::t8 = 0.0;
-double LDA::t9 = 0.0;
-double LDA::t10 = 0.0;
 
 double get_random(double min = 0.0, double max = 1.0) {
     static std::uniform_real_distribution<double> dis(0.0, 1.0);
