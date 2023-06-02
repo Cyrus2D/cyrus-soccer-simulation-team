@@ -89,17 +89,6 @@ public:
 
 class LocalizationDenoiserByAction {
 public:
-    static double t1;
-    static double t2;
-    static double t3;
-    static double t4;
-    static double t5;
-    static double t6;
-    static double t7;
-    static double t8;
-    static double t9;
-    static double t10;
-
     map<int, PlayerPredictions> teammates;
     map<int, PlayerPredictions> opponents;
     vector<PlayerStateCandidate> empty_vector;

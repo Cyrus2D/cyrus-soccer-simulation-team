@@ -466,15 +466,10 @@ void PlayerPredictions::update(const WorldModel &wm, const PlayerObject *p, int 
     dlog.addText(Logger::WORLD, "==================================== %d %d size %d", p->side(), p->unum(),
                  candidates.size());
     #endif
-    auto s1 = std::chrono::high_resolution_clock::now();
     update_candidates(wm, p);
-    auto s2 = std::chrono::high_resolution_clock::now();
     filter_candidates_by_see(wm, p);
-    auto s3 = std::chrono::high_resolution_clock::now();
     filter_candidates_by_hear(wm, p);
-    auto s4 = std::chrono::high_resolution_clock::now();
     remove_similar_candidates();
-    auto s5 = std::chrono::high_resolution_clock::now();
 
     if (candidates.empty()) {
         bool seen_player = player_seen(p);
@@ -488,16 +483,8 @@ void PlayerPredictions::update(const WorldModel &wm, const PlayerObject *p, int 
             generate_new_candidates_by_hear(wm, p);
         }
     }
-    auto s6 = std::chrono::high_resolution_clock::now();
     clustering(cluster_count);
-    auto s7 = std::chrono::high_resolution_clock::now();
 
-    LDA::t1 += std::chrono::duration<double, std::milli>(s2-s1).count();
-    LDA::t2 += std::chrono::duration<double, std::milli>(s3-s2).count();
-    LDA::t3 += std::chrono::duration<double, std::milli>(s4-s3).count();
-    LDA::t4 += std::chrono::duration<double, std::milli>(s5-s4).count();
-    LDA::t5 += std::chrono::duration<double, std::milli>(s6-s5).count();
-    LDA::t6 += std::chrono::duration<double, std::milli>(s7-s6).count();
     #ifdef DEBUG_ACTION_DENOISER
     debug();
     #endif
@@ -570,7 +557,7 @@ void LDA::update_tests(PlayerAgent *agent){
             }
         }
     }
-//    if ((wm.time().cycle() == 2999 || wm.time().cycle() == 5999) && wm.time().stopped() == 0)
+    if ((wm.time().cycle() == 2999 || wm.time().cycle() == 5999) && wm.time().stopped() == 0)
     {
         double base_noises = 0.0;
         double cyrus_noises = 0.0;
@@ -588,14 +575,6 @@ void LDA::update_tests(PlayerAgent *agent){
         }
         if (all_count > 0)
             cout<<"end"<<base_noises / all_count<<" -> "<<cyrus_noises / all_count<<endl;
-        cout<<"t1 "<<LocalizationDenoiserByAction::t1<<endl;
-        cout<<"t2 "<<LocalizationDenoiserByAction::t2<<endl;
-        cout<<"t3 "<<LocalizationDenoiserByAction::t3<<endl;
-        cout<<"t4 "<<LocalizationDenoiserByAction::t4<<endl;
-        cout<<"t5 "<<LocalizationDenoiserByAction::t5<<endl;
-        cout<<"t6 "<<LocalizationDenoiserByAction::t6<<endl;
-        cout<<"t7 "<<LocalizationDenoiserByAction::t7<<endl;
-        cout<<"t8 "<<LocalizationDenoiserByAction::t8<<endl;
     }
 
 }
@@ -658,7 +637,9 @@ void LDA::update(PlayerAgent *agent) {
         }
             opponents[p->unum()].update(wm, p, cluster_count);
     }
+    #ifdef DEBUG_ACTION_DENOISER
     update_tests(agent);
+    #endif
     update_world_model(agent);
 }
 
