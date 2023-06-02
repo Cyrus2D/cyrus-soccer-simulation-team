@@ -285,6 +285,12 @@ SamplePlayer::initImpl( CmdLineParser & cmd_parser )
 #include <chrono>         // std::chrono::seconds
 #include "calculate_offensive_opponents.h"
 CalculateOffensiveOpponents* CalculateOffensiveOpponents::instance= nullptr;
+
+void SamplePlayer::update_player_by_denoiser(){
+    LocalizationDenoiserByAction::i()->update(this);
+    LocalizationDenoiserByAction::i()->debug(this);
+}
+
 void
 SamplePlayer::actionImpl()
 {
@@ -300,8 +306,6 @@ SamplePlayer::actionImpl()
     if(FieldAnalyzer::isOxsy(world()))
         CalculateOffensiveOpponents::getInstance()->updatePlayers(world());
 
-    LocalizationDenoiserByAction::i()->update(this);
-    LocalizationDenoiserByAction::i()->debug();
     //
     // prepare action chain
     //
