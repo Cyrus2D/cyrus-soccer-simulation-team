@@ -21,6 +21,17 @@ typedef vector<PlayerStateCandidate> V_PSC;
 typedef PlayerStateCandidate PSC;
 typedef LocalizationDenoiserByAction LDA;
 
+double LDA::t1 = 0.0;
+double LDA::t2 = 0.0;
+double LDA::t3 = 0.0;
+double LDA::t4 = 0.0;
+double LDA::t5 = 0.0;
+double LDA::t6 = 0.0;
+double LDA::t7 = 0.0;
+double LDA::t8 = 0.0;
+double LDA::t9 = 0.0;
+double LDA::t10 = 0.0;
+
 double get_random(double min = 0.0, double max = 1.0) {
     static std::uniform_real_distribution<double> dis(0.0, 1.0);
     return dis(gen) * (max - min) + min;
@@ -90,9 +101,8 @@ PSC::gen_random_next(const WorldModel &wm, const PlayerObject *p) const {
     return gen_random_next_by_turn(wm, p);
 }
 
-V_PSC
-PSC::gen_max_next_candidates(const WorldModel &wm, const PlayerObject *p) const{
-    V_PSC res;
+void
+PSC::gen_max_next_candidates(const WorldModel &wm, const PlayerObject *p, vector<PlayerStateCandidate> & res) const{
     auto p_type = p->playerTypePtr();
     const ServerParam &SP = ServerParam::i();
     double max_turn_moment = p_type->effectiveTurn(SP.maxMoment(), vel.r());
@@ -109,7 +119,7 @@ PSC::gen_max_next_candidates(const WorldModel &wm, const PlayerObject *p) const{
         Vector2D move = accel + vel;
         res.emplace_back(pos + move, move * p_type->playerDecay(), body);
     }
-    return res;
+//    return res;
 }
 
 PlayerPredictions::PlayerPredictions(SideID side_, int unum_)
@@ -147,6 +157,7 @@ void PlayerPredictions::generate_new_candidates_by_see(const WorldModel &wm, con
                      seen_dir);
         #endif
         candidates.clear();
+        candidates.reserve(max_candidates_size);
         static vector<double> dist_range = {0.0, 1.0, 2.0};
         static vector<double> dir_range = {0.0, 1.0, 2.0};
         for (auto & d: dist_range){
@@ -181,25 +192,27 @@ void PlayerPredictions::generate_new_candidates_by_see(const WorldModel &wm, con
     if (!candidates_removed_by_filtering.empty()){
         int choose_count = candidates.size() / 2;
         V_PSC tmp;
-        vector<pair<double, PSC>> dist_candidates;
-        for (auto c: candidates){
-            dist_candidates.emplace_back(1000, c);
+
+        for (auto & c: candidates){
+            c.tmp_dist = 1000;
             for (auto & f: candidates_removed_by_filtering){
-                dist_candidates.back().first = min(dist_candidates.back().first, c.pos.dist(f.pos));
+                c.tmp_dist = min(c.tmp_dist, c.pos.dist(f.pos));
             }
         }
-        sort(dist_candidates.begin(), dist_candidates.end(),
-             [](const pair<double, PSC> & a, const pair<double, PSC> & b) -> bool
+        sort(candidates.begin(), candidates.end(),
+             [](const PSC & a, const PSC & b) -> bool
              {
-                 return a.first < b.first;
+                 return a.tmp_dist < b.tmp_dist;
              });
-
-        for (int i = 0; i < choose_count; i ++){
-            if (dist_candidates.at(i).first < 3.0)
-                tmp.push_back(dist_candidates.at(i).second);
+        for (int i = 0; i < choose_count && i < candidates.size(); i ++){
+            if (candidates.at(i).tmp_dist > 3.0){
+                choose_count = i - 1;
+                break;
+            }
         }
-        if (!tmp.empty())
-            candidates = tmp;
+        if (choose_count > 0){
+            candidates.erase(candidates.begin() + choose_count, candidates.end());
+        }
     }
 }
 
@@ -246,6 +259,8 @@ void PlayerPredictions::filter_candidates_by_see(const WorldModel &wm, const Pla
     #ifdef DEBUG_ACTION_DENOISER
     dlog.addText(Logger::WORLD, "######## filter candidates ########");
     #endif
+    candidates_removed_by_filtering.clear();
+    candidates_removed_by_filtering.reserve(candidates.size());
     if (p->seenPosCount() != 0)
         return;
     auto self_pos = wm.self().pos();
@@ -267,8 +282,8 @@ void PlayerPredictions::filter_candidates_by_see(const WorldModel &wm, const Pla
         Sector2D seen_sec = Sector2D(wm.self().pos(), avg_dist - dist_err, avg_dist + dist_err,
                                      AngleDeg(seen_dir - 0.6),
                                      AngleDeg(seen_dir + 0.6));
-        candidates_removed_by_filtering.clear();
         V_PSC tmp;
+        tmp.reserve(candidates.size());
         for (PSC t: candidates) {
             bool ignored = false;
             if (seen_sec.contains(t.pos)) {
@@ -324,57 +339,74 @@ void PlayerPredictions::update_candidates(const WorldModel &wm, const PlayerObje
     dlog.addText(Logger::WORLD, "candidate size before update: %d", candidates.size());
     #endif
     V_PSC new_candidates;
+    new_candidates.reserve(max_candidates_size);
     if (candidates.empty())
         return;
     ulong candidates_processed = 0;
-    for (auto &c: candidates) {
-        if (new_candidates.size() + candidates_processed >= max_candidates_size)
+    ulong init_size = candidates.size();
+    candidates.reserve(2 * max_candidates_size);
+    for (ulong i = 0; i < init_size; i++){
+        if (candidates.size() - init_size + init_size - candidates_processed >= max_candidates_size)
             break;
         candidates_processed += 1;
-        #ifdef DEBUG_ACTION_DENOISER
-        dlog.addText(Logger::WORLD, "==== (%.1f, %.1f), (%.1f, %.1f), %.1f", c.pos.x, c.pos.y, c.vel.x, c.vel.y,
-                     c.body);
-        #endif
-        for (auto n: c.gen_max_next_candidates(wm, p)){
-            if (new_candidates.size() + candidates_processed >= max_candidates_size)
-                break;
-            new_candidates.push_back(n);
-            #ifdef DEBUG_ACTION_DENOISER
-            dlog.addText(Logger::WORLD, "====== (%.1f, %.1f), (%.1f, %.1f), %.1f", n.pos.x, n.pos.y, n.vel.x, n.vel.y,
-                         n.body);
-            #endif
-        }
+        candidates.at(i).gen_max_next_candidates(wm, p, candidates);
     }
-    for (ulong i = candidates_processed; i < candidates.size(); i++)
-        new_candidates.push_back(candidates.at(i));
+    candidates.erase(candidates.begin(), candidates.begin() + candidates_processed);
 
     #ifdef DEBUG_ACTION_DENOISER
         dlog.addText(Logger::WORLD, "old candidates size: %d candidate processed: %d new candidate size: %d",
                      candidates.size(), candidates_processed, new_candidates.size());
     #endif
-    candidates.clear();
-    candidates = new_candidates;
 }
 
 void PlayerPredictions::remove_similar_candidates() {
-    auto tmp = candidates;
-    candidates.clear();
-    for (auto nc: tmp)
+    sort(candidates.begin(), candidates.end(), [](const PlayerStateCandidate & a, const PlayerStateCandidate & b) -> bool
     {
-        bool is_far = true;
-        for (auto &c: candidates){
-            if (c.is_close(nc)){
-                is_far = false;
-                break;
+        return a.pos.x < b.pos.x;
+    });
+    ulong size = candidates.size();
+    for (ulong i = 0; i < size; i++){
+        for (ulong j = i + 1; j < size; j++){
+            auto & f1 = candidates.at(i);
+            auto & f2 = candidates.at(j);
+            bool should_removed = f1.is_close(f2);
+//            auto s9 = std::chrono::high_resolution_clock::now();
+            if (should_removed){
+                candidates.erase(candidates.begin() + j);
+                size -= 1;
+                j -= 1;
             }
+            if (f1.pos.x + 0.2 < f2.pos.x)
+                break;
+//            auto s10 = std::chrono::high_resolution_clock::now();
+//            LDA::t7 += std::chrono::duration<double, std::milli>(s9-s8).count();
+//            LDA::t8 += std::chrono::duration<double, std::milli>(s10-s9).count();
         }
-        if (is_far)
-            candidates.push_back(nc);
-        #ifdef DEBUG_ACTION_DENOISER
-        else
-            candidates_removed_by_similarity.push_back(nc);
-        #endif
     }
+//    auto tmp = candidates;
+//    candidates.clear();
+//
+//    for (auto nc: tmp)
+//    {
+//        auto s8 = std::chrono::high_resolution_clock::now();
+//        bool is_far = true;
+//        for (auto &c: candidates){
+//            if (c.is_close(nc)){
+//                is_far = false;
+//                break;
+//            }
+//        }
+//        auto s9 = std::chrono::high_resolution_clock::now();
+//        if (is_far)
+//            candidates.push_back(nc);
+//        auto s10 = std::chrono::high_resolution_clock::now();
+//        LDA::t7 += std::chrono::duration<double, std::milli>(s10-s9).count();
+//        LDA::t8 += std::chrono::duration<double, std::milli>(s9-s8).count();
+//        #ifdef DEBUG_ACTION_DENOISER
+//        else
+//            candidates_removed_by_similarity.push_back(nc);
+//        #endif
+//    }
 }
 
 void PlayerPredictions::clustering(int cluster_count){
@@ -428,16 +460,21 @@ bool PlayerPredictions::player_heard(const WorldModel & wm, const AbstractPlayer
 bool PlayerPredictions::player_seen(const AbstractPlayerObject * p){
     return p->seenPosCount() == 0;
 }
-
+#include <chrono>
 void PlayerPredictions::update(const WorldModel &wm, const PlayerObject *p, int cluster_count) {
     #ifdef DEBUG_ACTION_DENOISER
     dlog.addText(Logger::WORLD, "==================================== %d %d size %d", p->side(), p->unum(),
                  candidates.size());
     #endif
+    auto s1 = std::chrono::high_resolution_clock::now();
     update_candidates(wm, p);
+    auto s2 = std::chrono::high_resolution_clock::now();
     filter_candidates_by_see(wm, p);
+    auto s3 = std::chrono::high_resolution_clock::now();
     filter_candidates_by_hear(wm, p);
+    auto s4 = std::chrono::high_resolution_clock::now();
     remove_similar_candidates();
+    auto s5 = std::chrono::high_resolution_clock::now();
 
     if (candidates.empty()) {
         bool seen_player = player_seen(p);
@@ -451,7 +488,16 @@ void PlayerPredictions::update(const WorldModel &wm, const PlayerObject *p, int 
             generate_new_candidates_by_hear(wm, p);
         }
     }
+    auto s6 = std::chrono::high_resolution_clock::now();
     clustering(cluster_count);
+    auto s7 = std::chrono::high_resolution_clock::now();
+
+    LDA::t1 += std::chrono::duration<double, std::milli>(s2-s1).count();
+    LDA::t2 += std::chrono::duration<double, std::milli>(s3-s2).count();
+    LDA::t3 += std::chrono::duration<double, std::milli>(s4-s3).count();
+    LDA::t4 += std::chrono::duration<double, std::milli>(s5-s4).count();
+    LDA::t5 += std::chrono::duration<double, std::milli>(s6-s5).count();
+    LDA::t6 += std::chrono::duration<double, std::milli>(s7-s6).count();
     #ifdef DEBUG_ACTION_DENOISER
     debug();
     #endif
@@ -524,7 +570,7 @@ void LDA::update_tests(PlayerAgent *agent){
             }
         }
     }
-    if ((wm.time().cycle() == 2999 || wm.time().cycle() == 5999) && wm.time().stopped() == 0)
+//    if ((wm.time().cycle() == 2999 || wm.time().cycle() == 5999) && wm.time().stopped() == 0)
     {
         double base_noises = 0.0;
         double cyrus_noises = 0.0;
@@ -542,6 +588,14 @@ void LDA::update_tests(PlayerAgent *agent){
         }
         if (all_count > 0)
             cout<<"end"<<base_noises / all_count<<" -> "<<cyrus_noises / all_count<<endl;
+        cout<<"t1 "<<LocalizationDenoiserByAction::t1<<endl;
+        cout<<"t2 "<<LocalizationDenoiserByAction::t2<<endl;
+        cout<<"t3 "<<LocalizationDenoiserByAction::t3<<endl;
+        cout<<"t4 "<<LocalizationDenoiserByAction::t4<<endl;
+        cout<<"t5 "<<LocalizationDenoiserByAction::t5<<endl;
+        cout<<"t6 "<<LocalizationDenoiserByAction::t6<<endl;
+        cout<<"t7 "<<LocalizationDenoiserByAction::t7<<endl;
+        cout<<"t8 "<<LocalizationDenoiserByAction::t8<<endl;
     }
 
 }
@@ -559,7 +613,7 @@ void LDA::update_world_model(PlayerAgent * agent){
             if (teammates[p->unum()].average_pos.isValid())
                 p->M_pos = teammates[p->unum()].average_pos;
     }
-    for (auto &p: wm.M_opponents_from_self) {
+    for (auto &p: wm_not_const.M_opponents_from_self) {
         if (p == nullptr)
             continue;
         if (p->unum() <= 0)
@@ -615,5 +669,8 @@ V_PSC LDA::get_cluster_means(const WorldModel &wm, SideID side, int unum) {
     return res;
 }
 
-void LDA::debug() {
+void LDA::debug(PlayerAgent * agent) {
+//    for (auto & p: agent->world().allPlayers()){
+//        dlog.addCircle(Logger::WORLD, p->pos(), 0.1, 255, 0, 0, true);
+//    }
 }

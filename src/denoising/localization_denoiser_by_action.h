@@ -22,6 +22,7 @@ public:
     double body = -360;
     double prob = 1.0;
     bool last_action_is_turn = false;
+    double tmp_dist = 0;
 
     PlayerStateCandidate(Vector2D pos_, Vector2D vel_ = Vector2D::INVALIDATED, double body_ = -360);
 
@@ -33,13 +34,15 @@ public:
 
     PlayerStateCandidate gen_random_next(const WorldModel &wm, const PlayerObject *p) const;
 
-    vector<PlayerStateCandidate> gen_max_next_candidates(const WorldModel &wm, const PlayerObject *p) const;
+    void gen_max_next_candidates(const WorldModel &wm, const PlayerObject *p, vector<PlayerStateCandidate> & vec) const;
 
     bool is_close(const PlayerStateCandidate & other) const{
-        if (pos.dist(other.pos) < 0.2)
-            if (AngleDeg(body - other.body).abs() < 30.0)
-                if ((vel - other.vel).r() < 0.2)
-                    return true;
+        if (abs(pos.x - other.pos.x) < 0.2)
+            if (abs(pos.y - other.pos.y) < 0.2)
+                if (pos.dist(other.pos) < 0.2)
+                    if (AngleDeg(body - other.body).abs() < 30.0)
+                        if ((vel - other.vel).r() < 0.2)
+                            return true;
         return false;
     }
 };
@@ -86,10 +89,21 @@ public:
 
 class LocalizationDenoiserByAction {
 public:
+    static double t1;
+    static double t2;
+    static double t3;
+    static double t4;
+    static double t5;
+    static double t6;
+    static double t7;
+    static double t8;
+    static double t9;
+    static double t10;
+
     map<int, PlayerPredictions> teammates;
     map<int, PlayerPredictions> opponents;
     vector<PlayerStateCandidate> empty_vector;
-    int cluster_count = 3;
+    int cluster_count = 1;
     long last_updated_cycle = -1;
     long last_update_stopped = 0;
     GameMode::Type last_updated_game_mode = GameMode::Type::TimeOver;
@@ -106,7 +120,7 @@ public:
 
     void update_world_model(PlayerAgent * agent);
 
-    void debug();
+    void debug(PlayerAgent * agent);
 };
 
 #endif //CYRUS_LOCALIZATION_DENOISER_BY_ACTION_H
