@@ -68,6 +68,7 @@ protected:
     virtual
     void actionImpl();
 
+    void update_player_by_denoiser() override;
     //! communication decision
     virtual
     void communicationImpl();
