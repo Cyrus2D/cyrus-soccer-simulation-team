@@ -465,3 +465,7 @@ void PlayerPredictionsByAction::debug() {
     }
     dlog.addCircle(Logger::WORLD, average_pos, 0.1, 255, 255, 255, true);
 }
+
+PlayerPredictions * LocalizationDenoiserByAction::create_prediction(SideID side, int unum) {
+    return new PlayerPredictionsByAction(side, unum);
+}

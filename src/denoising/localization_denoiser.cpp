@@ -50,8 +50,7 @@ bool PlayerPredictions::player_seen(const AbstractPlayerObject * p){
 void PlayerPredictions::update(const WorldModel &wm, const PlayerObject *p, int cluster_count) {
 }
 
-template<typename PP>
-void LocalizationDenoiser<PP>::update_tests(PlayerAgent *agent){
+void LocalizationDenoiser::update_tests(PlayerAgent *agent){
     if (!ServerParam::i().fullstateLeft())
         return;
     auto &wm = agent->world();
@@ -119,8 +118,7 @@ void LocalizationDenoiser<PP>::update_tests(PlayerAgent *agent){
 
 }
 
-template<typename PP>
-void LocalizationDenoiser<PP>::update_world_model(PlayerAgent * agent){
+void LocalizationDenoiser::update_world_model(PlayerAgent * agent){
 //    update world model!!
     auto &wm = agent->world();
     auto & wm_not_const = agent->world_not_const();
@@ -148,8 +146,7 @@ void LocalizationDenoiser<PP>::update_world_model(PlayerAgent * agent){
     }
 }
 
-template<typename PP>
-void LocalizationDenoiser<PP>::update(PlayerAgent *agent) {
+void LocalizationDenoiser::update(PlayerAgent *agent) {
     auto &wm = agent->world();
     if (wm.time().cycle() == last_updated_cycle && wm.time().stopped() == last_update_stopped)
         return;
@@ -165,7 +162,7 @@ void LocalizationDenoiser<PP>::update(PlayerAgent *agent) {
         if (p->unum() <= 0)
             continue;
         if (teammates.find(p->unum()) == teammates.end()) {
-            teammates.insert(make_pair(p->unum(), new PP(p->side(), p->unum())));
+            teammates.insert(make_pair(p->unum(), create_prediction(p->side(), p->unum())));
         }
         teammates[p->unum()]->update(wm, p, cluster_count);
     }
@@ -175,7 +172,7 @@ void LocalizationDenoiser<PP>::update(PlayerAgent *agent) {
         if (p->unum() <= 0)
             continue;
         if (opponents.find(p->unum()) == opponents.end()) {
-            opponents.insert(make_pair(p->unum(), new PP(p->side(), p->unum())));
+            opponents.insert(make_pair(p->unum(), create_prediction(p->side(), p->unum())));
         }
             opponents[p->unum()]->update(wm, p, cluster_count);
     }
@@ -185,8 +182,7 @@ void LocalizationDenoiser<PP>::update(PlayerAgent *agent) {
     update_world_model(agent);
 }
 
-template<typename PP>
-Vector2D LocalizationDenoiser<PP>::get_average_pos(const WorldModel &wm, SideID side, int unum){
+Vector2D LocalizationDenoiser::get_average_pos(const WorldModel &wm, SideID side, int unum){
     auto &players_list = (wm.self().side() == side ? teammates : opponents);
     if (players_list.find(unum) == players_list.end()) {
         return Vector2D::INVALIDATED;
@@ -194,12 +190,15 @@ Vector2D LocalizationDenoiser<PP>::get_average_pos(const WorldModel &wm, SideID 
     return players_list.at(unum)->average_pos;
 }
 
-template<typename PP>
-void LocalizationDenoiser<PP>::debug(PlayerAgent * agent) {
+void LocalizationDenoiser::debug(PlayerAgent * agent) {
     #ifdef DEBUG_ACTION_DENOISER
     for (auto & p: agent->world().allPlayers()){
         dlog.addCircle(Logger::WORLD, p->M_base_pos, 0.1, 0, 0, 255, true);
         dlog.addCircle(Logger::WORLD, p->pos(), 0.1, 255, 0, 0, true);
     }
     #endif
+}
+
+PlayerPredictions* LocalizationDenoiser::create_prediction(SideID side, int unum) {
+    return new PlayerPredictions(side, unum);
 }

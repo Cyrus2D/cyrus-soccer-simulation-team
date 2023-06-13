@@ -58,6 +58,9 @@ public:
     vector<PlayerStateCandidate> candidates_means;
     ulong max_candidates_size = 500;
 
+    PlayerPredictionsByAction(SideID side_, int unum_):
+            PlayerPredictions(side_, unum_){}
+
     void generate_new_candidates_by_see(const WorldModel &wm, const PlayerObject *p);
 
     void generate_new_candidates_by_hear(const WorldModel &wm, const PlayerObject *p);
@@ -77,9 +80,9 @@ public:
     void debug();
 };
 
-template<typename PP>
-class LocalizationDenoiserByAction: public LocalizationDenoiser<PP>{
+class LocalizationDenoiserByAction: public LocalizationDenoiser{
 public:
+    PlayerPredictions * create_prediction(SideID side, int unum) override;
 
 };
 

@@ -34,13 +34,11 @@ public:
     bool player_seen(const AbstractPlayerObject * p);
 };
 
-class PlayerPredictionsByAction;
 
-template<typename PP>
 class LocalizationDenoiser {
 public:
-    map<int, PP *> teammates;
-    map<int, PP *> opponents;
+    map<int, PlayerPredictions *> teammates;
+    map<int, PlayerPredictions *> opponents;
     int cluster_count = 1;
     long last_updated_cycle = -1;
     long last_update_stopped = 0;
@@ -54,6 +52,8 @@ public:
     void debug(PlayerAgent * agent);
 
     Vector2D get_average_pos(const WorldModel &wm, SideID side, int unum);
+
+    virtual PlayerPredictions* create_prediction(SideID side, int unum);
 };
 
 #endif //CYRUS_LOCALIZATION_DENOISER_H
