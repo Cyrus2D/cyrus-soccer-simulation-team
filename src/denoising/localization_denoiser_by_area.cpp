@@ -1,0 +1,473 @@
+//
+// Created by nader on 2023-05-15.
+//
+
+#include "localization_denoiser_by_area.h"
+#include <vector>
+#include <rcsc/player/player_agent.h>
+#include <iostream>
+#include <rcsc/common/player_param.h>
+#include "../dkm/dkm.hpp"
+
+using namespace rcsc;
+using namespace std;
+
+Denoising *Denoising::i() {
+    if (instance == nullptr) {
+        instance = new Denoising();
+    }
+    return instance;
+}
+
+Polygon2D mutual_convex(const Polygon2D &p1p, const Polygon2D &p2p) {
+    std::vector<Vector2D> vertices;
+    for (const auto &p: p1p.vertices()) {
+        if (p2p.contains(p))
+            vertices.push_back(p);
+    }
+    for (const auto &p: p2p.vertices()) {
+        if (p1p.contains(p))
+            vertices.push_back(p);
+    }
+    std::vector<std::tuple<Line2D, double, double>> p1l;
+    std::vector<std::tuple<Line2D, double, double>> p2l;
+    for (uint i = 0; i < p1p.vertices().size() - 1; i++) {
+        p1l.emplace_back(std::tuple<Line2D, double, double>
+                                 {
+                                         {p1p.vertices()[i], p1p.vertices()[i + 1]},
+                                         std::min(p1p.vertices()[i].x, p1p.vertices()[i + 1].x),
+                                         std::max(p1p.vertices()[i].x, p1p.vertices()[i + 1].x)
+                                 });
+    }
+    p1l.emplace_back(std::tuple<Line2D, double, double>
+                             {
+                                     {p1p.vertices()[p1p.vertices().size() - 1], p1p.vertices()[0]},
+                                     std::min(p1p.vertices()[p1p.vertices().size() - 1].x, p1p.vertices()[0].x),
+                                     std::max(p1p.vertices()[p1p.vertices().size() - 1].x, p1p.vertices()[0].x)
+                             });
+    for (int i = 0; i < p2p.vertices().size() - 1; i++) {
+        p2l.emplace_back(std::tuple<Line2D, double, double>
+                                 {
+                                         {p2p.vertices()[i], p2p.vertices()[i + 1]},
+                                         std::min(p2p.vertices()[i].x, p2p.vertices()[i + 1].x),
+                                         std::max(p2p.vertices()[i].x, p2p.vertices()[i + 1].x)
+                                 });
+    }
+    p2l.emplace_back(std::tuple<Line2D, double, double>
+                             {
+                                     {p2p.vertices()[p2p.vertices().size() - 1], p2p.vertices()[0]},
+                                     std::min(p2p.vertices()[p2p.vertices().size() - 1].x, p2p.vertices()[0].x),
+                                     std::max(p2p.vertices()[p2p.vertices().size() - 1].x, p2p.vertices()[0].x)
+                             });
+
+
+    for (const auto &d1: p1l) {
+        const auto &l1 = std::get<0>(d1);
+        const auto &min1_x = std::get<1>(d1);
+        const auto &max1_x = std::get<2>(d1);
+        for (const auto &d2: p2l) {
+            const auto &l2 = std::get<0>(d2);
+            const auto &min2_x = std::get<1>(d2);
+            const auto &max2_x = std::get<2>(d2);
+            Vector2D inter = l1.intersection(l2);
+            if (!inter.isValid()) {
+                continue;
+            }
+            if (!(min1_x < inter.x && inter.x < max1_x)) {
+                continue;
+            }
+            if (!(min2_x < inter.x && inter.x < max2_x)) {
+                continue;
+            }
+            vertices.emplace_back(inter);
+        }
+    }
+
+    ConvexHull mutual(vertices);
+    mutual.compute();
+    return mutual.toPolygon();
+
+}
+
+void PlayerPositionConvex::init(std::ifstream &fin, int unum_) {
+    unum = unum_;
+    
+
+    std::string tmp;
+    for (int i = 0; i < 9; i++) {
+        int v_num;
+        fin >> tmp;
+        fin >> tmp;
+
+        fin >> v_num;
+        std::vector<Vector2D> vertices;
+        for (int vi = 0; vi < v_num; vi++) {
+            double x, y;
+            fin >> x >> y;
+            vertices.emplace_back(x, y);
+            std::cout << unum << " -> "
+                      << i << "(" << v_num << "): "
+                      << x << ", " << y << std::endl;
+        }
+        convexes_without_body.push_back(new ConvexHull(vertices));
+        convexes_without_body.back()->compute();
+    }
+}
+
+void PlayerPositionConvex::init(const WorldModel& wm, int unum_) {
+    const ServerParam& SP = ServerParam::i();
+    const int N_ANGLE = 6;
+    const int N_DASH = 10;
+
+    for (int i = 0; i < PlayerParam::i().playerTypes(); i++){
+        const PlayerType* ptype = PlayerTypeSet::i().get(i);
+
+
+        // without body
+        for(int dash_step = 1; dash_step <= N_DASH; dash_step++){
+            const double max_dash_dist = ptype->dashDistanceTable()[0][dash_step - 1];
+
+            std::vector<Vector2D> vertices;
+            for (int angle_step = 0; angle_step < N_ANGLE; angle_step++){
+                const AngleDeg dir = AngleDeg(360./N_ANGLE*angle_step);
+                const Vector2D next_rel_pos = Vector2D::polar2vector(max_dash_dist, dir);
+                vertices.emplace_back(next_rel_pos);
+            }
+            ConvexHull* area = new ConvexHull(vertices);
+            area->compute();
+            convexes_without_body.push_back(area);
+        }
+
+        // with body
+        /*TODO
+         * FILL THE AREAS WITH BODY TURN
+         * OMNI DASH
+         * TURN DASH
+         */
+        std::vector<std::vector<Vector2D>> rel_positions;
+        for (int angle_step = 0; angle_step < N_ANGLE; angle_step++) {
+            const AngleDeg dir = AngleDeg(360./N_ANGLE*angle_step);
+
+            rel_positions.emplace_back(std::vector<Vector2D>{});
+            const double max_accel = SP.maxDashPower()
+                                     * ptype->effortMax()
+                                     * SP.dashDirRate(dir.degree())
+                                     * ptype->dashPowerRate();
+            double speed = 0.;
+            double omni_dash_dist = 0.;
+            double turn_dash_dist = 0.;
+            for(int dash_step = 1; dash_step <= N_DASH; dash_step++){
+                    double accel = max_accel;
+                    if (speed + accel > ptype->realSpeedMax(dir.degree()))
+                        accel = ptype->playerSpeedMax() - speed;
+
+                    speed += accel;
+                    omni_dash_dist += speed;
+
+                    speed *= ptype->playerDecay();
+            }
+        }
+    }
+}
+
+void draw_poly(const Polygon2D &p, const char* color){
+    const auto& vertices = p.vertices();
+    for(uint i = 0; i < vertices.size()-1; i++){
+        dlog.addLine(Logger::WORLD, vertices[i], vertices[i+1], color);
+    }
+    dlog.addLine(Logger::WORLD, vertices[0], vertices[vertices.size() - 1], color);
+}
+
+
+void Denoising::update(PlayerAgent *agent) {
+    if (!ServerParam::i().fullstateLeft())
+        return;
+    const WorldModel &wm = agent->world();
+    const WorldModel &fwm = agent->fullstateWorld();
+
+    if (wm.gameMode().type() != GameMode::PlayOn)
+        return;
+
+    if (wm.seeTime().cycle() != wm.time().cycle())
+        return;
+    Vector2D pos = wm.self().pos();
+    Vector2D fpos = fwm.self().pos();
+
+    self_pos_diff.push_back(pos.dist(fpos));
+}
+
+void Denoising::debug() {
+//        output << "Self:" << endl;
+//        if (D.self_face_diff.size() == 0)
+//            return output;
+//        double self_face_diff_sum = 0;
+//        double self_face_diff_max = 0;
+//        double self_face_diff_avg = 0;
+//        for (auto & d: D.self_face_diff)
+//            self_face_diff_sum += d;
+//        self_face_diff_max = *max_element(D.self_face_diff.begin(), D.self_face_diff.end());
+//        self_face_diff_avg = self_face_diff_sum / double (D.self_face_diff.size());
+//        double self_neck_diff_sum = 0;
+//        double self_neck_diff_max = 0;
+//        double self_neck_diff_avg = 0;
+//        for (auto & d: D.self_neck_diff)
+//            self_neck_diff_sum += d;
+//        self_neck_diff_max = *max_element(D.self_neck_diff.begin(), D.self_neck_diff.end());
+//        self_neck_diff_avg = self_neck_diff_sum / double (D.self_neck_diff.size());
+//        double self_body_diff_sum = 0;
+//        double self_body_diff_max = 0;
+//        double self_body_diff_avg = 0;
+//        for (auto & d: D.self_body_diff)
+//            self_body_diff_sum += d;
+//        self_body_diff_max = *max_element(D.self_body_diff.begin(), D.self_body_diff.end());
+//        self_body_diff_avg = self_body_diff_sum / double (D.self_body_diff.size());
+//
+//        double self_pos_diff_sum = 0;
+//        double self_pos_diff_max = 0;
+//        double self_pos_diff_avg = 0;
+//        for (auto & d: D.self_pos_diff)
+//            self_pos_diff_sum += d;
+//        self_pos_diff_max = *max_element(D.self_pos_diff.begin(), D.self_pos_diff.end());
+//        self_pos_diff_avg = self_pos_diff_sum / double (D.self_pos_diff.size());
+//        output << "face: count"<<D.self_face_diff.size() <<" max:"<<self_face_diff_max<<" avg:"<<self_face_diff_avg<<endl;
+//        output << "neck: count"<<D.self_neck_diff.size() <<" max:"<<self_neck_diff_max<<" avg:"<<self_neck_diff_avg<<endl;
+//        output << "body: count"<<D.self_body_diff.size() <<" max:"<<self_body_diff_max<<" avg:"<<self_body_diff_avg<<endl;
+//        output << "pos: count"<<D.self_pos_diff.size() <<" max:"<<self_pos_diff_max<<" avg:"<<self_pos_diff_avg<<endl;
+//        return output;
+}
+
+#include <random>
+
+static std::default_random_engine gen;
+
+
+PlayerStateCandidateArea::PlayerStateCandidateArea(Vector2D pos_) {
+    pos = pos_;
+    cycle = 0;
+}
+
+#include <rcsc/player/object_table.h>
+
+
+PlayerPredictedObjArea::PlayerPredictedObjArea(SideID side_, int unum_)
+        : object_table() {
+    side = side_;
+    unum = unum_;
+    last_seen_time = GameTime(0, 0);
+    std::string file_name = "vertices/v-" + std::to_string(unum-1);
+    std::ifstream fin(file_name);
+    area = nullptr;
+
+    player_data.init(fin, unum);
+}
+
+PlayerPredictedObjArea::PlayerPredictedObjArea() {
+}
+
+void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const PlayerObject *p) {
+    dlog.addText(Logger::WORLD, "########update candidates");
+    Vector2D rpos = p->pos() - wm.self().pos();
+    double seen_dist = p->seen_dist();
+    AngleDeg seen_dir = rpos.th();
+    double avg_dist;
+    double dist_err;
+    if (area == nullptr) {
+        if (object_table.getMovableObjInfo(seen_dist,
+                                           &avg_dist,
+                                           &dist_err)) {
+            std::vector<Vector2D> poses = {
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir - 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist + dist_err, seen_dir - 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir + 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist + dist_err, seen_dir + 0.5),
+            };
+            ConvexHull tmp(poses);
+            tmp.compute();
+            area = new Polygon2D(tmp.toPolygon().vertices());
+            draw_poly(*area, "#FFFFFF");
+        }
+    }
+    else{
+        if (object_table.getMovableObjInfo(seen_dist,
+                                           &avg_dist,
+                                           &dist_err)) {
+            std::vector<Vector2D> poses = {
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir - 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist + dist_err, seen_dir - 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir + 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist + dist_err, seen_dir + 0.5),
+            };
+            ConvexHull new_area(poses);
+            new_area.compute();
+            int index;
+            if (wm.time().cycle() == last_seen_time.cycle()){
+                index = wm.time().stopped() - last_seen_time.stopped() - 1;
+            }
+            else{
+                index = wm.time().cycle() - last_seen_time.cycle() - 1;
+            }
+            dlog.addText(Logger::WORLD, "unum=%d", unum);
+            dlog.addText(Logger::WORLD, "last_time=%d, index=%d",last_seen_time.cycle(), index);
+            if (0 <= index && index < 9){
+                std::vector<Vector2D> vertices;
+                const ConvexHull* prob_area = player_data.convexes[index];
+                dlog.addText(Logger::WORLD, "pd.c.v=%d", player_data.convexes[index]->vertices().size());
+                for (auto& center: area->vertices()){
+                    for (const auto& v: prob_area->vertices()){
+                        vertices.push_back(v + center);
+                    }
+                }
+                ConvexHull area_conv(vertices);
+                area_conv.compute();
+                Polygon2D prob_poly(area_conv.toPolygon().vertices());
+                Polygon2D mutual_area = mutual_convex(prob_poly, new_area.toPolygon());
+                delete area;
+                area = nullptr;
+                draw_poly(prob_poly, "#FF0000");
+                draw_poly(new_area.toPolygon(), "#0000FF");
+                if (mutual_area.vertices().size() > 2) {
+                    area = new Polygon2D(mutual_area.vertices());
+                    draw_poly(*area, "#000000");
+                }
+            }
+            else {
+                delete area;
+                area = new Polygon2D(new_area.vertices());
+                draw_poly(*area, "#000000");
+            }
+        }
+    }
+    last_seen_time = wm.time();
+
+}
+
+void PlayerPredictedObjArea::update(const WorldModel &wm, const PlayerObject *p, int cluster_count) {
+    dlog.addText(Logger::WORLD, "==================================== %d %d", p->side(), p->unum());
+    if (p->seenPosCount() == 0) {
+        update_candidates(wm, p);
+    } else {
+    }
+
+    Vector2D avg(0, 0);
+    std::vector<std::array<double, 2>> pos_arr;
+//    if (!candidates.empty()) {
+//        for (auto &c: candidates) {
+//            avg += c.pos;
+//            pos_arr.push_back({c.pos.x, c.pos.y});
+//        }
+//        avg.x = avg.x / double(candidates.size());
+//        avg.y = avg.y / double(candidates.size());
+//        average_pos = avg;
+////        dlog.addCircle(Logger::WORLD, avg, 0.2, "#FFFFFF", true);
+//        auto clustering_res = dkm::kmeans_lloyd(pos_arr, cluster_count);
+//        auto means = get<0>(clustering_res);
+//        auto labels = get<1>(clustering_res);
+//        candidates_means.clear();
+//        for (int i = 0; i < means.size(); i++) {
+//            candidates_means.emplace_back(Vector2D(means[i].at(0), means[i].at(1)));
+//
+//        }
+//        int max_cycle = 0;
+//        for (auto & c: candidates)
+//            if (c.cycle > max_cycle)
+//                max_cycle = c.cycle;
+//        for (auto & c: candidates){
+//            dlog.addCircle(Logger::WORLD,
+//                           c.pos,
+//                           0.1,
+//                           int(double (c.cycle) / double (max_cycle) * 255),
+//                           int(double (c.cycle) / double (max_cycle) * 255),
+//                           int(double (c.cycle) / double (max_cycle) * 255),
+//                           false);
+//            dlog.addLine(Logger::WORLD,
+//                         c.pos,
+//                         Vector2D::polar2vector(0.1, c.body) + c.pos,
+//                         int(double (c.cycle) / double (max_cycle) * 255), 0, 0);
+//        }
+////            auto labels = std::get<1>(dkm::kmeans_lloyd(pos_arr, 3));
+////        for (int i = 0; i < means.size(); i++) {
+////            if (i == 0) {
+////                dlog.addCircle(Logger::WORLD, Vector2D(means[i].at(0), means[i].at(1)), 0.2, "#000000", true);
+////            } else if (i == 1) {
+////                dlog.addCircle(Logger::WORLD, Vector2D(means[i].at(0), means[i].at(1)), 0.2, "#00FF00", true);
+////            } else if (i == 2) {
+////                dlog.addCircle(Logger::WORLD, Vector2D(means[i].at(0), means[i].at(1)), 0.2, "#FF0000", true);
+////            }
+////        }
+////        for (int i = 0; i < labels.size(); i++) {
+////            const auto &c = candidates[i];
+////            if (labels[i] == 0) {
+////                dlog.addCircle(Logger::WORLD, c.pos, 0.1, "#000000");
+////            } else if (labels[i] == 1) {
+////                dlog.addCircle(Logger::WORLD, c.pos, 0.1, "#00FF00");
+////            } else if (labels[i] == 2) {
+////                dlog.addCircle(Logger::WORLD, c.pos, 0.1, "#FF0000");
+////            }
+////        }
+//    }
+
+
+
+//        if seen pos == 0
+//          remove candidates
+//          update old candidates
+//          add new candidates
+//        else
+//          update old candidates
+
+}
+
+void PlayerPredictedObjArea::debug() {
+//        for (auto &c: candidates)
+//            dlog.addCircle(Logger::WORLD, c.pos, 0.1, 250, 0, 0);
+}
+
+CyrusDenoiser *CyrusDenoiser::i() {
+    if (instance == nullptr)
+        instance = new CyrusDenoiser();
+    return instance;
+}
+
+void CyrusDenoiser::update(PlayerAgent *agent) {
+    auto &wm = agent->world();
+    last_updated_cycle = wm.time().cycle();
+    last_update_stopped = wm.time().stopped();
+    for (auto &p: wm.teammates()) {
+        if (p == nullptr)
+            continue;
+        if (p->unum() <= 0)
+            continue;
+        if (teammates.find(p->unum()) == teammates.end()) {
+            teammates.insert(make_pair(p->unum(), PlayerPredictedObjArea(p->side(), p->unum())));
+        }
+        teammates[p->unum()].update(wm, p, cluster_count);
+    }
+    for (auto &p: wm.opponents()) {
+        if (p == nullptr)
+            continue;
+        if (p->unum() <= 0)
+            continue;
+        if (opponents.find(p->unum()) == opponents.end()) {
+            opponents.insert(make_pair(p->unum(), PlayerPredictedObjArea(p->side(), p->unum())));
+        }
+        if (opponents.find(p->unum()) != opponents.end())
+            opponents[p->unum()].update(wm, p, cluster_count);
+    }
+}
+
+const vector<PlayerStateCandidateArea> CyrusDenoiser::get_cluster_means(const WorldModel &wm, SideID side, int unum) {
+    auto &players_list = (wm.self().side() == side ? teammates : opponents);
+    if (players_list.find(unum) == players_list.end()) {
+        return empty_vector;
+    }
+    vector<PlayerStateCandidateArea> res;
+    res.push_back(PlayerStateCandidateArea(players_list.at(unum).average_pos));
+    return res;
+}
+
+void CyrusDenoiser::debug() {
+//        for (auto p: teammates)
+//            p.second.debug();
+//        for (auto p: opponents)
+//            p.second.debug();
+}
