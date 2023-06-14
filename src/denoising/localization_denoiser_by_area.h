@@ -20,17 +20,17 @@ void draw_poly(const Polygon2D &p, const char* color);
 
 class PlayerPositionConvex {
 public:
-    int unum;
-    std::vector<ConvexHull *> convexes_with_body;
-    std::vector<ConvexHull *> convexes_without_body;
+    std::vector<std::vector<ConvexHull *>> convexes_with_body;
+    std::vector<std::vector<ConvexHull *>> convexes_without_body;
 
     PlayerPositionConvex()
-            : unum(-1),
-              convexes_with_body(),
-              convexes_without_body(){}
+            : convexes_with_body(),
+              convexes_without_body()
+              {}
 
-    void init(std::ifstream &fin, int unum_);
-    void init(const rcsc::WorldModel& wm, int unum_);
+    void init();
+    ConvexHull* get_convex_with_body(int ptype_id, int pos_count, Vector2D center, AngleDeg rotation);
+    ConvexHull* get_convex_without_body(int ptype_id, int pos_count, Vector2D center);
 
 };
 

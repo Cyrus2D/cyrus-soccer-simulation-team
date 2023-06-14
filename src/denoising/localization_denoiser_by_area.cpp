@@ -9,6 +9,8 @@
 #include <rcsc/common/player_param.h>
 #include "../dkm/dkm.hpp"
 
+#define dd(x) ;//std::cout << #x << std::endl
+
 using namespace rcsc;
 using namespace std;
 
@@ -89,38 +91,16 @@ Polygon2D mutual_convex(const Polygon2D &p1p, const Polygon2D &p2p) {
 
 }
 
-void PlayerPositionConvex::init(std::ifstream &fin, int unum_) {
-    unum = unum_;
-    
-
-    std::string tmp;
-    for (int i = 0; i < 9; i++) {
-        int v_num;
-        fin >> tmp;
-        fin >> tmp;
-
-        fin >> v_num;
-        std::vector<Vector2D> vertices;
-        for (int vi = 0; vi < v_num; vi++) {
-            double x, y;
-            fin >> x >> y;
-            vertices.emplace_back(x, y);
-            std::cout << unum << " -> "
-                      << i << "(" << v_num << "): "
-                      << x << ", " << y << std::endl;
-        }
-        convexes_without_body.push_back(new ConvexHull(vertices));
-        convexes_without_body.back()->compute();
-    }
-}
-
-void PlayerPositionConvex::init(const WorldModel& wm, int unum_) {
+void PlayerPositionConvex::init() {
     const ServerParam& SP = ServerParam::i();
     const int N_ANGLE = 6;
     const int N_DASH = 10;
 
     for (int i = 0; i < PlayerParam::i().playerTypes(); i++){
         const PlayerType* ptype = PlayerTypeSet::i().get(i);
+
+        convexes_with_body.emplace_back(std::vector<ConvexHull*>{});
+        convexes_without_body.emplace_back(std::vector<ConvexHull*>{});
 
 
         // without body
@@ -135,40 +115,110 @@ void PlayerPositionConvex::init(const WorldModel& wm, int unum_) {
             }
             ConvexHull* area = new ConvexHull(vertices);
             area->compute();
-            convexes_without_body.push_back(area);
+            convexes_without_body.back().push_back(area);
         }
 
         // with body
-        /*TODO
-         * FILL THE AREAS WITH BODY TURN
-         * OMNI DASH
-         * TURN DASH
-         */
         std::vector<std::vector<Vector2D>> rel_positions;
+        const double max_turn = ptype->effectiveTurn(SP.maxMoment(), 0);
         for (int angle_step = 0; angle_step < N_ANGLE; angle_step++) {
             const AngleDeg dir = AngleDeg(360./N_ANGLE*angle_step);
 
             rel_positions.emplace_back(std::vector<Vector2D>{});
-            const double max_accel = SP.maxDashPower()
-                                     * ptype->effortMax()
-                                     * SP.dashDirRate(dir.degree())
-                                     * ptype->dashPowerRate();
-            double speed = 0.;
+
+            bool can_turn_in_one_cycle = false;
+
+            if (dir.abs() < max_turn)
+                can_turn_in_one_cycle = true;
+
+
+            const double omni_dash_max_accel = SP.maxDashPower()
+                                               * ptype->effortMax()
+                                               * SP.dashDirRate(dir.degree())
+                                               * ptype->dashPowerRate();
+            const double turn_dash_max_accel = SP.maxDashPower()
+                                               * ptype->effortMax()
+                                               * SP.dashDirRate(0.)
+                                               * ptype->dashPowerRate();
+
+            double omni_dash_speed = 0.;
+            double turn_dash_speed = 0.;
             double omni_dash_dist = 0.;
             double turn_dash_dist = 0.;
             for(int dash_step = 1; dash_step <= N_DASH; dash_step++){
-                    double accel = max_accel;
-                    if (speed + accel > ptype->realSpeedMax(dir.degree()))
-                        accel = ptype->playerSpeedMax() - speed;
+                    double accel = omni_dash_max_accel;
+                    if (omni_dash_speed + accel > ptype->realSpeedMax(dir.degree()))
+                        accel = ptype->realSpeedMax(dir.degree()) - omni_dash_speed;
 
-                    speed += accel;
-                    omni_dash_dist += speed;
+                    omni_dash_speed += accel;
+                    omni_dash_dist += omni_dash_speed;
+                    omni_dash_speed *= ptype->playerDecay();
 
-                    speed *= ptype->playerDecay();
+                    double max_dash_dist = omni_dash_dist;
+                    if (dash_step > 1 && can_turn_in_one_cycle){
+                        accel = turn_dash_max_accel;
+                        if (turn_dash_speed + accel > ptype->realSpeedMax(0))
+                            accel = ptype->realSpeedMax(0.) - turn_dash_speed;
+                        turn_dash_speed += accel;
+                        turn_dash_dist += turn_dash_speed;
+                        turn_dash_speed *= ptype->playerDecay();
+                        if (turn_dash_dist > omni_dash_dist)
+                            max_dash_dist = turn_dash_dist;
+                    }
+                    rel_positions.back().emplace_back(Vector2D::polar2vector(max_dash_dist, dir));
             }
+        }
+
+        // Transpose
+        for (uint j = 0; j < rel_positions.front().size(); j++) {
+            std::vector<Vector2D> vertices;
+            for (uint k = 0; k < rel_positions.size(); k++){
+                vertices.emplace_back(rel_positions[k][j]);
+            }
+            ConvexHull *area = new ConvexHull(vertices);
+            area->compute();
+            convexes_with_body.back().emplace_back(area);
         }
     }
 }
+
+ConvexHull*
+PlayerPositionConvex::get_convex_with_body(int ptype_id, int pos_count, Vector2D center, AngleDeg rotation) {
+    if (pos_count <= 0 || pos_count >=10)
+        return nullptr;
+
+    ptype_id = std::max(Hetero_Default, ptype_id);
+    std::cout << "PT: " << ptype_id << std::endl
+              << "PC: " << pos_count << std::endl
+              << "S1: " << convexes_with_body.size() << std::endl
+              << "S2: " << convexes_with_body[ptype_id].size() << std::endl;
+    const ConvexHull *origin = convexes_with_body[ptype_id][pos_count - 1];
+    vector<Vector2D> vertices;
+    for (const auto &v: origin->vertices()) {
+        vertices.emplace_back(v.rotatedVector(rotation) /*+ center*/);
+    }
+    ConvexHull *area = new ConvexHull(vertices);
+    area->compute();
+    return area;
+
+}
+
+ConvexHull*
+PlayerPositionConvex::get_convex_without_body(int ptype_id, int pos_count, Vector2D center) {
+    if (pos_count <= 0 || pos_count >=10)
+        return nullptr;
+
+    ptype_id = std::max(Hetero_Default, ptype_id);
+    const ConvexHull* origin = convexes_without_body[ptype_id][pos_count - 1];
+    vector<Vector2D> vertices;
+    for(const auto& v: origin->vertices()){
+        vertices.emplace_back(v /*+ center*/);
+    }
+    ConvexHull *area = new ConvexHull(vertices);
+    area->compute();
+    return area;
+}
+
 
 void draw_poly(const Polygon2D &p, const char* color){
     const auto& vertices = p.vertices();
@@ -258,7 +308,7 @@ PlayerPredictedObjArea::PlayerPredictedObjArea(SideID side_, int unum_)
     std::ifstream fin(file_name);
     area = nullptr;
 
-    player_data.init(fin, unum);
+    player_data.init();
 }
 
 PlayerPredictedObjArea::PlayerPredictedObjArea() {
@@ -275,6 +325,7 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
         if (object_table.getMovableObjInfo(seen_dist,
                                            &avg_dist,
                                            &dist_err)) {
+            dd(A);
             std::vector<Vector2D> poses = {
                     wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir - 0.5),
                     wm.self().pos() + Vector2D::polar2vector(avg_dist + dist_err, seen_dir - 0.5),
@@ -284,13 +335,16 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
             ConvexHull tmp(poses);
             tmp.compute();
             area = new Polygon2D(tmp.toPolygon().vertices());
+            dd(B);
             draw_poly(*area, "#FFFFFF");
+            dd(C);
         }
     }
     else{
         if (object_table.getMovableObjInfo(seen_dist,
                                            &avg_dist,
                                            &dist_err)) {
+            dd(D);
             std::vector<Vector2D> poses = {
                     wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir - 0.5),
                     wm.self().pos() + Vector2D::polar2vector(avg_dist + dist_err, seen_dir - 0.5),
@@ -299,34 +353,51 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
             };
             ConvexHull new_area(poses);
             new_area.compute();
+            dd(E);
             int index;
             if (wm.time().cycle() == last_seen_time.cycle()){
-                index = wm.time().stopped() - last_seen_time.stopped() - 1;
+                index = wm.time().stopped() - last_seen_time.stopped();
             }
             else{
-                index = wm.time().cycle() - last_seen_time.cycle() - 1;
+                index = wm.time().cycle() - last_seen_time.cycle();
             }
+            dd(F);
             dlog.addText(Logger::WORLD, "unum=%d", unum);
             dlog.addText(Logger::WORLD, "last_time=%d, index=%d",last_seen_time.cycle(), index);
+            dd(G);
             if (0 <= index && index < 9){
                 std::vector<Vector2D> vertices;
-                const ConvexHull* prob_area = player_data.convexes[index];
-                dlog.addText(Logger::WORLD, "pd.c.v=%d", player_data.convexes[index]->vertices().size());
+                const ConvexHull* prob_area;// = player_data.convexes[index];
+                dd(H);
+                if (p->bodyCount() == 0) {
+                    dd(I);
+                    prob_area = player_data.get_convex_with_body(p->playerTypePtr()->id(), index, p->pos(), p->body());
+                } else {
+                    dd(J);
+                    prob_area = player_data.get_convex_without_body(p->playerTypePtr()->id(), index, p->pos());
+                }
+                dd(K);
+                dlog.addText(Logger::WORLD, "pd.c.v=%d", prob_area->vertices().size());
                 for (auto& center: area->vertices()){
                     for (const auto& v: prob_area->vertices()){
                         vertices.push_back(v + center);
                     }
                 }
+                dd(L);
                 ConvexHull area_conv(vertices);
                 area_conv.compute();
+                dd(M);
                 Polygon2D prob_poly(area_conv.toPolygon().vertices());
+                dd(N);
                 Polygon2D mutual_area = mutual_convex(prob_poly, new_area.toPolygon());
+                dd(O);
                 delete area;
                 area = nullptr;
                 draw_poly(prob_poly, "#FF0000");
                 draw_poly(new_area.toPolygon(), "#0000FF");
                 if (mutual_area.vertices().size() > 2) {
                     area = new Polygon2D(mutual_area.vertices());
+                    dd(P);
                     draw_poly(*area, "#000000");
                 }
             }
