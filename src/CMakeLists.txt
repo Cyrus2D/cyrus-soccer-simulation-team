@@ -88,8 +88,9 @@ chain_action/tackle_generator.cpp
 chain_action/actgen_self_pass.cpp
 chain_action/actgen_strict_check_pass.cpp
 dkm/dkm.hpp
+denoising/localization_denoiser.cpp
 denoising/localization_denoiser_by_action.cpp
-denoising/localization_denoiser.cpp)
+denoising/localization_denoiser_by_area.cpp)
 
 target_include_directories(sample_player
   PRIVATE
@@ -220,3 +221,8 @@ file(
   COPY data
   DESTINATION ${PROJECT_BINARY_DIR}/src
   )
+
+file(
+		COPY vertices
+		DESTINATION ${PROJECT_BINARY_DIR}/src
+)

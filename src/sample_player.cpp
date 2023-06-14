@@ -83,6 +83,8 @@
 #include <rcsc/common/free_message_parser.h>
 
 #include "setting.h"
+#include "denoising/localization_denoiser_by_area.h"
+
 Setting * Setting::instance = nullptr;
 #include <rcsc/param/param_map.h>
 #include <rcsc/param/cmd_line_parser.h>
