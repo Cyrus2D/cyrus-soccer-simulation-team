@@ -14,12 +14,6 @@
 using namespace rcsc;
 using namespace std;
 
-Denoising *Denoising::i() {
-    if (instance == nullptr) {
-        instance = new Denoising();
-    }
-    return instance;
-}
 
 Polygon2D mutual_convex(const Polygon2D &p1p, const Polygon2D &p2p) {
     std::vector<Vector2D> vertices;
@@ -228,69 +222,6 @@ void draw_poly(const Polygon2D &p, const char* color){
     dlog.addLine(Logger::WORLD, vertices[0], vertices[vertices.size() - 1], color);
 }
 
-
-void Denoising::update(PlayerAgent *agent) {
-    if (!ServerParam::i().fullstateLeft())
-        return;
-    const WorldModel &wm = agent->world();
-    const WorldModel &fwm = agent->fullstateWorld();
-
-    if (wm.gameMode().type() != GameMode::PlayOn)
-        return;
-
-    if (wm.seeTime().cycle() != wm.time().cycle())
-        return;
-    Vector2D pos = wm.self().pos();
-    Vector2D fpos = fwm.self().pos();
-
-    self_pos_diff.push_back(pos.dist(fpos));
-}
-
-void Denoising::debug() {
-//        output << "Self:" << endl;
-//        if (D.self_face_diff.size() == 0)
-//            return output;
-//        double self_face_diff_sum = 0;
-//        double self_face_diff_max = 0;
-//        double self_face_diff_avg = 0;
-//        for (auto & d: D.self_face_diff)
-//            self_face_diff_sum += d;
-//        self_face_diff_max = *max_element(D.self_face_diff.begin(), D.self_face_diff.end());
-//        self_face_diff_avg = self_face_diff_sum / double (D.self_face_diff.size());
-//        double self_neck_diff_sum = 0;
-//        double self_neck_diff_max = 0;
-//        double self_neck_diff_avg = 0;
-//        for (auto & d: D.self_neck_diff)
-//            self_neck_diff_sum += d;
-//        self_neck_diff_max = *max_element(D.self_neck_diff.begin(), D.self_neck_diff.end());
-//        self_neck_diff_avg = self_neck_diff_sum / double (D.self_neck_diff.size());
-//        double self_body_diff_sum = 0;
-//        double self_body_diff_max = 0;
-//        double self_body_diff_avg = 0;
-//        for (auto & d: D.self_body_diff)
-//            self_body_diff_sum += d;
-//        self_body_diff_max = *max_element(D.self_body_diff.begin(), D.self_body_diff.end());
-//        self_body_diff_avg = self_body_diff_sum / double (D.self_body_diff.size());
-//
-//        double self_pos_diff_sum = 0;
-//        double self_pos_diff_max = 0;
-//        double self_pos_diff_avg = 0;
-//        for (auto & d: D.self_pos_diff)
-//            self_pos_diff_sum += d;
-//        self_pos_diff_max = *max_element(D.self_pos_diff.begin(), D.self_pos_diff.end());
-//        self_pos_diff_avg = self_pos_diff_sum / double (D.self_pos_diff.size());
-//        output << "face: count"<<D.self_face_diff.size() <<" max:"<<self_face_diff_max<<" avg:"<<self_face_diff_avg<<endl;
-//        output << "neck: count"<<D.self_neck_diff.size() <<" max:"<<self_neck_diff_max<<" avg:"<<self_neck_diff_avg<<endl;
-//        output << "body: count"<<D.self_body_diff.size() <<" max:"<<self_body_diff_max<<" avg:"<<self_body_diff_avg<<endl;
-//        output << "pos: count"<<D.self_pos_diff.size() <<" max:"<<self_pos_diff_max<<" avg:"<<self_pos_diff_avg<<endl;
-//        return output;
-}
-
-#include <random>
-
-static std::default_random_engine gen;
-
-
 PlayerStateCandidateArea::PlayerStateCandidateArea(Vector2D pos_) {
     pos = pos_;
     cycle = 0;
@@ -493,52 +424,3 @@ void PlayerPredictedObjArea::debug() {
 //            dlog.addCircle(Logger::WORLD, c.pos, 0.1, 250, 0, 0);
 }
 
-CyrusDenoiser *CyrusDenoiser::i() {
-    if (instance == nullptr)
-        instance = new CyrusDenoiser();
-    return instance;
-}
-
-void CyrusDenoiser::update(PlayerAgent *agent) {
-    auto &wm = agent->world();
-    last_updated_cycle = wm.time().cycle();
-    last_update_stopped = wm.time().stopped();
-    for (auto &p: wm.teammates()) {
-        if (p == nullptr)
-            continue;
-        if (p->unum() <= 0)
-            continue;
-        if (teammates.find(p->unum()) == teammates.end()) {
-            teammates.insert(make_pair(p->unum(), PlayerPredictedObjArea(p->side(), p->unum())));
-        }
-        teammates[p->unum()].update(wm, p, cluster_count);
-    }
-    for (auto &p: wm.opponents()) {
-        if (p == nullptr)
-            continue;
-        if (p->unum() <= 0)
-            continue;
-        if (opponents.find(p->unum()) == opponents.end()) {
-            opponents.insert(make_pair(p->unum(), PlayerPredictedObjArea(p->side(), p->unum())));
-        }
-        if (opponents.find(p->unum()) != opponents.end())
-            opponents[p->unum()].update(wm, p, cluster_count);
-    }
-}
-
-const vector<PlayerStateCandidateArea> CyrusDenoiser::get_cluster_means(const WorldModel &wm, SideID side, int unum) {
-    auto &players_list = (wm.self().side() == side ? teammates : opponents);
-    if (players_list.find(unum) == players_list.end()) {
-        return empty_vector;
-    }
-    vector<PlayerStateCandidateArea> res;
-    res.push_back(PlayerStateCandidateArea(players_list.at(unum).average_pos));
-    return res;
-}
-
-void CyrusDenoiser::debug() {
-//        for (auto p: teammates)
-//            p.second.debug();
-//        for (auto p: opponents)
-//            p.second.debug();
-}

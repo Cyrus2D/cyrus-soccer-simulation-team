@@ -11,6 +11,7 @@
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/object_table.h>
 #include <rcsc/geom/convex_hull.h>
+#include "localization_denoiser.h"
 
 using namespace rcsc;
 using namespace std;
@@ -35,19 +36,6 @@ public:
 };
 
 
-class Denoising {
-public:
-    static Denoising *instance;
-
-    static Denoising *i();
-
-    std::vector<double> self_pos_diff;
-
-    void update(PlayerAgent *agent);
-
-    void debug();
-};
-
 
 class PlayerStateCandidateArea {
 public:
@@ -55,7 +43,6 @@ public:
     int cycle;
 
     PlayerStateCandidateArea(Vector2D pos_);
-
 };
 
 
@@ -86,27 +73,11 @@ public:
     void debug();
 };
 
-class CyrusDenoiser {
+class LocalizationDenoiserByArea: public LocalizationDenoiser{
 public:
-    map<int, PlayerPredictedObjArea> teammates;
-    map<int, PlayerPredictedObjArea> opponents;
-    vector<PlayerStateCandidateArea> empty_vector;
-    int cluster_count = 1;
-    long last_updated_cycle = -1;
-    long last_update_stopped = 0;
-    GameMode::Type last_updated_game_mode = GameMode::Type::TimeOver;
+    PlayerPredictions * create_prediction(SideID side, int unum) override;
 
-    static CyrusDenoiser *instance;
-
-    static CyrusDenoiser *i();
-
-    void update(PlayerAgent *agent);
-
-    const vector<PlayerStateCandidateArea> get_cluster_means(const WorldModel &wm, SideID side, int unum);
-
-    void debug();
 };
-
 
 
 #endif //CYRUS_DENOISING_H
