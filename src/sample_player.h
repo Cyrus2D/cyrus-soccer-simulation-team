@@ -44,7 +44,7 @@ private:
     FieldEvaluator::ConstPtr M_field_evaluator;
     ActionGenerator::ConstPtr M_action_generator;
 
-    LocalizationDenoiserByAction* M_localization_denoiser;
+    LocalizationDenoiser* M_localization_denoiser;
 public:
     static int player_port;
     SamplePlayer();

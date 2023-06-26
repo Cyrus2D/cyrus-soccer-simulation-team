@@ -46,7 +46,7 @@ public:
 };
 
 
-class PlayerPredictedObjArea {
+class PlayerPredictedObjArea : public PlayerPredictions{
 public:
     SideID side;
     int unum;

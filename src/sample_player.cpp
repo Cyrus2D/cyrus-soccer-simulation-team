@@ -105,7 +105,7 @@ SamplePlayer::SamplePlayer()
     : PlayerAgent(),
       M_communication()
 {
-    M_localization_denoiser = new LocalizationDenoiserByAction();
+    M_localization_denoiser = new LocalizationDenoiserByArea();
     M_field_evaluator = createFieldEvaluator();
     M_action_generator = createActionGenerator();
 

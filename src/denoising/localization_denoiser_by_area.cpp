@@ -9,7 +9,7 @@
 #include <rcsc/common/player_param.h>
 #include "../dkm/dkm.hpp"
 
-#define dd(x) ;//std::cout << #x << std::endl
+#define dd(x) std::cout << #x << std::endl
 
 using namespace rcsc;
 using namespace std;
@@ -178,14 +178,15 @@ void PlayerPositionConvex::init() {
 
 ConvexHull*
 PlayerPositionConvex::get_convex_with_body(int ptype_id, int pos_count, Vector2D center, AngleDeg rotation) {
-    if (pos_count <= 0 || pos_count >=10)
-        return nullptr;
-
     ptype_id = std::max(Hetero_Default, ptype_id);
     std::cout << "PT: " << ptype_id << std::endl
               << "PC: " << pos_count << std::endl
               << "S1: " << convexes_with_body.size() << std::endl
               << "S2: " << convexes_with_body[ptype_id].size() << std::endl;
+    if (pos_count <= 0 || pos_count >=10)
+        return nullptr;
+
+
     const ConvexHull *origin = convexes_with_body[ptype_id][pos_count - 1];
     vector<Vector2D> vertices;
     for (const auto &v: origin->vertices()) {
@@ -199,10 +200,14 @@ PlayerPositionConvex::get_convex_with_body(int ptype_id, int pos_count, Vector2D
 
 ConvexHull*
 PlayerPositionConvex::get_convex_without_body(int ptype_id, int pos_count, Vector2D center) {
+    ptype_id = std::max(Hetero_Default, ptype_id);
+    std::cout << "PT: " << ptype_id << std::endl
+              << "PC: " << pos_count << std::endl
+              << "S1: " << convexes_with_body.size() << std::endl
+              << "S2: " << convexes_with_body[ptype_id].size() << std::endl;
     if (pos_count <= 0 || pos_count >=10)
         return nullptr;
 
-    ptype_id = std::max(Hetero_Default, ptype_id);
     const ConvexHull* origin = convexes_without_body[ptype_id][pos_count - 1];
     vector<Vector2D> vertices;
     for(const auto& v: origin->vertices()){
@@ -286,17 +291,24 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
             new_area.compute();
             dd(E);
             int index;
-            if (wm.time().cycle() == last_seen_time.cycle()){
+            std::cout << "TC: " << wm.time().cycle()  << std::endl
+                        << "TS: " << wm.time().stopped() << std::endl
+                        << "LC: " << last_seen_time.cycle() << std::endl
+                        << "LS: " << last_seen_time.stopped() << std::endl;
+            if (wm.time().stopped() > 0){
                 index = wm.time().stopped() - last_seen_time.stopped();
+                std::cout << "1->index: " << index << std::endl; 
             }
             else{
                 index = wm.time().cycle() - last_seen_time.cycle();
+                std::cout << "2->index: " << index << std::endl; 
             }
             dd(F);
             dlog.addText(Logger::WORLD, "unum=%d", unum);
             dlog.addText(Logger::WORLD, "last_time=%d, index=%d",last_seen_time.cycle(), index);
             dd(G);
             if (0 <= index && index < 9){
+                dd(G2);
                 std::vector<Vector2D> vertices;
                 const ConvexHull* prob_area;// = player_data.convexes[index];
                 dd(H);
@@ -307,34 +319,49 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
                     dd(J);
                     prob_area = player_data.get_convex_without_body(p->playerTypePtr()->id(), index, p->pos());
                 }
-                dd(K);
-                dlog.addText(Logger::WORLD, "pd.c.v=%d", prob_area->vertices().size());
-                for (auto& center: area->vertices()){
-                    for (const auto& v: prob_area->vertices()){
-                        vertices.push_back(v + center);
+                if (prob_area != nullptr){
+                    dd(K);
+                    std::cout << "PBV: " << prob_area->vertices().size() << std::endl;
+                    std::cout << "AV:  " << area->vertices().size() << std::endl;
+                    dlog.addText(Logger::WORLD, "pd.c.v=%d", prob_area->vertices().size());
+                    for (auto& center: area->vertices()){
+                        for (const auto& v: prob_area->vertices()){
+                            vertices.push_back(v + center);
+                        }
+                    }
+                    dd(L);
+                    ConvexHull area_conv(vertices);
+                    area_conv.compute();
+                    dd(M);
+                    Polygon2D prob_poly(area_conv.toPolygon().vertices());
+                    dd(N);
+                    Polygon2D mutual_area = mutual_convex(prob_poly, new_area.toPolygon());
+                    dd(O);
+                    delete area;
+                    area = nullptr;
+                    draw_poly(prob_poly, "#FF0000");
+                    draw_poly(new_area.toPolygon(), "#0000FF");
+                    if (mutual_area.vertices().size() > 2) {
+                        area = new Polygon2D(mutual_area.vertices());
+                        dd(P);
+                        draw_poly(*area, "#000000");
                     }
                 }
-                dd(L);
-                ConvexHull area_conv(vertices);
-                area_conv.compute();
-                dd(M);
-                Polygon2D prob_poly(area_conv.toPolygon().vertices());
-                dd(N);
-                Polygon2D mutual_area = mutual_convex(prob_poly, new_area.toPolygon());
-                dd(O);
-                delete area;
-                area = nullptr;
-                draw_poly(prob_poly, "#FF0000");
-                draw_poly(new_area.toPolygon(), "#0000FF");
-                if (mutual_area.vertices().size() > 2) {
-                    area = new Polygon2D(mutual_area.vertices());
-                    dd(P);
+                else {
+                    dd(G3);
+                    delete area;
+                    dd(G4);
+                    area = new Polygon2D(new_area.vertices());
+                    dd(G5);
                     draw_poly(*area, "#000000");
                 }
             }
             else {
+                dd(G3);
                 delete area;
+                dd(G4);
                 area = new Polygon2D(new_area.vertices());
+                dd(G5);
                 draw_poly(*area, "#000000");
             }
         }
@@ -350,77 +377,15 @@ void PlayerPredictedObjArea::update(const WorldModel &wm, const PlayerObject *p,
     } else {
     }
 
+    average_pos = p->pos();
     Vector2D avg(0, 0);
     std::vector<std::array<double, 2>> pos_arr;
-//    if (!candidates.empty()) {
-//        for (auto &c: candidates) {
-//            avg += c.pos;
-//            pos_arr.push_back({c.pos.x, c.pos.y});
-//        }
-//        avg.x = avg.x / double(candidates.size());
-//        avg.y = avg.y / double(candidates.size());
-//        average_pos = avg;
-////        dlog.addCircle(Logger::WORLD, avg, 0.2, "#FFFFFF", true);
-//        auto clustering_res = dkm::kmeans_lloyd(pos_arr, cluster_count);
-//        auto means = get<0>(clustering_res);
-//        auto labels = get<1>(clustering_res);
-//        candidates_means.clear();
-//        for (int i = 0; i < means.size(); i++) {
-//            candidates_means.emplace_back(Vector2D(means[i].at(0), means[i].at(1)));
-//
-//        }
-//        int max_cycle = 0;
-//        for (auto & c: candidates)
-//            if (c.cycle > max_cycle)
-//                max_cycle = c.cycle;
-//        for (auto & c: candidates){
-//            dlog.addCircle(Logger::WORLD,
-//                           c.pos,
-//                           0.1,
-//                           int(double (c.cycle) / double (max_cycle) * 255),
-//                           int(double (c.cycle) / double (max_cycle) * 255),
-//                           int(double (c.cycle) / double (max_cycle) * 255),
-//                           false);
-//            dlog.addLine(Logger::WORLD,
-//                         c.pos,
-//                         Vector2D::polar2vector(0.1, c.body) + c.pos,
-//                         int(double (c.cycle) / double (max_cycle) * 255), 0, 0);
-//        }
-////            auto labels = std::get<1>(dkm::kmeans_lloyd(pos_arr, 3));
-////        for (int i = 0; i < means.size(); i++) {
-////            if (i == 0) {
-////                dlog.addCircle(Logger::WORLD, Vector2D(means[i].at(0), means[i].at(1)), 0.2, "#000000", true);
-////            } else if (i == 1) {
-////                dlog.addCircle(Logger::WORLD, Vector2D(means[i].at(0), means[i].at(1)), 0.2, "#00FF00", true);
-////            } else if (i == 2) {
-////                dlog.addCircle(Logger::WORLD, Vector2D(means[i].at(0), means[i].at(1)), 0.2, "#FF0000", true);
-////            }
-////        }
-////        for (int i = 0; i < labels.size(); i++) {
-////            const auto &c = candidates[i];
-////            if (labels[i] == 0) {
-////                dlog.addCircle(Logger::WORLD, c.pos, 0.1, "#000000");
-////            } else if (labels[i] == 1) {
-////                dlog.addCircle(Logger::WORLD, c.pos, 0.1, "#00FF00");
-////            } else if (labels[i] == 2) {
-////                dlog.addCircle(Logger::WORLD, c.pos, 0.1, "#FF0000");
-////            }
-////        }
-//    }
-
-
-
-//        if seen pos == 0
-//          remove candidates
-//          update old candidates
-//          add new candidates
-//        else
-//          update old candidates
-
 }
 
 void PlayerPredictedObjArea::debug() {
-//        for (auto &c: candidates)
-//            dlog.addCircle(Logger::WORLD, c.pos, 0.1, 250, 0, 0);
 }
 
+PlayerPredictions *
+LocalizationDenoiserByArea::create_prediction(SideID side, int unum){
+    return new PlayerPredictedObjArea(side, unum);
+}
