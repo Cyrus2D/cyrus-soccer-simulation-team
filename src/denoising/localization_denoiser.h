@@ -42,6 +42,7 @@ public:
     int cluster_count = 1;
     long last_updated_cycle = -1;
     long last_update_stopped = 0;
+    std::ofstream fout;
 
     void update(PlayerAgent *agent);
 

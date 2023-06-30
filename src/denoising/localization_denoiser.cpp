@@ -10,12 +10,10 @@
 #include "localization_denoiser.h"
 #include "../dkm/dkm.hpp"
 #include "../debugs.h"
-
+#include "../sample_player.h"
 
 using namespace rcsc;
 using namespace std;
-
-
 
 static std::default_random_engine gen;
 
@@ -53,6 +51,19 @@ void PlayerPredictions::update(const WorldModel &wm, const PlayerObject *p, int 
 void LocalizationDenoiser::update_tests(PlayerAgent *agent){
     if (!ServerParam::i().fullstateLeft())
         return;
+
+    static bool first_time = true;
+    if (first_time){
+        std::string file_name = "/home/aref/data/DT-" 
+        + std::to_string(agent->world().self().unum())
+        + "-"
+        + std::to_string(SamplePlayer::player_port);
+        std::cout << "DT-NAME:" << file_name << std::endl;
+        fout = std::ofstream(file_name.c_str());
+        first_time = false;
+    }
+
+
     auto &wm = agent->world();
     struct PlayerTestRes {
         double count = 0.0;
@@ -106,14 +117,14 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
             auto & res = player_test_res.at(i);
             if (res.count > 0)
             {
-                cout<<"side "<<(i <= 11 ? "T " : "O ")<<(i <= 11 ? i : i - 11)<<" "<<res.base_noise / res.count <<" -> "<<res.cyrus_noise / res.count<<endl;
+                fout<<"side "<<(i <= 11 ? "T " : "O ")<<(i <= 11 ? i : i - 11)<<" "<<res.base_noise / res.count <<" -> "<<res.cyrus_noise / res.count<<endl;
                 base_noises += res.base_noise;
                 cyrus_noises += res.cyrus_noise;
                 all_count += res.count;
             }
         }
         if (all_count > 0)
-            cout<<"end"<<base_noises / all_count<<" -> "<<cyrus_noises / all_count<<endl;
+            fout<<"end"<<base_noises / all_count<<" -> "<<cyrus_noises / all_count<<endl;
     }
 
 }

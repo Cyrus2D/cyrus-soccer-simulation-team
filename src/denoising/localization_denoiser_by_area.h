@@ -48,12 +48,6 @@ public:
 
 class PlayerPredictedObjArea : public PlayerPredictions{
 public:
-    SideID side;
-    int unum;
-//    vector<PlayerStateCandidate> candidates;
-//    vector<PlayerStateCandidate> candidates_means;
-    ObjectTable object_table;
-    Vector2D average_pos;
     PlayerPositionConvex player_data;
     Polygon2D* area;
     GameTime last_seen_time;
@@ -71,6 +65,8 @@ public:
     void update(const WorldModel &wm, const PlayerObject *p, int cluster_count);
 
     void debug();
+
+    rcsc::Vector2D area_avg();
 };
 
 class LocalizationDenoiserByArea: public LocalizationDenoiser{

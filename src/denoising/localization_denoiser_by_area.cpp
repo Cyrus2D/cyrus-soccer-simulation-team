@@ -9,7 +9,7 @@
 #include <rcsc/common/player_param.h>
 #include "../dkm/dkm.hpp"
 
-#define dd(x) std::cout << #x << std::endl
+#define dd(x) ;//std::cout << #x << std::endl
 
 using namespace rcsc;
 using namespace std;
@@ -235,8 +235,7 @@ PlayerStateCandidateArea::PlayerStateCandidateArea(Vector2D pos_) {
 #include <rcsc/player/object_table.h>
 
 
-PlayerPredictedObjArea::PlayerPredictedObjArea(SideID side_, int unum_)
-        : object_table() {
+PlayerPredictedObjArea::PlayerPredictedObjArea(SideID side_, int unum_) {
     side = side_;
     unum = unum_;
     last_seen_time = GameTime(0, 0);
@@ -370,6 +369,15 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
 
 }
 
+Vector2D 
+PlayerPredictedObjArea::area_avg(){
+    Vector2D avg(0, 0);
+    for(const auto& v: area->vertices())
+        avg += v;
+    avg /= (double)(area->vertices().size());
+    return avg;
+}
+
 void PlayerPredictedObjArea::update(const WorldModel &wm, const PlayerObject *p, int cluster_count) {
     dlog.addText(Logger::WORLD, "==================================== %d %d", p->side(), p->unum());
     if (p->seenPosCount() == 0) {
@@ -377,7 +385,12 @@ void PlayerPredictedObjArea::update(const WorldModel &wm, const PlayerObject *p,
     } else {
     }
 
-    average_pos = p->pos();
+    if (area)
+        average_pos = area_avg();
+    else
+        average_pos = p->pos();
+    
+    dlog.addCircle(Logger::WORLD, average_pos, 1, "#000000", true);
     Vector2D avg(0, 0);
     std::vector<std::array<double, 2>> pos_arr;
 }
