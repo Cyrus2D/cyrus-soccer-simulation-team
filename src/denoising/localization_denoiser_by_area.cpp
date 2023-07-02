@@ -256,6 +256,12 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
     AngleDeg seen_dir = rpos.th();
     double avg_dist;
     double dist_err;
+    
+    Vector2D move_vector = Vector2D(0, 0);
+    if (p->velValid()){
+        move_vector = p->inertiaFinalPoint() - p->pos();
+    }
+
     if (area == nullptr) {
         if (object_table.getMovableObjInfo(seen_dist,
                                            &avg_dist,
@@ -325,7 +331,7 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
                     dlog.addText(Logger::WORLD, "pd.c.v=%d", prob_area->vertices().size());
                     for (auto& center: area->vertices()){
                         for (const auto& v: prob_area->vertices()){
-                            vertices.push_back(v + center);
+                            vertices.push_back(v + center + move_vector);
                         }
                     }
                     dd(L);
