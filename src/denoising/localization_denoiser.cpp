@@ -48,17 +48,30 @@ bool PlayerPredictions::player_seen(const AbstractPlayerObject * p){
 void PlayerPredictions::update(const WorldModel &wm, const PlayerObject *p, int cluster_count) {
 }
 
+std::string
+LocalizationDenoiser::get_model_name(){
+    return "Abstract";
+}
+
 void LocalizationDenoiser::update_tests(PlayerAgent *agent){
     if (!ServerParam::i().fullstateLeft())
         return;
 
     static bool first_time = true;
     if (first_time){
+        char buffer[80];
+        time_t rawtime;
+        struct tm *timeinfo;
+        time(&rawtime);
+        timeinfo = localtime(&rawtime);
+        strftime(buffer, sizeof(buffer), "%Y-%m-%d-%H-%M-%S", timeinfo);
+        std::string time_str(buffer);
+        
         std::string file_name = "/home/aref/data/DT-" 
-        + std::to_string(agent->world().self().unum())
-        + "-"
-        + std::to_string(SamplePlayer::player_port);
-        std::cout << "DT-NAME:" << file_name << std::endl;
+                                + get_model_name() + '-'
+                                + std::to_string(agent->world().self().unum()) + "-"
+                                + std::to_string(SamplePlayer::player_port) + "-"
+                                + time_str;
         fout = std::ofstream(file_name.c_str());
         first_time = false;
     }
@@ -107,7 +120,7 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
             }
         }
     }
-    if ((wm.time().cycle() == 2999 || wm.time().cycle() == 5999) && wm.time().stopped() == 0)
+    if ((wm.time().cycle() == 2999 || wm.time().cycle() == 5999 || wm.time().cycle() == 599) && wm.time().stopped() == 0)
     {
         double base_noises = 0.0;
         double cyrus_noises = 0.0;
@@ -124,7 +137,7 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
             }
         }
         if (all_count > 0)
-            fout<<"end"<<base_noises / all_count<<" -> "<<cyrus_noises / all_count<<endl;
+            fout<<"end "<<base_noises / all_count<<" -> "<<cyrus_noises / all_count<<endl;
     }
 
 }

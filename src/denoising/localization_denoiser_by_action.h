@@ -83,6 +83,7 @@ public:
 class LocalizationDenoiserByAction: public LocalizationDenoiser{
 public:
     PlayerPredictions * create_prediction(SideID side, int unum) override;
+    std::string get_model_name() override;
 
 };
 

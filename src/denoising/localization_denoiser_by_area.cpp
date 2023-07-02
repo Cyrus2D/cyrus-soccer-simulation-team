@@ -140,26 +140,26 @@ void PlayerPositionConvex::init() {
             double omni_dash_dist = 0.;
             double turn_dash_dist = 0.;
             for(int dash_step = 1; dash_step <= N_DASH; dash_step++){
-                    double accel = omni_dash_max_accel;
-                    if (omni_dash_speed + accel > ptype->realSpeedMax(dir.degree()))
-                        accel = ptype->realSpeedMax(dir.degree()) - omni_dash_speed;
+                double accel = omni_dash_max_accel;
+                if (omni_dash_speed + accel > ptype->realSpeedMax(dir.degree()))
+                    accel = ptype->realSpeedMax(dir.degree()) - omni_dash_speed;
 
-                    omni_dash_speed += accel;
-                    omni_dash_dist += omni_dash_speed;
-                    omni_dash_speed *= ptype->playerDecay();
+                omni_dash_speed += accel;
+                omni_dash_dist += omni_dash_speed;
+                omni_dash_speed *= ptype->playerDecay();
 
-                    double max_dash_dist = omni_dash_dist;
-                    if (dash_step > 1 && can_turn_in_one_cycle){
-                        accel = turn_dash_max_accel;
-                        if (turn_dash_speed + accel > ptype->realSpeedMax(0))
-                            accel = ptype->realSpeedMax(0.) - turn_dash_speed;
-                        turn_dash_speed += accel;
-                        turn_dash_dist += turn_dash_speed;
-                        turn_dash_speed *= ptype->playerDecay();
-                        if (turn_dash_dist > omni_dash_dist)
-                            max_dash_dist = turn_dash_dist;
-                    }
-                    rel_positions.back().emplace_back(Vector2D::polar2vector(max_dash_dist, dir));
+                double max_dash_dist = omni_dash_dist;
+                if (dash_step > 1 && can_turn_in_one_cycle){
+                    accel = turn_dash_max_accel;
+                    if (turn_dash_speed + accel > ptype->realSpeedMax(0))
+                        accel = ptype->realSpeedMax(0.) - turn_dash_speed;
+                    turn_dash_speed += accel;
+                    turn_dash_dist += turn_dash_speed;
+                    turn_dash_speed *= ptype->playerDecay();
+                    if (turn_dash_dist > omni_dash_dist)
+                        max_dash_dist = turn_dash_dist;
+                }
+                rel_positions.back().emplace_back(Vector2D::polar2vector(max_dash_dist, dir));
             }
         }
 
@@ -390,7 +390,6 @@ void PlayerPredictedObjArea::update(const WorldModel &wm, const PlayerObject *p,
     else
         average_pos = p->pos();
     
-    dlog.addCircle(Logger::WORLD, average_pos, 1, "#000000", true);
     Vector2D avg(0, 0);
     std::vector<std::array<double, 2>> pos_arr;
 }
@@ -401,4 +400,9 @@ void PlayerPredictedObjArea::debug() {
 PlayerPredictions *
 LocalizationDenoiserByArea::create_prediction(SideID side, int unum){
     return new PlayerPredictedObjArea(side, unum);
+}
+
+std::string
+LocalizationDenoiserByArea::get_model_name(){
+    return "Area";
 }

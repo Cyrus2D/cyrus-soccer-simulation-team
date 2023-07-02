@@ -55,6 +55,8 @@ public:
     Vector2D get_average_pos(const WorldModel &wm, SideID side, int unum);
 
     virtual PlayerPredictions* create_prediction(SideID side, int unum);
+
+    virtual std::string get_model_name();
 };
 
 #endif //CYRUS_LOCALIZATION_DENOISER_H

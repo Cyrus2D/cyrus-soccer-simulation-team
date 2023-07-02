@@ -469,3 +469,8 @@ void PlayerPredictionsByAction::debug() {
 PlayerPredictions * LocalizationDenoiserByAction::create_prediction(SideID side, int unum) {
     return new PlayerPredictionsByAction(side, unum);
 }
+
+std::string
+LocalizationDenoiserByAction::get_model_name(){
+    return "Action";
+}
