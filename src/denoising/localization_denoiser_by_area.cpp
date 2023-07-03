@@ -258,7 +258,7 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
     double dist_err;
     
     Vector2D move_vector = Vector2D(0, 0);
-    if (p->velValid()){
+    if (p->velValid() && p->velCount() <= 1){
         move_vector = p->inertiaFinalPoint() - p->pos();
     }
 
