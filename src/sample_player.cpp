@@ -289,8 +289,8 @@ SamplePlayer::initImpl( CmdLineParser & cmd_parser )
 CalculateOffensiveOpponents* CalculateOffensiveOpponents::instance= nullptr;
 
 void SamplePlayer::update_player_by_denoiser(){
-    M_localization_denoiser->update(this);
-    M_localization_denoiser->debug(this);
+  //  M_localization_denoiser->update(this);
+   // M_localization_denoiser->debug(this);
 }
 
 void
