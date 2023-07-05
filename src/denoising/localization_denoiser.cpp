@@ -87,8 +87,8 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
     for (auto & p: teammates){
         auto t = wm.ourPlayer(p.first);
         if (t != nullptr
-            && p.second->player_heard(wm, t)
-            && p.second->player_seen(t)
+            && (p.second->player_heard(wm, t)
+                || p.second->player_seen(t))
             && p.second->average_pos.isValid()){
             auto avg_pos = get_average_pos(wm, p.second->side, p.second->unum);
             Vector2D full_pos = agent->fullstateWorld().ourPlayer(p.first)->pos();
@@ -105,8 +105,8 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
     for (auto & p: opponents){
         auto o = wm.theirPlayer(p.first);
         if (o != nullptr
-            && p.second->player_heard(wm, o)
-            && p.second->player_seen(o)
+            && (p.second->player_heard(wm, o)
+                || p.second->player_seen(o))
             && p.second->average_pos.isValid()){
             auto avg_pos = get_average_pos(wm, p.second->side, p.second->unum);
             Vector2D full_pos = agent->fullstateWorld().theirPlayer(p.first)->pos();

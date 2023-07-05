@@ -29,9 +29,9 @@ public:
 
     virtual void update(const WorldModel &wm, const PlayerObject *p, int cluster_count);
 
-    bool player_heard(const WorldModel & wm, const AbstractPlayerObject * p);
+    virtual bool player_heard(const WorldModel & wm, const AbstractPlayerObject * p);
 
-    bool player_seen(const AbstractPlayerObject * p);
+    virtual bool player_seen(const AbstractPlayerObject * p);
 };
 
 

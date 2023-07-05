@@ -412,3 +412,8 @@ std::string
 LocalizationDenoiserByArea::get_model_name(){
     return "Area";
 }
+
+bool 
+PlayerPredictedObjArea::player_heard(const WorldModel & wm, const AbstractPlayerObject * p){
+    return false;
+}
