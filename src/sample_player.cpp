@@ -83,8 +83,9 @@
 #include <rcsc/common/free_message_parser.h>
 
 #include "setting.h"
+#include "denoising/localization_denoiser_by_area.h"
+
 Setting * Setting::instance = nullptr;
-LocalizationDenoiserByAction * LocalizationDenoiserByAction::instance = nullptr;
 #include <rcsc/param/param_map.h>
 #include <rcsc/param/cmd_line_parser.h>
 #include "neck/neck_decision.h"
@@ -104,6 +105,7 @@ SamplePlayer::SamplePlayer()
     : PlayerAgent(),
       M_communication()
 {
+    M_localization_denoiser = new LocalizationDenoiserByArea();
     M_field_evaluator = createFieldEvaluator();
     M_action_generator = createActionGenerator();
 
@@ -287,8 +289,8 @@ SamplePlayer::initImpl( CmdLineParser & cmd_parser )
 CalculateOffensiveOpponents* CalculateOffensiveOpponents::instance= nullptr;
 
 void SamplePlayer::update_player_by_denoiser(){
-    LocalizationDenoiserByAction::i()->update(this);
-    LocalizationDenoiserByAction::i()->debug(this);
+    M_localization_denoiser->update(this);
+    M_localization_denoiser->debug(this);
 }
 
 void

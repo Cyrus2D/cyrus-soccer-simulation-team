@@ -19,7 +19,6 @@ using namespace std;
 static std::default_random_engine gen;
 typedef vector<PlayerStateCandidate> V_PSC;
 typedef PlayerStateCandidate PSC;
-typedef LocalizationDenoiserByAction LDA;
 
 
 double get_random(double min = 0.0, double max = 1.0) {
@@ -112,17 +111,7 @@ PSC::gen_max_next_candidates(const WorldModel &wm, const PlayerObject *p, vector
 //    return res;
 }
 
-PlayerPredictions::PlayerPredictions(SideID side_, int unum_)
-        : object_table() {
-    side = side_;
-    unum = unum_;
-
-}
-
-PlayerPredictions::PlayerPredictions() {
-}
-
-void PlayerPredictions::generate_new_candidates_by_see(const WorldModel &wm, const PlayerObject *p) {
+void PlayerPredictionsByAction::generate_new_candidates_by_see(const WorldModel &wm, const PlayerObject *p) {
     auto p_type = p->playerTypePtr();
     const auto & self_pos = wm.self().pos();
     auto rel_pos = p->pos() - wm.self().pos();
@@ -206,7 +195,7 @@ void PlayerPredictions::generate_new_candidates_by_see(const WorldModel &wm, con
     }
 }
 
-void PlayerPredictions::generate_new_candidates_by_hear(const WorldModel &wm, const PlayerObject *p){
+void PlayerPredictionsByAction::generate_new_candidates_by_hear(const WorldModel &wm, const PlayerObject *p){
     auto memory = wm.audioMemory().player();
     Vector2D heard_pos = Vector2D::INVALIDATED;
     double error_dist = 0.25;
@@ -245,7 +234,7 @@ void PlayerPredictions::generate_new_candidates_by_hear(const WorldModel &wm, co
     }
 }
 
-void PlayerPredictions::filter_candidates_by_see(const WorldModel &wm, const PlayerObject *p) {
+void PlayerPredictionsByAction::filter_candidates_by_see(const WorldModel &wm, const PlayerObject *p) {
     #ifdef DEBUG_ACTION_DENOISER
     dlog.addText(Logger::WORLD, "######## filter candidates ########");
     #endif
@@ -302,7 +291,7 @@ void PlayerPredictions::filter_candidates_by_see(const WorldModel &wm, const Pla
         candidates.clear();
 }
 
-void PlayerPredictions::filter_candidates_by_hear(const WorldModel &wm, const PlayerObject *p){
+void PlayerPredictionsByAction::filter_candidates_by_hear(const WorldModel &wm, const PlayerObject *p){
     auto memory = wm.audioMemory().player();
     if (wm.audioMemory().playerTime().cycle() != wm.time().cycle())
         return;
@@ -323,7 +312,7 @@ void PlayerPredictions::filter_candidates_by_hear(const WorldModel &wm, const Pl
     }
 }
 
-void PlayerPredictions::update_candidates(const WorldModel &wm, const PlayerObject *p) {
+void PlayerPredictionsByAction::update_candidates(const WorldModel &wm, const PlayerObject *p) {
     #ifdef DEBUG_ACTION_DENOISER
     dlog.addText(Logger::WORLD, "######## update candidates ########");
     dlog.addText(Logger::WORLD, "candidate size before update: %d", candidates.size());
@@ -349,7 +338,7 @@ void PlayerPredictions::update_candidates(const WorldModel &wm, const PlayerObje
     #endif
 }
 
-void PlayerPredictions::remove_similar_candidates() {
+void PlayerPredictionsByAction::remove_similar_candidates() {
     sort(candidates.begin(), candidates.end(), [](const PlayerStateCandidate & a, const PlayerStateCandidate & b) -> bool
     {
         return a.pos.x < b.pos.x;
@@ -399,7 +388,7 @@ void PlayerPredictions::remove_similar_candidates() {
 //    }
 }
 
-void PlayerPredictions::clustering(int cluster_count){
+void PlayerPredictionsByAction::clustering(int cluster_count){
     average_pos.invalidate();
     Vector2D avg(0, 0);
     if (!candidates.empty()) {
@@ -432,26 +421,8 @@ void PlayerPredictions::clustering(int cluster_count){
     }
 }
 
-bool PlayerPredictions::player_heard(const WorldModel & wm, const AbstractPlayerObject * p){
-    auto memory = wm.audioMemory().player();
-    if (wm.audioMemory().playerTime().cycle() != wm.time().cycle())
-        return false;
-    for (auto & a: memory){
-        int unum = a.unum_;
-        if (p->side() != wm.ourSide())
-            unum -= 11;
-        if (unum == p->unum()){
-            return true;
-        }
-    }
-    return false;
-}
-
-bool PlayerPredictions::player_seen(const AbstractPlayerObject * p){
-    return p->seenPosCount() == 0;
-}
 #include <chrono>
-void PlayerPredictions::update(const WorldModel &wm, const PlayerObject *p, int cluster_count) {
+void PlayerPredictionsByAction::update(const WorldModel &wm, const PlayerObject *p, int cluster_count) {
     #ifdef DEBUG_ACTION_DENOISER
     dlog.addText(Logger::WORLD, "==================================== %d %d size %d", p->side(), p->unum(),
                  candidates.size());
@@ -480,7 +451,7 @@ void PlayerPredictions::update(const WorldModel &wm, const PlayerObject *p, int 
     #endif
 }
 
-void PlayerPredictions::debug() {
+void PlayerPredictionsByAction::debug() {
 //    for (auto &c: candidates_removed_by_similarity)
 //        dlog.addCircle(Logger::WORLD, c.pos, 0.05, 0, 0, 0);
 //    for (auto &c: candidates_removed_by_filtering)
@@ -495,159 +466,11 @@ void PlayerPredictions::debug() {
     dlog.addCircle(Logger::WORLD, average_pos, 0.1, 255, 255, 255, true);
 }
 
-LDA * LDA::i() {
-    if (instance == nullptr)
-        instance = new LDA();
-    return instance;
+PlayerPredictions * LocalizationDenoiserByAction::create_prediction(SideID side, int unum) {
+    return new PlayerPredictionsByAction(side, unum);
 }
 
-void LDA::update_tests(PlayerAgent *agent){
-    if (!ServerParam::i().fullstateLeft())
-        return;
-    auto &wm = agent->world();
-    struct PlayerTestRes {
-        double count = 0.0;
-        double base_noise = 0.0;
-        double cyrus_noise = 0.0;
-    };
-    static vector<PlayerTestRes> player_test_res(23, PlayerTestRes());
-    for (auto & p: teammates){
-        auto t = wm.ourPlayer(p.first);
-        if (t != nullptr
-            && p.second.player_heard(wm, t)
-            && p.second.player_seen(t)
-            && p.second.average_pos.isValid()){
-            auto xxx = LDA::i()->get_cluster_means(wm, p.second.side, p.second.unum);
-            Vector2D full_pos = agent->fullstateWorld().ourPlayer(p.first)->pos();
-            Vector2D pos = wm.ourPlayer(p.first)->pos();
-
-            if (!xxx.empty()){
-                Vector2D cyrus_pos = xxx.at(0).pos;
-                player_test_res.at(p.first).count += 1;
-                player_test_res.at(p.first).base_noise += full_pos.dist(pos);
-                player_test_res.at(p.first).cyrus_noise += cyrus_pos.dist(full_pos);
-            }
-        }
-    }
-    for (auto & p: opponents){
-        auto o = wm.theirPlayer(p.first);
-        if (o != nullptr
-            && p.second.player_heard(wm, o)
-            && p.second.player_seen(o)
-            && p.second.average_pos.isValid()){
-            auto xxx = LDA::i()->get_cluster_means(wm, p.second.side, p.second.unum);
-            Vector2D full_pos = agent->fullstateWorld().theirPlayer(p.first)->pos();
-            Vector2D pos = wm.theirPlayer(p.first)->pos();
-
-            if (!xxx.empty()){
-                Vector2D cyrus_pos = xxx.at(0).pos;
-                player_test_res.at(p.first + 11).count += 1;
-                player_test_res.at(p.first + 11).base_noise += full_pos.dist(pos);
-                player_test_res.at(p.first + 11).cyrus_noise += cyrus_pos.dist(full_pos);
-            }
-        }
-    }
-    if ((wm.time().cycle() == 2999 || wm.time().cycle() == 5999) && wm.time().stopped() == 0)
-    {
-        double base_noises = 0.0;
-        double cyrus_noises = 0.0;
-        double all_count = 0.0;
-        for (int i = 1; i <= 22; i++)
-        {
-            auto & res = player_test_res.at(i);
-            if (res.count > 0)
-            {
-                cout<<"side "<<(i <= 11 ? "T " : "O ")<<(i <= 11 ? i : i - 11)<<" "<<res.base_noise / res.count <<" -> "<<res.cyrus_noise / res.count<<endl;
-                base_noises += res.base_noise;
-                cyrus_noises += res.cyrus_noise;
-                all_count += res.count;
-            }
-        }
-        if (all_count > 0)
-            cout<<"end"<<base_noises / all_count<<" -> "<<cyrus_noises / all_count<<endl;
-    }
-
-}
-
-void LDA::update_world_model(PlayerAgent * agent){
-//    update world model!!
-    auto &wm = agent->world();
-    auto & wm_not_const = agent->world_not_const();
-    for (auto &p: wm_not_const.M_teammates_from_self) {
-        if (p == nullptr)
-            continue;
-        if (p->unum() <= 0)
-            continue;
-        if(teammates[p->unum()].player_seen(p) || teammates[p->unum()].player_heard(wm, p))
-            if (teammates[p->unum()].average_pos.isValid()){
-                p->M_base_pos = p->M_pos;
-                p->M_pos = teammates[p->unum()].average_pos;
-            }
-    }
-    for (auto &p: wm_not_const.M_opponents_from_self) {
-        if (p == nullptr)
-            continue;
-        if (p->unum() <= 0)
-            continue;
-        if(opponents[p->unum()].player_seen(p) || opponents[p->unum()].player_heard(wm, p))
-            if (opponents[p->unum()].average_pos.isValid()){
-                p->M_base_pos = p->M_pos;
-                p->M_pos = opponents[p->unum()].average_pos;
-            }
-    }
-}
-
-void LDA::update(PlayerAgent *agent) {
-    auto &wm = agent->world();
-    if (wm.time().cycle() == last_updated_cycle && wm.time().stopped() == last_update_stopped)
-        return;
-    if (wm.gameMode().type() != GameMode::PlayOn){
-        return;
-    }
-
-    last_updated_cycle = wm.time().cycle();
-    last_update_stopped = wm.time().stopped();
-    for (auto &p: wm.teammates()) {
-        if (p == nullptr)
-            continue;
-        if (p->unum() <= 0)
-            continue;
-        if (teammates.find(p->unum()) == teammates.end()) {
-            teammates.insert(make_pair(p->unum(), PlayerPredictions(p->side(), p->unum())));
-        }
-        teammates[p->unum()].update(wm, p, cluster_count);
-    }
-    for (auto &p: wm.opponents()) {
-        if (p == nullptr)
-            continue;
-        if (p->unum() <= 0)
-            continue;
-        if (opponents.find(p->unum()) == opponents.end()) {
-            opponents.insert(make_pair(p->unum(), PlayerPredictions(p->side(), p->unum())));
-        }
-            opponents[p->unum()].update(wm, p, cluster_count);
-    }
-    #ifdef DEBUG_ACTION_DENOISER
-    update_tests(agent);
-    #endif
-    update_world_model(agent);
-}
-
-V_PSC LDA::get_cluster_means(const WorldModel &wm, SideID side, int unum) {
-    auto &players_list = (wm.self().side() == side ? teammates : opponents);
-    if (players_list.find(unum) == players_list.end()) {
-        return empty_vector;
-    }
-    V_PSC res;
-    res.emplace_back(players_list.at(unum).average_pos);
-    return res;
-}
-
-void LDA::debug(PlayerAgent * agent) {
-    #ifdef DEBUG_ACTION_DENOISER
-    for (auto & p: agent->world().allPlayers()){
-        dlog.addCircle(Logger::WORLD, p->M_base_pos, 0.1, 0, 0, 255, true);
-        dlog.addCircle(Logger::WORLD, p->pos(), 0.1, 255, 0, 0, true);
-    }
-    #endif
+std::string
+LocalizationDenoiserByAction::get_model_name(){
+    return "Action";
 }

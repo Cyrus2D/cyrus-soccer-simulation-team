@@ -30,10 +30,11 @@
 #include "action_generator.h"
 #include "field_evaluator.h"
 #include "communication.h"
-
+//#include "denoising/localization_denoiser.h"
+#include "denoising/localization_denoiser_by_action.h"
 #include <rcsc/player/player_agent.h>
 #include <vector>
-
+//#include "denoising/localization_denoiser_by_action.h"
 class SamplePlayer
     : public rcsc::PlayerAgent {
 private:
@@ -43,6 +44,7 @@ private:
     FieldEvaluator::ConstPtr M_field_evaluator;
     ActionGenerator::ConstPtr M_action_generator;
 
+    LocalizationDenoiser* M_localization_denoiser;
 public:
     static int player_port;
     SamplePlayer();

@@ -10,6 +10,7 @@
 #include <map>
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/object_table.h>
+#include "localization_denoiser.h"
 
 using namespace rcsc;
 using namespace std;
@@ -48,22 +49,17 @@ public:
 };
 
 
-class PlayerPredictions {
+class PlayerPredictionsByAction : public PlayerPredictions{
 public:
-    SideID side;
-    int unum{};
     vector<PlayerStateCandidate> candidates;
     vector<PlayerStateCandidate> candidates_removed_by_similarity;
     vector<PlayerStateCandidate> candidates_removed_by_filtering;
     vector<PlayerStateCandidate> candidates_removed_by_updating;
     vector<PlayerStateCandidate> candidates_means;
-    ObjectTable object_table;
-    Vector2D average_pos;
     ulong max_candidates_size = 500;
 
-    PlayerPredictions(SideID side_, int unum_);
-
-    PlayerPredictions();
+    PlayerPredictionsByAction(SideID side_, int unum_):
+            PlayerPredictions(side_, unum_){}
 
     void generate_new_candidates_by_see(const WorldModel &wm, const PlayerObject *p);
 
@@ -75,41 +71,20 @@ public:
 
     void update_candidates(const WorldModel &wm, const PlayerObject *p);
 
-    void update(const WorldModel &wm, const PlayerObject *p, int cluster_count);
+    void update(const WorldModel &wm, const PlayerObject *p, int cluster_count) override;
 
     void clustering(int cluster_count);
 
     void remove_similar_candidates();
 
-    bool player_heard(const WorldModel & wm, const AbstractPlayerObject * p);
-
-    bool player_seen(const AbstractPlayerObject * p);
     void debug();
 };
 
-class LocalizationDenoiserByAction {
+class LocalizationDenoiserByAction: public LocalizationDenoiser{
 public:
-    map<int, PlayerPredictions> teammates;
-    map<int, PlayerPredictions> opponents;
-    vector<PlayerStateCandidate> empty_vector;
-    int cluster_count = 1;
-    long last_updated_cycle = -1;
-    long last_update_stopped = 0;
-    GameMode::Type last_updated_game_mode = GameMode::Type::TimeOver;
+    PlayerPredictions * create_prediction(SideID side, int unum) override;
+    std::string get_model_name() override;
 
-    static LocalizationDenoiserByAction *instance;
-
-    static LocalizationDenoiserByAction *i();
-
-    void update(PlayerAgent *agent);
-
-    void update_tests(PlayerAgent *agent);
-
-    vector<PlayerStateCandidate> get_cluster_means(const WorldModel &wm, SideID side, int unum);
-
-    void update_world_model(PlayerAgent * agent);
-
-    void debug(PlayerAgent * agent);
 };
 
 #endif //CYRUS_LOCALIZATION_DENOISER_BY_ACTION_H
