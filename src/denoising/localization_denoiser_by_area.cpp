@@ -9,10 +9,15 @@
 #include <rcsc/common/player_param.h>
 #include "../dkm/dkm.hpp"
 
-// #define dd(x) ;
-#define dd(x) std::cout << #x << std::endl
+// #define COUT_DEBUG
 
-// #define DEBUG_PLAYER_AREA
+#ifndef COUT_DEBUG
+#define dd(x) ;
+#else
+#define dd(x) std::cout << #x << std::endl
+#endif
+
+#define DEBUG_PLAYER_AREA
 
 using namespace rcsc;
 using namespace std;
@@ -544,3 +549,9 @@ std::string
 LocalizationDenoiserByArea::get_model_name(){
     return "Area";
 }
+
+bool 
+PlayerPredictedObjArea::player_heard(const WorldModel & wm, const AbstractPlayerObject * p){
+    return false;
+}
+

@@ -87,11 +87,23 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
         double cyrus_noise = 0.0;
     };
     static vector<PlayerTestRes> player_test_res(23, PlayerTestRes());
+
+    if (ball->suck
+        && wm.ball().seenPosCount() == 0
+        && ball->average_pos.isValid()){
+
+        const Vector2D& accurate_pos = agent->fullstateWorld().ball().pos();
+        
+        player_test_res.at(0).count += 1;
+        player_test_res.at(0).base_noise += wm.ball().pos().dist(accurate_pos);
+        player_test_res.at(0).cyrus_noise += ball->average_pos.dist(accurate_pos);
+    }
+
     for (auto & p: teammates){
         auto t = wm.ourPlayer(p.first);
         if (t != nullptr
-            && p.second->player_heard(wm, t)
-            && p.second->player_seen(t)
+            && (p.second->player_heard(wm, t)
+                || p.second->player_seen(t))
             && p.second->average_pos.isValid()){
             auto avg_pos = get_average_pos(wm, p.second->side, p.second->unum);
             Vector2D full_pos = agent->fullstateWorld().ourPlayer(p.first)->pos();
@@ -99,8 +111,15 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
 
             if (avg_pos.isValid()){
                 Vector2D cyrus_pos = avg_pos;
+                // fout << "T,"
+                //      << wm.time().cycle() << ","
+                //      << t->unum() << ","
+                //      << pos.dist(full_pos) << ","
+                //      << cyrus_pos.dist(full_pos)
+                //      << endl;
+
                 player_test_res.at(p.first).count += 1;
-                player_test_res.at(p.first).base_noise += full_pos.dist(pos);
+                player_test_res.at(p.first).base_noise += pos.dist(full_pos);
                 player_test_res.at(p.first).cyrus_noise += cyrus_pos.dist(full_pos);
             }
         }
@@ -108,8 +127,8 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
     for (auto & p: opponents){
         auto o = wm.theirPlayer(p.first);
         if (o != nullptr
-            && p.second->player_heard(wm, o)
-            && p.second->player_seen(o)
+            && (p.second->player_heard(wm, o)
+                || p.second->player_seen(o))
             && p.second->average_pos.isValid()){
             auto avg_pos = get_average_pos(wm, p.second->side, p.second->unum);
             Vector2D full_pos = agent->fullstateWorld().theirPlayer(p.first)->pos();
@@ -117,14 +136,27 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
 
             if (avg_pos.isValid()){
                 Vector2D cyrus_pos = avg_pos;
+
+                // fout << "O,"
+                //      << wm.time().cycle() << ","
+                //      << o->unum() << ","
+                //      << pos.dist(full_pos) << ","
+                //      << cyrus_pos.dist(full_pos)
+                //      << endl;
+
                 player_test_res.at(p.first + 11).count += 1;
-                player_test_res.at(p.first + 11).base_noise += full_pos.dist(pos);
+                player_test_res.at(p.first + 11).base_noise += pos.dist(full_pos);
                 player_test_res.at(p.first + 11).cyrus_noise += cyrus_pos.dist(full_pos);
             }
         }
     }
-    if ((wm.time().cycle() == 2999 || wm.time().cycle() == 5999 || wm.time().cycle() == 599) && wm.time().stopped() == 0)
+    if ((wm.time().cycle() == 2999 || wm.time().cycle() == 5999) && wm.time().stopped() == 0)
     {
+        fout <<"BALL " 
+             << player_test_res.at(0).base_noise / player_test_res.at(0).count 
+             <<" -> "
+             << player_test_res.at(0).cyrus_noise / player_test_res.at(0).count << endl;
+
         double base_noises = 0.0;
         double cyrus_noises = 0.0;
         double all_count = 0.0;
@@ -133,7 +165,14 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
             auto & res = player_test_res.at(i);
             if (res.count > 0)
             {
-                fout<<"side "<<(i <= 11 ? "T " : "O ")<<(i <= 11 ? i : i - 11)<<" "<<res.base_noise / res.count <<" -> "<<res.cyrus_noise / res.count<<endl;
+                fout <<"side "
+                     << (i <= 11 ? "T " : "O ")
+                     << (i <= 11 ? i : i - 11) 
+                     << " "
+                     << res.base_noise / res.count 
+                     << " -> "
+                     << res.cyrus_noise / res.count << endl;
+
                 base_noises += res.base_noise;
                 cyrus_noises += res.cyrus_noise;
                 all_count += res.count;

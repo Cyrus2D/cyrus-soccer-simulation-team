@@ -66,6 +66,8 @@ public:
 
     void debug();
 
+    bool player_heard(const WorldModel & wm, const AbstractPlayerObject * p) override;
+
     rcsc::Vector2D area_avg();
 };
 
