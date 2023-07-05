@@ -37,7 +37,7 @@
 #include "sample_field_evaluator.h"
 #include "chain_action/bhv_pass_kick_find_receiver.h"
 #include "data_extractor/offensive_data_extractor.h"
-
+#include "denoising/localization_denoiser_by_action.h"
 #include "roles/soccer_role.h"
 
 #include "sample_communication.h"
@@ -83,8 +83,9 @@
 #include <rcsc/common/free_message_parser.h>
 
 #include "setting.h"
-Setting * Setting::instance = nullptr;
+#include "denoising/localization_denoiser_by_area.h"
 
+Setting * Setting::instance = nullptr;
 #include <rcsc/param/param_map.h>
 #include <rcsc/param/cmd_line_parser.h>
 #include "neck/neck_decision.h"
@@ -104,6 +105,7 @@ SamplePlayer::SamplePlayer()
     : PlayerAgent(),
       M_communication()
 {
+    M_localization_denoiser = new LocalizationDenoiserByArea();
     M_field_evaluator = createFieldEvaluator();
     M_action_generator = createActionGenerator();
 
@@ -285,6 +287,12 @@ SamplePlayer::initImpl( CmdLineParser & cmd_parser )
 #include <chrono>         // std::chrono::seconds
 #include "calculate_offensive_opponents.h"
 CalculateOffensiveOpponents* CalculateOffensiveOpponents::instance= nullptr;
+
+void SamplePlayer::update_player_by_denoiser(){
+  //  M_localization_denoiser->update(this);
+   // M_localization_denoiser->debug(this);
+}
+
 void
 SamplePlayer::actionImpl()
 {
