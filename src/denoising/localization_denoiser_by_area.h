@@ -69,9 +69,21 @@ public:
     rcsc::Vector2D area_avg();
 };
 
+class BallPredictionArea: public BallPrediction {
+public:
+    rcsc::Polygon2D* area;
+    rcsc::GameTime last_seen_time;
+    rcsc::Vector2D last_vel;
+
+    BallPredictionArea();
+    void update(const rcsc::WorldModel& wm, const int cluster_count) override;
+    rcsc::Vector2D area_avg();
+};
+
 class LocalizationDenoiserByArea: public LocalizationDenoiser{
 public:
-    PlayerPredictions * create_prediction(SideID side, int unum) override;
+    PlayerPredictions* create_prediction(SideID side, int unum) override;
+    BallPrediction* create_ball_prediction() override;
     std::string get_model_name() override;
 
 };

@@ -9,7 +9,10 @@
 #include <rcsc/common/player_param.h>
 #include "../dkm/dkm.hpp"
 
-#define dd(x) ;//std::cout << #x << std::endl
+// #define dd(x) ;
+#define dd(x) std::cout << #x << std::endl
+
+// #define DEBUG_PLAYER_AREA
 
 using namespace rcsc;
 using namespace std;
@@ -277,7 +280,9 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
             tmp.compute();
             area = new Polygon2D(tmp.toPolygon().vertices());
             dd(B);
+            #ifdef DEBUG_PLAYER_AREA
             draw_poly(*area, "#FFFFFF");
+            #endif
             dd(C);
         }
     }
@@ -344,8 +349,10 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
                     dd(O);
                     delete area;
                     area = nullptr;
+                    #ifdef DEBUG_PLAYER_AREA
                     draw_poly(prob_poly, "#FF0000");
                     draw_poly(new_area.toPolygon(), "#0000FF");
+                    #endif
                     if (mutual_area.vertices().size() > 2) {
                         area = new Polygon2D(mutual_area.vertices());
                         dd(P);
@@ -358,7 +365,9 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
                     dd(G4);
                     area = new Polygon2D(new_area.vertices());
                     dd(G5);
+                    #ifdef DEBUG_PLAYER_AREA
                     draw_poly(*area, "#000000");
+                    #endif
                 }
             }
             else {
@@ -367,7 +376,9 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
                 dd(G4);
                 area = new Polygon2D(new_area.vertices());
                 dd(G5);
+                #ifdef DEBUG_PLAYER_AREA
                 draw_poly(*area, "#000000");
+                #endif
             }
         }
     }
@@ -400,12 +411,133 @@ void PlayerPredictedObjArea::update(const WorldModel &wm, const PlayerObject *p,
     std::vector<std::array<double, 2>> pos_arr;
 }
 
+BallPredictionArea::BallPredictionArea()
+    : BallPrediction(){
+        area = nullptr;
+        last_seen_time = GameTime(0, 0);
+        last_vel = Vector2D().invalidate();
+    }
+
+void
+BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
+    suck = false;
+    if (wm.gameMode().type() != GameMode::PlayOn){
+        area = nullptr;
+        return;
+    }
+
+    if (wm.ball().seenPosCount() > 0){
+        return;
+    }
+
+    dd(BA);
+
+
+    if (area){
+        const int time_diff = wm.time().cycle() - last_seen_time.cycle();
+        Vector2D ball_move(0, 0);
+        Vector2D tmp_vel = last_vel;
+
+        for (int i = 0; i < time_diff; i++){
+            ball_move += tmp_vel;
+            tmp_vel *= ServerParam::i().ballDecay();
+        }
+        dd(BB);
+
+        Polygon2D ball_area_prediction;
+        for (const auto& v: area->vertices())
+            ball_area_prediction.addVertex(v + ball_move);
+        dd(BC);
+        
+        draw_poly(ball_area_prediction, "#FF0000");
+        double seen_dist = wm.ball().seen_dist();
+        AngleDeg seen_dir = wm.ball().seen_angle();
+        double avg_dist;
+        double dist_err;
+        Polygon2D new_area;
+        if (object_table.getMovableObjInfo(seen_dist,
+                                           &avg_dist,
+                                           &dist_err)) {
+            std::vector<Vector2D> poses = {
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir - 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist + dist_err, seen_dir - 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir + 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist + dist_err, seen_dir + 0.5),
+            };
+            ConvexHull tmp(poses);
+            tmp.compute();
+            new_area = Polygon2D(tmp.toPolygon().vertices());
+        }
+        dd(BD);
+        draw_poly(new_area, "#0000FF");
+        Polygon2D mutual = mutual_convex(ball_area_prediction, new_area);
+        
+        delete area;
+        area = nullptr;
+        dd(BE);
+        if (mutual.vertices().size() > 2){
+            area = new Polygon2D(mutual);
+        }
+        else{
+            area = new Polygon2D(new_area);
+        }
+        draw_poly(*area, "#000000");
+        dd(BF);
+    }
+    else{
+        double seen_dist = wm.ball().seen_dist();
+        AngleDeg seen_dir = wm.ball().seen_angle();
+        double avg_dist;
+        double dist_err;
+         if (object_table.getMovableObjInfo(seen_dist,
+                                           &avg_dist,
+                                           &dist_err)) {
+        std::vector<Vector2D> poses = {
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir - 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist + dist_err, seen_dir - 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir + 0.5),
+                    wm.self().pos() + Vector2D::polar2vector(avg_dist + dist_err, seen_dir + 0.5),
+            };
+            ConvexHull tmp(poses);
+            tmp.compute();
+            area = new Polygon2D(tmp.toPolygon().vertices());
+            draw_poly(*area, "#FFFFFF");
+        }
+    }
+
+    if (area){
+        average_pos = area_avg();
+    }
+    else{
+        average_pos = wm.ball().pos();
+    }
+
+    suck = true;
+    last_seen_time = wm.time();
+    last_vel = wm.ball().vel();
+}
+
+Vector2D 
+BallPredictionArea::area_avg(){
+    Vector2D avg(0, 0);
+    for(const auto& v: area->vertices())
+        avg += v;
+    avg /= (double)(area->vertices().size());
+    return avg;
+}
+
+
 void PlayerPredictedObjArea::debug() {
 }
 
 PlayerPredictions *
 LocalizationDenoiserByArea::create_prediction(SideID side, int unum){
     return new PlayerPredictedObjArea(side, unum);
+}
+
+BallPrediction*
+LocalizationDenoiserByArea::create_ball_prediction(){
+    return new BallPredictionArea();
 }
 
 std::string
