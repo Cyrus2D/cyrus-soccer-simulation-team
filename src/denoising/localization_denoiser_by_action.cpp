@@ -179,7 +179,7 @@ void PlayerPredictions::generate_new_candidates_by_see(const WorldModel &wm, con
             }
         }
     }
-    if (!candidates_removed_by_filtering.empty()){
+    if (!candidates_removed_by_filtering.empty() && false){
         int choose_count = candidates.size() / 2;
         V_PSC tmp;
 
@@ -209,7 +209,7 @@ void PlayerPredictions::generate_new_candidates_by_see(const WorldModel &wm, con
 void PlayerPredictions::generate_new_candidates_by_hear(const WorldModel &wm, const PlayerObject *p){
     auto memory = wm.audioMemory().player();
     Vector2D heard_pos = Vector2D::INVALIDATED;
-    double error_dist = 0.5;
+    double error_dist = 0.25;
     double heard_body = -360.0;
     if (wm.audioMemory().playerTime().cycle() != wm.time().cycle())
         return;
@@ -219,7 +219,7 @@ void PlayerPredictions::generate_new_candidates_by_hear(const WorldModel &wm, co
             unum -= 11;
         if (unum == p->unum()){
             heard_pos = a.pos_;
-            error_dist = a.pos_count_ + 0.5;
+            error_dist = a.pos_count_ * 0.6 + 0.25;
             heard_body = a.body_;
             dlog.addCircle(Logger::WORLD, a.pos_, error_dist, 255,0,0);
             break;
@@ -311,7 +311,7 @@ void PlayerPredictions::filter_candidates_by_hear(const WorldModel &wm, const Pl
         if (p->side() != wm.ourSide())
             unum -= 11;
         if (unum == p->unum()){
-            double err = a.pos_count_ + 0.5;
+            double err = a.pos_count_ * 0.6 + 0.25;
             dlog.addCircle(Logger::WORLD, a.pos_, err, 255,0,0);
             V_PSC tmp;
             for (auto c: candidates)
