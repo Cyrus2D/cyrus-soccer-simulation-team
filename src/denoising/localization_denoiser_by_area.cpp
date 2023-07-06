@@ -12,7 +12,7 @@
 
 // #define COUT_DEBUG
 
-// #ifndef COUT_DEBUG
+#ifndef COUT_DEBUG
 #define dd(x) ;
 #else
 #define dd(x) std::cout << #x << std::endl
