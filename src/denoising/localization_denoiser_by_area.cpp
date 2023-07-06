@@ -12,14 +12,14 @@
 
 // #define COUT_DEBUG
 
-#ifndef COUT_DEBUG
+// #ifndef COUT_DEBUG
 #define dd(x) ;
 #else
 #define dd(x) std::cout << #x << std::endl
 #endif
 
-#define DEBUG_PLAYER_AREA
-#define DEBUG_DENOISE_AREA
+// #define DEBUG_PLAYER_AREA
+// #define DEBUG_DENOISE_AREA
 
 using namespace rcsc;
 using namespace std;
@@ -482,7 +482,7 @@ void PlayerPredictedObjArea::update_by_hear(const WorldModel &wm, const PlayerOb
             heard_body = a.body_;
             heard_pos_count = a.pos_count_;
 
-            dlog.addCircle(Logger::WORLD, a.pos_, error_dist, 255,0,0);
+            // dlog.addCircle(Logger::WORLD, a.pos_, error_dist, 255,0,0);
             break;
         }
     }
@@ -517,9 +517,6 @@ void PlayerPredictedObjArea::update_by_hear(const WorldModel &wm, const PlayerOb
     int index = heard_pos_count;
     dd(HD);
 
-    dlog.addText(Logger::WORLD, "unum=%d", p->unum());
-    dlog.addText(Logger::WORLD, "poscount=%d", heard_pos_count);
-    dlog.addText(Logger::WORLD, "index=%d", index);
     const ConvexHull* prob_area;
     if (body_valid){
         prob_area = player_data.get_convex_without_body(p->playerTypePtr()->id(), index, p->pos());
