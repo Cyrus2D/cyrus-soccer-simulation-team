@@ -70,7 +70,8 @@ public:
 
     bool player_heard(const WorldModel & wm, const AbstractPlayerObject * p) override;
 
-    rcsc::Vector2D area_avg();
+    rcsc::Vector2D vertices_avg();
+    rcsc::Vector2D get_avg();
 };
 
 class LocalizationDenoiserByArea: public LocalizationDenoiser{

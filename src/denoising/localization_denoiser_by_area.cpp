@@ -17,8 +17,8 @@
 #define dd(x) std::cout << #x << std::endl
 #endif
 
-#define DEBUG_PLAYER_AREA
-// #define USE_AVG_FOR_AREA // COMMENT ME IF U WANT CENTER_SOMETHING
+// #define DEBUG_PLAYER_AREA
+// #define DEBUG_DENOISE_AREA
 
 using namespace rcsc;
 using namespace std;
@@ -274,7 +274,9 @@ PlayerPredictedObjArea::PlayerPredictedObjArea() {
 }
 
 void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const PlayerObject *p) {
+    #ifdef DEBUG_DENOISE_AREA
     dlog.addText(Logger::WORLD, "########update candidates");
+    #endif
     Vector2D rpos = p->pos() - wm.self().pos();
     double seen_dist = p->seen_dist();
     AngleDeg seen_dir = rpos.th();
@@ -335,8 +337,10 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
                 std::cout << "2->index: " << index << std::endl; 
             }
             dd(F);
+            #ifdef DEBUG_DENOISE_AREA
             dlog.addText(Logger::WORLD, "unum=%d", unum);
             dlog.addText(Logger::WORLD, "last_time=%d, index=%d",last_seen_time.cycle(), index);
+            #endif
             dd(G);
             if (0 <= index && index < 9){
                 dd(G2);
@@ -354,7 +358,9 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
                     dd(K);
                     std::cout << "PBV: " << prob_area->vertices().size() << std::endl;
                     std::cout << "AV:  " << area->vertices().size() << std::endl;
+                    #ifdef DEBUG_DENOISE_AREA    
                     dlog.addText(Logger::WORLD, "pd.c.v=%d", prob_area->vertices().size());
+                    #endif
                     for (auto& center: area->vertices()){
                         for (const auto& v: prob_area->vertices()){
                             vertices.push_back(v + center + move_vector);
@@ -377,7 +383,9 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
                     if (mutual_area.vertices().size() > 2) {
                         area = new Polygon2D(mutual_area.vertices());
                         dd(P);
+                        #ifdef DEBUG_PLAYER_AREA
                         draw_poly(*area, "#000000");
+                        #endif
                     }
                 }
                 else {
@@ -414,10 +422,9 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
 
 }
 
-#ifdef USE_AVG_FOR_AREA
 
 Vector2D 
-PlayerPredictedObjArea::area_avg(){
+PlayerPredictedObjArea::vertices_avg(){
     Vector2D avg(0, 0);
     for(const auto& v: area->vertices())
         avg += v;
@@ -425,12 +432,14 @@ PlayerPredictedObjArea::area_avg(){
     return avg;
 }
 
-#else
-
 Vector2D 
-PlayerPredictedObjArea::area_avg(){
+PlayerPredictedObjArea::get_avg(){
     Vector2D avg(0, 0);
     double s = area->area();
+
+    if (s == 0.){
+        return vertices_avg();
+    }
     
     vector<Vector2D> vs(area->vertices());
     vs.push_back(vs.front()); // 0 == n
@@ -440,26 +449,29 @@ PlayerPredictedObjArea::area_avg(){
         avg.y += (vs[i].y + vs[i+1].y) * (vs[i].x*vs[i+1].y - vs[i+1].x*vs[i].y);
     }
 
-    dlog.addText(Logger::WORLD, "AREA AVG --------------------------------------------------------------------");
 
     avg *= 1/(6*s);
+
+    #ifdef DEBUG_DENOISE_AREA
+    dlog.addText(Logger::WORLD, "AREA AVG --------------------------------------------------------------------");
     dlog.addText(Logger::WORLD, "s=%.2f, avg=(%.2f, %.2f);", s, avg.x, avg.y);
+    #endif
 
     return avg;
 }
 
-#endif
-
-
 void PlayerPredictedObjArea::update(const WorldModel &wm, const PlayerObject *p, int cluster_count) {
+    #ifdef DEBUG_DENOISE_AREA
     dlog.addText(Logger::WORLD, "==================================== %d %d", p->side(), p->unum());
+    #endif
+
     if (p->seenPosCount() == 0) {
         update_candidates(wm, p);
     } else {
     }
 
     if (area)
-        average_pos = area_avg();
+        average_pos = get_avg();
     else
         average_pos = p->pos();
     
