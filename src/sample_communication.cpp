@@ -1100,7 +1100,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
             {
                 const AbstractPlayerObject * t = wm.ourPlayer( unum );
                 if ( ! t
-                     || t->unumCount() >= 2 )
+                     || t->unumCount() >= 2 || t->posCount() >= 2 )
                 {
                     objects[unum].score_ = -65535.0;
                 }
@@ -1477,7 +1477,8 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
                                                                   p2_unum,
                                                                   p2_pos ) );
 
-                }else if(p2->posCount() == 1){
+                }
+                else if(p2->posCount() == 1){
                     agent->addSayMessage( new ThreePlayerMessage001( p0_unum,
                                                                      p0_pos,
                                                                      p1_unum,
@@ -1485,7 +1486,8 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
                                                                      p2_unum,
                                                                      p2_pos ) );
 
-                }else if(p2->posCount() == 2){
+                }
+                else if(p2->posCount() == 2){
                     agent->addSayMessage( new ThreePlayerMessage002( p0_unum,
                                                                      p0_pos,
                                                                      p1_unum,
@@ -1494,7 +1496,8 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
                                                                      p2_pos ) );
 
                 }
-            }else if(p1->posCount() == 1){
+            }
+            else if(p1->posCount() == 1){
                 if(p2->posCount() == 0){
                     agent->addSayMessage( new ThreePlayerMessage001( p0_unum,
                                                                      p0_pos,
@@ -1520,7 +1523,8 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
                                                                      p2_pos ) );
 
                 }
-            }else if(p1->posCount() == 2){
+            }
+            else if(p1->posCount() == 2){
                 if(p2->posCount() == 0){
                     agent->addSayMessage( new ThreePlayerMessage002( p0_unum,
                                                                      p0_pos,
@@ -1547,8 +1551,8 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
 
                 }
             }
-        }else if (p0->posCount() == 1){
-
+        }
+        else if (p0->posCount() == 1){
             if(p1->posCount() == 0){
                 if(p2->posCount() == 0){
                     agent->addSayMessage( new ThreePlayerMessage001( p2_unum,
@@ -1629,9 +1633,8 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
                 }
             }
 
-        }else if(p0->posCount() == 2){
-
-
+        }
+        else if(p0->posCount() == 2){
             if(p1->posCount() == 0){
                 if(p2->posCount() == 0){
                     agent->addSayMessage( new ThreePlayerMessage002( p2_unum,
@@ -1713,10 +1716,8 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
             }
 
 
-        }else{
-
-
-
+        }
+        else{
             if(p1->posCount() == 0){
                 if(p2->posCount() == 0){
                     agent->addSayMessage( new ThreePlayerMessage( self_unum,
@@ -1825,10 +1826,67 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
             p0_pos = agent->effector().queuedNextMyPos();
         if(send_players[1].number_ == wm.self().unum())
             p1_pos = agent->effector().queuedNextMyPos();
-        agent->addSayMessage( new TwoPlayerMessage( send_players[0].number_,
-                              p0_pos,
-                              send_players[1].number_,
-                p1_pos ) );
+        if (p0->posCount() == 0 && p1->posCount() == 0){
+            agent->addSayMessage( new TwoPlayerMessage( send_players[0].number_,
+                                                        p0_pos,
+                                                        send_players[1].number_,
+                                                        p1_pos ) );
+        }
+        else if (p0->posCount() == 0 && p1->posCount() == 1){
+            agent->addSayMessage( new TwoPlayerMessage01( send_players[0].number_,
+                                                        p0_pos,
+                                                        send_players[1].number_,
+                                                        p1_pos ) );
+        }
+        else if (p0->posCount() == 1 && p1->posCount() == 0){
+            agent->addSayMessage( new TwoPlayerMessage01( send_players[1].number_,
+                                                          p1_pos,
+                                                          send_players[0].number_,
+                                                        p0_pos) );
+        }
+        else if (p0->posCount() == 1 && p1->posCount() == 1){
+            agent->addSayMessage( new TwoPlayerMessage11( send_players[0].number_,
+                                                        p0_pos,
+                                                        send_players[1].number_,
+                                                        p1_pos ) );
+        }
+        else if (p0->posCount() == 0 && p1->posCount() == 2){
+            agent->addSayMessage( new TwoPlayerMessage02( send_players[0].number_,
+                                                        p0_pos,
+                                                        send_players[1].number_,
+                                                        p1_pos ) );
+        }
+        else if (p0->posCount() == 2 && p1->posCount() == 0){
+            agent->addSayMessage( new TwoPlayerMessage02( send_players[1].number_,
+                                                        p1_pos,
+                                                        send_players[0].number_,
+                                                        p0_pos ) );
+        }
+        else if (p0->posCount() == 1 && p1->posCount() == 2){
+            agent->addSayMessage( new TwoPlayerMessage12( send_players[0].number_,
+                                                        p0_pos,
+                                                        send_players[1].number_,
+                                                        p1_pos ) );
+        }
+        else if (p0->posCount() == 2 && p1->posCount() == 1){
+            agent->addSayMessage( new TwoPlayerMessage12( send_players[1].number_,
+                                                        p1_pos,
+                                                        send_players[0].number_,
+                                                        p0_pos ) );
+        }
+        else if (p0->posCount() == 2 && p1->posCount() == 2){
+            agent->addSayMessage( new TwoPlayerMessage22( send_players[0].number_,
+                                                        p0_pos,
+                                                        send_players[1].number_,
+                                                        p1_pos ) );
+        }
+        else{
+            agent->addSayMessage( new TwoPlayerMessage22( send_players[0].number_,
+                                                        p0_pos,
+                                                        send_players[1].number_,
+                                                        p1_pos ) );
+        }
+
 
         updatePlayerSendTime( wm, p0->side(), p0->unum() );
         updatePlayerSendTime( wm, p1->side(), p1->unum() );
