@@ -8,6 +8,7 @@
 #include <iostream>
 #include <rcsc/common/player_param.h>
 #include "../dkm/dkm.hpp"
+#include <rcsc/common/audio_memory.h>
 
 // #define COUT_DEBUG
 
@@ -17,8 +18,8 @@
 #define dd(x) std::cout << #x << std::endl
 #endif
 
-// #define DEBUG_PLAYER_AREA
-// #define DEBUG_DENOISE_AREA
+#define DEBUG_PLAYER_AREA
+#define DEBUG_DENOISE_AREA
 
 using namespace rcsc;
 using namespace std;
@@ -160,7 +161,7 @@ void PlayerPositionConvex::init() {
                 omni_dash_speed *= ptype->playerDecay();
 
                 double max_dash_dist = omni_dash_dist;
-                if (dash_step > 1 && can_turn_in_one_cycle){ // TODO 2 turns
+                if (dash_step > 1 && can_turn_in_one_cycle){
                     accel = turn_dash_max_accel;
                     if (turn_dash_speed + accel > ptype->realSpeedMax(0))
                         accel = ptype->realSpeedMax(0.) - turn_dash_speed;
@@ -460,6 +461,121 @@ PlayerPredictedObjArea::get_avg(){
     return avg;
 }
 
+void PlayerPredictedObjArea::update_by_hear(const WorldModel &wm, const PlayerObject *p){
+    if (wm.audioMemory().playerTime().cycle() != wm.time().cycle())
+        return;
+    
+    dd(HA);
+    auto memory = wm.audioMemory().player();
+    Vector2D heard_pos = Vector2D::INVALIDATED;
+    double error_dist = 0.25;
+    double heard_body = -360.0;
+    int heard_pos_count = 0;
+    for (auto & a: memory){
+        int unum = a.unum_;
+        if (p->side() != wm.ourSide())
+            unum -= 11;
+
+        if (unum == p->unum()){
+            heard_pos = a.pos_;
+            error_dist = a.pos_count_ * 0.6 + 0.25;
+            heard_body = a.body_;
+            heard_pos_count = a.pos_count_;
+
+            dlog.addCircle(Logger::WORLD, a.pos_, error_dist, 255,0,0);
+            break;
+        }
+    }
+
+    dd(HB);
+    if (!heard_pos.isValid())
+        return;
+
+    body_valid = false;
+
+    
+    std::vector<Vector2D> heard_area_vertices = {
+        Vector2D(heard_pos.x + error_dist, heard_pos.y + error_dist),
+        Vector2D(heard_pos.x + error_dist, heard_pos.y - error_dist),
+        Vector2D(heard_pos.x - error_dist, heard_pos.y - error_dist),
+        Vector2D(heard_pos.x - error_dist, heard_pos.y + error_dist),
+    };
+    ConvexHull tmp(heard_area_vertices);
+    tmp.compute();
+    Polygon2D heard_area(tmp.toPolygon().vertices());
+    dd(HC);
+
+
+    #ifdef DEBUG_PLAYER_AREA
+    draw_poly(heard_area, "#FFFF00");
+    #endif
+
+    if (!area){
+        area = new Polygon2D(heard_area.vertices());
+        return;
+    }
+    int index = heard_pos_count;
+    dd(HD);
+
+    dlog.addText(Logger::WORLD, "unum=%d", p->unum());
+    dlog.addText(Logger::WORLD, "poscount=%d", heard_pos_count);
+    dlog.addText(Logger::WORLD, "index=%d", index);
+    const ConvexHull* prob_area;
+    if (body_valid){
+        prob_area = player_data.get_convex_without_body(p->playerTypePtr()->id(), index, p->pos());
+    } else {
+        prob_area = player_data.get_convex_with_body(p->playerTypePtr()->id(), index, p->pos(), last_body); 
+    }
+
+    if (prob_area){
+        vector<Vector2D> vertices;
+        for (auto& center: heard_area.vertices()){
+            for (const auto& v: prob_area->vertices()){
+                vertices.push_back(v + center);
+            }
+        }
+        ConvexHull tmp(vertices);
+        tmp.compute();
+
+        Polygon2D prob_poly(tmp.toPolygon().vertices());
+        #ifdef DEBUG_PLAYER_AREA
+        draw_poly(prob_poly, "#FF0000");
+        #endif
+
+        Polygon2D mutual = mutual_convex(*area, prob_poly);
+        delete area;
+        if (mutual.vertices().size() > 2){
+            area = new Polygon2D(mutual.vertices());
+        }
+        else{
+            area = new Polygon2D(heard_area.vertices());
+        }
+    }
+    else if (index == 0){
+        Polygon2D mutual = mutual_convex(*area, heard_area);
+        delete area;
+        if (mutual.vertices().size() > 2){
+            area = new Polygon2D(mutual.vertices());
+        }
+        else{
+            area = new Polygon2D(heard_area.vertices());
+        }
+    }
+    else{
+        delete area;
+        area = new Polygon2D(heard_area.vertices());
+    }
+    #ifdef DEBUG_PLAYER_AREA
+    draw_poly(*area, "#000000");
+    #endif
+
+    last_seen_time = wm.time();
+    if (heard_body != -360.0){
+        last_body = heard_body;
+        body_valid = true;
+    }
+}
+
 void PlayerPredictedObjArea::update(const WorldModel &wm, const PlayerObject *p, int cluster_count) {
     #ifdef DEBUG_DENOISE_AREA
     dlog.addText(Logger::WORLD, "==================================== %d %d", p->side(), p->unum());
@@ -467,7 +583,11 @@ void PlayerPredictedObjArea::update(const WorldModel &wm, const PlayerObject *p,
 
     if (p->seenPosCount() == 0) {
         update_candidates(wm, p);
-    } else {
+    }
+    else if (player_heard(wm, p)){
+        update_by_hear(wm, p);
+    } 
+    else {
     }
 
     if (area)
@@ -495,7 +615,3 @@ LocalizationDenoiserByArea::get_model_name(){
     return "Area";
 }
 
-bool 
-PlayerPredictedObjArea::player_heard(const WorldModel & wm, const AbstractPlayerObject * p){
-    return false;
-}

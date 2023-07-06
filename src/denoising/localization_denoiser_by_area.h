@@ -63,12 +63,11 @@ public:
     void check_candidates(const WorldModel &wm, const PlayerObject *p);
 
     void update_candidates(const WorldModel &wm, const PlayerObject *p);
+    void update_by_hear(const rcsc::WorldModel& wm, const rcsc::PlayerObject* p);
 
     void update(const WorldModel &wm, const PlayerObject *p, int cluster_count);
 
     void debug();
-
-    bool player_heard(const WorldModel & wm, const AbstractPlayerObject * p) override;
 
     rcsc::Vector2D vertices_avg();
     rcsc::Vector2D get_avg();
