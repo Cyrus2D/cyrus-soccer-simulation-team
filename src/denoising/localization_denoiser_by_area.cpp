@@ -202,10 +202,6 @@ void PlayerPositionConvex::init() {
 ConvexHull*
 PlayerPositionConvex::get_convex_with_body(int ptype_id, int pos_count, Vector2D center, AngleDeg rotation) {
     ptype_id = std::max(Hetero_Default, ptype_id);
-    std::cout << "PT: " << ptype_id << std::endl
-              << "PC: " << pos_count << std::endl
-              << "S1: " << convexes_with_body.size() << std::endl
-              << "S2: " << convexes_with_body[ptype_id].size() << std::endl;
     if (pos_count <= 0 || pos_count >=10)
         return nullptr;
 
@@ -224,10 +220,6 @@ PlayerPositionConvex::get_convex_with_body(int ptype_id, int pos_count, Vector2D
 ConvexHull*
 PlayerPositionConvex::get_convex_without_body(int ptype_id, int pos_count, Vector2D center) {
     ptype_id = std::max(Hetero_Default, ptype_id);
-    std::cout << "PT: " << ptype_id << std::endl
-              << "PC: " << pos_count << std::endl
-              << "S1: " << convexes_with_body.size() << std::endl
-              << "S2: " << convexes_with_body[ptype_id].size() << std::endl;
     if (pos_count <= 0 || pos_count >=10)
         return nullptr;
 
@@ -325,17 +317,11 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
             new_area.compute();
             dd(E);
             int index;
-            std::cout << "TC: " << wm.time().cycle()  << std::endl
-                        << "TS: " << wm.time().stopped() << std::endl
-                        << "LC: " << last_seen_time.cycle() << std::endl
-                        << "LS: " << last_seen_time.stopped() << std::endl;
             if (wm.time().stopped() > 0){
                 index = wm.time().stopped() - last_seen_time.stopped();
-                std::cout << "1->index: " << index << std::endl; 
             }
             else{
                 index = wm.time().cycle() - last_seen_time.cycle();
-                std::cout << "2->index: " << index << std::endl; 
             }
             dd(F);
             #ifdef DEBUG_DENOISE_AREA
@@ -357,8 +343,6 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
                 }
                 if (prob_area != nullptr){
                     dd(K);
-                    std::cout << "PBV: " << prob_area->vertices().size() << std::endl;
-                    std::cout << "AV:  " << area->vertices().size() << std::endl;
                     #ifdef DEBUG_DENOISE_AREA    
                     dlog.addText(Logger::WORLD, "pd.c.v=%d", prob_area->vertices().size());
                     #endif
