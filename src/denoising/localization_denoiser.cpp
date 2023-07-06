@@ -48,6 +48,7 @@ bool PlayerPredictions::player_seen(const AbstractPlayerObject * p){
 void PlayerPredictions::update(const WorldModel &wm, const PlayerObject *p, int cluster_count) {
 }
 
+
 std::string
 LocalizationDenoiser::get_model_name(){
     return "Abstract";
@@ -84,6 +85,7 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
         double cyrus_noise = 0.0;
     };
     static vector<PlayerTestRes> player_test_res(23, PlayerTestRes());
+
     for (auto & p: teammates){
         auto t = wm.ourPlayer(p.first);
         if (t != nullptr
@@ -96,8 +98,15 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
 
             if (avg_pos.isValid()){
                 Vector2D cyrus_pos = avg_pos;
+                // fout << "T,"
+                //      << wm.time().cycle() << ","
+                //      << t->unum() << ","
+                //      << pos.dist(full_pos) << ","
+                //      << cyrus_pos.dist(full_pos)
+                //      << endl;
+
                 player_test_res.at(p.first).count += 1;
-                player_test_res.at(p.first).base_noise += full_pos.dist(pos);
+                player_test_res.at(p.first).base_noise += pos.dist(full_pos);
                 player_test_res.at(p.first).cyrus_noise += cyrus_pos.dist(full_pos);
             }
         }
@@ -114,13 +123,21 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
 
             if (avg_pos.isValid()){
                 Vector2D cyrus_pos = avg_pos;
+
+                // fout << "O,"
+                //      << wm.time().cycle() << ","
+                //      << o->unum() << ","
+                //      << pos.dist(full_pos) << ","
+                //      << cyrus_pos.dist(full_pos)
+                //      << endl;
+
                 player_test_res.at(p.first + 11).count += 1;
-                player_test_res.at(p.first + 11).base_noise += full_pos.dist(pos);
+                player_test_res.at(p.first + 11).base_noise += pos.dist(full_pos);
                 player_test_res.at(p.first + 11).cyrus_noise += cyrus_pos.dist(full_pos);
             }
         }
     }
-    if ((wm.time().cycle() == 2999 || wm.time().cycle() == 5999 || wm.time().cycle() == 599) && wm.time().stopped() == 0)
+    if ((wm.time().cycle() == 2999 || wm.time().cycle() == 5999) && wm.time().stopped() == 0)
     {
         double base_noises = 0.0;
         double cyrus_noises = 0.0;
@@ -130,7 +147,14 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
             auto & res = player_test_res.at(i);
             if (res.count > 0)
             {
-                fout<<"side "<<(i <= 11 ? "T " : "O ")<<(i <= 11 ? i : i - 11)<<" "<<res.base_noise / res.count <<" -> "<<res.cyrus_noise / res.count<<endl;
+                fout <<"side "
+                     << (i <= 11 ? "T " : "O ")
+                     << (i <= 11 ? i : i - 11) 
+                     << " "
+                     << res.base_noise / res.count 
+                     << " -> "
+                     << res.cyrus_noise / res.count << endl;
+
                 base_noises += res.base_noise;
                 cyrus_noises += res.cyrus_noise;
                 all_count += res.count;

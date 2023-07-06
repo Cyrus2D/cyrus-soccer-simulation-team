@@ -51,6 +51,8 @@ public:
     PlayerPositionConvex player_data;
     Polygon2D* area;
     GameTime last_seen_time;
+    double last_body;
+    bool body_valid;
 
     PlayerPredictedObjArea(SideID side_, int unum_);
 
@@ -73,7 +75,7 @@ public:
 
 class LocalizationDenoiserByArea: public LocalizationDenoiser{
 public:
-    PlayerPredictions * create_prediction(SideID side, int unum) override;
+    PlayerPredictions* create_prediction(SideID side, int unum) override;
     std::string get_model_name() override;
 
 };
