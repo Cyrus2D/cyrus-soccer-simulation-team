@@ -51,6 +51,8 @@ public:
     PlayerPositionConvex player_data;
     Polygon2D* area;
     GameTime last_seen_time;
+    double last_body;
+    bool body_valid;
 
     PlayerPredictedObjArea(SideID side_, int unum_);
 

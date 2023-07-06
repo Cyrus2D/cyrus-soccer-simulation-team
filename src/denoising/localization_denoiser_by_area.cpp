@@ -18,6 +18,7 @@
 #endif
 
 #define DEBUG_PLAYER_AREA
+// #define USE_AVG_FOR_AREA // COMMENT ME IF U WANT CENTER_SOMETHING
 
 using namespace rcsc;
 using namespace std;
@@ -145,8 +146,10 @@ void PlayerPositionConvex::init() {
 
             double omni_dash_speed = 0.;
             double turn_dash_speed = 0.;
+            double turn2_dash_speed = 0.;
             double omni_dash_dist = 0.;
             double turn_dash_dist = 0.;
+            double turn2_dash_dist = 0.;
             for(int dash_step = 1; dash_step <= N_DASH; dash_step++){
                 double accel = omni_dash_max_accel;
                 if (omni_dash_speed + accel > ptype->realSpeedMax(dir.degree()))
@@ -157,7 +160,7 @@ void PlayerPositionConvex::init() {
                 omni_dash_speed *= ptype->playerDecay();
 
                 double max_dash_dist = omni_dash_dist;
-                if (dash_step > 1 && can_turn_in_one_cycle){
+                if (dash_step > 1 && can_turn_in_one_cycle){ // TODO 2 turns
                     accel = turn_dash_max_accel;
                     if (turn_dash_speed + accel > ptype->realSpeedMax(0))
                         accel = ptype->realSpeedMax(0.) - turn_dash_speed;
@@ -166,7 +169,18 @@ void PlayerPositionConvex::init() {
                     turn_dash_speed *= ptype->playerDecay();
                     if (turn_dash_dist > omni_dash_dist)
                         max_dash_dist = turn_dash_dist;
+                } 
+                else if (dash_step > 2) {
+                    accel = turn_dash_max_accel;
+                    if (turn2_dash_speed + accel > ptype->realSpeedMax(0))
+                        accel = ptype->realSpeedMax(0.) - turn2_dash_speed;
+                    turn2_dash_speed += accel;
+                    turn2_dash_dist += turn2_dash_speed;
+                    turn2_dash_speed *= ptype->playerDecay();
+                    if (turn2_dash_dist > omni_dash_dist)
+                        max_dash_dist = turn2_dash_dist;
                 }
+                
                 rel_positions.back().emplace_back(Vector2D::polar2vector(max_dash_dist, dir));
             }
         }
@@ -250,6 +264,8 @@ PlayerPredictedObjArea::PlayerPredictedObjArea(SideID side_, int unum_) {
     std::string file_name = "vertices/v-" + std::to_string(unum-1);
     std::ifstream fin(file_name);
     area = nullptr;
+    last_body = 0;
+    body_valid = false;
 
     player_data.init();
 }
@@ -327,9 +343,9 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
                 std::vector<Vector2D> vertices;
                 const ConvexHull* prob_area;// = player_data.convexes[index];
                 dd(H);
-                if (p->bodyCount() == 0) {
+                if (body_valid) {
                     dd(I);
-                    prob_area = player_data.get_convex_with_body(p->playerTypePtr()->id(), index, p->pos(), p->body());
+                    prob_area = player_data.get_convex_with_body(p->playerTypePtr()->id(), index, p->pos(), last_body); 
                 } else {
                     dd(J);
                     prob_area = player_data.get_convex_without_body(p->playerTypePtr()->id(), index, p->pos());
@@ -389,7 +405,16 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
     }
     last_seen_time = wm.time();
 
+    if (p->bodyCount() == 0){
+        last_body = p->body().degree();
+        body_valid = true;
+    }
+    else
+        body_valid = false;
+
 }
+
+#ifdef USE_AVG_FOR_AREA
 
 Vector2D 
 PlayerPredictedObjArea::area_avg(){
@@ -399,6 +424,32 @@ PlayerPredictedObjArea::area_avg(){
     avg /= (double)(area->vertices().size());
     return avg;
 }
+
+#else
+
+Vector2D 
+PlayerPredictedObjArea::area_avg(){
+    Vector2D avg(0, 0);
+    double s = area->area();
+    
+    vector<Vector2D> vs(area->vertices());
+    vs.push_back(vs.front()); // 0 == n
+
+    for (int i = 0; i < vs.size()-1; i++) {
+        avg.x += (vs[i].x + vs[i+1].x) * (vs[i].x*vs[i+1].y - vs[i+1].x*vs[i].y);
+        avg.y += (vs[i].y + vs[i+1].y) * (vs[i].x*vs[i+1].y - vs[i+1].x*vs[i].y);
+    }
+
+    dlog.addText(Logger::WORLD, "AREA AVG --------------------------------------------------------------------");
+
+    avg *= 1/(6*s);
+    dlog.addText(Logger::WORLD, "s=%.2f, avg=(%.2f, %.2f);", s, avg.x, avg.y);
+
+    return avg;
+}
+
+#endif
+
 
 void PlayerPredictedObjArea::update(const WorldModel &wm, const PlayerObject *p, int cluster_count) {
     dlog.addText(Logger::WORLD, "==================================== %d %d", p->side(), p->unum());
@@ -522,6 +573,8 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
     last_vel = wm.ball().vel();
 }
 
+#ifdef USE_AVG_FOR_AREA
+
 Vector2D 
 BallPredictionArea::area_avg(){
     Vector2D avg(0, 0);
@@ -530,6 +583,31 @@ BallPredictionArea::area_avg(){
     avg /= (double)(area->vertices().size());
     return avg;
 }
+
+#else
+
+Vector2D 
+BallPredictionArea::area_avg(){
+    Vector2D avg(0, 0);
+    double s = area->area();
+    
+    vector<Vector2D> vs(area->vertices());
+    vs.push_back(vs.front()); // 0 == n
+
+    for (int i = 0; i < vs.size()-1; i++) {
+        avg.x += (vs[i].x + vs[i+1].x) * (vs[i].x*vs[i+1].y - vs[i+1].x*vs[i].y);
+        avg.y += (vs[i].y + vs[i+1].y) * (vs[i].x*vs[i+1].y - vs[i+1].x*vs[i].y);
+    }
+
+    dlog.addText(Logger::WORLD, "BALL AREA AVG --------------------------------------------------------------------");
+
+    avg *= 1/(6*s);
+    dlog.addText(Logger::WORLD, "s=%.2f, avg=(%.2f, %.2f);", s, avg.x, avg.y);
+
+    return avg;
+}
+
+#endif
 
 
 void PlayerPredictedObjArea::debug() {
