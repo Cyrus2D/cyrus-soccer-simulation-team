@@ -123,8 +123,10 @@ ShootGenerator::generate( const WorldModel & wm , double opp_dist_thr)
     }
 
     const ServerParam & SP = ServerParam::i();
-
-    if ( wm.self().pos().dist2( SP.theirTeamGoalPos() ) > std::pow( 30.0, 2 ) )
+    Vector2D theirTeamGoalPos=SP.theirTeamGoalPos();
+    if(wm.gameMode().isPenaltyKickMode() && wm.ball().pos().x <0)
+        theirTeamGoalPos*=-1;
+    if ( wm.self().pos().dist2( theirTeamGoalPos ) > std::pow( 30.0, 2 ) )
     {
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::SHOOT,
@@ -141,23 +143,34 @@ ShootGenerator::generate( const WorldModel & wm , double opp_dist_thr)
 #ifdef DEBUG_PROFILE
     MSecTimer timer;
 #endif
-
-    Vector2D goal_l( SP.pitchHalfLength(), -SP.goalHalfWidth() );
-    Vector2D goal_r( SP.pitchHalfLength(), +SP.goalHalfWidth() );
+    double goal_x = SP.pitchHalfLength();
+    if(wm.gameMode().isPenaltyKickMode())
+        goal_x*=sign(wm.ball().pos().x);
+    Vector2D goal_l( goal_x, -SP.goalHalfWidth() );
+    Vector2D goal_r( goal_x, +SP.goalHalfWidth() );
 
     goal_l.y += std::min( 1.5,
                           0.6 + goal_l.dist( M_first_ball_pos ) * 0.042 );
     goal_r.y -= std::min( 1.5,
                           0.6 + goal_r.dist( M_first_ball_pos ) * 0.042 );
+    if(wm.gameMode().isPenaltyKickMode()&& wm.ball().pos().x <0)
+    {
+        if ( -wm.self().pos().x > SP.pitchHalfLength() - 1.0
+             && wm.self().pos().absY() < SP.goalHalfWidth() )
+        {
+            goal_l.x = wm.self().pos().x - 1.5;
+            goal_r.x = wm.self().pos().x - 1.5;
+        }
+    }
 
-    if ( wm.self().pos().x > SP.pitchHalfLength() - 1.0
+    else if ( wm.self().pos().x > SP.pitchHalfLength() - 1.0
          && wm.self().pos().absY() < SP.goalHalfWidth() )
     {
         goal_l.x = wm.self().pos().x + 1.5;
         goal_r.x = wm.self().pos().x + 1.5;
     }
 
-    if(ShootGenerator::shouldShootSafe(wm))
+    if(ShootGenerator::shouldShootSafe(wm)||wm.gameMode().isPenaltyKickMode())
     {
         goal_l.y += 0.3;
         goal_r.y -= 0.3;
@@ -716,6 +729,8 @@ ShootGenerator::evaluateCourses( const WorldModel & wm )
 
 bool ShootGenerator::shouldShootSafe(const WorldModel &wm)
 {
+    if(wm.gameMode().type() == GameMode::PenaltyTaken_)
+        return false;
     if ( !Setting::i()->mChainAction->mUseShootSafe )
         return false;
     if ( !wm.self().isKickable() )

@@ -704,6 +704,148 @@ FieldAnalyzer::can_shoot_from( const bool is_self,
     return (max_angle_diff >= SHOOT_ANGLE_THRESHOLD?max_angle_diff:0);
 }
 
+
+
+
+double
+FieldAnalyzer::penalty_can_shoot_from( const bool is_self,
+                               const Vector2D & pos,
+                               const AbstractPlayerObject::Cont & opponents,
+                               const int valid_opponent_threshold )
+{
+    static const double SHOOT_DIST_THR2 = std::pow( 17.0, 2 );
+    //static const double SHOOT_ANGLE_THRESHOLD = 20.0;
+    static const double SHOOT_ANGLE_THRESHOLD = ( is_self
+                                                  ? 15.0
+                                                  : 15.0 );
+    static const double OPPONENT_DIST_THR2 = std::pow( 20.0, 2 );
+
+    if ( ServerParam::i().theirTeamGoalPos().dist2( pos )
+         > SHOOT_DIST_THR2 )
+    {
+        return false;
+    }
+
+#ifdef DEBUG_CAN_SHOOT_FROM
+    dlog.addText( Logger::SHOOT,
+                  "===== "__FILE__": (can_shoot_from) pos=(%.1f %.1f) ===== ",
+                  pos.x, pos.y );
+#endif
+
+    const Vector2D goal_minus( sign(pos.x)*ServerParam::i().pitchHalfLength(),
+                               -ServerParam::i().goalHalfWidth() + 0.5 );
+    const Vector2D goal_plus( sign(pos.x)*ServerParam::i().pitchHalfLength(),
+                              +ServerParam::i().goalHalfWidth() - 0.5 );
+
+    const AngleDeg goal_minus_angle = ( goal_minus - pos ).th();
+    const AngleDeg goal_plus_angle = ( goal_plus - pos ).th();
+
+    //
+    // create opponent list
+    //
+
+    std::vector< Player > opponent_candidates;
+    opponent_candidates.reserve( opponents.size() );
+
+    for ( AbstractPlayerObject::Cont::const_iterator o = opponents.begin(),
+                  end = opponents.end();
+          o != end;
+          ++o )
+    {
+        if ( (*o)->posCount() > valid_opponent_threshold )
+        {
+            continue;
+        }
+
+        if ( (*o)->pos().dist2( pos ) > OPPONENT_DIST_THR2 )
+        {
+            continue;
+        }
+
+        opponent_candidates.push_back( Player( *o, pos ) );
+#ifdef DEBUG_CAN_SHOOT_FROM
+        dlog.addText( Logger::SHOOT,
+                      "(can_shoot_from) (opponent:%d) pos=(%.1f %.1f) angleFromPos=%.1f hideAngle=%.1f",
+                      opponent_candidates.back().player_->unum(),
+                      opponent_candidates.back().player_->pos().x,
+                      opponent_candidates.back().player_->pos().y,
+                      opponent_candidates.back().angle_from_pos_.degree(),
+                      opponent_candidates.back().hide_angle_ );
+#endif
+    }
+
+    //
+    // TODO: improve the search algorithm (e.g. consider only angle width between opponents)
+    //
+    // std::sort( opponent_candidates.begin(), opponent_candidates.end(),
+    //            Opponent::Compare() );
+
+    const double angle_width = ( goal_plus_angle - goal_minus_angle ).abs();
+    const double angle_step = std::max( 2.0, angle_width / 10.0 );
+
+    const std::vector< Player >::const_iterator end = opponent_candidates.end();
+
+    double max_angle_diff = 0.0;
+
+    for ( double a = 0.0; a < angle_width + 0.001; a += angle_step )
+    {
+        const AngleDeg shoot_angle = goal_minus_angle + a;
+
+        double min_angle_diff = 180.0;
+        for ( std::vector< Player >::const_iterator o = opponent_candidates.begin();
+              o != end;
+              ++o )
+        {
+            double angle_diff = ( o->angle_from_pos_ - shoot_angle ).abs();
+
+#ifdef DEBUG_CAN_SHOOT_FROM
+            dlog.addText( Logger::SHOOT,
+                          "(can_shoot_from) __ opp=%d rawAngleDiff=%.1f -> %.1f",
+                          o->player_->unum(),
+                          angle_diff, angle_diff - o->hide_angle_*0.5 );
+#endif
+            if ( is_self )
+            {
+                angle_diff -= o->hide_angle_;
+            }
+            else
+            {
+                angle_diff -= o->hide_angle_*0.5;
+            }
+
+            if ( angle_diff < min_angle_diff )
+            {
+                min_angle_diff = angle_diff;
+
+                if ( min_angle_diff < SHOOT_ANGLE_THRESHOLD )
+                {
+                    break;
+                }
+            }
+        }
+
+        if ( min_angle_diff > max_angle_diff )
+        {
+            max_angle_diff = min_angle_diff;
+        }
+
+#ifdef DEBUG_CAN_SHOOT_FROM
+        dlog.addText( Logger::SHOOT,
+                      "(can_shoot_from) shootAngle=%.1f minAngleDiff=%.1f",
+                      shoot_angle.degree(),
+                      min_angle_diff );
+#endif
+    }
+
+#ifdef DEBUG_CAN_SHOOT_FROM
+    dlog.addText( Logger::SHOOT,
+                      "(can_shoot_from) maxAngleDiff=%.1f",
+                      max_angle_diff );
+#endif
+
+    return (max_angle_diff >= SHOOT_ANGLE_THRESHOLD?max_angle_diff:0);
+}
+
 /*-------------------------------------------------------------------*/
 /*!
 

@@ -177,6 +177,11 @@ public:
                          const int valid_opponent_threshold );
 
     static
+    double penalty_can_shoot_from( const bool is_self,
+                           const rcsc::Vector2D & pos,
+                           const rcsc::AbstractPlayerObject::Cont & opponents,
+                           const int valid_opponent_threshold );
+    static
     bool opponent_can_shoot_from( const rcsc::Vector2D & pos,
                                   const rcsc::AbstractPlayerObject::Cont & teammates,
                                   const int valid_teammate_threshold,

@@ -927,6 +927,9 @@ ShortDribbleGenerator::simulateKickTurnsDashesAdvance( const WorldModel & wm,
             }
 
             int opp_min_dif = 3;
+            if(wm.gameMode().isPenaltyKickMode()){
+                opp_min_dif = 1;
+            }
             bool safe_with_pos_count = true;
             int danger = 0;
             if( !can_opp_reach(wm,M_first_ball_pos,first_vel,ball_trap_pos,
@@ -1112,6 +1115,8 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
         o != end;
         ++o )
     {
+        if(wm.gameMode().isPenaltyKickMode() && !(*o)->goalie())
+            continue;
         if ( (*o)->distFromSelf() > 45.0 ) break;
         const Vector2D ball_to_opp_rel = ( (*o)->pos() - M_first_ball_pos ).rotatedVector( -ball_move_angle );
         const PlayerType * ptype = (*o)->playerTypePtr();
@@ -1134,6 +1139,8 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
         {
             bonus_step += 1;
         }
+        if(wm.gameMode().isPenaltyKickMode())
+            bonus_step = 0;
 
         if ( (*o)->isTackling() )
         {
@@ -1154,7 +1161,7 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
         }
         else
         {
-            if(wm.ball().pos().x > 15 && wm.ball().pos().x < 45 && wm.ball().pos().x > wm.theirOffenseLineX() - 10){
+            if((wm.ball().pos().x > 15 && wm.ball().pos().x < 45 && wm.ball().pos().x > wm.theirOffenseLineX() - 10) || wm.gameMode().isPenaltyKickMode()){
                 bonus_step += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor_low)), max_pos_count_effect_behind / 2 );
                 bonus_step_noisy += bound( 0, static_cast<int>(std::ceil((*o)->posCount() * pos_count_effect_factor_high)), max_pos_count_effect_behind / 2 );
             }else{
