@@ -948,6 +948,21 @@ SampleCommunication::goalieSaySituation( const rcsc::PlayerAgent * agent )
 /*!
 
  */
+
+class SendPlayer{
+public:
+    int unum;
+    Vector2D pos;
+    int pc;
+    const AbstractPlayerObject * player;
+    SendPlayer(int _unum, Vector2D _pos, const AbstractPlayerObject * _player): player(_player)
+    {
+        unum = _unum;
+        pos = _pos;
+        pc = player->posCount();
+    }
+};
+
 bool
 SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
 {
@@ -1100,7 +1115,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
             {
                 const AbstractPlayerObject * t = wm.ourPlayer( unum );
                 if ( ! t
-                     || t->unumCount() >= 2 || t->posCount() >= 2 )
+                     || t->unumCount() >= 2 || t->posCount() > 3)
                 {
                     objects[unum].score_ = -65535.0;
                 }
@@ -1449,6 +1464,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
     if ( send_players.size() >= 3
          && available_len >= ThreePlayerMessage::slength() )
     {
+        vector<SendPlayer> send_players_vec;
         const AbstractPlayerObject * p0 = send_players[0].player_;
         const AbstractPlayerObject * p1 = send_players[1].player_;
         const AbstractPlayerObject * p2 = send_players[2].player_;
@@ -1460,347 +1476,417 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
         Vector2D p0_pos = p0->pos() + p0->vel();
         Vector2D p1_pos = p1->pos() + p1->vel();
         Vector2D p2_pos = p2->pos() + p2->vel();
-
         if(p0_unum == self_unum)
             p0_pos = self_pos;
         if(p1_unum == self_unum)
             p1_pos = self_pos;
         if(p2_unum == self_unum)
             p2_pos = self_pos;
-        if (p0->posCount() == 0){
-            if(p1->posCount() == 0){
-                if(p2->posCount() == 0){
-                    agent->addSayMessage( new ThreePlayerMessage( p0_unum,
-                                                                  p0_pos,
-                                                                  p1_unum,
-                                                                  p1_pos,
-                                                                  p2_unum,
-                                                                  p2_pos ) );
-
+        if (p0->posCount() <= 2)
+            send_players_vec.push_back(SendPlayer(p0_unum, p0_pos, p0));
+        if (p1->posCount() <= 2)
+            send_players_vec.push_back(SendPlayer(p1_unum, p1_pos, p1));
+        if (p2->posCount() <= 2)
+            send_players_vec.push_back(SendPlayer(p2_unum, p2_pos, p2));
+        if (send_players_vec.size() < 3){
+            bool is_self_exist = false;
+            for (auto & s: send_players_vec)
+                if (s.unum == self_unum){
+                    is_self_exist = true;
+                    break;
                 }
-                else if(p2->posCount() == 1){
-                    agent->addSayMessage( new ThreePlayerMessage001( p0_unum,
-                                                                     p0_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p2_unum,
-                                                                     p2_pos ) );
-
-                }
-                else if(p2->posCount() == 2){
-                    agent->addSayMessage( new ThreePlayerMessage002( p0_unum,
-                                                                     p0_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p2_unum,
-                                                                     p2_pos ) );
-
-                }
+            if (!is_self_exist){
+                send_players_vec.push_back(SendPlayer(self_unum, self_pos, wm.ourPlayer(self_unum)));
             }
-            else if(p1->posCount() == 1){
-                if(p2->posCount() == 0){
-                    agent->addSayMessage( new ThreePlayerMessage001( p0_unum,
-                                                                     p0_pos,
-                                                                     p2_unum,
-                                                                     p2_pos,
-                                                                     p1_unum,
-                                                                     p1_pos ) );
-
-                }else if(p2->posCount() == 1){
-                    agent->addSayMessage( new ThreePlayerMessage011( p0_unum,
-                                                                     p0_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p2_unum,
-                                                                     p2_pos ) );
-
-                }else if(p2->posCount() == 2){
-                    agent->addSayMessage( new ThreePlayerMessage012( p0_unum,
-                                                                     p0_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p2_unum,
-                                                                     p2_pos ) );
-
+            vector<SendPlayer> send_players_vec_tmp;
+            if (send_players_vec.size() < 3){
+                for (auto & n: send_players){
+                    bool exist = false;
+                    for (auto & e: send_players_vec){
+                        if (n.number_ == e.unum){
+                            exist = true;
+                            break;
+                        }
+                    }
+                    if (!exist){
+                        send_players_vec_tmp.push_back(SendPlayer(n.number_, n.player_->pos(), n.player_));
+                    }
+                    if (send_players_vec.size() + send_players_vec_tmp.size() >= 3)
+                        break;
                 }
-            }
-            else if(p1->posCount() == 2){
-                if(p2->posCount() == 0){
-                    agent->addSayMessage( new ThreePlayerMessage002( p0_unum,
-                                                                     p0_pos,
-                                                                     p2_unum,
-                                                                     p2_pos,
-                                                                     p1_unum,
-                                                                     p1_pos ) );
-
-                }else if(p2->posCount() == 1){
-                    agent->addSayMessage( new ThreePlayerMessage012( p0_unum,
-                                                                     p0_pos,
-                                                                     p2_unum,
-                                                                     p2_pos,
-                                                                     p1_unum,
-                                                                     p1_pos ) );
-
-                }else if(p2->posCount() == 2){
-                    agent->addSayMessage( new ThreePlayerMessage022( p0_unum,
-                                                                     p0_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p2_unum,
-                                                                     p2_pos ) );
-
-                }
+                if (send_players_vec_tmp.size() > 0)
+                    send_players_vec.insert(send_players_vec.end(), send_players_vec_tmp.begin(), send_players_vec_tmp.end());
             }
         }
-        else if (p0->posCount() == 1){
-            if(p1->posCount() == 0){
-                if(p2->posCount() == 0){
-                    agent->addSayMessage( new ThreePlayerMessage001( p2_unum,
-                                                                     p2_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p0_unum,
-                                                                     p0_pos ) );
-
-                }else if(p2->posCount() == 1){
-                    agent->addSayMessage( new ThreePlayerMessage011( p1_unum,
-                                                                     p1_pos,
-                                                                     p0_unum,
-                                                                     p0_pos,
-                                                                     p2_unum,
-                                                                     p2_pos ) );
-
-                }else if(p2->posCount() == 2){
-                    agent->addSayMessage( new ThreePlayerMessage012( p1_unum,
-                                                                     p1_pos,
-                                                                     p0_unum,
-                                                                     p0_pos,
-                                                                     p2_unum,
-                                                                     p2_pos ) );
-
-                }
-            }else if(p1->posCount() == 1){
-                if(p2->posCount() == 0){
-                    agent->addSayMessage( new ThreePlayerMessage011( p2_unum,
-                                                                     p2_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p0_unum,
-                                                                     p0_pos ) );
-
-                }else if(p2->posCount() == 1){
-                    agent->addSayMessage( new ThreePlayerMessage011( self_unum,
-                                                                     self_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p0_unum,
-                                                                     p0_pos ) );
-
-                }else if(p2->posCount() == 2){
-                    agent->addSayMessage( new ThreePlayerMessage011( self_unum,
-                                                                     self_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p0_unum,
-                                                                     p0_pos ) );
-
-                }
-            }else if(p1->posCount() == 2){
-                if(p2->posCount() == 0){
-                    agent->addSayMessage( new ThreePlayerMessage012( p2_unum,
-                                                                     p2_pos,
-                                                                     p0_unum,
-                                                                     p0_pos,
-                                                                     p1_unum,
-                                                                     p1_pos ) );
-
-                }else if(p2->posCount() == 1){
-                    agent->addSayMessage( new ThreePlayerMessage012( self_unum,
-                                                                     self_pos,
-                                                                     p0_unum,
-                                                                     p0_pos,
-                                                                     p1_unum,
-                                                                     p1_pos ) );
-
-                }else if(p2->posCount() == 2){
-                    agent->addSayMessage( new ThreePlayerMessage012( self_unum,
-                                                                     self_pos,
-                                                                     p0_unum,
-                                                                     p0_pos,
-                                                                     p1_unum,
-                                                                     p1_pos ) );
-
-                }
+        std::sort(send_players_vec.begin(), send_players_vec.end(), [](const SendPlayer & a, const SendPlayer & b){return a.player->posCount() < b.player->posCount();});
+        if (send_players_vec.size() == 3){
+            if (send_players_vec[0].pc == 0 && send_players_vec[1].pc == 0 && send_players_vec[2].pc == 0){
+                agent->addSayMessage( new ThreePlayerMessage( send_players_vec[0].unum, send_players_vec[0].pos,  send_players_vec[1].unum, send_players_vec[1].pos,  send_players_vec[2].unum, send_players_vec[2].pos));
             }
-
-        }
-        else if(p0->posCount() == 2){
-            if(p1->posCount() == 0){
-                if(p2->posCount() == 0){
-                    agent->addSayMessage( new ThreePlayerMessage002( p2_unum,
-                                                                     p2_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p0_unum,
-                                                                     p0_pos ) );
-
-                }else if(p2->posCount() == 1){
-                    agent->addSayMessage( new ThreePlayerMessage012( p1_unum,
-                                                                     p1_pos,
-                                                                     p2_unum,
-                                                                     p2_pos,
-                                                                     p0_unum,
-                                                                     p0_pos ) );
-
-                }else if(p2->posCount() == 2){
-                    agent->addSayMessage( new ThreePlayerMessage022( p1_unum,
-                                                                     p1_pos,
-                                                                     p0_unum,
-                                                                     p0_pos,
-                                                                     p2_unum,
-                                                                     p2_pos ) );
-
-                }
-            }else if(p1->posCount() == 1){
-                if(p2->posCount() == 0){
-                    agent->addSayMessage( new ThreePlayerMessage012( p2_unum,
-                                                                     p2_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p0_unum,
-                                                                     p0_pos ) );
-
-                }else if(p2->posCount() == 1){
-                    agent->addSayMessage( new ThreePlayerMessage012( self_unum,
-                                                                     self_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p0_unum,
-                                                                     p0_pos ) );
-
-                }else if(p2->posCount() == 2){
-                    agent->addSayMessage( new ThreePlayerMessage012( self_unum,
-                                                                     self_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p0_unum,
-                                                                     p0_pos ) );
-
-                }
-            }else if(p1->posCount() == 2){
-                if(p2->posCount() == 0){
-                    agent->addSayMessage( new ThreePlayerMessage022( p2_unum,
-                                                                     p2_pos,
-                                                                     p0_unum,
-                                                                     p0_pos,
-                                                                     p1_unum,
-                                                                     p1_pos ) );
-
-                }else if(p2->posCount() == 1){
-                    agent->addSayMessage( new ThreePlayerMessage022( self_unum,
-                                                                     self_pos,
-                                                                     p0_unum,
-                                                                     p0_pos,
-                                                                     p1_unum,
-                                                                     p1_pos ) );
-
-                }else if(p2->posCount() == 2){
-                    agent->addSayMessage( new ThreePlayerMessage022( self_unum,
-                                                                     self_pos,
-                                                                     p0_unum,
-                                                                     p0_pos,
-                                                                     p1_unum,
-                                                                     p1_pos ) );
-
-                }
+            else if (send_players_vec[0].pc == 0 && send_players_vec[1].pc == 0 && send_players_vec[2].pc == 1){
+                agent->addSayMessage( new ThreePlayerMessage001( send_players_vec[0].unum, send_players_vec[0].pos,  send_players_vec[1].unum, send_players_vec[1].pos,  send_players_vec[2].unum, send_players_vec[2].pos));
             }
-
-
-        }
-        else{
-            if(p1->posCount() == 0){
-                if(p2->posCount() == 0){
-                    agent->addSayMessage( new ThreePlayerMessage( self_unum,
-                                                                  self_pos,
-                                                                  p1_unum,
-                                                                  p1_pos,
-                                                                  p2_unum,
-                                                                  p2_pos ) );
-
-                }else if(p2->posCount() == 1){
-                    agent->addSayMessage( new ThreePlayerMessage001( self_unum,
-                                                                     self_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p2_unum,
-                                                                     p2_pos ) );
-
-                }else if(p2->posCount() == 2){
-                    agent->addSayMessage( new ThreePlayerMessage002( self_unum,
-                                                                     self_pos,
-                                                                     p0_unum,
-                                                                     p0_pos,
-                                                                     p2_unum,
-                                                                     p2_pos ) );
-
-                }
-            }else if(p1->posCount() == 1){
-                if(p2->posCount() == 0){
-                    agent->addSayMessage( new ThreePlayerMessage001( self_unum,
-                                                                     self_pos,
-                                                                     p2_unum,
-                                                                     p2_pos,
-                                                                     p1_unum,
-                                                                     p1_pos ) );
-
-                }else if(p2->posCount() == 1){
-                    agent->addSayMessage( new ThreePlayerMessage011( self_unum,
-                                                                     self_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p2_unum,
-                                                                     p2_pos ) );
-
-                }else if(p2->posCount() == 2){
-                    agent->addSayMessage( new ThreePlayerMessage012( self_unum,
-                                                                     self_pos,
-                                                                     p1_unum,
-                                                                     p1_pos,
-                                                                     p2_unum,
-                                                                     p2_pos ) );
-
-                }
-            }else if(p1->posCount() == 2){
-                if(p2->posCount() == 0){
-                    agent->addSayMessage( new ThreePlayerMessage002( self_unum,
-                                                                     self_pos,
-                                                                     p2_unum,
-                                                                     p2_pos,
-                                                                     p1_unum,
-                                                                     p1_pos ) );
-
-                }else if(p2->posCount() == 1){
-                    agent->addSayMessage( new ThreePlayerMessage012( self_unum,
-                                                                     self_pos,
-                                                                     p2_unum,
-                                                                     p2_pos,
-                                                                     p1_unum,
-                                                                     p1_pos ) );
-
-                }else if(p2->posCount() == 2){
-                    agent->addSayMessage( new ThreePlayerMessage022( self_unum,
-                                                                     self_pos,
-                                                                     p2_unum,
-                                                                     p2_pos,
-                                                                     p1_unum,
-                                                                     p1_pos ) );
-
-                }
+            else if (send_players_vec[0].pc == 0 && send_players_vec[1].pc == 0 && send_players_vec[2].pc > 2){
+                agent->addSayMessage( new ThreePlayerMessage002( send_players_vec[0].unum, send_players_vec[0].pos,  send_players_vec[1].unum, send_players_vec[1].pos,  send_players_vec[2].unum, send_players_vec[2].pos));
             }
-
-
-
+            else if (send_players_vec[0].pc == 0 && send_players_vec[1].pc == 1 && send_players_vec[2].pc == 1){
+                agent->addSayMessage( new ThreePlayerMessage011( send_players_vec[0].unum, send_players_vec[0].pos,  send_players_vec[1].unum, send_players_vec[1].pos,  send_players_vec[2].unum, send_players_vec[2].pos));
+            }
+            else if (send_players_vec[0].pc == 0 && send_players_vec[1].pc == 1 && send_players_vec[2].pc > 2){
+                agent->addSayMessage( new ThreePlayerMessage012( send_players_vec[0].unum, send_players_vec[0].pos,  send_players_vec[1].unum, send_players_vec[1].pos,  send_players_vec[2].unum, send_players_vec[2].pos));
+            }
+            else if (send_players_vec[0].pc == 0 && send_players_vec[1].pc == 2 && send_players_vec[2].pc > 2){
+                agent->addSayMessage( new ThreePlayerMessage022( send_players_vec[0].unum, send_players_vec[0].pos,  send_players_vec[1].unum, send_players_vec[1].pos,  send_players_vec[2].unum, send_players_vec[2].pos));
+            }
+            else if (send_players_vec[0].pc == 1 && send_players_vec[1].pc == 1 && send_players_vec[2].pc == 1){
+                agent->addSayMessage( new ThreePlayerMessage111( send_players_vec[0].unum, send_players_vec[0].pos,  send_players_vec[1].unum, send_players_vec[1].pos,  send_players_vec[2].unum, send_players_vec[2].pos));
+            }
+            else if (send_players_vec[0].pc == 1 && send_players_vec[1].pc == 1 && send_players_vec[2].pc > 2){
+                agent->addSayMessage( new ThreePlayerMessage112( send_players_vec[0].unum, send_players_vec[0].pos,  send_players_vec[1].unum, send_players_vec[1].pos,  send_players_vec[2].unum, send_players_vec[2].pos));
+            }
+            else if (send_players_vec[0].pc == 1 && send_players_vec[1].pc > 2 && send_players_vec[2].pc > 2){
+                agent->addSayMessage( new ThreePlayerMessage122( send_players_vec[0].unum, send_players_vec[0].pos,  send_players_vec[1].unum, send_players_vec[1].pos,  send_players_vec[2].unum, send_players_vec[2].pos));
+            }
+            else if (send_players_vec[0].pc > 2 && send_players_vec[1].pc > 2 && send_players_vec[2].pc > 2){
+                agent->addSayMessage( new ThreePlayerMessage222( send_players_vec[0].unum, send_players_vec[0].pos,  send_players_vec[1].unum, send_players_vec[1].pos,  send_players_vec[2].unum, send_players_vec[2].pos));
+            }
         }
+
+//        if (p0->posCount() == 0){
+//            if(p1->posCount() == 0){
+//                if(p2->posCount() == 0){
+//                    agent->addSayMessage( new ThreePlayerMessage( p0_unum,
+//                                                                  p0_pos,
+//                                                                  p1_unum,
+//                                                                  p1_pos,
+//                                                                  p2_unum,
+//                                                                  p2_pos ) );
+//
+//                }
+//                else if(p2->posCount() == 1){
+//                    agent->addSayMessage( new ThreePlayerMessage001( p0_unum,
+//                                                                     p0_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos ) );
+//
+//                }
+//                else if(p2->posCount() == 2){
+//                    agent->addSayMessage( new ThreePlayerMessage002( p0_unum,
+//                                                                     p0_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos ) );
+//
+//                }
+//            }
+//            else if(p1->posCount() == 1){
+//                if(p2->posCount() == 0){
+//                    agent->addSayMessage( new ThreePlayerMessage001( p0_unum,
+//                                                                     p0_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos ) );
+//
+//                }else if(p2->posCount() == 1){
+//                    agent->addSayMessage( new ThreePlayerMessage011( p0_unum,
+//                                                                     p0_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos ) );
+//
+//                }else if(p2->posCount() == 2){
+//                    agent->addSayMessage( new ThreePlayerMessage012( p0_unum,
+//                                                                     p0_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos ) );
+//
+//                }
+//            }
+//            else if(p1->posCount() == 2){
+//                if(p2->posCount() == 0){
+//                    agent->addSayMessage( new ThreePlayerMessage002( p0_unum,
+//                                                                     p0_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos ) );
+//
+//                }else if(p2->posCount() == 1){
+//                    agent->addSayMessage( new ThreePlayerMessage012( p0_unum,
+//                                                                     p0_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos ) );
+//
+//                }else if(p2->posCount() == 2){
+//                    agent->addSayMessage( new ThreePlayerMessage022( p0_unum,
+//                                                                     p0_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos ) );
+//
+//                }
+//            }
+//        }
+//        else if (p0->posCount() == 1){
+//            if(p1->posCount() == 0){
+//                if(p2->posCount() == 0){
+//                    agent->addSayMessage( new ThreePlayerMessage001( p2_unum,
+//                                                                     p2_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos ) );
+//
+//                }else if(p2->posCount() == 1){
+//                    agent->addSayMessage( new ThreePlayerMessage011( p1_unum,
+//                                                                     p1_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos ) );
+//
+//                }else if(p2->posCount() == 2){
+//                    agent->addSayMessage( new ThreePlayerMessage012( p1_unum,
+//                                                                     p1_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos ) );
+//
+//                }
+//            }else if(p1->posCount() == 1){
+//                if(p2->posCount() == 0){
+//                    agent->addSayMessage( new ThreePlayerMessage011( p2_unum,
+//                                                                     p2_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos ) );
+//
+//                }else if(p2->posCount() == 1){
+//                    agent->addSayMessage( new ThreePlayerMessage011( self_unum,
+//                                                                     self_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos ) );
+//
+//                }else if(p2->posCount() == 2){
+//                    agent->addSayMessage( new ThreePlayerMessage011( self_unum,
+//                                                                     self_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos ) );
+//
+//                }
+//            }else if(p1->posCount() == 2){
+//                if(p2->posCount() == 0){
+//                    agent->addSayMessage( new ThreePlayerMessage012( p2_unum,
+//                                                                     p2_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos ) );
+//
+//                }else if(p2->posCount() == 1){
+//                    agent->addSayMessage( new ThreePlayerMessage012( self_unum,
+//                                                                     self_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos ) );
+//
+//                }else if(p2->posCount() == 2){
+//                    agent->addSayMessage( new ThreePlayerMessage012( self_unum,
+//                                                                     self_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos ) );
+//
+//                }
+//            }
+//
+//        }
+//        else if(p0->posCount() == 2){
+//            if(p1->posCount() == 0){
+//                if(p2->posCount() == 0){
+//                    agent->addSayMessage( new ThreePlayerMessage002( p2_unum,
+//                                                                     p2_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos ) );
+//
+//                }else if(p2->posCount() == 1){
+//                    agent->addSayMessage( new ThreePlayerMessage012( p1_unum,
+//                                                                     p1_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos ) );
+//
+//                }else if(p2->posCount() == 2){
+//                    agent->addSayMessage( new ThreePlayerMessage022( p1_unum,
+//                                                                     p1_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos ) );
+//
+//                }
+//            }else if(p1->posCount() == 1){
+//                if(p2->posCount() == 0){
+//                    agent->addSayMessage( new ThreePlayerMessage012( p2_unum,
+//                                                                     p2_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos ) );
+//
+//                }else if(p2->posCount() == 1){
+//                    agent->addSayMessage( new ThreePlayerMessage012( self_unum,
+//                                                                     self_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos ) );
+//
+//                }else if(p2->posCount() == 2){
+//                    agent->addSayMessage( new ThreePlayerMessage012( self_unum,
+//                                                                     self_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos ) );
+//
+//                }
+//            }else if(p1->posCount() == 2){
+//                if(p2->posCount() == 0){
+//                    agent->addSayMessage( new ThreePlayerMessage022( p2_unum,
+//                                                                     p2_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos ) );
+//
+//                }else if(p2->posCount() == 1){
+//                    agent->addSayMessage( new ThreePlayerMessage022( self_unum,
+//                                                                     self_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos ) );
+//
+//                }else if(p2->posCount() == 2){
+//                    agent->addSayMessage( new ThreePlayerMessage022( self_unum,
+//                                                                     self_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos ) );
+//
+//                }
+//            }
+//
+//
+//        }
+//        else{
+//            if(p1->posCount() == 0){
+//                if(p2->posCount() == 0){
+//                    agent->addSayMessage( new ThreePlayerMessage( self_unum,
+//                                                                  self_pos,
+//                                                                  p1_unum,
+//                                                                  p1_pos,
+//                                                                  p2_unum,
+//                                                                  p2_pos ) );
+//
+//                }
+//                else if(p2->posCount() == 1){
+//                    agent->addSayMessage( new ThreePlayerMessage001( self_unum,
+//                                                                     self_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos ) );
+//
+//                }
+//                else if(p2->posCount() == 2){
+//                    agent->addSayMessage( new ThreePlayerMessage002( self_unum,
+//                                                                     self_pos,
+//                                                                     p0_unum,
+//                                                                     p0_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos ) );
+//
+//                }
+//            }
+//            else if(p1->posCount() == 1){
+//                if(p2->posCount() == 0){
+//                    agent->addSayMessage( new ThreePlayerMessage001( self_unum,
+//                                                                     self_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos ) );
+//
+//                }else if(p2->posCount() == 1){
+//                    agent->addSayMessage( new ThreePlayerMessage011( self_unum,
+//                                                                     self_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos ) );
+//
+//                }else if(p2->posCount() == 2){
+//                    agent->addSayMessage( new ThreePlayerMessage012( self_unum,
+//                                                                     self_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos ) );
+//
+//                }
+//            }
+//            else if(p1->posCount() == 2){
+//                if(p2->posCount() == 0){
+//                    agent->addSayMessage( new ThreePlayerMessage002( self_unum,
+//                                                                     self_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos ) );
+//
+//                }else if(p2->posCount() == 1){
+//                    agent->addSayMessage( new ThreePlayerMessage012( self_unum,
+//                                                                     self_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos ) );
+//
+//                }else if(p2->posCount() == 2){
+//                    agent->addSayMessage( new ThreePlayerMessage022( self_unum,
+//                                                                     self_pos,
+//                                                                     p2_unum,
+//                                                                     p2_pos,
+//                                                                     p1_unum,
+//                                                                     p1_pos ) );
+//
+//                }
+//            }
+//        }
 
         updatePlayerSendTime( wm, p0->side(), p0->unum() );
         updatePlayerSendTime( wm, p1->side(), p1->unum() );
