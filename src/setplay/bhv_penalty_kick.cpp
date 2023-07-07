@@ -100,12 +100,13 @@ bool
 Bhv_PenaltyKick::execute( PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
-    const PenaltyKickState * state = wm.penaltyKickState();
+    auto *state = const_cast<PenaltyKickState *>(wm.penaltyKickState());
 
 //	const ServerParam & SP = ServerParam::i();
 
 
     int num = wm.self().unum();
+    state->setKickTakerOrder({11,10,9,8,7,6,5,4,3,2,1});
     switch ( wm.gameMode().type() ) {
     case GameMode::PenaltySetup_:
         if ( state->currentTakerSide() == wm.ourSide() )
@@ -321,9 +322,14 @@ else angle +=90;
 bool
 Bhv_PenaltyKick::doKickerSetup( PlayerAgent * agent )
 {
-    const Vector2D goal_c = ServerParam::i().theirTeamGoalPos();
+    const WorldModel & wm = agent->world();
+    Vector2D ball = wm.ball().pos();
+    const Vector2D goal_c = ServerParam::i().theirTeamGoalPos()* sign(ball.x);
+
     const AbstractPlayerObject * opp_goalie = agent->world().getTheirGoalie();
     AngleDeg place_angle = 0.0;
+    if(ball.x < 0)
+        place_angle= 180;
 
     // ball is close enoughly.
     if ( ! Bhv_GoToStaticBall( place_angle ).execute( agent ) )
@@ -394,11 +400,10 @@ Bhv_PenaltyKick::doKicker( PlayerAgent * agent )
     if ( wm.gameMode().type() != GameMode::IndFreeKick_
          && wm.time().stopped() == 0
          && wm.self().isKickable()
-         && Bhv_StrictCheckShoot(0.2).execute( agent) )
+         && Bhv_StrictCheckShoot(0.3).execute( agent) )
     {
         dlog.addText( Logger::TEAM,
                       __FILE__": shooted" );
-
         // reset intention
         agent->setIntention( static_cast< SoccerIntention * >( 0 ) );
         return true;
@@ -445,6 +450,7 @@ Bhv_PenaltyKick::doKicker( PlayerAgent * agent )
 
         if ( wm.ball().posCount() > 0 )
         {
+            agent->debugClient().addMessage("NECK3  ");
             agent->setNeckAction( new Neck_TurnToBall() );
         }
         else
@@ -452,16 +458,20 @@ Bhv_PenaltyKick::doKicker( PlayerAgent * agent )
             const AbstractPlayerObject * opp_goalie = agent->world().getTheirGoalie();
             if ( opp_goalie )
             {
+                agent->debugClient().addMessage("NECK1");
                 agent->setNeckAction( new Neck_TurnToPoint( opp_goalie->pos() ) );
             }
             else
             {
-                agent->setNeckAction( new Neck_TurnToPoint( ServerParam::i().theirTeamGoalPos() )  );
+                agent->debugClient().addMessage("NECK2");
+                agent->setNeckAction( new Neck_TurnToPoint( ServerParam::i().theirTeamGoalPos()* sign(ball.x) )  );
             }
         }
+//        std::cout<<"EEEEEEEEEEEEEEEEEEEEEEEE\n\n";
         return true;
     }
 
+    return doDribbleWhitball(agent);
     if( wm.ball().pos().absX() < 14.0 && wm.self().unum() % 3 == 2 )
     {
     	doDribbleWhitball(agent);
@@ -489,7 +499,7 @@ Bhv_PenaltyKick::doKicker( PlayerAgent * agent )
 //    }
 	if(goalie_dist_next_ball < wm.getTheirGoalie()->playerTypePtr()->kickableArea()+0.3)
 	{
-		if(Body_TackleToPoint(ServerParam::i().theirTeamGoalPos()).execute(agent))
+		if(Body_TackleToPoint(ServerParam::i().theirTeamGoalPos()* sign(ball.x)).execute(agent))
 		{
 			std::cout<<"\n Cycle: "<<wm.time().cycle()<<" do tackl to point"<<endl;
 							 return true;
@@ -633,18 +643,25 @@ bool
 Bhv_PenaltyKick::doDribbleWhitball(PlayerAgent* agent)
 {
     dlog.addText(Logger::TEAM, "doDribbleWhitball");
-    if(Bhv_ChainAction().execute(agent)){
-        return true;
-    }
     dlog.addText(Logger::TEAM, "doDribbleWhitball continue");
 
     const WorldModel & wm = agent->world();
     rcsc::Vector2D me = wm.self().pos();
     rcsc::Vector2D ball = wm.ball().pos();
-    rcsc::Vector2D goal = ServerParam::i().theirTeamGoalPos();
+    if ( Bhv_ChainAction().execute( agent ) )
+    {
+        dlog.addText( Logger::TEAM,
+                      __FILE__": (execute) do chain action" );
+        agent->setNeckAction(new Neck_TurnToBallAndPlayer(wm.getTheirGoalie(),10));
+        agent->debugClient().addMessage( "ChainAction" );
+        return true;
+    }
+    rcsc::Vector2D their_goal = ServerParam::i().theirTeamGoalPos();
+    rcsc::Vector2D our_goal = ServerParam::i().ourTeamGoalPos();
     const AbstractPlayerObject * opp_goalie = wm.getTheirGoalie();
+    rcsc::Vector2D goal = opp_goalie->pos().x > 0? their_goal:our_goal;
     static Vector2D myTarget = Vector2D(sign(ball.x)*50.0, 0.0);
-
+    myTarget = goal;
     static int time = wm.time().cycle();
     static int flag=0;
     	rcsc::Vector2D goalie_pos = (opp_goalie)
@@ -782,21 +799,17 @@ Bhv_PenaltyKick::doDribbleWhitball(PlayerAgent* agent)
 	//    myTarget =goalie_pos;// Vector2D(sign(wm.ball().pos().x)*52,0);
 
 
-//			if(Body_Dribble( myTarget,
-//						  1,
-//						  ServerParam::i().maxDashPower(),
-//						  4,
-//						  true
-//						  ).execute( agent )
-//			)
+			if(Body_Dribble( myTarget,
+						  1,
+						  ServerParam::i().maxDashPower(),
+						  2,
+						  true
+						  ).execute( agent )
+			){
+                return true;
+            }
 
-        if ( Bhv_ChainAction().execute( agent ) )
-        {
-            dlog.addText( Logger::TEAM,
-                          __FILE__": (execute) do chain action" );
-            agent->debugClient().addMessage( "ChainAction" );
-            return true;
-        }
+
 
 
 	}
@@ -965,7 +978,7 @@ Bhv_PenaltyKick::doforceshoot(PlayerAgent * agent)
 			std::cout<<"\n Cycle: "<<wm.time().cycle()<<" triangle"<<endl;
 				 return true;
 		}
-    	if(ball.dist(goalie_pos) < 1.6)
+    	if(ball.dist(goalie_pos) < 1)
     	{
     		if(Body_TackleToPoint(target).execute(agent))
     		{
@@ -1495,8 +1508,9 @@ Bhv_PenaltyKick::doGoalieWait( PlayerAgent* agent )
 bool
 Bhv_PenaltyKick::doGoalieSetup( PlayerAgent * agent )
 {
-    Vector2D move_point( ServerParam::i().ourTeamGoalLineX() + ServerParam::i().penMaxGoalieDistX() - 0.1,
-                         0.0 );
+    Vector2D ball_pos = agent->world().ball().pos();
+
+    Vector2D move_point( -sign(ball_pos.x)*ServerParam::i().ourTeamGoalLineX() + -sign(ball_pos.x)*(ServerParam::i().penMaxGoalieDistX() - 0.1) , 0.0 );
 
     if ( Body_GoToPoint( move_point,
                          0.5,
@@ -1527,7 +1541,6 @@ Bhv_PenaltyKick::doGoalieSetup( PlayerAgent * agent )
 bool
 Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
 {
-
 	char filenam[512];
 	static int m=  mkdir("..//..//log", 0777);
 	if(m)m=0;
@@ -1585,11 +1598,19 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
 #endif
     /////////////////////////////////////////////////////////////////
     // check if catchabale
-    Rect2D our_penalty( Vector2D( -SP.pitchHalfLength(),
+    Rect2D our_penalty;
+    if(ball.x>0)
+    our_penalty =Rect2D( Vector2D( -SP.pitchHalfLength(),
                                   -SP.penaltyAreaHalfWidth() + 1.0 ),
                         Size2D( SP.penaltyAreaLength() - 1.0,
                                 SP.penaltyAreaWidth() - 2.0 ) );
 
+    else{
+        	our_penalty =Rect2D( Vector2D( SP.pitchHalfLength()- SP.penaltyAreaLength() + 1.0,
+        	                                  -SP.penaltyAreaHalfWidth() + 1.0 - SP.penaltyAreaWidth() + 2.0 ),
+        	                        Size2D( SP.penaltyAreaLength() - 1.0,
+        	                                SP.penaltyAreaWidth() - 2.0 ) );
+    }
     if ( wm.ball().distFromSelf() < SP.catchableArea() - 0.05
          && our_penalty.contains( wm.ball().pos() ) )
     {
@@ -1622,11 +1643,11 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
 #endif
         return true;
     }
-    if( Bhv_BasicTackle( 0.6 ).execute( agent ) )
-    {
-    	std::cout<<" tackle 2 in "<<wm.time().cycle()<<endl;
-        return true;
-    }
+//    if( Bhv_BasicTackle( 0.6 ).execute( agent ) )
+//    {
+//    	std::cout<<" tackle 2 in "<<wm.time().cycle()<<endl;
+//        return true;
+//    }
 
     if(me_next.dist(Next_ball) < wm.self().playerType().kickableArea()
     		|| Next_ball.dist(me)<wm.self().playerType().kickableArea()+0.8)
@@ -1635,12 +1656,14 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
 
     	if(fabs((me_next - me).th().degree()-wm.self().body().degree())<15)
     	{
+
     		agent->doDash(SP.maxDashPower());
     		return true;
     	}
     	else if(fabs((me_next - me).th().degree()-wm.self().body().degree())>165)
     	{
-    		agent->doDash(-SP.maxDashPower());
+
+    		agent->doDash(SP.maxDashPower(),180);
     		return true;
     	}
     }
@@ -1775,7 +1798,7 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
         	agent->setViewAction(view);
         	if(! Neck_TurnToBallAndPlayer( opp1 , 0 ).execute(agent) || wm.ball().posCount()>1)
         	{
-                
+
         		agent->setNeckAction( new rcsc::Neck_TurnToPoint(static_ball_pos) );
         	}
         }
@@ -1876,13 +1899,20 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
 
           if (wm.self().pos().dist(goalcenter) > move_pos.dist(goalcenter)){
               if((wm.self().body() - (move_pos - wm.self().pos()).th()).abs() > 100){
-                agent->doDash(-SP.maxDashPower());
+                  std::cout<<"GOALIE3\n";
+                agent->doDash(SP.maxDashPower(),180);
                 agent->setNeckAction( new rcsc::Neck_TurnToBall() );
                 return true;
             }
           }
-
-      	  if(!Body_GoToPoint( move_pos,0.4,SP.maxDashPower(),-1,100,false,45).execute( agent ))
+          if(move_pos.dist(me_next)<4.0)
+          {
+              double dist = move_pos.dist(me_next);
+              double dash_power = SP.maxDashPower()*std::pow(dist/4.0,0.33);
+              AngleDeg dash_angle = (move_pos - me).th() - wm.self().body();
+              agent->doDash(dash_power,dash_angle);
+          }
+      	  if(!Body_GoToPoint( move_pos,0.4,SP.maxDashPower(),-1,100,false,65).execute( agent ))
       	  {
       		agent->setNeckAction( new rcsc::Neck_TurnToBall() );
 #if log
@@ -1985,6 +2015,7 @@ rcsc::Vector2D Bhv_PenaltyKick::getPoint( rcsc::PlayerAgent * agent )
   rcsc::Vector2D ball = wm.ball().pos();
   rcsc::Vector2D me = wm.self().pos();
   rcsc::Vector2D GoalCenter(sign(ball.x)*53.0,0.0);
+  dlog.addCircle(Logger::POSITIONING, GoalCenter, 0.5,255,255,255 );
   rcsc::Line2D lball(ball,wm.ball().vel().th());
 		  rcsc::Line2D(wm.opponentsFromBall().front()->pos(),wm.opponentsFromBall().front()->body());
 
@@ -2018,10 +2049,17 @@ rcsc::Vector2D Bhv_PenaltyKick::getPoint( rcsc::PlayerAgent * agent )
 	double Dis=disthr * ball_pos.dist(GoalCenter);
 	// Dis = min(Dis,23.9);
 	AngleDeg goalfromball= (   ball_pos-GoalCenter ).th();
+    dlog.addLine(Logger::POSITIONING, GoalCenter, ball_pos, 0,0,0 );
 	Vector2D move_pos= GoalCenter +  rcsc::Vector2D::polar2vector(Dis ,goalfromball);
+    dlog.addCircle(Logger::POSITIONING, move_pos, 0.5,0,0,0 );
 	Line2D TArget_line = Line2D(GoalCenter,move_pos);
-    move_pos.x = min(move_pos.x, -30.);
-
+    dlog.addLine(Logger::POSITIONING,GoalCenter,move_pos);
+    if(ball_pos.x <0) {
+        move_pos.x = min(move_pos.x, -30.);
+    }
+    else {
+        move_pos.x = max(30., move_pos.x);
+    }
 //	if(ball_pos.dist(GoalCenter) > 24)
 //	{
 //		move_pos = GoalCenter +  rcsc::Vector2D::polar2vector(22 ,goalfromball);
@@ -2034,6 +2072,7 @@ rcsc::Vector2D Bhv_PenaltyKick::getPoint( rcsc::PlayerAgent * agent )
 	//else
 	bool move = (oppCycles > 1 ||me.dist(ball) > 10)  && me.dist(move_pos) > 7;
 	rcsc::Vector2D my = Vector2D(me.x,TArget_line.getY(me.x));
+    dlog.addCircle(Logger::POSITIONING, my, 0.5,255,255,255 );
 	if(me.dist(move_pos) > 6 && move_pos.absX() < me.absX()
 			&& fabs(my.y - me.y)> 0.70
 			&& (flag == 0 || ! move))
@@ -2041,8 +2080,6 @@ rcsc::Vector2D Bhv_PenaltyKick::getPoint( rcsc::PlayerAgent * agent )
 		/*
 		 * correct soon my pos
 		 */
-
-
 		double mag = 2.0;//me.dist(ball_pos)*0.2;
 
 		my+=Vector2D::polar2vector(mag,goalfromball);

@@ -244,7 +244,9 @@ Bhv_ChainAction::execute( PlayerAgent * agent )
 //    dlog.addCircle(Logger::ACTION_CHAIN,first_action.targetPoint(),0.1,150,150,0,false);
 	ActionChainGraph::debug_send_chain( agent, M_chain_graph.getAllChain() );
 
-	const Vector2D goal_pos = SP.theirTeamGoalPos();
+	Vector2D goal_pos = SP.theirTeamGoalPos();
+    if(wm.gameMode().isPenaltyKickMode())
+        goal_pos*=sign(wm.ball().pos().x);
     NeckDecisionWithBall().setNeck(agent, NeckDecisionType::chain_action_first);
 
 	switch ( first_action.category() ) {

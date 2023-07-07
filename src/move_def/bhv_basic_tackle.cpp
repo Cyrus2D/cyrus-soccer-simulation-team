@@ -239,7 +239,7 @@ Bhv_BasicTackle::execute( PlayerAgent * agent )
          && wm.self().card() == NO_CARD
          && ( wm.ball().pos().x > SP.ourPenaltyAreaLineX() + 0.5
               || wm.ball().pos().absY() > SP.penaltyAreaHalfWidth() + 0.5 )
-         && tackle_prob < wm.self().foulProbability() )
+         && tackle_prob < wm.self().foulProbability() && ! wm.gameMode().isPenaltyKickMode() )
     {
         tackle_prob = wm.self().foulProbability();
         use_foul = true;
