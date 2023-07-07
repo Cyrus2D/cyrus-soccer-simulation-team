@@ -81,7 +81,9 @@ public:
 
     BallPredictionArea();
     void update(const rcsc::WorldModel& wm, const int cluster_count) override;
-    rcsc::Vector2D area_avg();
+    
+    rcsc::Vector2D vertices_avg();
+    rcsc::Vector2D get_avg();
 };
 
 class LocalizationDenoiserByArea: public LocalizationDenoiser{

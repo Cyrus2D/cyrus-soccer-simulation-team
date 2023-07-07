@@ -596,6 +596,13 @@ LocalizationDenoiserByArea::get_model_name(){
     return "Area";
 }
 
+BallPredictionArea::BallPredictionArea()
+    : BallPrediction(){
+        area = nullptr;
+        last_seen_time = GameTime(0, 0);
+        last_vel = Vector2D().invalidate();
+    }
+
 void
 BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
     suck = false;
@@ -684,7 +691,7 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
     }
 
     if (area){
-        average_pos = area_avg();
+        average_pos = get_avg();
     }
     else{
         average_pos = wm.ball().pos();
@@ -697,7 +704,7 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
 
 
 Vector2D 
-BallPredictionArea::area_avg(){
+BallPredictionArea::vertices_avg(){
     Vector2D avg(0, 0);
     for(const auto& v: area->vertices())
         avg += v;
@@ -705,11 +712,14 @@ BallPredictionArea::area_avg(){
     return avg;
 }
 
-
 Vector2D 
-BallPredictionArea::area_avg(){
+BallPredictionArea::get_avg(){
     Vector2D avg(0, 0);
     double s = area->area();
+
+    if (s == 0.){
+        return vertices_avg();
+    }
     
     vector<Vector2D> vs(area->vertices());
     vs.push_back(vs.front()); // 0 == n
@@ -719,10 +729,13 @@ BallPredictionArea::area_avg(){
         avg.y += (vs[i].y + vs[i+1].y) * (vs[i].x*vs[i+1].y - vs[i+1].x*vs[i].y);
     }
 
-    dlog.addText(Logger::WORLD, "BALL AREA AVG --------------------------------------------------------------------");
 
     avg *= 1/(6*s);
+
+    #ifdef DEBUG_DENOISE_AREA
+    dlog.addText(Logger::WORLD, "AREA AVG --------------------------------------------------------------------");
     dlog.addText(Logger::WORLD, "s=%.2f, avg=(%.2f, %.2f);", s, avg.x, avg.y);
+    #endif
 
     return avg;
 }
