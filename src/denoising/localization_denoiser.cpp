@@ -86,6 +86,17 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
     };
     static vector<PlayerTestRes> player_test_res(23, PlayerTestRes());
 
+    if (ball->suck
+        && wm.ball().seenPosCount() == 0
+        && ball->average_pos.isValid()){
+
+        const Vector2D& accurate_pos = agent->fullstateWorld().ball().pos();
+        
+        player_test_res.at(0).count += 1;
+        player_test_res.at(0).base_noise += wm.ball().pos().dist(accurate_pos);
+        player_test_res.at(0).cyrus_noise += ball->average_pos.dist(accurate_pos);
+    }
+
     for (auto & p: teammates){
         auto t = wm.ourPlayer(p.first);
         if (t != nullptr
@@ -139,6 +150,11 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
     }
     if ((wm.time().cycle() == 2999 || wm.time().cycle() == 5999) && wm.time().stopped() == 0)
     {
+        fout <<"BALL " 
+             << player_test_res.at(0).base_noise / player_test_res.at(0).count 
+             <<" -> "
+             << player_test_res.at(0).cyrus_noise / player_test_res.at(0).count << endl;
+
         double base_noises = 0.0;
         double cyrus_noises = 0.0;
         double all_count = 0.0;
@@ -192,6 +208,10 @@ void LocalizationDenoiser::update_world_model(PlayerAgent * agent){
                 p->M_pos = opponents[p->unum()]->average_pos;
             }
     }
+    if (ball->suck){
+        wm_not_const.M_ball.M_base_pos = wm_not_const.M_ball.M_pos;
+        wm_not_const.M_ball.M_pos = ball->average_pos;
+    }
 }
 
 void LocalizationDenoiser::update(PlayerAgent *agent) {
@@ -224,6 +244,10 @@ void LocalizationDenoiser::update(PlayerAgent *agent) {
         }
             opponents[p->unum()]->update(wm, p, cluster_count);
     }
+    if (!ball){
+        ball = create_ball_prediction();
+    }
+    ball->update(wm, cluster_count);
     #ifdef DEBUG_ACTION_DENOISER
     update_tests(agent);
     #endif
@@ -244,9 +268,21 @@ void LocalizationDenoiser::debug(PlayerAgent * agent) {
         dlog.addCircle(Logger::WORLD, p->M_base_pos, 0.1, 0, 0, 255, true);
         dlog.addCircle(Logger::WORLD, p->pos(), 0.1, 255, 0, 0, true);
     }
+    dlog.addCircle(Logger::WORLD, agent->world().ball().M_base_pos, 0.1, 0, 0, 255, true);
+    dlog.addCircle(Logger::WORLD, agent->world().ball().pos(), 0.1, 255, 0, 0, true);
     #endif
 }
 
 PlayerPredictions* LocalizationDenoiser::create_prediction(SideID side, int unum) {
     return new PlayerPredictions(side, unum);
 }
+
+void BallPrediction::update(const WorldModel &wm, int cluster_count) {
+}
+
+BallPrediction* LocalizationDenoiser::create_ball_prediction() {
+    return new BallPrediction();
+}
+
+BallPrediction::BallPrediction()
+    : object_table() {}
