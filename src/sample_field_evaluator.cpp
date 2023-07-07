@@ -53,7 +53,7 @@ static const int VALID_PLAYER_THRESHOLD = 8;
 
  */
 static double evaluate_state( const PredictState & state );
-static double evaluate_state_penalty( const PredictState & state );
+static double evaluate_state_penalty( const PredictState & state, Vector2D ball_pos);
 static double evaluate_state2( const PredictState & state );
 
 
@@ -84,6 +84,7 @@ SampleFieldEvaluator::operator()( const PredictState & state,
 								  const WorldModel & wm,
                                   const std::vector< ActionStatePair > & path ) const
 {
+
     double final_state_evaluation = evaluate_state( state );
 
     //
@@ -94,9 +95,8 @@ SampleFieldEvaluator::operator()( const PredictState & state,
     }
     double result = final_state_evaluation;
 
-    if(wm.gameMode().type() == GameMode::PenaltyTaken_)
-        if(wm.ball().pos().x < 32)
-            result = evaluate_state_penalty( state );
+    if(wm.gameMode().type() == GameMode::PenaltyTaken_  && wm.ball().pos().x < 0)
+            result = evaluate_state_penalty( state,wm.ball().pos() );
     return result;
 }
 
@@ -227,7 +227,7 @@ evaluate_state( const PredictState & state )
 }
 static
 double
-evaluate_state_penalty( const PredictState & state )
+evaluate_state_penalty( const PredictState & state, Vector2D ball_pos )
 {
     const ServerParam & SP = ServerParam::i();
 
@@ -256,7 +256,7 @@ evaluate_state_penalty( const PredictState & state )
     //
     // ball is in opponent goal
     //
-    if ( state.ball().pos().x > + ( SP.pitchHalfLength() - 0.1 )
+    if ( state.ball().pos().x* sign(ball_pos.x) > + ( SP.pitchHalfLength() - 0.1 )
          && state.ball().pos().absY() < SP.goalHalfWidth() + 2.0 )
     {
 #ifdef DEBUG_PRINT
@@ -269,7 +269,7 @@ evaluate_state_penalty( const PredictState & state )
     //
     // ball is in our goal
     //
-    if ( state.ball().pos().x < - ( SP.pitchHalfLength() - 0.1 )
+    if ( state.ball().pos().x* sign(ball_pos.x) < - ( SP.pitchHalfLength() - 0.1 )
          && state.ball().pos().absY() < SP.goalHalfWidth() )
     {
 #ifdef DEBUG_PRINT
@@ -294,26 +294,25 @@ evaluate_state_penalty( const PredictState & state )
 
         return - DBL_MAX / 2.0;
     }
-
+    Vector2D state_pos = state.ball().pos();
+    state_pos.x= state_pos.x*sign(ball_pos.x);
 
     //
     // set basic evaluation
     //
-    double point = state.ball().pos().x;
+    double point_x = state_pos.x;
+    double point_goal = std::max( 0.0,
+                                  40.0 - ServerParam::i().theirTeamGoalPos().dist( state_pos ) );
+    double point_out = std::max(std::max(std::max( 0.0, 25.0 - state_pos.dist(Vector2D(27,15))), std::max( 0.0, 25.0 - state_pos.dist(Vector2D(27,-15)))),std::max( 0.0, 25.0 - state_pos.dist(Vector2D(27,0))));
+    double point_line = (std::max(std::max(std::max( 0.0, 10.0 - state_pos.dist(Vector2D(48,7))), std::max( 0.0, 10.0 - state_pos.dist(Vector2D(48,-7)))),std::max( 0.0, 10.0 - state_pos.dist(Vector2D(52,0))))*2.5);
+    double point = 0;
+    point += point_x;
+    point += point_goal;
+    point += point_out;
+    point += point_line;
+//    double point = state.ball().pos().x*sign(ball_pos.x);
 
-    point += std::max( 0.0,
-                       40.0 - ServerParam::i().theirTeamGoalPos().dist( state.ball().pos() ) );
-    if(state.ball().pos().y > 0){
-        point += std::max(0.0, 40.0 - Vector2D(35, 15).dist(state.ball().pos()));
-    }else{
-        point += std::max(0.0, 40.0 - Vector2D(35,-15).dist(state.ball().pos()));
-    }
 
-    if(Strategy::i().isgoal_forward()){
-        if(state.ball().pos().y > 10){
-            point *= 2;
-        }
-    }
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::ACTION_CHAIN,
                   "(eval) ball pos (%f, %f)",
@@ -326,7 +325,7 @@ evaluate_state_penalty( const PredictState & state )
     //
     // add bonus for goal, free situation near offside line
     //
-    if ( FieldAnalyzer::can_shoot_from
+    if ( FieldAnalyzer::penalty_can_shoot_from
          ( holder->unum() == state.self().unum(),
            holder->pos(),
            state.getPlayers( new OpponentOrUnknownPlayerPredicate( state.ourSide() ) ),
