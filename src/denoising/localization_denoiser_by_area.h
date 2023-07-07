@@ -87,7 +87,7 @@ public:
 class LocalizationDenoiserByArea: public LocalizationDenoiser{
 public:
     PlayerPredictions* create_prediction(SideID side, int unum) override;
-    BallPrediction* create_ball_prediction() override;
+    BallPredictio* create_ball_prediction() override;
     std::string get_model_name() override;
 
 };
