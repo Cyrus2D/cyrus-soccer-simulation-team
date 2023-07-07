@@ -1536,6 +1536,12 @@ bool FieldAnalyzer::isPers(const rcsc::WorldModel &wm)
         && (name.find("I") != std::string::npos || name.find("i") != std::string::npos)){
         return true;
     }
+    if( (name.find("T") != std::string::npos || name.find("t") != std::string::npos)
+        && (name.find("H") != std::string::npos || name.find("h") != std::string::npos)
+        && (name.find("E") != std::string::npos || name.find("e") != std::string::npos)
+        && (name.find("8") != std::string::npos || name.find("8") != std::string::npos)){
+        return true;
+    }
     return false;
 }
 
