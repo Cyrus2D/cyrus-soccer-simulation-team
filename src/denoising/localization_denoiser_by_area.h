@@ -82,6 +82,8 @@ public:
 
     BallPredictionArea();
     void update(const rcsc::WorldModel& wm, const int cluster_count) override;
+    void update_by_see(const rcsc::WorldModel& wm);
+    void update_by_hear(const rcsc::WorldModel& wm);
     
     rcsc::Vector2D vertices_avg();
     rcsc::Vector2D get_avg();

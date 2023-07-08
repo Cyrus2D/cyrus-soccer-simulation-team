@@ -235,6 +235,9 @@ PlayerPositionConvex::get_convex_without_body(int ptype_id, int pos_count, Vecto
 
 
 void draw_poly(const Polygon2D &p, const char* color){
+    #ifndef DEBUG_PLAYER_AREA
+    return;
+    #endif
     const auto& vertices = p.vertices();
     for(uint i = 0; i < vertices.size()-1; i++){
         dlog.addLine(Logger::WORLD, vertices[i], vertices[i+1], color);
@@ -462,7 +465,7 @@ void PlayerPredictedObjArea::update_by_hear(const WorldModel &wm, const PlayerOb
 
         if (unum == p->unum()){
             heard_pos = a.pos_;
-            error_dist = a.pos_count_ * 0.6 + 0.25;
+            error_dist = /*a.pos_count_ * 0.6*/ + 0.25;
             heard_body = a.body_;
             heard_pos_count = a.pos_count_;
 
@@ -602,11 +605,11 @@ BallPredictionArea::BallPredictionArea()
         last_seen_time = GameTime(0, 0);
         last_vel = Vector2D().invalidate();
         last_vel_err = Vector2D().invalidate();
-    }
+}
+
 
 void
-BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
-    suck = false;
+BallPredictionArea::update_by_see(const WorldModel& wm){
     if (wm.gameMode().type() != GameMode::PlayOn){
         if (area)
             delete area;
@@ -622,6 +625,7 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
 
 
     if (area){
+        dd(BAA);
         const int time_diff = wm.time().cycle() - last_seen_time.cycle();
         Vector2D ball_move(0, 0);
         Vector2D tmp_vel = last_vel;
@@ -658,14 +662,6 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
         if (ball_move.r() < 1.e-5){
             delete area;
             area = new Polygon2D(new_area);
-
-            if (area){
-                average_pos = get_avg();
-            }
-            else{
-                average_pos = wm.ball().pos();
-            }
-
 
             suck = true;
             last_vel = wm.ball().vel();
@@ -704,6 +700,7 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
         dd(BF);
     }
     else{
+        dd(BAB);
         double seen_dist = wm.ball().seen_dist();
         AngleDeg seen_dir = wm.ball().seen_angle();
         double avg_dist;
@@ -724,17 +721,139 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
         }
     }
 
+    suck = true;
+    last_seen_time = wm.time();
+    last_vel = wm.ball().vel();
+    last_vel_err = wm.ball().velError();
+}
+
+void
+BallPredictionArea::update_by_hear(const WorldModel& wm){
+    const auto& memory = wm.audioMemory();
+    Vector2D heard_ball_pos = memory.ball().back().pos_;
+    Vector2D heard_ball_vel = memory.ball().back().vel_;
+
+    Vector2D pos_err(105. / 1024., 68. / 512.);
+    Vector2D vel_err(3. / 32., 3. / 32.);
+
+    dd(1);
+
     if (area){
-        average_pos = get_avg();
+        const int time_diff = wm.time().cycle() - last_seen_time.cycle();
+        Vector2D ball_move(0, 0);
+        Vector2D tmp_vel = last_vel;
+        Vector2D tmp_vel_err = last_vel_err;
+
+        for (int i = 0; i < time_diff; i++){
+            ball_move += tmp_vel;
+            tmp_vel *= ServerParam::i().ballDecay();
+            tmp_vel_err *= ServerParam::i().ballDecay();
+        }
+        dd(2);
+
+        std::vector<Vector2D> poses = {
+                Vector2D(heard_ball_pos.x - pos_err.x, heard_ball_pos.y - pos_err.y),
+                Vector2D(heard_ball_pos.x + pos_err.x, heard_ball_pos.y - pos_err.y),
+                Vector2D(heard_ball_pos.x - pos_err.x, heard_ball_pos.y + pos_err.y),
+                Vector2D(heard_ball_pos.x + pos_err.x, heard_ball_pos.y + pos_err.y),
+        };
+        ConvexHull tmp(poses);
+        tmp.compute();
+        Polygon2D new_area = Polygon2D(tmp.toPolygon().vertices());
+
+        draw_poly(new_area, "#FFFF00");
+
+        dd(3);
+        if (ball_move.r() < 1.e-5){
+            delete area;
+            area = new Polygon2D(new_area);
+
+            suck = true;
+            last_vel = wm.ball().vel();
+            last_vel_err = wm.ball().velError();
+            last_seen_time = wm.time();
+            dd(3.5);
+            return;
+        }
+
+        dd(4);
+        std::vector<Vector2D> ball_error_moves = {
+            Vector2D(ball_move.x - tmp_vel_err.x, ball_move.y - tmp_vel_err.y),
+            Vector2D(ball_move.x + tmp_vel_err.x, ball_move.y - tmp_vel_err.y),
+            Vector2D(ball_move.x - tmp_vel_err.x, ball_move.y + tmp_vel_err.y),
+            Vector2D(ball_move.x + tmp_vel_err.x, ball_move.y + tmp_vel_err.y),
+        };
+
+        ConvexHull ball_area_prediction;
+        for (const auto& v: area->vertices())
+            for (const Vector2D& vel: ball_error_moves)
+                ball_area_prediction.addPoint(v + vel);
+        ball_area_prediction.compute();
+
+        dd(5);
+        draw_poly(ball_area_prediction.toPolygon(), "#FF0000");
+        Polygon2D mutual = mutual_convex(ball_area_prediction.toPolygon(), new_area);
+
+        delete area;
+        area = nullptr;
+        if (mutual.vertices().size() > 2){
+            area = new Polygon2D(mutual);
+        }
+        else{
+            area = new Polygon2D(new_area);
+        }
+        draw_poly(*area, "#000000");
     }
-    else{
-        average_pos = wm.ball().pos();
+    else {
+        std::vector<Vector2D> poses = {
+                Vector2D(heard_ball_pos.x - pos_err.x, heard_ball_pos.y - pos_err.y),
+                Vector2D(heard_ball_pos.x + pos_err.x, heard_ball_pos.y - pos_err.y),
+                Vector2D(heard_ball_pos.x - pos_err.x, heard_ball_pos.y + pos_err.y),
+                Vector2D(heard_ball_pos.x + pos_err.x, heard_ball_pos.y + pos_err.y),
+        };
+        ConvexHull tmp(poses);
+        tmp.compute();
+
+        delete area;
+        area = new Polygon2D(tmp.toPolygon().vertices());
     }
 
     suck = true;
     last_seen_time = wm.time();
     last_vel = wm.ball().vel();
     last_vel_err = wm.ball().velError();
+}
+
+void
+BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
+    #ifdef DEBUG_DENOISE_AREA
+    dlog.addText(Logger::WORLD, "==================================== %d %d", p->side(), p->unum());
+    #endif
+
+    suck = false;
+    bool is_ball_heard = false;
+    dd(C1);
+    const auto& memory = wm.audioMemory();
+    if (memory.ballTime().cycle() == wm.time().cycle()){
+        dd(C2.5);
+        is_ball_heard = true;
+    }
+    dd(C2);
+
+    if (wm.ball().seenPosCount() == 0) {
+        update_by_see(wm);
+    }
+    else if (is_ball_heard){
+        update_by_hear(wm);
+    } 
+    else {
+    }
+    dd(C3);
+
+    if (area)
+        average_pos = get_avg();
+    else
+        average_pos = wm.ball().pos();
 }
 
 

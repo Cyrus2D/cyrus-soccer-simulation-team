@@ -12,6 +12,10 @@
 #include "../debugs.h"
 #include "../sample_player.h"
 
+// #define dd(x) std::cout << #x << std::endl
+#define dd(x) ;
+
+
 using namespace rcsc;
 using namespace std;
 
@@ -86,16 +90,20 @@ void LocalizationDenoiser::update_tests(PlayerAgent *agent){
     };
     static vector<PlayerTestRes> player_test_res(23, PlayerTestRes());
 
+    dd(EA);
     if (ball->suck
-        && wm.ball().seenPosCount() == 0
+        && (wm.ball().seenPosCount() == 0
+            || wm.audioMemory().ballTime().cycle() == wm.time().cycle())
         && ball->average_pos.isValid()){
 
+        dd(EB);
         const Vector2D& accurate_pos = agent->fullstateWorld().ball().pos();
         
         player_test_res.at(0).count += 1;
         player_test_res.at(0).base_noise += wm.ball().pos().dist(accurate_pos);
         player_test_res.at(0).cyrus_noise += ball->average_pos.dist(accurate_pos);
     }
+    dd(EZ);
 
     for (auto & p: teammates){
         auto t = wm.ourPlayer(p.first);
@@ -244,14 +252,19 @@ void LocalizationDenoiser::update(PlayerAgent *agent) {
         }
             opponents[p->unum()]->update(wm, p, cluster_count);
     }
+    dd(DA);
     if (!ball){
         ball = create_ball_prediction();
     }
+    dd(DB);
     ball->update(wm, cluster_count);
+    dd(DC);
     #ifdef DEBUG_ACTION_DENOISER
     update_tests(agent);
+    dd(DD);
     #endif
     update_world_model(agent);
+    dd(DE);
 }
 
 Vector2D LocalizationDenoiser::get_average_pos(const WorldModel &wm, SideID side, int unum){
