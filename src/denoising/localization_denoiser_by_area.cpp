@@ -627,26 +627,7 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
             ball_move += tmp_vel;
             tmp_vel *= ServerParam::i().ballDecay();
         }
-        dd(BB);
 
-        if (ball_move.r() < 1.e-5){
-            suck = false;
-            return;
-        }
-
-        std::vector<Vector2D> ball_error_moves;
-        ball_error_moves.emplace_back(ball_move.rotatedVector(+0.1));
-        ball_error_moves.emplace_back(ball_move);
-        ball_error_moves.emplace_back(ball_move.rotatedVector(-0.1));
-
-        ConvexHull ball_area_prediction;
-        for (const Vector2D& vel: ball_error_moves)
-            for (const auto& v: area->vertices())
-                ball_area_prediction.addPoint(v + vel);
-        ball_area_prediction.compute()
-        dd(BC);
-        
-        draw_poly(ball_area_prediction.toPolygon(), "#FF0000");
         double seen_dist = wm.ball().seen_dist();
         AngleDeg seen_dir = wm.ball().seen_angle();
         double avg_dist;
@@ -667,6 +648,31 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
         }
         dd(BD);
         draw_poly(new_area, "#0000FF");
+        dd(BB);
+
+        if (ball_move.r() < 1.e-5){
+            delete area;
+            area = new Polygon2D(new_area);
+
+            suck = true;
+            last_vel = wm.ball().vel();
+            last_seen_time = wm.time();
+            return;
+        }
+
+        std::vector<Vector2D> ball_error_moves;
+        ball_error_moves.emplace_back(ball_move.rotatedVector(+0.1));
+        ball_error_moves.emplace_back(ball_move);
+        ball_error_moves.emplace_back(ball_move.rotatedVector(-0.1));
+
+        ConvexHull ball_area_prediction;
+        for (const Vector2D& vel: ball_error_moves)
+            for (const auto& v: area->vertices())
+                ball_area_prediction.addPoint(v + vel);
+        ball_area_prediction.compute()
+        dd(BC);
+        
+        draw_poly(ball_area_prediction.toPolygon(), "#FF0000");
         Polygon2D mutual = mutual_convex(ball_area_prediction.toPolygon(), new_area);
         
         delete area;
