@@ -34,12 +34,24 @@ public:
     virtual bool player_seen(const AbstractPlayerObject * p);
 };
 
+class BallPrediction{
+public:
+    rcsc::Vector2D average_pos;
+    ObjectTable object_table;
+
+    bool suck;
+
+    BallPrediction();
+
+    virtual void update(const rcsc::WorldModel& wm, const int cluster_count);
+};
 
 
 class LocalizationDenoiser {
 public:
     map<int, PlayerPredictions *> teammates;
     map<int, PlayerPredictions *> opponents;
+    BallPrediction* ball;
     int cluster_count = 1;
     long last_updated_cycle = -1;
     long last_update_stopped = 0;
@@ -56,7 +68,7 @@ public:
     Vector2D get_average_pos(const WorldModel &wm, SideID side, int unum);
 
     virtual PlayerPredictions* create_prediction(SideID side, int unum);
-
+    virtual BallPrediction* create_ball_prediction();
 
     virtual std::string get_model_name();
 };
