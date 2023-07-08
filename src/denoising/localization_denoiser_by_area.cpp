@@ -79,10 +79,10 @@ Polygon2D mutual_convex(const Polygon2D &p1p, const Polygon2D &p2p) {
             if (!inter.isValid()) {
                 continue;
             }
-            if (!(min1_x < inter.x && inter.x < max1_x)) {
+            if (std::abs(min1_x - max1_x) > 0.0001 && !(min1_x < inter.x && inter.x < max1_x)) {
                 continue;
             }
-            if (!(min2_x < inter.x && inter.x < max2_x)) {
+            if (std::abs(min2_x - max2_x) > 0.0001 && !(min2_x < inter.x && inter.x < max2_x)) {
                 continue;
             }
             vertices.emplace_back(inter);
@@ -601,12 +601,15 @@ BallPredictionArea::BallPredictionArea()
         area = nullptr;
         last_seen_time = GameTime(0, 0);
         last_vel = Vector2D().invalidate();
+        last_vel_err = Vector2D().invalidate();
     }
 
 void
 BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
     suck = false;
     if (wm.gameMode().type() != GameMode::PlayOn){
+        if (area)
+            delete area;
         area = nullptr;
         return;
     }
@@ -622,10 +625,12 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
         const int time_diff = wm.time().cycle() - last_seen_time.cycle();
         Vector2D ball_move(0, 0);
         Vector2D tmp_vel = last_vel;
+        Vector2D tmp_vel_err = last_vel_err;
 
         for (int i = 0; i < time_diff; i++){
             ball_move += tmp_vel;
             tmp_vel *= ServerParam::i().ballDecay();
+            tmp_vel_err *= ServerParam::i().ballDecay();
         }
 
         double seen_dist = wm.ball().seen_dist();
@@ -654,22 +659,33 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
             delete area;
             area = new Polygon2D(new_area);
 
+            if (area){
+                average_pos = get_avg();
+            }
+            else{
+                average_pos = wm.ball().pos();
+            }
+
+
             suck = true;
             last_vel = wm.ball().vel();
+            last_vel_err = wm.ball().velError();
             last_seen_time = wm.time();
             return;
         }
 
-        std::vector<Vector2D> ball_error_moves;
-        ball_error_moves.emplace_back(ball_move.rotatedVector(+0.1));
-        ball_error_moves.emplace_back(ball_move);
-        ball_error_moves.emplace_back(ball_move.rotatedVector(-0.1));
+        std::vector<Vector2D> ball_error_moves = {
+            Vector2D(ball_move.x - tmp_vel_err.x, ball_move.y - tmp_vel_err.y),
+            Vector2D(ball_move.x + tmp_vel_err.x, ball_move.y - tmp_vel_err.y),
+            Vector2D(ball_move.x - tmp_vel_err.x, ball_move.y + tmp_vel_err.y),
+            Vector2D(ball_move.x + tmp_vel_err.x, ball_move.y + tmp_vel_err.y),
+        };
 
         ConvexHull ball_area_prediction;
         for (const auto& v: area->vertices())
             for (const Vector2D& vel: ball_error_moves)
                 ball_area_prediction.addPoint(v + vel);
-        ball_area_prediction.compute()
+        ball_area_prediction.compute();
         dd(BC);
         
         draw_poly(ball_area_prediction.toPolygon(), "#FF0000");
@@ -718,6 +734,7 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
     suck = true;
     last_seen_time = wm.time();
     last_vel = wm.ball().vel();
+    last_vel_err = wm.ball().velError();
 }
 
 

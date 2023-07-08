@@ -78,6 +78,7 @@ public:
     rcsc::Polygon2D* area;
     rcsc::GameTime last_seen_time;
     rcsc::Vector2D last_vel;
+    rcsc::Vector2D last_vel_err;
 
     BallPredictionArea();
     void update(const rcsc::WorldModel& wm, const int cluster_count) override;
