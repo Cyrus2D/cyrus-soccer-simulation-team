@@ -474,6 +474,13 @@ Bhv_SetPlay::is_kicker( const PlayerAgent * agent )
         }
     }
 
+    // hotfix for kick-in error near the half line
+    if( wm.gameMode().type() == GameMode::KickIn_ && wm.gameMode().side() == wm.ourSide() && second_kicker_unum == wm.self().unum() && wm.self().pos().absY() > ServerParam::i().pitchHalfWidth() )
+    {
+        std::swap( second_kicker_unum, kicker_unum );
+        std::swap( second_min_dist2, min_dist2 );
+    }
+
     dlog.addText( Logger::TEAM,
                   __FILE__": (is_kicker) kicker_unum=%d second_kicker_unum=%d",
                   kicker_unum, second_kicker_unum );
