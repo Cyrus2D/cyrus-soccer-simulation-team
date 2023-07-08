@@ -629,6 +629,11 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
         }
         dd(BB);
 
+        if (ball_move.r() < 1.e-5){
+            suck = false;
+            return;
+        }
+
         std::vector<Vector2D> ball_error_moves;
         ball_error_moves.emplace_back(ball_move.rotatedVector(+0.1));
         ball_error_moves.emplace_back(ball_move);
