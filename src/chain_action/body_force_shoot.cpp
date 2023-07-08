@@ -67,7 +67,10 @@ Body_ForceShoot::execute( rcsc::PlayerAgent * agent )
 
     const rcsc::ServerParam & param = rcsc::ServerParam::i();
 
-    const rcsc::Vector2D target = param.theirTeamGoalPos();
+    rcsc::Vector2D target = param.theirTeamGoalPos();
+    if(wm.gameMode().isPenaltyKickMode()){
+        target*= sign(wm.ball().pos().x);
+    }
 
     rcsc::dlog.addText( rcsc::Logger::ACTION,
                         __FILE__": no course, force kick" );

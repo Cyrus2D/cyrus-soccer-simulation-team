@@ -67,11 +67,20 @@ ActGen_Shoot::generate( std::vector< ActionStatePair > * result,
     }
 
     AbstractPlayerObject::Cont opponents = state.getPlayers(new OpponentOrUnknownPlayerPredicate(wm));
-
-    double open_angle = FieldAnalyzer::can_shoot_from( holder->unum() == wm.self().unum(),
-                                                       holder->pos(),
-                                                       opponents,
-                                                       VALID_PLAYER_THRESHOLD );
+    double open_angle;
+    if(wm.gameMode().isPenaltyKickMode())
+    {
+        open_angle = FieldAnalyzer::penalty_can_shoot_from( holder->unum() == wm.self().unum(),
+                                                    holder->pos(),
+                                                    opponents,
+                                                    VALID_PLAYER_THRESHOLD );
+    }
+    else{
+        open_angle = FieldAnalyzer::can_shoot_from( holder->unum() == wm.self().unum(),
+                                                    holder->pos(),
+                                                    opponents,
+                                                    VALID_PLAYER_THRESHOLD );
+    }
     if ( open_angle == 0.0)
     {
         //
@@ -94,13 +103,15 @@ ActGen_Shoot::generate( std::vector< ActionStatePair > * result,
                   "shoot: unum %d OK",
                   holder->unum() );
 #endif
-
+    Vector2D theirGoalPos = ServerParam::i().theirTeamGoalPos();
+    if(wm.gameMode().isPenaltyKickMode())
+        theirGoalPos*=sign(wm.ball().pos().x);
     const long shoot_spend_time
-        = ( holder->pos().dist( ServerParam::i().theirTeamGoalPos() ) / 1.5 );
+        = ( holder->pos().dist( theirGoalPos ) / 1.5 );
 
     PredictState::ConstPtr result_state( new PredictState( state,
                                                            shoot_spend_time,
-                                                           ServerParam::i().theirTeamGoalPos(),
+                                                           theirGoalPos,
                                                            open_angle) );
 
     CooperativeAction::Ptr action( new Shoot( holder->unum(),
