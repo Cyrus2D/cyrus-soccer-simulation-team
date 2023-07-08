@@ -666,8 +666,8 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
         ball_error_moves.emplace_back(ball_move.rotatedVector(-0.1));
 
         ConvexHull ball_area_prediction;
-        for (const Vector2D& vel: ball_error_moves)
-            for (const auto& v: area->vertices())
+        for (const auto& v: area->vertices())
+            for (const Vector2D& vel: ball_error_moves)
                 ball_area_prediction.addPoint(v + vel);
         ball_area_prediction.compute()
         dd(BC);
