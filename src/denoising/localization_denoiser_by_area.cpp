@@ -629,16 +629,23 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
         }
         dd(BB);
 
-        Polygon2D ball_area_prediction;
-        for (const auto& v: area->vertices())
-            ball_area_prediction.addVertex(v + ball_move);
+        std::vector<Vector2D> ball_error_moves;
+        ball_error_moves.emplace_back(ball_move.rotatedVector(+0.1));
+        ball_error_moves.emplace_back(ball_move);
+        ball_error_moves.emplace_back(ball_move.rotatedVector(-0.1));
+
+        ConvexHull ball_area_prediction;
+        for (const Vector2D& vel: ball_error_moves)
+            for (const auto& v: area->vertices())
+                ball_area_prediction.addPoint(v + vel);
+        ball_area_prediction.compute()
         dd(BC);
         
-        draw_poly(ball_area_prediction, "#FF0000");
+        draw_poly(ball_area_prediction.toPolygon(), "#FF0000");
         double seen_dist = wm.ball().seen_dist();
         AngleDeg seen_dir = wm.ball().seen_angle();
         double avg_dist;
-        double dist_err;
+        double dist_err;    
         Polygon2D new_area;
         if (object_table.getMovableObjInfo(seen_dist,
                                            &avg_dist,
@@ -655,7 +662,7 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
         }
         dd(BD);
         draw_poly(new_area, "#0000FF");
-        Polygon2D mutual = mutual_convex(ball_area_prediction, new_area);
+        Polygon2D mutual = mutual_convex(ball_area_prediction.toPolygon(), new_area);
         
         delete area;
         area = nullptr;
@@ -677,7 +684,7 @@ BallPredictionArea::update(const WorldModel& wm, const int cluster_count){
          if (object_table.getMovableObjInfo(seen_dist,
                                            &avg_dist,
                                            &dist_err)) {
-        std::vector<Vector2D> poses = {
+            std::vector<Vector2D> poses = {
                     wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir - 0.5),
                     wm.self().pos() + Vector2D::polar2vector(avg_dist + dist_err, seen_dir - 0.5),
                     wm.self().pos() + Vector2D::polar2vector(avg_dist - dist_err, seen_dir + 0.5),
