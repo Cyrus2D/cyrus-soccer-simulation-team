@@ -79,10 +79,10 @@ Polygon2D mutual_convex(const Polygon2D &p1p, const Polygon2D &p2p) {
             if (!inter.isValid()) {
                 continue;
             }
-            if (std::abs(min1_x - max1_x) > 0.0001 && !(min1_x < inter.x && inter.x < max1_x)) {
+            if (/*std::abs(min1_x - max1_x) > 0.0001 && */!(min1_x < inter.x && inter.x < max1_x)) { // TODO CHECK IT
                 continue;
             }
-            if (std::abs(min2_x - max2_x) > 0.0001 && !(min2_x < inter.x && inter.x < max2_x)) {
+            if (/*std::abs(min2_x - max2_x) > 0.0001 && */!(min2_x < inter.x && inter.x < max2_x)) {
                 continue;
             }
             vertices.emplace_back(inter);
