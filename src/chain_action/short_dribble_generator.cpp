@@ -1206,8 +1206,8 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
             }
             
             if (opp_reach_cycle <= c){
-                if (Setting::i()->mChainAction->mDribbleAlwaysDanger)
-                    worst_danger = 1;
+                // if (Setting::i()->mChainAction->mDribbleAlwaysDanger)
+                //     worst_danger = 1;
                 return true;
             }
 
@@ -1220,7 +1220,7 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
             ball_vel *= sp.ballDecay();
         }
     }
-    if (Setting::i()->mChainAction->mDribbleAlwaysDanger)
-        worst_danger = 1;
+    // if (Setting::i()->mChainAction->mDribbleAlwaysDanger)
+    //     worst_danger = 1;
     return false;
 }
