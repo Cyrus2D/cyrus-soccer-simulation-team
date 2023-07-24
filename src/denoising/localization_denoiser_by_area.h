@@ -2,8 +2,8 @@
 // Created by nader on 2023-05-15.
 //
 
-#ifndef CYRUS_DENOISING_H
-#define CYRUS_DENOISING_H
+#ifndef CYRUS_DENOISING_AREA_H
+#define CYRUS_DENOISING_AREA_H
 
 #include <iostream>
 #include <vector>
@@ -81,4 +81,4 @@ public:
 };
 
 
-#endif //CYRUS_DENOISING_H
+#endif //CYRUS_DENOISING_AREA_H
