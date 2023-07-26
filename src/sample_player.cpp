@@ -1069,8 +1069,8 @@ void SamplePlayer::extract() {
         time(&rawtime);
         timeinfo = localtime(&rawtime);
 
-        // std::string dir = "/data1/aref/2d/data/";
-        std::string dir = "/home/aref/data/";
+        std::string dir = "/data1/aref/2d/data/";
+        // std::string dir = "/home/aref/data/";
         strftime(buffer, sizeof(buffer), "%Y-%m-%d-%H-%M-%S", timeinfo);
         std::string str(buffer);
         std::string rand_name = std::to_string(SamplePlayer::player_port);
