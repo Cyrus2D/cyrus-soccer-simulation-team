@@ -186,7 +186,7 @@ void LocalizationDenoiser::update_world_model(PlayerAgent * agent){
             continue;
         if (p->unum() <= 0)
             continue;
-        if(opponents[p->unum()]->player_seen(p) || opponents[p->unum()]->player_heard(wm, p))
+        // if(opponents[p->unum()]->player_seen(p) || opponents[p->unum()]->player_heard(wm, p))
             if (opponents[p->unum()]->average_pos.isValid()){
                 p->M_base_pos = p->M_pos;
                 p->M_pos = opponents[p->unum()]->average_pos;
