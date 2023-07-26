@@ -104,6 +104,9 @@ private:
     bool doHeardPassReceive();
 
 public:
+    void extract();
+    std::ofstream fout;
+
     virtual
     FieldEvaluator::ConstPtr getFieldEvaluator() const;
 };
