@@ -290,8 +290,8 @@ SamplePlayer::initImpl( CmdLineParser & cmd_parser )
 CalculateOffensiveOpponents* CalculateOffensiveOpponents::instance= nullptr;
 
 void SamplePlayer::update_player_by_denoiser(){
-    // M_localization_denoiser->update(this);
-    // M_localization_denoiser->debug(this);
+    M_localization_denoiser->update(this);
+    M_localization_denoiser->debug(this);
 }
 
 void
@@ -324,7 +324,7 @@ SamplePlayer::actionImpl()
     //     std::this_thread::sleep_for (std::chrono::seconds(1));
     // }
 
-    extract();
+    // extract();
 
     //
     // special situations (tackle, objects accuracy, intention...)

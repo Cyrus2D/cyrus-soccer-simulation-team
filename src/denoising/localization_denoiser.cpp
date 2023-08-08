@@ -182,7 +182,7 @@ void LocalizationDenoiser::update_world_model(PlayerAgent * agent){
             }
     }
     for (auto &p: wm_not_const.M_opponents_from_self) {
-        if (p == nullptr)
+        if (true || p == nullptr)
             continue;
         if (p->unum() <= 0)
             continue;

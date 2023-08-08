@@ -236,6 +236,9 @@ PlayerPositionConvex::get_convex_without_body(int ptype_id, int pos_count, Vecto
 
 void draw_poly(const Polygon2D &p, const char* color){
     const auto& vertices = p.vertices();
+    if (vertices.size() < 3)
+        return;
+
     for(uint i = 0; i < vertices.size()-1; i++){
         dlog.addLine(Logger::WORLD, vertices[i], vertices[i+1], color);
     }
