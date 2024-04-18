@@ -27,7 +27,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-
+#include "../bhv_focus_decision.h"
 #include "bhv_chain_action.h"
 
 #include "action_chain_holder.h"
@@ -257,6 +257,7 @@ Bhv_ChainAction::execute( PlayerAgent * agent )
 		if ( Body_ForceShoot().execute( agent ) )
 		{
 			agent->setNeckAction( new Neck_TurnToGoalieOrScan(0) );
+			Bhv_FocusDecision().executeShoot(agent, Vector2D(52, 0));
 			return true;
         }else{
             return hold_ball(agent);
@@ -297,6 +298,7 @@ Bhv_ChainAction::execute( PlayerAgent * agent )
 
 		if ( Bhv_NormalDribble( first_action, neck ).execute( agent ) )
 		{
+			Bhv_FocusDecision().executeDribble( agent, dribble_target );
 			return true;
         }else{
             return hold_ball(agent);
@@ -314,8 +316,11 @@ Bhv_ChainAction::execute( PlayerAgent * agent )
 	{
 		dlog.addText( Logger::TEAM,
 				__FILE__" (Bhv_ChainAction) pass" );
-        if(Bhv_PassKickFindReceiver( M_chain_graph ).execute( agent ))
-            return true;
+        if(Bhv_PassKickFindReceiver( M_chain_graph ).execute( agent )){
+			Bhv_FocusDecision().executePass( agent, first_action.targetPlayerUnum(), first_action.targetPoint() );
+			return true;
+		}
+            
         else
             return hold_ball(agent);
 		break;

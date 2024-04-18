@@ -28,6 +28,7 @@
 #include <config.h>
 #endif
 
+#include "bhv_focus_decision.h"
 #include "bhv_basic_move.h"
 
 #include "strategy.h"
@@ -1873,6 +1874,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                 }
                 NeckDecisionWithBall().setNeck(agent, NeckDecisionType::intercept);
                 agent->debugClient().addMessage("Intercept->Z");
+                Bhv_FocusDecision().executeIntercept(agent, face);
                 return true;
             } else if (self_min <= 3) {
                 if (self_min <= mate_min) {
@@ -1895,7 +1897,14 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                             }
                             agent->debugClient().addMessage("Intercept->B");
                         }
+                        
                         NeckDecisionWithBall().setNeck(agent, NeckDecisionType::intercept);
+                        if (self_min <= opp_min) {
+                            Bhv_FocusDecision().executeIntercept(agent, face);
+                        } else {
+                            Bhv_FocusDecision().executeBlock(agent, tm_catch_ball);
+                        }
+                        
                         return true;
                     } else {
                         use_tackle_intercept = true;
@@ -1924,6 +1933,11 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
 
                         }
                         NeckDecisionWithBall().setNeck(agent, NeckDecisionType::intercept);
+                        if (self_min <= opp_min) {
+                            Bhv_FocusDecision().executeIntercept(agent, face);
+                        } else {
+                            Bhv_FocusDecision().executeBlock(agent, tm_catch_ball);
+                        } 
                         return true;
                     } else {
                         use_tackle_intercept = true;
@@ -1940,6 +1954,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
                 }
             }
             NeckDecisionWithBall().setNeck(agent, NeckDecisionType::intercept);
+            Bhv_FocusDecision().executeIntercept(agent, face);
             agent->debugClient().addMessage("Intercept->Y");
             return true;
         } else if (self_min <= mate_min && self_min < opp_min + 3) {
@@ -1968,6 +1983,11 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
             //                agent->debugClient().addMessage("Intercept->F");
             //            }
             NeckDecisionWithBall().setNeck(agent, NeckDecisionType::intercept);
+            if (self_min <= opp_min) {
+                Bhv_FocusDecision().executeIntercept(agent, face);
+            } else {
+                Bhv_FocusDecision().executeBlock(agent, tm_catch_ball);
+            } 
             return true;
         } else if (self_min <= mate_min) {
             use_tackle_intercept = true;
@@ -1983,12 +2003,19 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
      if (self_min_tackle < 10 && self_min_tackle < opp_min - diff &&
              self_min_tackle < mate_min - diff) {
          agent->debugClient().addMessage("TackleIntercept");
-         return Body_Intercept2009(false).executeTackle(agent);
+         
+         if(Body_Intercept2009(false).executeTackle(agent)){
+            Bhv_FocusDecision().executeIntercept(agent, tm_catch_ball);
+            return true;
+         }
      }
     if (cycle_intercept_tackle != 1000 && cycle_intercept_tackle < opp_min - diff &&
             cycle_intercept_tackle < mate_min - diff) {
         agent->debugClient().addMessage("Intercept->Tackle");
-        return bhv_tackle_intercept().execute(agent);
+        if (bhv_tackle_intercept().execute(agent)){
+            Bhv_FocusDecision().executeIntercept(agent, tm_catch_ball);
+            return true;
+        }
     }
     //    }
     return false;
@@ -2072,6 +2099,7 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
     } else {
         if(can_5_go_forward)
             if (cyrus_offensive_move().execute(agent, this)) {
+                Bhv_FocusDecision().executeOffMove(agent);
                 return true;
             }
     }
@@ -2100,7 +2128,7 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
     } else {
         agent->setNeckAction(new Neck_TurnToBallOrScan(0));
     }
-
+    Bhv_FocusDecision().executeMove(agent);
     return true;
 }
 
@@ -2480,6 +2508,7 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
             agent->setNeckAction(new Neck_TurnToBallOrScan(0));
         }
     }
+    Bhv_FocusDecision().executeDeffMove( agent );
     return true;
 }
 

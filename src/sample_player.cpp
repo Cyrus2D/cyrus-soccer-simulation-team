@@ -28,6 +28,7 @@
 #include <config.h>
 #endif
 
+#include "bhv_focus_decision.h"
 #include "sample_player.h"
 #include "bhv_basic_offensive_kick.h"
 #include "strategy.h"
@@ -326,6 +327,9 @@ SamplePlayer::actionImpl()
     //
     // special situations (tackle, objects accuracy, intention...)
     //
+    
+    Bhv_FocusDecision().executeReset( this );
+
     if ( doPreprocess() )
     {
         dlog.addText( Logger::TEAM,
@@ -846,6 +850,7 @@ SamplePlayer::doForceKick()
 /*!
 
  */
+#include "bhv_focus_decision.h"
 bool
 SamplePlayer::doHeardPassReceive()
 {
@@ -935,7 +940,7 @@ SamplePlayer::doHeardPassReceive()
     if(prepass_received)
         SampleCommunication().saySelf(this);
     NeckDecisionWithBall().setNeck(this, NeckDecisionType::intercept);
-
+    Bhv_FocusDecision().executeIntercept( this, first_ball );
     return true;
 }
 

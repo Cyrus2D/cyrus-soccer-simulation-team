@@ -33,6 +33,7 @@
 #include <config.h>
 #endif
 
+#include "../bhv_focus_decision.h"
 #include "bhv_strict_check_shoot.h"
 #include "../data_extractor/offensive_data_extractor.h"
 #include "cooperative_action.h"
@@ -137,6 +138,7 @@ Bhv_StrictCheckShoot::execute( PlayerAgent * agent )
              Bhv_StrictCheckShoot::time = wm.time().cycle();
              Bhv_StrictCheckShoot::target = best_shoot->target_point_;
              Bhv_StrictCheckShoot::speed = best_shoot->first_ball_speed_;
+             Bhv_FocusDecision().executeShoot(agent, best_shoot->target_point_);
              return true;
         }
     }
@@ -153,6 +155,7 @@ Bhv_StrictCheckShoot::execute( PlayerAgent * agent )
         Bhv_StrictCheckShoot::time = wm.time().cycle();
         Bhv_StrictCheckShoot::target = best_shoot->target_point_;
         Bhv_StrictCheckShoot::speed = best_shoot->first_ball_speed_;
+        Bhv_FocusDecision().executeShoot(agent, best_shoot->target_point_);
         return true;
     }
 

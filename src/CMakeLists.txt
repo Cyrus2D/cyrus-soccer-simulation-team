@@ -1,5 +1,8 @@
 # player
 add_executable(sample_player
+  focus_move_to_point.cpp
+  focus_reset.cpp
+  bhv_focus_decision.cpp
   strategy.cpp
 setplay/bhv_set_play_goal_kick.cpp
 setplay/bhv_set_play.cpp

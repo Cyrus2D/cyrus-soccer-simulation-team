@@ -20,6 +20,7 @@
 #include "../debugs.h"
 #include "mark_position_finder.h"
 #include "../setting.h"
+#include "../bhv_focus_decision.h"
 
 using namespace std;
 using namespace rcsc;
@@ -101,8 +102,11 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
                 }
             }
         }
-        if (defenseBeInBack(agent))
+        if (defenseBeInBack(agent)){
+            Bhv_FocusDecision().executeDeffMove(agent);
             return true;
+        }
+            
     }
     if (Setting::i()->mDefenseMove->mGoToDefendX){
         vector<double> th_mark_xs;
@@ -148,6 +152,7 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
                 } else {
                     agent->setNeckAction(new Neck_TurnToBallOrScan(0));
                 }
+                Bhv_FocusDecision().executeDeffMove(agent);
                 return true;
             }
         }
@@ -371,6 +376,7 @@ bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType mark
     do_move_mark(agent, target, dist_thr, marktype, mark_unum);
     agent->debugClient().addMessage("domove(%.1f,%.1f)", target.pos.x, target.pos.y);
     Bhv_BasicMove::set_def_neck_with_ball(agent, target.pos, wm.theirPlayer(mark_unum), blocker);
+    Bhv_FocusDecision().executeMark(agent, mark_unum, target.pos);
     return true;
 }
 

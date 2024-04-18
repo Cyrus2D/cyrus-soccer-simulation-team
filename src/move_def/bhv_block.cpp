@@ -18,6 +18,7 @@
 #include "../setting.h"
 #include <rcsc/common/logger.h>
 #include "../debugs.h"
+#include "../bhv_focus_decision.h"
 
 //tackle block
 bool bhv_block::do_tackle_block(PlayerAgent *agent) {
@@ -649,6 +650,8 @@ bool bhv_block::do_block_pass(PlayerAgent *agent)
     dlog.addCircle(Logger::BLOCK, block_pos,0.5,255,0,0,true);
     dlog.addText(Logger::ACTION, "PassBlock Executed");
     #endif
+
+    Bhv_FocusDecision().executeBlock(agent, block_pos);
     return true;
 }
 bool bhv_block::execute(rcsc::PlayerAgent *agent) {
@@ -810,6 +813,7 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
                                                start_drible,
                                                cycle - 2,
                                                wm.time()));*/
+        Bhv_FocusDecision().executeBlock(agent, target);
         return true;
     }else{
 //        std::cout<<"B9"<<std::endl;
