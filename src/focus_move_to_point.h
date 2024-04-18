@@ -10,7 +10,7 @@ namespace rcsc {
 /*!
   \class Focus_ChangeToPoint
 */
-class Focus_MoveToPoint
+class Focus_MoveToPoint: public FocusAction
      {
 private:
     //! target point
@@ -36,10 +36,10 @@ public:
       \brief create cloned object
       \return pointer to the cloned object
      */
-    // FocusAction * clone() const
-    //   {
-    //       return new Focus_MoveToPoint( M_point );
-    //   }
+    FocusAction * clone() const
+      {
+          return new Focus_MoveToPoint( M_point );
+      }
 };
 
 }

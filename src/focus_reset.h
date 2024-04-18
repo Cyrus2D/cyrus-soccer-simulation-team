@@ -11,7 +11,8 @@ namespace rcsc {
   \class Focus_Reset
   \brief reset the focus point to the center of self.
 */
-class Focus_Reset {
+class Focus_Reset: public FocusAction
+ {
 public:
     /*!
       \brief constructor
@@ -30,10 +31,10 @@ public:
       \brief create cloned object
       \return pointer to the cloned object
      */
-    // FocusAction * clone() const
-    //   {
-    //       return new Focus_Reset();
-    //   }
+    FocusAction * clone() const
+      {
+          return new Focus_Reset();
+      }
 };
 
 }

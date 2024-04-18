@@ -8,6 +8,7 @@
 #include <rcsc/player/player_agent.h>
 #include <rcsc/common/logger.h>
 #include <rcsc/common/server_param.h>
+#include <rcsc/player/soccer_action.h>
 
 namespace rcsc {
 
@@ -33,6 +34,12 @@ Focus_MoveToPoint::execute( PlayerAgent * agent )
     const Vector2D target_rel = M_point - self_next;
     AngleDeg target_angle = target_rel.th();
     double target_dist = target_rel.r();
+    dlog.addText(Logger::ACTION,
+                  __FILE__" neck: %.1f turnMoment: %.1f nextNeck: %.1f nextFace: %.1f",
+                  wm.self().neck().degree(),
+                  agent->effector().getTurnNeckMoment(),
+                  next_neck,
+                  next_face.degree());
 
     dlog.addText( Logger::ACTION,
                   __FILE__": focus pos=(%.1f %.1f) rel_dist=%.1f rel_dir=%.1f",

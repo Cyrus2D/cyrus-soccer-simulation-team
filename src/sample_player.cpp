@@ -29,6 +29,7 @@
 #endif
 
 #include "bhv_focus_decision.h"
+#include "focus_reset.h"
 #include "sample_player.h"
 #include "bhv_basic_offensive_kick.h"
 #include "strategy.h"
@@ -327,8 +328,8 @@ SamplePlayer::actionImpl()
     //
     // special situations (tackle, objects accuracy, intention...)
     //
-    
-    Bhv_FocusDecision().executeReset( this );
+
+    this->setFocusAction(new Focus_Reset());
 
     if ( doPreprocess() )
     {
@@ -376,7 +377,6 @@ SamplePlayer::actionImpl()
     {
         role_ptr->execute( this );
         StaminaWithPointto::doPointtoForStamina(this);
-
         return;
     }
 
