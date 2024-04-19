@@ -34,7 +34,16 @@
 		"UsePredictionDNN" : true,
 		"UsePPIfChain" : false,
 		"IgnoreChainPass" : false,
-		"IgnoreChainPassByDist" : false
+		"IgnoreChainPassByDist" : false,
+		"ExecutePass": false,
+		"ExecuteDribble": false,
+		"ExecuteShoot": false,
+		"ExecuteMark": false,
+		"ExecuteBlock": false,
+		"ExecuteOffMove": false,
+		"ExecuteMove": false,
+		"ExecuteDeffMove": false,
+		"ExecuteIntercept": false
 	},
 	"OffensiveMove":{
 		"Is9BrokeOffside":false,
