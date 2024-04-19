@@ -17,111 +17,73 @@ bool Bhv_FocusDecision::executeSample(rcsc::PlayerAgent *agent, Vector2D target)
 }
 bool Bhv_FocusDecision::executePass(rcsc::PlayerAgent *agent, int unum, Vector2D target)
 {
-    if (!Setting::i()->mNeck->mExecutePass)
+    if (!Setting::i()->mNeck->mExecuteIntercept)
         return false;
-
+    agent->debugClient().addMessage("InterceptFocus");
     const WorldModel &wm = agent->world();
-    if (wm.ball().velCount() > 1)
-    {
-        agent->debugClient().addMessage("PassFocusA");
-        agent->setFocusAction(new Focus_MoveToPoint(wm.ball().pos()));
-    }
-    else
-    {
-        agent->debugClient().addMessage("PassFocusB");
-        agent->setFocusAction(new Focus_MoveToPoint(target));
-    }
-    return true;
+    auto ball_vel = wm.ball().vel();
+    auto ball_pos = wm.ball().pos() + ball_vel;
+    return Focus_MoveToPoint(ball_pos).execute(agent);
 }
 bool Bhv_FocusDecision::executeDribble(rcsc::PlayerAgent *agent, Vector2D target)
 {
-    if (!Setting::i()->mNeck->mExecuteDribble)
+    if (!Setting::i()->mNeck->mExecuteIntercept)
         return false;
-
+    agent->debugClient().addMessage("InterceptFocus");
     const WorldModel &wm = agent->world();
-    if (wm.ball().velCount() > 1)
-    {
-        agent->debugClient().addMessage("DribbleFocusA");
-        agent->setFocusAction(new Focus_MoveToPoint(wm.ball().pos()));
-    }
-    else
-    {
-        agent->debugClient().addMessage("DribbleFocusB");
-        agent->setFocusAction(new Focus_MoveToPoint(target));
-    }
-    return true;
+    auto ball_vel = wm.ball().vel();
+    auto ball_pos = wm.ball().pos() + ball_vel;
+    return Focus_MoveToPoint(ball_pos).execute(agent);
 }
 bool Bhv_FocusDecision::executeShoot(rcsc::PlayerAgent *agent, Vector2D target)
 {
-    if (!Setting::i()->mNeck->mExecuteShoot)
+    if (!Setting::i()->mNeck->mExecuteIntercept)
         return false;
-
+    agent->debugClient().addMessage("InterceptFocus");
     const WorldModel &wm = agent->world();
-    if (wm.ball().velCount() > 1)
-    {
-        agent->debugClient().addMessage("ShootFocusA");
-        agent->setFocusAction(new Focus_MoveToPoint(wm.ball().pos()));
-    }
-    else
-    {
-        agent->debugClient().addMessage("ShootFocusB");
-        agent->setFocusAction(new Focus_MoveToPoint(target));
-    }
-    return true;
+    auto ball_vel = wm.ball().vel();
+    auto ball_pos = wm.ball().pos() + ball_vel;
+    return Focus_MoveToPoint(ball_pos).execute(agent);
 }
 bool Bhv_FocusDecision::executeMark(rcsc::PlayerAgent *agent, int unum, Vector2D target)
 {
-    if (!Setting::i()->mNeck->mExecuteMark)
+    if (!Setting::i()->mNeck->mExecuteIntercept)
         return false;
-
+    agent->debugClient().addMessage("InterceptFocus");
     const WorldModel &wm = agent->world();
-    if (wm.ball().velCount() > 2)
-    {
-        agent->debugClient().addMessage("MarkFocusA");
-        agent->setFocusAction(new Focus_MoveToPoint(wm.ball().pos()));
-    }
-    else
-    {
-        agent->debugClient().addMessage("MarkFocusB");
-        agent->setFocusAction(new Focus_MoveToPoint(target));
-    }
-    return true;
+    auto ball_vel = wm.ball().vel();
+    auto ball_pos = wm.ball().pos() + ball_vel;
+    return Focus_MoveToPoint(ball_pos).execute(agent);
 }
 bool Bhv_FocusDecision::executeBlock(rcsc::PlayerAgent *agent, Vector2D target)
 {
-    if (!Setting::i()->mNeck->mExecuteBlock)
+    if (!Setting::i()->mNeck->mExecuteIntercept)
         return false;
-
+    agent->debugClient().addMessage("InterceptFocus");
     const WorldModel &wm = agent->world();
-    if (wm.ball().velCount() > 1)
-    {
-        agent->debugClient().addMessage("BlockFocusA");
-        agent->setFocusAction(new Focus_MoveToPoint(wm.ball().pos()));
-    }
-    else
-    {
-        agent->debugClient().addMessage("BlockFocusB");
-        agent->setFocusAction(new Focus_MoveToPoint(target));
-    }
-    return true;
+    auto ball_vel = wm.ball().vel();
+    auto ball_pos = wm.ball().pos() + ball_vel;
+    return Focus_MoveToPoint(ball_pos).execute(agent);
 }
 bool Bhv_FocusDecision::executeOffMove(rcsc::PlayerAgent *agent)
 {
-    if (!Setting::i()->mNeck->mExecuteOffMove)
+    if (!Setting::i()->mNeck->mExecuteIntercept)
         return false;
-    agent->debugClient().addMessage("OffMoveFocus");
+    agent->debugClient().addMessage("InterceptFocus");
     const WorldModel &wm = agent->world();
-    agent->setFocusAction(new Focus_MoveToPoint(wm.ball().pos()));
-    return true;
+    auto ball_vel = wm.ball().vel();
+    auto ball_pos = wm.ball().pos() + ball_vel;
+    return Focus_MoveToPoint(ball_pos).execute(agent);
 }
 bool Bhv_FocusDecision::executeDeffMove(rcsc::PlayerAgent *agent)
 {
-    if (!Setting::i()->mNeck->mExecuteDeffMove)
+    if (!Setting::i()->mNeck->mExecuteIntercept)
         return false;
-    agent->debugClient().addMessage("DeffMoveFocus");
+    agent->debugClient().addMessage("InterceptFocus");
     const WorldModel &wm = agent->world();
-    agent->setFocusAction(new Focus_MoveToPoint(wm.ball().pos()));
-    return true;
+    auto ball_vel = wm.ball().vel();
+    auto ball_pos = wm.ball().pos() + ball_vel;
+    return Focus_MoveToPoint(ball_pos).execute(agent);
 }
 
 bool Bhv_FocusDecision::executeIntercept(rcsc::PlayerAgent *agent, Vector2D next_target)
@@ -137,10 +99,11 @@ bool Bhv_FocusDecision::executeIntercept(rcsc::PlayerAgent *agent, Vector2D next
 
 bool Bhv_FocusDecision::executeMove(rcsc::PlayerAgent *agent)
 {
-    if (!Setting::i()->mNeck->mExecuteMove)
+    if (!Setting::i()->mNeck->mExecuteIntercept)
         return false;
-    agent->debugClient().addMessage("MoveFocus");
+    agent->debugClient().addMessage("InterceptFocus");
     const WorldModel &wm = agent->world();
-    auto ball_pos = wm.ball().pos();
+    auto ball_vel = wm.ball().vel();
+    auto ball_pos = wm.ball().pos() + ball_vel;
     return Focus_MoveToPoint(ball_pos).execute(agent);
 }
