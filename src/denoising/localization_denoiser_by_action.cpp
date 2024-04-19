@@ -121,7 +121,7 @@ void PlayerPredictionsByAction::generate_new_candidates_by_see(const WorldModel 
     auto vel = (p->seenVelCount() == 0 ? p->vel() : Vector2D::INVALIDATED);
     double avg_dist;
     double dist_err;
-    if (object_table.getMovableObjInfo(seen_dist,
+    if (object_table.getMovableObjInfo(wm, seen_dist, p->seen_angle(),
                                        &avg_dist,
                                        &dist_err)) {
         #ifdef DEBUG_ACTION_DENOISER
@@ -250,7 +250,7 @@ void PlayerPredictionsByAction::filter_candidates_by_see(const WorldModel &wm, c
     auto vel = (p->seenVelCount() == 0 ? p->vel() : Vector2D::INVALIDATED);
     double avg_dist;
     double dist_err;
-    if (object_table.getMovableObjInfo(seen_dist,
+    if (object_table.getMovableObjInfo(wm, seen_dist, p->seen_angle(),
                                        &avg_dist,
                                        &dist_err)) {
         #ifdef DEBUG_ACTION_DENOISER

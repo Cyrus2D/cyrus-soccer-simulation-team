@@ -282,7 +282,7 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
     }
 
     if (area == nullptr) {
-        if (object_table.getMovableObjInfo(seen_dist,
+        if (object_table.getMovableObjInfo(wm,seen_dist,p->seen_angle(),
                                            &avg_dist,
                                            &dist_err)) {
             dd(A);
@@ -303,7 +303,7 @@ void PlayerPredictedObjArea::update_candidates(const WorldModel &wm, const Playe
         }
     }
     else{
-        if (object_table.getMovableObjInfo(seen_dist,
+        if (object_table.getMovableObjInfo(wm, seen_dist,p->seen_angle(),
                                            &avg_dist,
                                            &dist_err)) {
             dd(D);
