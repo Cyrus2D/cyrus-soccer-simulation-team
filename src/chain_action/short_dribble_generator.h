@@ -147,6 +147,9 @@ private:
                          const rcsc::Vector2D kick_vel,const rcsc::Vector2D ball_trap_pos,
                           const int action_cycle,int & opp_min_dif, bool & safe_with_pos_count
                           , int & worst_danger);
+    
+    bool prioritiseDribble(const rcsc::WorldModel & wm, const rcsc::Vector2D start_ball,
+                        const rcsc::Vector2D ball_trap_pos);
 
 };
 

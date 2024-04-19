@@ -942,7 +942,7 @@ ActionChainGraph::calculateResultBestFirstSearch( const WorldModel & wm,
 
             if(wm.self().unum() == 8 || wm.self().unum() == 4 || wm.self().unum() == 10){
                 if(wm.ball().pos().x > 0 && wm.ball().pos().y > 15){
-                    if(candidate_series.front().action().targetPoint().y < 15){
+                    if(candidate_series.front().action().targetPoint().y < 15 && wm.opponentsFromBall().size() > 0 && wm.opponentsFromBall().front()->distFromBall() < 5){
                         ev += 20;
                         #ifdef ACTION_CHAIN_DEBUG
                         dlog.addText(Logger::ACTION_CHAIN, "__  ev:%.1f ball to up", ev);
