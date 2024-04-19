@@ -78,6 +78,15 @@ public:
     bool mUsePPIfChain =false;
     bool mIgnoreChainPass = false;
     bool mIgnoreChainPassByDist = false;
+    bool mExecutePass = false;
+    bool mExecuteDribble = false;
+    bool mExecuteShoot = false;
+    bool mExecuteMark = false;
+    bool mExecuteBlock = false;
+    bool mExecuteOffMove = false;
+    bool mExecuteMove = false;
+    bool mExecuteDeffMove = false;
+    bool mExecuteIntercept = false;
 };
 
 class OffensiveMoveSetting{

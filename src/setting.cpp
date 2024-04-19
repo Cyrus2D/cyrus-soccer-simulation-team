@@ -137,6 +137,24 @@ NeckSetting::NeckSetting(Value &value)
         mIgnoreChainPass = value["IgnoreChainPass"].GetBool();
     if (value.HasMember("IgnoreChainPassByDist"))
         mIgnoreChainPassByDist = value["IgnoreChainPassByDist"].GetBool();
+    if (value.HasMember("ExecutePass"))
+        mExecutePass = value["ExecutePass"].GetBool();
+    if (value.HasMember("ExecuteDribble"))
+        mExecuteDribble = value["ExecuteDribble"].GetBool();
+    if (value.HasMember("ExecuteShoot"))
+        mExecuteShoot = value["ExecuteShoot"].GetBool();
+    if (value.HasMember("ExecuteMark"))
+        mExecuteMark = value["ExecuteMark"].GetBool();
+    if (value.HasMember("ExecuteBlock"))
+        mExecuteBlock = value["ExecuteBlock"].GetBool();
+    if (value.HasMember("ExecuteOffMove"))
+        mExecuteOffMove = value["ExecuteOffMove"].GetBool();
+    if (value.HasMember("ExecuteMove"))
+        mExecuteMove = value["ExecuteMove"].GetBool();
+    if (value.HasMember("ExecuteDeffMove"))
+        mExecuteDeffMove = value["ExecuteDeffMove"].GetBool();
+    if (value.HasMember("ExecuteIntercept"))
+        mExecuteIntercept = value["ExecuteIntercept"].GetBool();
 }
 
 OffensiveMoveSetting::OffensiveMoveSetting(Value &value)
