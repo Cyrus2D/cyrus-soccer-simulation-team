@@ -1206,7 +1206,7 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
             }
             
             if (opp_reach_cycle <= c){
-                if (Setting::i()->mChainAction->mDribbleAlwaysDanger)
+                if (Setting::i()->mChainAction->mDribbleAlwaysDanger && !prioritiseDribble(wm, start_ball, ball_trap_pos))
                     worst_danger = 1;
                 return true;
             }
@@ -1220,7 +1220,36 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
             ball_vel *= sp.ballDecay();
         }
     }
-    if (Setting::i()->mChainAction->mDribbleAlwaysDanger)
+    if (Setting::i()->mChainAction->mDribbleAlwaysDanger && !prioritiseDribble(wm, start_ball, ball_trap_pos))
         worst_danger = 1;
     return false;
+}
+
+bool ShortDribbleGenerator::prioritiseDribble(const rcsc::WorldModel & wm, const rcsc::Vector2D start_ball,
+                        const rcsc::Vector2D ball_trap_pos){
+    auto oppDefLine = wm.offsideLineX();
+    if (start_ball.x > ball_trap_pos.x)
+        return false;
+    if (start_ball.x < 5)
+        return false;
+    if(wm.opponentsFromBall().size() > 0)
+        if(wm.opponentsFromBall().front()->distFromBall() < 3)
+            return false;
+    double minOppDistToTarget = 1000;
+    for (auto & p : wm.theirPlayers()){
+        if (p != nullptr && p->unum() > 0){
+            double dist = p->pos().dist(ball_trap_pos);
+            if (dist < minOppDistToTarget)
+                    minOppDistToTarget = dist;
+        }
+    }
+    if (minOppDistToTarget < 3)
+        return false;
+    if (start_ball.x < oppDefLine  - 15)
+        return false;
+    if (ball_trap_pos.x < oppDefLine - 15)
+        return false;
+    if (wm.self().unum() < 7)
+        return false;
+    return true;
 }
