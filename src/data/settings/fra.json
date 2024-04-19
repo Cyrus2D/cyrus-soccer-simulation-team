@@ -9,7 +9,7 @@
 				"Is5ForwardLost":true,
 				"Is5ForwardDraw":true,
 				"TeamTactic":"Normal",
-				"IsGoalForward":true
+				"IsGoalForward":false
 			},
 	"ChainAction":	{
 				"ChainNodeNumber":750,
