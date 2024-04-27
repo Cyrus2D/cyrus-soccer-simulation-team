@@ -40,6 +40,7 @@
 
 #include <rcsc/player/world_model.h>
 #include <rcsc/player/intercept_table.h>
+#include <rcsc/player/cut_ball_calculator.h>
 #include <rcsc/common/audio_memory.h>
 #include <rcsc/common/logger.h>
 #include <rcsc/common/server_param.h>
@@ -1320,7 +1321,7 @@ void StrictCheckPassGenerator::createPassCommon(const WorldModel & wm,
                 const AbstractPlayerObject * opp_near_me = wm.theirPlayer(wm.opponentsFromSelf().front()->unum());
                 if(opp_near_me != NULL && opp_near_me->unum() > 0){
                     int dc,tc,vc;
-                    opp_near_cycle = opp_near_me->cycles_to_cut_ball(wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body().degree());
+                    opp_near_cycle = CutBallCalculator().cycles_to_cut_ball(opp_near_me, wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body().degree());
                     if(kick_count > opp_near_cycle){
                         #ifdef DEBUG_PASS
                         dlog.addText(M_pass_logger,"|  cont for kick count and opp near kick:%d oppcycle:%d", kick_count, opp_near_cycle);
@@ -1861,7 +1862,7 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
             if(M_first_point.x < 30 || our_score < opp_score)
                 safe_dist_thr += 0.2;
 
-        c_step = opponent.player_->cycles_to_cut_ball_with_safe_thr_dist(wm,
+        c_step = CutBallCalculator().cycles_to_cut_ball_with_safe_thr_dist(opponent.player_, wm,
                                                                          ball_pos,
                                                                          cycle,
                                                                          false,

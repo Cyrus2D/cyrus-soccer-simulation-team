@@ -61,6 +61,7 @@
 #include <rcsc/common/audio_memory.h>
 
 #include <rcsc/player/abstract_player_object.h>
+#include <rcsc/player/cut_ball_calculator.h>
 #include "neck/neck_offensive_intercept_neck.h"
 #include "move_off/bhv_offensive_move.h"
 #include "neck/next_pass_predictor.h"
@@ -2165,7 +2166,7 @@ bool can_opp_shoot_to_goal(const WorldModel &wm) {
                 int dc;
                 int dt;
                 int dv;
-                int intercept_cycle = tm->cycles_to_cut_ball(wm, ball_pos_sim, c, true, dc, dt, dv);
+                int intercept_cycle = CutBallCalculator().cycles_to_cut_ball(tm, wm, ball_pos_sim, c, true, dc, dt, dv);
                 if (intercept_cycle <= c) {
                     can_intercept = true;
                     break;

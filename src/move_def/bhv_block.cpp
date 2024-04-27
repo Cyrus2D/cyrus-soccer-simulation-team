@@ -15,6 +15,7 @@
 #include <rcsc/action/body_intercept.h>
 #include <rcsc/action/neck_turn_to_ball_or_scan.h>
 #include <rcsc/player/world_model.h>
+#include <rcsc/player/cut_ball_calculator.h>
 #include "../setting.h"
 #include <rcsc/common/logger.h>
 #include "../debugs.h"
@@ -508,7 +509,7 @@ void bhv_block::block_cycle(const WorldModel &wm, int unum, int &cycle, Vector2D
         Vector2D tm_pos = tm->pos();
         Vector2D tm_vel = tm->vel();
         int dc,tc,vc;
-        wm.ourPlayer(wm.self().unum())->cycles_to_cut_ball(wm, ball, drible_step, false, dc, tc, vc, tm_pos, tm_vel);
+        CutBallCalculator().cycles_to_cut_ball(wm.ourPlayer(wm.self().unum()), wm, ball, drible_step, false, dc, tc, vc, tm_pos, tm_vel);
         int dash_step = dc + tc;
         if (dash_step <= drible_step) {
             target = ball;

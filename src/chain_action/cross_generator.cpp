@@ -39,6 +39,7 @@
 
 #include <rcsc/player/world_model.h>
 #include <rcsc/player/intercept_table.h>
+#include <rcsc/player/cut_ball_calculator.h>
 #include <rcsc/common/server_param.h>
 #include <rcsc/common/logger.h>
 #include <rcsc/geom/rect_2d.h>
@@ -531,7 +532,7 @@ CrossGenerator::createCross( const WorldModel & wm,
                         const AbstractPlayerObject * opp_near_me = wm.theirPlayer(wm.opponentsFromSelf().front()->unum());
                         if(opp_near_me != NULL && opp_near_me->unum() > 0){
                             int dc,tc,vc;
-                            if(kick_count - 1 > opp_near_me->cycles_to_cut_ball(wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body().degree()))
+                            if(kick_count - 1 > CutBallCalculator().cycles_to_cut_ball(opp_near_me, wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body().degree()))
                                 continue;
                         }
                     }
@@ -783,7 +784,7 @@ int CrossGenerator::newoldpredictOpponentReachStep(const WorldModel & wm,
         int dash_step;
         int view_step;
 
-         int c_step = opponent->cycles_to_cut_ball_with_safe_thr_dist(wm,
+         int c_step = CutBallCalculator().cycles_to_cut_ball_with_safe_thr_dist(opponent, wm,
                                                                       ball_pos,
                                                                       cycle,
                                                                       false,
@@ -857,7 +858,7 @@ int CrossGenerator::newoldpredictOpponentReachStep(const WorldModel & wm,
             for(auto&p : predictpos){
 
                 int dc,tc,vc;
-                 int sc =opponent->cycles_to_cut_ball_with_safe_thr_dist(wm,
+                 int sc =CutBallCalculator().cycles_to_cut_ball_with_safe_thr_dist(opponent, wm,
                                                                          ball_pos,
                                                                          cycle,
                                                                          false,

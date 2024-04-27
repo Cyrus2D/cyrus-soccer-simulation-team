@@ -47,6 +47,7 @@
 #include <rcsc/geom/segment_2d.h>
 #include <rcsc/timer.h>
 #include <rcsc/player/player_agent.h>
+#include <rcsc/player/cut_ball_calculator.h>
 #include <algorithm>
 #include <limits>
 #include "setting.h"
@@ -569,7 +570,7 @@ ShortDribbleGenerator::check_intermediate_poses(const WorldModel & wm)
             int opp_turn_cycle;
             int opp_dash_cycle;
             int opp_view_cycle;
-            int opp_cycle = (*o)->cycles_to_cut_ball_with_safe_thr_dist(wm,
+            int opp_cycle = CutBallCalculator().cycles_to_cut_ball_with_safe_thr_dist((*o), wm,
                                                                         intermediate_point,
                                                                         1,
                                                                         use_tackle,
@@ -1176,7 +1177,7 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
             int opp_turn_cycle;
             int opp_dash_cycle;
             int opp_view_cycle;
-            int opp_cycle = (*o)->cycles_to_cut_ball_with_safe_thr_dist(wm,
+            int opp_cycle = CutBallCalculator().cycles_to_cut_ball_with_safe_thr_dist((*o), wm,
                                                                           ball_pos,
                                                                           c,
                                                                           use_tackle,

@@ -41,6 +41,7 @@
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/intercept_table.h>
+#include <rcsc/player/cut_ball_calculator.h>
 #include <rcsc/common/logger.h>
 #include <rcsc/common/server_param.h>
 #include <rcsc/math_util.h>
@@ -536,7 +537,7 @@ ShootGenerator::opponentCanReach( const PlayerObject * opponent,
         int n_dash;
         int n_view;
 
-        int opp_cycle = opponent->cycles_to_cut_ball(wm,
+        int opp_cycle = CutBallCalculator().cycles_to_cut_ball(opponent, wm,
                                                     ball_pos,
                                                     cycle,
                                                     (wm.gameMode().type() == GameMode::PenaltyTaken_? true : false),
@@ -583,7 +584,7 @@ ShootGenerator::opponentCanReach( const PlayerObject * opponent,
             int n_turn;
             int n_dash;
             int n_view;
-             int opp_cycle = opponent->cycles_to_cut_ball(wm,
+             int opp_cycle = CutBallCalculator().cycles_to_cut_ball(opponent, wm,
                                                           ball_pos,
                                                           cycle,
                                                           true,
