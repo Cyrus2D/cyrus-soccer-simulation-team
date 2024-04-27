@@ -1,5 +1,7 @@
 # player
 add_executable(sample_player
+lib/cyrus_say_message_builder.cpp
+lib/cyrus_say_message_parser.cpp
   strategy.cpp
 setplay/bhv_set_play_goal_kick.cpp
 setplay/bhv_set_play.cpp

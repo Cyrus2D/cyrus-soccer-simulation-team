@@ -79,6 +79,7 @@
 #include <rcsc/common/player_param.h>
 #include <rcsc/common/audio_memory.h>
 #include <rcsc/common/say_message_parser.h>
+#include "lib/cyrus_say_message_parser.h"
 #include "move_off/bhv_unmark.h"
 #include <rcsc/common/free_message_parser.h>
 

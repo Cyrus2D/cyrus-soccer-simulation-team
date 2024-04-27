@@ -58,6 +58,7 @@
 #include <rcsc/player/soccer_intention.h>
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/player/say_message_builder.h>
+#include "../lib/cyrus_say_message_builder.h"
 #include <rcsc/common/server_param.h>
 #include <rcsc/common/logger.h>
 #include <rcsc/math_util.h>

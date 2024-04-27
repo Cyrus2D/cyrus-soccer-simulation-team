@@ -63,6 +63,7 @@
 #include "bhv_pass_kick_find_receiver.h"
 #include "../neck/next_pass_predictor.h"
 #include "../neck/neck_decision.h"
+#include "../lib/cyrus_say_message_builder.h"
 
 //#define DEBUG_PRINT
 

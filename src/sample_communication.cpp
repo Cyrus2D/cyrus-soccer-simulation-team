@@ -44,6 +44,7 @@
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/player/say_message_builder.h>
+#include "lib/cyrus_say_message_builder.h"
 // #include <rcsc/player/freeform_parser.h>
 
 #include <rcsc/common/logger.h>
