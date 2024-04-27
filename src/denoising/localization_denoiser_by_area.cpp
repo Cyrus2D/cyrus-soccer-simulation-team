@@ -109,7 +109,7 @@ void PlayerPositionConvex::init() {
 
         // without body
         for(int dash_step = 1; dash_step <= N_DASH; dash_step++){
-            const double max_dash_dist = ptype->dashDistanceTable()[0][dash_step - 1];
+            const double max_dash_dist = ptype->dashDistanceTableOnDashDir()[0][dash_step - 1];
 
             std::vector<Vector2D> vertices;
             for (int angle_step = 0; angle_step < N_ANGLE; angle_step++){
@@ -153,8 +153,8 @@ void PlayerPositionConvex::init() {
             double turn2_dash_dist = 0.;
             for(int dash_step = 1; dash_step <= N_DASH; dash_step++){
                 double accel = omni_dash_max_accel;
-                if (omni_dash_speed + accel > ptype->realSpeedMax(dir.degree()))
-                    accel = ptype->realSpeedMax(dir.degree()) - omni_dash_speed;
+                if (omni_dash_speed + accel > ptype->realSpeedMaxOnDashDir(dir.degree()))
+                    accel = ptype->realSpeedMaxOnDashDir(dir.degree()) - omni_dash_speed;
 
                 omni_dash_speed += accel;
                 omni_dash_dist += omni_dash_speed;
@@ -163,8 +163,8 @@ void PlayerPositionConvex::init() {
                 double max_dash_dist = omni_dash_dist;
                 if (dash_step > 1 && can_turn_in_one_cycle){
                     accel = turn_dash_max_accel;
-                    if (turn_dash_speed + accel > ptype->realSpeedMax(0))
-                        accel = ptype->realSpeedMax(0.) - turn_dash_speed;
+                    if (turn_dash_speed + accel > ptype->realSpeedMaxOnDashDir(0))
+                        accel = ptype->realSpeedMaxOnDashDir(0.) - turn_dash_speed;
                     turn_dash_speed += accel;
                     turn_dash_dist += turn_dash_speed;
                     turn_dash_speed *= ptype->playerDecay();
@@ -173,8 +173,8 @@ void PlayerPositionConvex::init() {
                 } 
                 else if (dash_step > 2) {
                     accel = turn_dash_max_accel;
-                    if (turn2_dash_speed + accel > ptype->realSpeedMax(0))
-                        accel = ptype->realSpeedMax(0.) - turn2_dash_speed;
+                    if (turn2_dash_speed + accel > ptype->realSpeedMaxOnDashDir(0))
+                        accel = ptype->realSpeedMaxOnDashDir(0.) - turn2_dash_speed;
                     turn2_dash_speed += accel;
                     turn2_dash_dist += turn2_dash_speed;
                     turn2_dash_speed *= ptype->playerDecay();
