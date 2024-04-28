@@ -1178,7 +1178,7 @@ Body_Intercept2009::executeTackle( PlayerAgent * agent )
         return true;;
     }
 
-    const InterceptTable & table = wm.interceptTable();
+    const auto & table = wm.interceptTable();
 
     /////////////////////////////////////////////
     if ( table.selfStepTackle() > 100 )

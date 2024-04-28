@@ -601,14 +601,23 @@ Body_HoldBall2008::evaluateKeepPoint( const WorldModel & wm,
         }
         else if ( opp_dist < SP.tackleDist() - 0.2 )
         {
-            score -= 25.0;
-#ifdef DEBUG_EVAL
-            dlog.addText( Logger::HOLD,
-                          "____ opp %d(%.1f %.1f) within tackle. score=%.3f",
-                          o->unum(),
-                          o->pos().x, o->pos().y, score );
+            double body_angle_dif = (o->body() - (keep_point - opp_next).th()).abs();
+            if(body_angle_dif > 180.0)
+                body_angle_dif = 360.0 - body_angle_dif;
+            if(body_angle_dif < 90.0){
+                Line2D tackle_line = Line2D(opp_next,o->body());
+                Vector2D ball_on_tackle_line = tackle_line.projection(keep_point);
+                if(opp_next.dist(ball_on_tackle_line) < SP.tackleDist() - 0.1){
+#ifdef DEBUG
+                    dlog.addText( Logger::ACTION,
+							"____ opp %d(%.1f %.1f) within tackle.",
+							(*o)->unum(),
+							(*o)->pos().x, (*o)->pos().y );
 
 #endif
+                    score -= 25.0;
+                }
+            }
         }
 
         AngleDeg opp_body;

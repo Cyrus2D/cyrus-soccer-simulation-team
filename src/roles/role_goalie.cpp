@@ -191,7 +191,7 @@ void RoleGoalie::doKick(PlayerAgent * agent) {
 void RoleGoalie::doMove(PlayerAgent * agent) {
 
     const WorldModel & wm = agent->world();
-    const InterceptTable & iTable = wm.interceptTable();
+    auto & iTable = wm.interceptTable();
 
 	int ourReachCycle = std::min(
             iTable.teammateStep(),
