@@ -39,23 +39,22 @@
 #include "chain_action/bhv_strict_check_shoot.h"
 #include "chain_action/bhv_chain_action.h"
 
-#include <rcsc/action/body_clear_ball.h>
-#include <rcsc/action/body_dribble2008.h>
-#include <rcsc/action/body_dribble.h>
-#include <rcsc/action/body_advance_ball.h>
-#include <rcsc/action/body_intercept.h>
-#include <rcsc/action/body_smart_kick.h>
-#include <rcsc/action/arm_point_to_point.h>
-#include <rcsc/action/basic_actions.h>
-#include <rcsc/action/bhv_go_to_point_look_ball.h>
-#include <rcsc/action/body_go_to_point.h>
-#include <rcsc/action/body_kick_one_step.h>
-#include <rcsc/action/body_stop_dash.h>
-#include <rcsc/action/body_stop_ball.h>
-#include <rcsc/action/body_hold_ball.h>
-
-#include <rcsc/action/neck_scan_field.h>
-#include <rcsc/action/neck_turn_to_ball_and_player.h>
+#include "basic_actions/body_clear_ball.h"
+#include "basic_actions/body_dribble2008.h"
+#include "basic_actions/body_dribble.h"
+#include "basic_actions/body_advance_ball.h"
+#include "basic_actions/body_intercept2009.h"
+#include "basic_actions/body_smart_kick.h"
+#include "basic_actions/arm_point_to_point.h"
+#include "basic_actions/basic_actions.h"
+#include "basic_actions/bhv_go_to_point_look_ball.h"
+#include "basic_actions/body_go_to_point.h"
+#include "basic_actions/body_kick_one_step.h"
+#include "basic_actions/body_stop_dash.h"
+#include "basic_actions/body_stop_ball.h"
+#include "basic_actions/body_hold_ball.h"
+#include "basic_actions/neck_scan_field.h"
+#include "basic_actions/neck_turn_to_ball_and_player.h"
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/player/penalty_kick_state.h>
@@ -71,10 +70,10 @@
 
 #include <cmath>
 
-#include <rcsc/action/view_wide.h>
-#include <rcsc/action/view_normal.h>
-#include <rcsc/action/view_change_width.h>
-#include <rcsc/action/view_synch.h>
+#include "basic_actions/view_wide.h"
+#include "basic_actions/view_normal.h"
+#include "basic_actions/view_change_width.h"
+#include "basic_actions/view_synch.h"
 
 #include "../neck/neck_default_intercept_neck.h"
 
@@ -440,7 +439,7 @@ Bhv_PenaltyKick::doKicker( PlayerAgent * agent )
     // get ball
     if ( ! wm.self().isKickable() )
     {
-        if ( ! Body_Intercept().execute( agent ) )
+        if ( ! Body_Intercept2009().execute( agent ) )
         {
             Body_GoToPoint( wm.ball().pos(),
                             0.4,
@@ -848,7 +847,7 @@ Bhv_PenaltyKick::doDribbleWhitball(PlayerAgent* agent)
 
 	    		return true;
 	    }
-		 if (rcsc::Body_KickOneStep( Target,kick_power ).execute( agent ))
+		 if (Body_KickOneStep( Target,kick_power ).execute( agent ))
 		 return true;
 		 return false;
 }
@@ -973,7 +972,7 @@ Bhv_PenaltyKick::doforceshoot(PlayerAgent * agent)
     	                                        wm.self().kickRate(),
     	                                        wm.ball().vel() );
     	if(vel.r() > 1.8)
-		if(rcsc::Body_KickOneStep(target ,vel.r()+0.5).execute( agent ))
+		if(Body_KickOneStep(target ,vel.r()+0.5).execute( agent ))
 		{
 			std::cout<<"\n Cycle: "<<wm.time().cycle()<<" triangle"<<endl;
 				 return true;
@@ -991,7 +990,7 @@ Bhv_PenaltyKick::doforceshoot(PlayerAgent * agent)
     							 return true;
     		}
 
-//    		if(rcsc::Body_KickOneStep(target ,3.0).execute( agent ))
+//    		if(Body_KickOneStep(target ,3.0).execute( agent ))
 //    		{
 //    			std::cout<<"\n Cycle: "<<wm.time().cycle()<<" triangle"<<endl;
 //    							 return true;
@@ -1095,7 +1094,7 @@ Bhv_PenaltyKick::doforceshoot(PlayerAgent * agent)
 		if(me.y>goalie_pos.y)Target.y=6;
 		else Target.y = -6.0;
 
-		if(rcsc::Body_KickOneStep( Target,2.8).execute( agent ))
+		if(Body_KickOneStep( Target,2.8).execute( agent ))
 		{
 			std::cout<<"\n Cycle: "<<wm.time().cycle()<<" scor kick["<< score<<"]"<<endl;
 			return true;
@@ -1558,14 +1557,14 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
     rcsc::Vector2D goalcenter(sign(ball.x)*52.0,0.0);
 
    // Arm_PointToPoint(me + Vector2D::polar2vector(.8,(goalcenter-me).th())).execute(agent);
-//    agent->setNeckAction( new rcsc::Neck_TurnToBall() );
+//    agent->setNeckAction( new Neck_TurnToBall() );
 //    return doMove(agent,Vector2D(sign(ball.x)*52,-15),0.5);
 //    static int count = 1;
 //    if(wm.time().cycle() - wm.penaltyKickState()->time().cycle() <=1)count =1;
-//	if(rcsc::Body_TurnToAngle(150).execute( agent ) && count ==1)
+//	if(Body_TurnToAngle(150).execute( agent ) && count ==1)
 //				{
 //		count =0;
-//					agent->setNeckAction( new rcsc::Neck_TurnToBall() );
+//					agent->setNeckAction( new Neck_TurnToBall() );
 //					std::cout<<"turn body to "<<150<< " angle in pos "<<wm.time().cycle()<<endl;
 //					return true;
 //				}
@@ -1573,7 +1572,7 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
 //   return doMove(agent,Vector2D(sign(wm.ball().pos().x)*50,15),0.5);
 //	if( doSidedash(agent,Vector2D(sign(wm.ball().pos().x)*52.0,10),0.5))
 //	{
-//		agent->setNeckAction( new rcsc::Neck_TurnToBall());
+//		agent->setNeckAction( new Neck_TurnToBall());
 //		std::cout<<"doMove In "<<wm.time().cycle()<<endl;
 //		return true;
 //	}
@@ -1652,7 +1651,7 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
     if(me_next.dist(Next_ball) < wm.self().playerType().kickableArea()
     		|| Next_ball.dist(me)<wm.self().playerType().kickableArea()+0.8)
     {
-    	agent->setNeckAction( new rcsc::Neck_TurnToBall());
+    	agent->setNeckAction( new Neck_TurnToBall());
 
     	if(fabs((me_next - me).th().degree()-wm.self().body().degree())<15)
     	{
@@ -1667,13 +1666,13 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
     		return true;
     	}
     }
-    int myCycles = wm.interceptTable()->selfReachCycle();
-    int oppCycles = wm.interceptTable()->opponentReachCycle();
+    int myCycles = wm.interceptTable().selfStep();
+    int oppCycles = wm.interceptTable().opponentStep();
 
     if( wm.ball().vel().r() > 2.0 && (ball+wm.ball().vel()).dist(me+wm.self().vel()) < 1.9 )
      { // for tackle
-     		agent->setNeckAction( new rcsc::Neck_TurnToBall());
-               rcsc::Body_TurnToPoint(ball+wm.ball().vel()).execute( agent );
+     		agent->setNeckAction( new Neck_TurnToBall());
+               Body_TurnToPoint(ball+wm.ball().vel()).execute( agent );
                {
              	  std::cout<<"turn for tackl In "<<wm.time().cycle()<<endl;
              	  return true;
@@ -1681,8 +1680,8 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
       }
        else if( wm.ball().vel().r() > 1.8 && oppCycles > 15 )
       {
-     	  agent->setNeckAction( new rcsc::Neck_TurnToBall());
-            rcsc::Body_Intercept().execute( agent );
+     	  agent->setNeckAction( new Neck_TurnToBall());
+            Body_Intercept2009().execute( agent );
             std::cout<<"shoot intercept "<<wm.time().cycle()<<endl;
             return true;
       }
@@ -1692,14 +1691,14 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
     {
 //    		if( doMove(agent,Vector2D(sign(ball.x)*52.0,0.0),1))
 //    		{
-//    			agent->setNeckAction( new rcsc::Neck_TurnToBall());
+//    			agent->setNeckAction( new Neck_TurnToBall());
 //    			std::cout<<"doMove In "<<wm.time().cycle()<<endl;
 //    			return true;
 //    		}
 
-		if(rcsc::Body_TurnToBall().execute( agent ))
+		if(Body_TurnToBall().execute( agent ))
 		{
-			agent->setNeckAction( new rcsc::Neck_TurnToBall() );
+			agent->setNeckAction( new Neck_TurnToBall() );
 			std::cout<<"turn body to ball "<<endl;//<<target_angle.degree()<< " angle in pos "<<wm.time().cycle()<<endl;
 			return true;
 		}
@@ -1708,8 +1707,8 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
 
         if(( myCycles  <= oppCycles && wm.ball().posCount()<=1)||wm.ball().vel().r()>2.1)
         {
-           rcsc::Body_Intercept().execute( agent );
-           agent->setNeckAction( new rcsc::Neck_TurnToBall() );
+           Body_Intercept2009().execute( agent );
+           agent->setNeckAction( new Neck_TurnToBall() );
      //      std::cout<<"\nCYCLE: "<<wm.time().cycle()<<" Intercept Avali\n";
     #if log
            std::cout<<"Intercept 1 in"<<wm.time().cycle()<<endl;
@@ -1730,8 +1729,8 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
     if(shoott || dointercept ||me.dist(ball)<2.5)
     {
     	dointercept = true;
-    	agent->setNeckAction( new rcsc::Neck_TurnToBall() );
-        rcsc::Body_Intercept(false,wm.ball().pos()+wm.ball().vel()).execute( agent );
+    	agent->setNeckAction( new Neck_TurnToBall() );
+        Body_Intercept2009(false,wm.ball().pos()+wm.ball().vel()).execute( agent );
 
  #if log
         std::cout<<"Intercept 2 In "<<wm.time().cycle()<<endl;
@@ -1744,8 +1743,8 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
     		&& Next_ball.dist(goalcenter) < me.dist(goalcenter))
     {
     	dointercept = true;
-       	agent->setNeckAction( new rcsc::Neck_TurnToBall() );
-        rcsc::Body_Intercept(false).execute( agent );
+       	agent->setNeckAction( new Neck_TurnToBall() );
+        Body_Intercept2009(false).execute( agent );
 
      #if log
             std::cout<<"Intercept 3 In "<<wm.time().cycle()<<endl;
@@ -1755,11 +1754,11 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
 
 
 
-    const PlayerObject * opp1 = wm.interceptTable()->fastestOpponent();
+    const PlayerObject * opp1 = wm.interceptTable().firstOpponent();
 
 //_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/
     //neck action
-    agent->setNeckAction( new rcsc::Neck_TurnToBall() );
+    agent->setNeckAction( new Neck_TurnToBall() );
     ViewAction * view = static_cast< ViewAction * >( 0 );
 	static Vector2D static_ball_pos = wm.ball().pos()+wm.ball().vel();
     if(wm.ball().posCount()<=1)
@@ -1776,20 +1775,20 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
     	  	agent->setViewAction(view);
     	   	if(! Neck_TurnToPoint(Vector2D(0.0,0.0) ).execute(agent))
     	   	{
-    	   		agent->setNeckAction( new rcsc::Neck_TurnToPoint(Vector2D(0.0,0.0)) );
+    	   		agent->setNeckAction( new Neck_TurnToPoint(Vector2D(0.0,0.0)) );
     	  	}
     	}
         if(wm.ball().posCount()>=4)
         {
         	view = new View_Wide();
-        	 if(wm.ball().posCount()==2)agent->setNeckAction( new rcsc::Neck_TurnToPoint(static_ball_pos) );
-        	 else agent->setNeckAction(new rcsc::Neck_ScanField());
+        	 if(wm.ball().posCount()==2)agent->setNeckAction( new Neck_TurnToPoint(static_ball_pos) );
+        	 else agent->setNeckAction(new Neck_ScanField());
         	agent->setViewAction(view);
         }
         else if(wm.ball().posCount()>=2)
         {
            	view = new View_Normal();
-           	agent->setNeckAction( new rcsc::Neck_TurnToPoint(static_ball_pos) );
+           	agent->setNeckAction( new Neck_TurnToPoint(static_ball_pos) );
            	agent->setViewAction(view);
         }
         else
@@ -1799,7 +1798,7 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
         	if(! Neck_TurnToBallAndPlayer( opp1 , 0 ).execute(agent) || wm.ball().posCount()>1)
         	{
 
-        		agent->setNeckAction( new rcsc::Neck_TurnToPoint(static_ball_pos) );
+        		agent->setNeckAction( new Neck_TurnToPoint(static_ball_pos) );
         	}
         }
      }
@@ -1883,15 +1882,15 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
 //      	if(me.dist(goalcenter) > move_pos.dist(goalcenter))
 //    		if( doMove(agent,move_pos,0.4))
 //    		{
-//    			agent->setNeckAction( new rcsc::Neck_TurnToBall());
+//    			agent->setNeckAction( new Neck_TurnToBall());
 //    			std::cout<<"doMove In "<<wm.time().cycle()<<endl;
 //    			return true;
 //    		}
 ////////////////////////////////////////////////////////////////
 
           if((wm.self().body() - target_angle).abs() >90){
-              if(rcsc::Body_TurnToAngle(target_angle).execute( agent )){
-                    agent->setNeckAction( new rcsc::Neck_TurnToBall() );
+              if(Body_TurnToAngle(target_angle).execute( agent )){
+                    agent->setNeckAction( new Neck_TurnToBall() );
                     return true;
             }
 
@@ -1901,7 +1900,7 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
               if((wm.self().body() - (move_pos - wm.self().pos()).th()).abs() > 100){
                   std::cout<<"GOALIE3\n";
                 agent->doDash(SP.maxDashPower(),180);
-                agent->setNeckAction( new rcsc::Neck_TurnToBall() );
+                agent->setNeckAction( new Neck_TurnToBall() );
                 return true;
             }
           }
@@ -1914,16 +1913,16 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
           }
       	  if(!Body_GoToPoint( move_pos,0.4,SP.maxDashPower(),-1,100,false,65).execute( agent ))
       	  {
-      		agent->setNeckAction( new rcsc::Neck_TurnToBall() );
+      		agent->setNeckAction( new Neck_TurnToBall() );
 #if log
        log_writetofile<<"Body_TurnToAngle "<<target_angle.degree()<<endl;
 #endif
    			if(true)//false )//wm.self().body().degree() - target_angle.degree() < 6)
    			{
    			//	if(o_ob->distFromSelf()<6)
-				if(rcsc::Body_TurnToAngle(target_angle).execute( agent ))
+				if(Body_TurnToAngle(target_angle).execute( agent ))
 				{
-					agent->setNeckAction( new rcsc::Neck_TurnToBall() );
+					agent->setNeckAction( new Neck_TurnToBall() );
 					std::cout<<"turn body to "<<target_angle.degree()<< " angle in pos "<<wm.time().cycle()<<endl;
 					return true;
 				}
@@ -1939,8 +1938,8 @@ Bhv_PenaltyKick::doGoalie( PlayerAgent* agent )
 #if log
         log_writetofile<<"intercept"<<endl;
 #endif
-    	agent->setNeckAction( new rcsc::Neck_TurnToBall() );
-        rcsc::Body_Intercept(false,wm.ball().pos()+wm.ball().vel()).execute( agent );
+    	agent->setNeckAction( new Neck_TurnToBall() );
+        Body_Intercept2009(false,wm.ball().pos()+wm.ball().vel()).execute( agent );
 
         return true;
 
@@ -2019,7 +2018,7 @@ rcsc::Vector2D Bhv_PenaltyKick::getPoint( rcsc::PlayerAgent * agent )
   rcsc::Line2D lball(ball,wm.ball().vel().th());
 		  rcsc::Line2D(wm.opponentsFromBall().front()->pos(),wm.opponentsFromBall().front()->body());
 
-  int oppCycles = wm.interceptTable()->opponentReachCycle();
+  int oppCycles = wm.interceptTable().opponentStep();
   Vector2D ball_pos;
   if (wm.kickableOpponent() )
   {
@@ -2130,7 +2129,7 @@ Bhv_PenaltyKick::doGoalieBasicMove( PlayerAgent * agent )
 
     ////////////////////////////////////////////////////////////////////////
     // get active interception catch point
-    const int self_min = wm.interceptTable()->selfReachCycle();
+    const int self_min = wm.interceptTable().selfStep();
     Vector2D move_pos = wm.ball().inertiaPoint( self_min );
 
     if ( our_penalty.contains( move_pos ) )
@@ -2138,10 +2137,10 @@ Bhv_PenaltyKick::doGoalieBasicMove( PlayerAgent * agent )
         dlog.addText( Logger::TEAM,
                       __FILE__": goalieBasicMove. exist intercept point " );
         agent->debugClient().addMessage( "ExistIntPoint" );
-        if ( wm.interceptTable()->opponentReachCycle() < wm.interceptTable()-> selfReachCycle()
-             || wm.interceptTable()-> selfReachCycle() <=4 )
+        if ( wm.interceptTable().opponentStep() < wm.interceptTable().selfStep()
+             || wm.interceptTable().selfStep() <=4 )
         {
-            if ( Body_Intercept( false ).execute( agent ) )
+            if ( Body_Intercept2009( false ).execute( agent ) )
             {
                 agent->debugClient().addMessage( "Intercept" );
                 dlog.addText( Logger::TEAM,
@@ -2347,7 +2346,7 @@ Bhv_PenaltyKick::doGoalieSlideChase( PlayerAgent* agent )
     if ( ! intersection.isValid()
          || ! ball_ray.inRightDir( intersection ) )
     {
-        Body_Intercept( false ).execute( agent ); // goalie mode
+        Body_Intercept2009( false ).execute( agent ); // goalie mode
         agent->setNeckAction( new Neck_TurnToBall() );
         return true;
     }

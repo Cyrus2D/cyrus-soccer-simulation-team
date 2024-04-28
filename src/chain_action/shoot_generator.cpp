@@ -37,7 +37,7 @@
 
 #include "field_analyzer.h"
 #include "../setting.h"
-#include <rcsc/action/kick_table.h>
+#include "basic_actions/kick_table.h"
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/intercept_table.h>
@@ -110,7 +110,7 @@ ShootGenerator::generate( const WorldModel & wm , double opp_dist_thr)
     clear();
 
     if ( ! wm.self().isKickable()
-         && wm.interceptTable()->selfReachCycle() > 2 )
+         && wm.interceptTable().selfStep() > 2 )
     {
         return;
     }
@@ -136,7 +136,7 @@ ShootGenerator::generate( const WorldModel & wm , double opp_dist_thr)
         return;
     }
 
-    int self_min = wm.interceptTable()->selfReachCycle();
+    int self_min = wm.interceptTable().selfStep();
     M_first_ball_pos = ( wm.self().isKickable()
                          ? wm.ball().pos()
                          : (self_min == 1?wm.ball().pos() + wm.ball().vel():wm.ball().inertiaPoint(2)) );
@@ -537,7 +537,7 @@ ShootGenerator::opponentCanReach( const PlayerObject * opponent,
         int n_dash;
         int n_view;
 
-        int opp_cycle = CutBallCalculator().cycles_to_cut_ball(opponent, wm,
+        int opp_cycle = CutBallCalculator().cycles_to_cut_ball(opponent,
                                                     ball_pos,
                                                     cycle,
                                                     (wm.gameMode().type() == GameMode::PenaltyTaken_? true : false),
@@ -584,7 +584,7 @@ ShootGenerator::opponentCanReach( const PlayerObject * opponent,
             int n_turn;
             int n_dash;
             int n_view;
-             int opp_cycle = CutBallCalculator().cycles_to_cut_ball(opponent, wm,
+             int opp_cycle = CutBallCalculator().cycles_to_cut_ball(opponent,
                                                           ball_pos,
                                                           cycle,
                                                           true,

@@ -51,17 +51,17 @@ public:
 #include "bhv_basic_tackle.h"
 #include <rcsc/player/intercept_table.h>
 #include <vector>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
-#include <rcsc/action/neck_turn_to_point.h>
-#include <rcsc/action/body_turn_to_point.h>
-#include <rcsc/action/body_turn_to_angle.h>
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
+#include "basic_actions/neck_turn_to_point.h"
+#include "basic_actions/body_turn_to_point.h"
+#include "basic_actions/body_turn_to_angle.h"
 #include <rcsc/common/audio_memory.h>
 #include <rcsc/player/world_model.h>
 #include <rcsc/player/player_agent.h>
-#include <rcsc/action/body_go_to_point.h>
+#include "basic_actions/body_go_to_point.h"
 #include <rcsc/common/say_message_parser.h>
 #include <rcsc/player/say_message_builder.h>
-#include <rcsc/action/neck_turn_to_ball_and_player.h>
+#include "basic_actions/neck_turn_to_ball_and_player.h"
 class IntentionBlock
         : public rcsc::SoccerIntention {
 private:
@@ -97,10 +97,10 @@ public:
         return true;
         const WorldModel & wm = agent->world();
         int self_unum = wm.self().unum();
-        int opp_reach_cycle = wm.interceptTable()->opponentReachCycle();
-        int tm_reach_cycle = wm.interceptTable()->teammateReachCycle();
-        int self_reach_cycle = wm.interceptTable()->selfReachCycle();
-        int fastest_opp = wm.interceptTable()->fastestOpponent()->unum();
+        int opp_reach_cycle = wm.interceptTable().opponentStep();
+        int tm_reach_cycle = wm.interceptTable().teammateStep();
+        int self_reach_cycle = wm.interceptTable().selfStep();
+        int fastest_opp = wm.interceptTable().firstOpponent()->unum();
         Vector2D start_pos; int start_cycle;
         bhv_block::get_start_dribble(wm,start_pos,start_cycle);
         Vector2D target_pos;int target_cycle;

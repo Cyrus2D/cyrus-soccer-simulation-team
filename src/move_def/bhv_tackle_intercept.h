@@ -17,10 +17,10 @@
 #include "bhv_basic_tackle.h"
 #include <rcsc/player/world_model.h>
 #include <rcsc/player/player_agent.h>
-#include <rcsc/action/body_go_to_point.h>
-#include <rcsc/action/body_turn_to_angle.h>
-#include <rcsc/action/body_turn_to_point.h>
-#include <rcsc/action/neck_turn_to_ball.h>
+#include "basic_actions/body_go_to_point.h"
+#include "basic_actions/body_turn_to_angle.h"
+#include "basic_actions/body_turn_to_point.h"
+#include "basic_actions/neck_turn_to_ball.h"
 #include <rcsc/player/action_effector.h>
 #include <rcsc/geom.h>
 
@@ -76,9 +76,9 @@ public:
             dlog.addText(Logger::INTERCEPT,"*********calc tackle intercept");
             Vector2D ballpos = wm.ball().pos();
             Vector2D ballvel = wm.ball().vel();
-            const int self_min = wm.interceptTable()->selfReachCycle();
-            const int mate_min = wm.interceptTable()->teammateReachCycle();
-            const int opp_min = wm.interceptTable()->opponentReachCycle();
+            const int self_min = wm.interceptTable().selfStep();
+            const int mate_min = wm.interceptTable().teammateStep();
+            const int opp_min = wm.interceptTable().opponentStep();
 
             double best_eval = 0;
             pair<int,AngleDeg> best_tackle = make_pair(1000,AngleDeg(0));

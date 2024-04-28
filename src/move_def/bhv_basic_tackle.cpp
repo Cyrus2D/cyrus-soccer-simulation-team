@@ -32,8 +32,8 @@
 
 #include "../chain_action/tackle_generator.h"
 
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
-#include <rcsc/action/neck_turn_to_point.h>
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
+#include "basic_actions/neck_turn_to_point.h"
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/debug_client.h>
@@ -55,9 +55,9 @@ using namespace rcsc;
 double Bhv_BasicTackle::calc_takle_prob(const rcsc::WorldModel & wm, Vector2D bp){
     const ServerParam & SP = ServerParam::i();
 
-    const int self_min = wm.interceptTable()->selfReachCycle();
-    const int mate_min = wm.interceptTable()->teammateReachCycle();
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    const int self_min = wm.interceptTable().selfStep();
+    const int mate_min = wm.interceptTable().teammateStep();
+    const int opp_min = wm.interceptTable().opponentStep();
     const int our_min = std::min(mate_min,self_min);
 
     const Vector2D end_ball = wm.ball().inertiaPoint(std::min(self_min,std::min(opp_min,mate_min)));
@@ -144,9 +144,9 @@ double Bhv_BasicTackle::calc_takle_prob(const rcsc::WorldModel & wm, Vector2D bp
 
 bool Bhv_BasicTackle::can_tackle( const rcsc::WorldModel & wm){
     const ServerParam & SP = ServerParam::i();
-    const int self_min = wm.interceptTable()->selfReachCycle();
-    const int mate_min = wm.interceptTable()->teammateReachCycle();
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    const int self_min = wm.interceptTable().selfStep();
+    const int mate_min = wm.interceptTable().teammateStep();
+    const int opp_min = wm.interceptTable().opponentStep();
 
     const Vector2D self_reach_point = wm.ball().inertiaPoint( self_min );
     const Vector2D our_reach_point = wm.ball().inertiaPoint( std::min(self_min,mate_min));

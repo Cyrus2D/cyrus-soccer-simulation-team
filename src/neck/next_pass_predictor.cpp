@@ -6,7 +6,7 @@
 #include "../setting.h"
 #include "../data_extractor/DEState.h"
 #include "../data_extractor/offensive_data_extractor.h"
-#include <rcsc/action/neck_turn_to_point.h>
+#include "basic_actions/neck_turn_to_point.h"
 
 
 DeepNueralNetwork * NextPassPredictor::pass_prediction = new DeepNueralNetwork();
@@ -43,7 +43,7 @@ vector<Vector2D> NextPassPredictor::nextReceiverCandidates(const WorldModel &wm)
     DEState state = DEState(wm);
 
     int fastest_tm = wm.self().unum();
-    int tm_reach_cycle = wm.interceptTable()->selfReachCycle();
+    int tm_reach_cycle = wm.interceptTable().selfStep();
     if (!state.updateKicker(fastest_tm, wm.ball().inertiaPoint(tm_reach_cycle)))
         return res;
 
@@ -72,7 +72,7 @@ int NextPassPredictor::next_receiver(const WorldModel &wm){
     DEState state = DEState(wm);
 
     int fastest_tm = wm.self().unum();
-    int tm_reach_cycle = wm.interceptTable()->selfReachCycle();
+    int tm_reach_cycle = wm.interceptTable().selfStep();
     if (!state.updateKicker(fastest_tm, wm.ball().inertiaPoint(tm_reach_cycle)))
         return 0;
 
@@ -121,7 +121,7 @@ bool NextPassPredictor::pass_predictor_neck(rcsc::PlayerAgent * agent){
     if (next_target_unum == 0)
         return false;
     agent->debugClient().addMessage("neck to %d", next_target_unum);
-    int self_min = wm.interceptTable()->selfReachCycle();
+    int self_min = wm.interceptTable().selfStep();
     int ball_pos_count = wm.ball().posCount();
     int ball_vel_count = wm.ball().velCount();
     Vector2D ball_pos = wm.ball().inertiaPoint(self_min);

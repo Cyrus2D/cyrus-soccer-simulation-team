@@ -10,17 +10,17 @@
 #include <rcsc/player/player_agent.h>
 #include "strategy.h"
 #include <rcsc/common/logger.h>
-#include <rcsc/action/body_go_to_point.h>
+#include "basic_actions/body_go_to_point.h"
 #include <rcsc/common/server_param.h>
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/player/abstract_player_object.h>
-#include <rcsc/action/body_turn_to_angle.h>
-#include <rcsc/action/neck_turn_to_ball.h>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
+#include "basic_actions/body_turn_to_angle.h"
+#include "basic_actions/neck_turn_to_ball.h"
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
 #include "chain_action/field_analyzer.h"
 #include "bhv_basic_move.h"
-#include <rcsc/action/body_go_to_point.h>
-#include <rcsc/action/body_turn_to_point.h>
+#include "basic_actions/body_go_to_point.h"
+#include "basic_actions/body_turn_to_point.h"
 #include <rcsc/common/audio_memory.h>
 #include <rcsc/common/say_message_parser.h>
 #include "../neck/neck_decision.h"
@@ -38,8 +38,8 @@ enum unmark_type{
 
 bool go_to_target(PlayerAgent * agent, Vector2D target, unmark_type type){
     const WorldModel & wm = agent->world();
-    int mate_min = wm.interceptTable()->teammateReachCycle();
-    int opp_min = wm.interceptTable()->opponentReachCycle();
+    int mate_min = wm.interceptTable().teammateStep();
+    int opp_min = wm.interceptTable().opponentStep();
     Vector2D self_pos = wm.self().pos();
     Vector2D ball_pos = wm.ball().inertiaPoint(mate_min);
     double dist2target = self_pos.dist(target);
@@ -126,7 +126,7 @@ public:
             return true;
         if(M_target_point.x > wm.offsideLineX() - 0.3)
             return true;
-        if(wm.interceptTable()->selfReachCycle() <= wm.interceptTable()->teammateReachCycle())
+        if(wm.interceptTable().selfStep() <= wm.interceptTable().teammateStep())
             return true;
         if(wm.self().pos().x > wm.offsideLineX() - 0.3)
             return true;
@@ -142,15 +142,15 @@ public:
         {
             return true;
         }
-        Vector2D ballpos = wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle());
+        Vector2D ballpos = wm.ball().inertiaPoint(wm.interceptTable().teammateStep());
         int passerunum = 0;
-        if(wm.interceptTable()->fastestTeammate() != NULL)
-            passerunum = wm.interceptTable()->fastestTeammate()->unum();
+        if(wm.interceptTable().firstTeammate() != NULL)
+            passerunum = wm.interceptTable().firstTeammate()->unum();
         if( passerunum != M_start_passer && ballpos.dist(M_start_ball_pos) > 6)
             return true;
         if(ballpos.dist(M_start_ball_pos) > 10)
             return true;
-        if(M_target_point.dist(wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle())) < 5)
+        if(M_target_point.dist(wm.ball().inertiaPoint(wm.interceptTable().teammateStep())) < 5)
             return true;
         return false;
     }
@@ -240,9 +240,9 @@ public:
         if (best.isValid()) {
             dlog.addCircle(Logger::BLOCK, best, 0.5, 0, 0, 0, true);
             int now_passer = 0;
-            if(wm.interceptTable()->fastestTeammate() != NULL)
-                now_passer = wm.interceptTable()->fastestTeammate()->unum();
-            agent->setIntention(new IntentionUnmark(best,5,wm.time().cycle(),now_passer,wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle()),type_of_unmark[0]));
+            if(wm.interceptTable().firstTeammate() != NULL)
+                now_passer = wm.interceptTable().firstTeammate()->unum();
+            agent->setIntention(new IntentionUnmark(best,5,wm.time().cycle(),now_passer,wm.ball().inertiaPoint(wm.interceptTable().teammateStep()),type_of_unmark[0]));
             agent->debugClient().addMessage("voronoi");
             go_to_target(agent,best,type_of_unmark[0]);
             return true;
@@ -254,10 +254,10 @@ public:
         Strategy::PostLine pl_line = Strategy::i().self_Line();
         int stamina = wm.self().stamina();
         static const Rect2D penalty_area=Rect2D(Vector2D(38,-17),Vector2D(53,17));
-        if (wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle()).dist(
+        if (wm.ball().inertiaPoint(wm.interceptTable().teammateStep()).dist(
                     wm.self().pos()) > 30)
             return false;
-        if(wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle()).x < 30)
+        if(wm.ball().inertiaPoint(wm.interceptTable().teammateStep()).x < 30)
             return false;
         if(penalty_area.contains(wm.self().pos()))
             return true;
@@ -283,7 +283,7 @@ public:
             return v_points;
 
         const WorldModel &wm = agent->world();
-        const int mate_min = wm.interceptTable()->teammateReachCycle();
+        const int mate_min = wm.interceptTable().teammateStep();
         Vector2D ballInertiaPos = wm.ball().inertiaPoint(mate_min);
         Vector2D self_home_pos = Strategy::i().getPosition(wm.self().unum());
         double offside_line_x = std::max(ballInertiaPos.x,wm.offsideLineX());
@@ -435,8 +435,8 @@ public:
         double eval_shoot = 0;
         double res;
         int fastest_tm_unum = 0;
-        if(wm.interceptTable()->fastestTeammate() != NULL){
-            fastest_tm_unum = wm.interceptTable()->fastestTeammate()->unum();
+        if(wm.interceptTable().firstTeammate() != NULL){
+            fastest_tm_unum = wm.interceptTable().firstTeammate()->unum();
         }
 
         //ball pass && tm pass
@@ -648,10 +648,10 @@ public:
         Vector2D self_h_pos = Strategy::i().getPosition(wm.self().unum());
         Vector2D self_pos = wm.self().pos();
         int unum = wm.self().unum();
-        const PlayerObject * fastest_tm = wm.interceptTable()->fastestTeammate();
+        const PlayerObject * fastest_tm = wm.interceptTable().firstTeammate();
         int fastest_tm_unum = 0;
 
-        int mate_min = wm.interceptTable()->teammateReachCycle();
+        int mate_min = wm.interceptTable().teammateStep();
         Vector2D ballpos;
         if(fastest_tm != NULL){
             ballpos = wm.ball().inertiaPoint(mate_min);
@@ -873,11 +873,11 @@ public:
         vector<unmark_type> res;
         int unum = wm.self().unum();
         Vector2D self_hpos = Strategy::i().getPosition(unum);
-        int tm_cycle = wm.interceptTable()->teammateReachCycle();
+        int tm_cycle = wm.interceptTable().teammateStep();
         Vector2D ball = wm.ball().inertiaPoint(tm_cycle);
         int fast_tm = 0;
-        if(wm.interceptTable()->fastestTeammate() != NULL)
-            fast_tm = wm.interceptTable()->fastestTeammate()->unum();
+        if(wm.interceptTable().firstTeammate() != NULL)
+            fast_tm = wm.interceptTable().firstTeammate()->unum();
 
         vector<Vector2D> tmpos;
         for(int i = 0; i<=11; i++){

@@ -56,17 +56,17 @@
 
 #include "intention_receive.h"
 #include "bhv_basic_move.h"
-#include <rcsc/action/basic_actions.h>
-#include <rcsc/action/bhv_emergency.h>
-#include <rcsc/action/body_go_to_point.h>
-#include <rcsc/action/body_intercept.h>
-#include <rcsc/action/body_kick_one_step.h>
-#include <rcsc/action/neck_scan_field.h>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
-#include <rcsc/action/view_synch.h>
-
+#include "basic_actions/basic_actions.h"
+#include "basic_actions/bhv_emergency.h"
+#include "basic_actions/body_go_to_point.h"
+#include "basic_actions/body_intercept2009.h"
+#include "basic_actions/body_kick_one_step.h"
+#include "basic_actions/neck_scan_field.h"
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
+#include "basic_actions/view_synch.h"
+#include "basic_actions/kick_table.h"
 #include <rcsc/formation/formation.h>
-#include <rcsc/action/kick_table.h>
+
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/player/say_message_builder.h>
 #include <rcsc/player/audio_sensor.h>
@@ -862,8 +862,8 @@ SamplePlayer::doHeardPassReceive()
     if(wm.self().isKickable())
         return false;
 
-    int self_min = wm.interceptTable()->selfReachCycle();
-    int opp_min = wm.interceptTable()->opponentReachCycle();
+    int self_min = wm.interceptTable().selfStep();
+    int opp_min = wm.interceptTable().opponentStep();
     Vector2D first_ball = wm.ball().pos();
     Vector2D intercept_pos = wm.ball().inertiaPoint( self_min );
     Vector2D heard_pos = wm.audioMemory().pass().front().receive_pos_;
@@ -871,7 +871,7 @@ SamplePlayer::doHeardPassReceive()
     bool prepass_received = wm.audioMemory().pass().front().is_pre_pass_;
     bool cross_pass = wm.audioMemory().pass().front().is_cross_;
     int sender = wm.audioMemory().pass().front().sender_;
-    int fastest_tm = wm.interceptTable()->fastestTeammate()->unum();
+    int fastest_tm = wm.interceptTable().firstTeammate()->unum();
     Vector2D self_pos = wm.self().inertiaPoint(1);
     dlog.addText( Logger::INTERCEPT,
                   __FILE__":  (doHeardPassReceive) heard_pos(%.2f %.2f) intercept_pos(%.2f %.2f)",

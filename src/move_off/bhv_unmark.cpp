@@ -8,13 +8,13 @@
 #include "bhv_unmark.h"
 #include "../strategy.h"
 #include <rcsc/common/logger.h>
-#include <rcsc/action/body_go_to_point.h>
+#include "basic_actions/body_go_to_point.h"
 #include <rcsc/common/server_param.h>
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/player/abstract_player_object.h>
-#include <rcsc/action/body_turn_to_angle.h>
-#include <rcsc/action/neck_turn_to_ball.h>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
+#include "basic_actions/body_turn_to_angle.h"
+#include "basic_actions/neck_turn_to_ball.h"
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
 #include "field_analyzer.h"
 #include "setting.h"
 #ifdef HAVE_CONFIG_H
@@ -41,9 +41,9 @@ unmark_passer::unmark_passer(int unum, Vector2D ball_pos, int opp_min_cycle, int
 }
 
 void unmark_pass_to_me::update_eval(const WorldModel & wm) {
-    int diff_intercept_cycle = wm.interceptTable()->opponentReachCycle() - wm.interceptTable()->teammateReachCycle();
+    int diff_intercept_cycle = wm.interceptTable().opponentStep() - wm.interceptTable().teammateStep();
     Vector2D best_target = Vector2D(48, 0);
-    if (wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle()).y < -10)
+    if (wm.ball().inertiaPoint(wm.interceptTable().teammateStep()).y < -10)
         best_target = Vector2D(48, -6);
     e_x = min(102.0, pass_target.x + 52.5);
 	e_d_goal = max(0.0, 40.0 - pass_target.dist(best_target));
@@ -266,7 +266,7 @@ Vector2D bhv_unmark::penalty_unmark(const WorldModel & wm) {
     double div_dist = 1.0;
     double div_angle = 20;
     double maxeval = 0;
-    int tm_cycle = wm.interceptTable()->teammateReachCycle();
+    int tm_cycle = wm.interceptTable().teammateStep();
     Vector2D ball_inner = wm.ball().inertiaPoint(tm_cycle);
     Vector2D best_target = Vector2D(0.0,0.0);
     for (double y = self_pos.y + 3; y < self_pos.y - 4; y -= div_dist) {
@@ -297,7 +297,7 @@ Vector2D bhv_unmark::penalty_unmark(const WorldModel & wm) {
 bool bhv_unmark::is_good_for_unmark(const WorldModel & wm) {
     Vector2D home_pos = Strategy::i().getPosition(wm.self().unum());
     Vector2D self_pos = wm.self().pos();
-    int mate_min = wm.interceptTable()->teammateReachCycle();
+    int mate_min = wm.interceptTable().teammateStep();
     double min_dist_ball = 5;
     double max_dist_home_pos = 15;
     double max_dist_self_pos = 15;
@@ -416,7 +416,7 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
     Vector2D self_pos = wm.self().pos();
     Vector2D self_hpos = Strategy::i().getPosition(wm.self().unum());
     agent->debugClient().addCircle(target_pos, 0.3);
-    Vector2D ball_inertia = wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle());
+    Vector2D ball_inertia = wm.ball().inertiaPoint(wm.interceptTable().teammateStep());
     if (good_for_pass){
         agent->debugClient().addMessage("passer:%d", best_passer.unum);
         if (best_passer.unum > 0)
@@ -431,9 +431,9 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
             tmp = &p;
         }
     }
-    int fastest_tm = wm.interceptTable()->fastestTeammate()->unum();
-    int tm_reach_cycle = wm.interceptTable()->teammateReachCycle();
-    int opp_reach_cycle = wm.interceptTable()->opponentReachCycle();
+    int fastest_tm = wm.interceptTable().firstTeammate()->unum();
+    int tm_reach_cycle = wm.interceptTable().teammateStep();
+    int opp_reach_cycle = wm.interceptTable().opponentStep();
     double stamina = wm.self().stamina();
     double dash_power = Strategy::get_normal_dash_power(wm);
     double stamina_z = 1.0;
@@ -685,7 +685,7 @@ bool bhv_unmarkes::execute(PlayerAgent * agent) {
     dlog.addText(Logger::POSITIONING, "last run:%d lastTm:%d last_start:%d", last_run, last_fastest_tm, best_last_unmark.cycle_start);
     #endif
 
-    if (last_fastest_tm == wm.interceptTable()->fastestTeammate()->unum()
+    if (last_fastest_tm == wm.interceptTable().firstTeammate()->unum()
         && last_run == wm.time().cycle() - 1){
         if (best_last_unmark.cycle_start >= wm.time().cycle() - 4){
             last_run = wm.time().cycle();
@@ -693,7 +693,7 @@ bool bhv_unmarkes::execute(PlayerAgent * agent) {
         }
 
         if (best_last_unmark.cycle_start >= wm.time().cycle() - 7){
-            Vector2D ball_inertia = wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle());
+            Vector2D ball_inertia = wm.ball().inertiaPoint(wm.interceptTable().teammateStep());
             best_last_unmark.passers = passers;
             if (ball_inertia.dist(last_ball_inertia) < 5
                 && (best_last_unmark.is_good_for_pass_from_last(wm)
@@ -721,7 +721,7 @@ bool bhv_unmarkes::execute(PlayerAgent * agent) {
     if (best_unmark == NULL)
         return false;
 
-    last_fastest_tm = wm.interceptTable()->fastestTeammate()->unum();
+    last_fastest_tm = wm.interceptTable().firstTeammate()->unum();
     best_last_unmark = *best_unmark;
     #ifdef DEBUG_UNMARK
     dlog.addText(Logger::POSITIONING,"best is #%d (%.2f,%.2f),%.2f,ep:%.1f,eu:%.1f,ps:%d,forpass:%d",
@@ -734,7 +734,7 @@ bool bhv_unmarkes::execute(PlayerAgent * agent) {
                  best_unmark->passes.size(),
                  best_unmark->unmark_for_posses);
     #endif
-    last_ball_inertia = wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle());
+    last_ball_inertia = wm.ball().inertiaPoint(wm.interceptTable().teammateStep());
     last_run = wm.time().cycle();
     best_last_unmark.cycle_start = wm.time().cycle();
     return best_unmark->execute(agent);
@@ -744,14 +744,14 @@ bool bhv_unmarkes::can_unmark(const WorldModel & wm) {
     Strategy::PostLine pl_line = Strategy::i().self_Line();
     int stamina = wm.self().stamina();
     static const Rect2D penalty_area=Rect2D(Vector2D(38,-17),Vector2D(53,17));
-    if (wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle()).dist(wm.self().pos()) > 30){
+    if (wm.ball().inertiaPoint(wm.interceptTable().teammateStep()).dist(wm.self().pos()) > 30){
         #ifdef DEBUG_UNMARK
         dlog.addText(Logger::POSITIONING, "Can not unmarking because dist to ball is more than 30");
         #endif
         return false;
     }
 
-    if(wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle()).x > 25
+    if(wm.ball().inertiaPoint(wm.interceptTable().teammateStep()).x > 25
        && Strategy::i().getPosition(wm.self().unum()).x > 20){
         #ifdef DEBUG_UNMARK
         dlog.addText(Logger::POSITIONING, "Can unmarking, because ballx>25 selfhpx > 20");
@@ -840,11 +840,11 @@ vector<unmark_passer> bhv_unmarkes::update_passer_dnn(const WorldModel &wm, Play
     DEState state = DEState(wm);
 
     int fastest_tm = 0;
-    if (wm.interceptTable()->fastestTeammate() != nullptr)
-        fastest_tm = wm.interceptTable()->fastestTeammate()->unum();
+    if (wm.interceptTable().firstTeammate() != nullptr)
+        fastest_tm = wm.interceptTable().firstTeammate()->unum();
     if (fastest_tm < 1)
         return res;
-    int tm_reach_cycle = wm.interceptTable()->teammateReachCycle();
+    int tm_reach_cycle = wm.interceptTable().teammateStep();
     if (!state.updateKicker(fastest_tm, wm.ball().inertiaPoint(tm_reach_cycle)))
         return res;
 
@@ -910,12 +910,12 @@ vector<unmark_passer> bhv_unmarkes::update_passer_dnn(const WorldModel &wm, Play
         agent->debugClient().addCircle(target_pos, 2);
         if (p.pass_getter == wm.self().unum()){
             int cycle_recive_ball = 0;
-            if (p.pass_sender == wm.interceptTable()->fastestTeammate()->unum()){
-                cycle_recive_ball = wm.interceptTable()->teammateReachCycle();
+            if (p.pass_sender == wm.interceptTable().firstTeammate()->unum()){
+                cycle_recive_ball = wm.interceptTable().teammateStep();
             }else{
-                cycle_recive_ball = wm.interceptTable()->teammateReachCycle() * 2.0;
+                cycle_recive_ball = wm.interceptTable().teammateStep() * 2.0;
             }
-            res.push_back(unmark_passer(p.pass_sender, kicker_pos, wm.interceptTable()->opponentReachCycle(), cycle_recive_ball));
+            res.push_back(unmark_passer(p.pass_sender, kicker_pos, wm.interceptTable().opponentStep(), cycle_recive_ball));
             res[res.size() - 1].is_fastest = true;
         }
     }
@@ -927,8 +927,8 @@ vector<unmark_passer> bhv_unmarkes::update_passer_dnn_writer(const WorldModel &w
     vector<unmark_passer> res;
     DEState state = DEState(wm);
     int fastest_tm = 0;
-    if (wm.interceptTable()->fastestTeammate() != nullptr)
-        fastest_tm = wm.interceptTable()->fastestTeammate()->unum();
+    if (wm.interceptTable().firstTeammate() != nullptr)
+        fastest_tm = wm.interceptTable().firstTeammate()->unum();
     if (fastest_tm < 1)
         return res;
     if (!state.updateKicker(fastest_tm))
@@ -1004,10 +1004,10 @@ vector<unmark_passer> bhv_unmarkes::update_passer_dnn_writer(const WorldModel &w
 
 vector<unmark_passer> bhv_unmarkes::update_passer(const WorldModel & wm) {
     vector<unmark_passer> res;
-    const PlayerObject * tm = wm.interceptTable()->fastestTeammate();
+    const PlayerObject * tm = wm.interceptTable().firstTeammate();
     if (tm != NULL && tm->unum() > 0) {
-        int tm_cycle = wm.interceptTable()->teammateReachCycle();
-        int opp_cycle = wm.interceptTable()->opponentReachCycle();
+        int tm_cycle = wm.interceptTable().teammateStep();
+        int opp_cycle = wm.interceptTable().opponentStep();
         Vector2D ball_pos = wm.ball().inertiaPoint(tm_cycle);
         vector<pair<double, int>> tm_passer;
         for (int i = 2; i <= 11; i++) {
@@ -1191,7 +1191,7 @@ void bhv_unmarkes::evaluate_targets(const WorldModel &wm, vector <unmark_passer>
 void bhv_unmarkes::update_best_unmark(const WorldModel & wm) { //borna
     best_unmark = NULL;
     #ifdef DEBUG_UNMARK
-    int fastest_tm = wm.interceptTable()->fastestTeammate()->unum();
+    int fastest_tm = wm.interceptTable().firstTeammate()->unum();
     double max_eval_pass = -1000;
     double min_eval_pass = 1000;
     double max_eval_unmark = -1000;

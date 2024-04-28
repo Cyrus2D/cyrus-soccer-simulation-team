@@ -232,9 +232,9 @@ void StrictCheckPassGenerator::updatePasser(const WorldModel & wm) {
         return;
     }
 
-    int s_min = wm.interceptTable()->selfReachCycle();
-    int t_min = wm.interceptTable()->teammateReachCycle();
-    int o_min = wm.interceptTable()->opponentReachCycle();
+    int s_min = wm.interceptTable().selfStep();
+    int t_min = wm.interceptTable().teammateStep();
+    int o_min = wm.interceptTable().opponentStep();
 
     int our_min = std::min(s_min, t_min);
     if (o_min < std::min(our_min - 4, (int) rint(our_min * 0.9))) {
@@ -251,7 +251,7 @@ void StrictCheckPassGenerator::updatePasser(const WorldModel & wm) {
         }
     } else {
         if (t_min <= 2) {
-            M_passer = wm.interceptTable()->fastestTeammate();
+            M_passer = wm.interceptTable().firstTeammate();
             M_first_point = wm.ball().inertiaPoint(t_min);
         }
     }
@@ -373,7 +373,7 @@ void StrictCheckPassGenerator::updateReceivers(const WorldModel & wm) {
                 continue;
             }
             if ((*p)->goalie()
-                    && (*p)->pos().x < SP.ourPenaltyAreaLineX() + 15.0 && wm.interceptTable()->opponentReachCycle() > 3) {
+                    && (*p)->pos().x < SP.ourPenaltyAreaLineX() + 15.0 && wm.interceptTable().opponentStep() > 3) {
                 #ifdef DEBUG_PASS_UPDATE_RECEIVERS
                 dlog.addText(Logger::PASS,
                              "(updateReceiver) unum=%d > goalie near goal and reach cycle more than 3",
@@ -1321,7 +1321,7 @@ void StrictCheckPassGenerator::createPassCommon(const WorldModel & wm,
                 const AbstractPlayerObject * opp_near_me = wm.theirPlayer(wm.opponentsFromSelf().front()->unum());
                 if(opp_near_me != NULL && opp_near_me->unum() > 0){
                     int dc,tc,vc;
-                    opp_near_cycle = CutBallCalculator().cycles_to_cut_ball(opp_near_me, wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body().degree());
+                    opp_near_cycle = CutBallCalculator().cycles_to_cut_ball(opp_near_me, M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body().degree());
                     if(kick_count > opp_near_cycle){
                         #ifdef DEBUG_PASS
                         dlog.addText(M_pass_logger,"|  cont for kick count and opp near kick:%d oppcycle:%d", kick_count, opp_near_cycle);
@@ -1332,7 +1332,7 @@ void StrictCheckPassGenerator::createPassCommon(const WorldModel & wm,
                 }
             }
         }
-        int opp_cycle_to_first_ball = wm.interceptTable()->opponentReachCycle();
+        int opp_cycle_to_first_ball = wm.interceptTable().opponentStep();
         if(opp_cycle_to_first_ball<=kick_count
                 && M_pass_type != 'T'){
             #ifdef DEBUG_PASS
@@ -1862,7 +1862,7 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
             if(M_first_point.x < 30 || our_score < opp_score)
                 safe_dist_thr += 0.2;
 
-        c_step = CutBallCalculator().cycles_to_cut_ball_with_safe_thr_dist(opponent.player_, wm,
+        c_step = CutBallCalculator().cycles_to_cut_ball_with_safe_thr_dist(opponent.player_,
                                                                          ball_pos,
                                                                          cycle,
                                                                          false,

@@ -1522,7 +1522,7 @@ void OffensiveDataExtractor::extract_history(DEPlayer *player, ODEDataSide side)
 
 void OffensiveDataExtractor::extract_drible_angles(DEState &state) {
 
-//    const PlayerObject *kicker = state.interceptTable()->fastestTeammate(); // TODO What is error ?!?!
+//    const PlayerObject *kicker = state.interceptTable().firstTeammate(); // TODO What is error ?!?!
     if (option.dribleAngle != Kicker)
         return;
     DEPlayer *kicker = state.ourPlayer(state.kickerUnum());

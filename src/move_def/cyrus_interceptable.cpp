@@ -9,7 +9,7 @@
 #include <rcsc/common/server_param.h>
 #include <rcsc/player/debug_client.h>
 #include <rcsc/common/logger.h>
-#include <rcsc/action/body_intercept.h>
+#include "basic_actions/body_intercept2009.h"
 CyrusOppInterceptTable::CyrusOppInterceptTable(int cycle,
 		rcsc::Vector2D current_position, int turn_cycle, double dist_ball) {
 	this->cycle = cycle;
@@ -270,11 +270,11 @@ CyrusOppInterceptTable CyrusPlayerIntercept::getBestIntercept(const WorldModel &
 					SP.keepawayWidth() * 0.5 - 1.0 : SP.pitchHalfWidth() - 1.0);
 	const double penalty_x = -SP.ourPenaltyAreaLineX();
 	const double penalty_y = SP.penaltyAreaHalfWidth();
-	const PlayerObject opp_ball = *(wm.interceptTable()->fastestOpponent());
+	const PlayerObject opp_ball = *(wm.interceptTable().firstOpponent());
 	const double speed_max = opp_ball.playerTypePtr()->realSpeedMax() * 0.9;
-	const int opp_min = min(wm.interceptTable()->teammateReachCycle(),
-			wm.interceptTable()->selfReachCycle());
-	//const PlayerObject * fastest_opponent = table->fastestOpponent();
+	const int opp_min = min(wm.interceptTable().teammateStep(),
+			wm.interceptTable().selfStep());
+	//const PlayerObject * fastest_opponent = table.firstOpponent();
 
 	const CyrusOppInterceptTable * attacker_best =
 			static_cast<CyrusOppInterceptTable *>(0);

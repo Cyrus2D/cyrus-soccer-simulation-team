@@ -34,10 +34,10 @@
 #include "../goalie/bhv_goalie_chase_ball.h"
 #include "../goalie/bhv_goalie_free_kick.h"
 
-#include <rcsc/action/basic_actions.h>
-#include <rcsc/action/neck_scan_field.h>
-#include <rcsc/action/body_clear_ball.h>
-#include <rcsc/action/body_intercept.h>
+#include "basic_actions/basic_actions.h"
+#include "basic_actions/neck_scan_field.h"
+#include "basic_actions/body_clear_ball.h"
+#include "basic_actions/body_intercept2009.h"
 #include <rcsc/common/audio_memory.h>
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/debug_client.h>
@@ -191,11 +191,11 @@ void RoleGoalie::doKick(PlayerAgent * agent) {
 void RoleGoalie::doMove(PlayerAgent * agent) {
 
     const WorldModel & wm = agent->world();
-    const InterceptTable * iTable = wm.interceptTable();
+    const InterceptTable & iTable = wm.interceptTable();
 
 	int ourReachCycle = std::min(
-            iTable->teammateReachCycle(),
-            iTable->selfReachCycle());
+            iTable.teammateStep(),
+            iTable.selfStep());
 
 	bool ball_will_be_in_our_goal = false, isGoal = false;
 	const ServerParam & SP = ServerParam::i();
@@ -227,10 +227,10 @@ void RoleGoalie::doMove(PlayerAgent * agent) {
 		return;
 	}
 
-    int self_cycle = iTable->selfReachCycle();
-    int self_cycle_tackle = iTable->selfReachCycle(); //iTable->selfReachCycleTackle(); oldcyrus
-    int opp_cycle = iTable->opponentReachCycle();
-    int mate_cycle = iTable->teammateReachCycle();
+    int self_cycle = iTable.selfStep();
+    int self_cycle_tackle = iTable.selfStep(); //iTable->selfReachCycleTackle(); oldcyrus
+    int opp_cycle = iTable.opponentStep();
+    int mate_cycle = iTable.teammateStep();
 
 
     bool action_selected = false;
@@ -245,7 +245,7 @@ void RoleGoalie::doMove(PlayerAgent * agent) {
                 && self_cycle < opp_cycle - 2
                 && agent->world().ball().posCount() < 2)
         {
-            if(Body_Intercept(false).execute(agent))
+            if(Body_Intercept2009(false).execute(agent))
             {
                 dlog.addText(Logger::TEAM,
                 __FILE__": execute full interception");

@@ -32,12 +32,11 @@
 
 #include "bhv_goalie_basic_move.h"
 #include "chain_action/bhv_chain_action.h"
-#include <rcsc/action/body_clear_ball.h>
-#include <rcsc/action/body_pass.h>
-
-#include <rcsc/action/basic_actions.h>
-#include <rcsc/action/body_kick_one_step.h>
-#include <rcsc/action/neck_scan_field.h>
+#include "basic_actions/body_clear_ball.h"
+#include "basic_actions/body_pass.h"
+#include "basic_actions/basic_actions.h"
+#include "basic_actions/body_kick_one_step.h"
+#include "basic_actions/neck_scan_field.h"
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/debug_client.h>
@@ -100,7 +99,7 @@ Bhv_GoalieFreeKick::execute( rcsc::PlayerAgent * agent )
         s_second_move = false;
         s_second_wait_count = 0;
         agent->doMove( move_target.x, move_target.y );
-        agent->setNeckAction( new rcsc::Neck_ScanField );
+        agent->setNeckAction( new Neck_ScanField );
         return true;
     }
 
@@ -133,7 +132,7 @@ Bhv_GoalieFreeKick::execute( rcsc::PlayerAgent * agent )
     {
         rcsc::Vector2D kick_point = getKickPoint( agent );
         agent->doMove( kick_point.x, kick_point.y );
-        agent->setNeckAction( new rcsc::Neck_ScanField );
+        agent->setNeckAction( new Neck_ScanField );
         s_second_move = true;
         s_second_wait_count = 0;
         return true;
@@ -217,7 +216,7 @@ Bhv_GoalieFreeKick::doKick( rcsc::PlayerAgent * agent )
 
     if(Bhv_ChainAction().execute(agent))
     	return;
-    if  ( rcsc::Body_Pass::get_best_pass( agent->world(), &target_point, &pass_speed, NULL )
+    if  ( Body_Pass::get_best_pass( agent->world(), &target_point, &pass_speed, NULL )
           && target_point.dist( rcsc::Vector2D( -50.0, 0.0 ) ) > 20.0 )
     {
         double opp_dist = 100.0;
@@ -226,19 +225,19 @@ Bhv_GoalieFreeKick::doKick( rcsc::PlayerAgent * agent )
         agent->debugClient().addMessage( "GKickOppDist%.1f", opp ? opp_dist : 1000.0 );
         if ( ! opp || opp_dist > 3.0 )
         {
-            rcsc::Body_KickOneStep( target_point,
+            Body_KickOneStep( target_point,
                                     pass_speed ).execute( agent );
             rcsc::dlog.addText( rcsc::Logger::TEAM,
                                 __FILE__": register goalie kick intention. to (%.1f, %.1f)",
                                 target_point.x,
                                 target_point.y );
-            agent->setNeckAction( new rcsc::Neck_ScanField() );
+            agent->setNeckAction( new Neck_ScanField() );
             return;
         }
     }
 
-    rcsc::Body_ClearBall().execute( agent );
-    agent->setNeckAction( new rcsc::Neck_ScanField() );
+    Body_ClearBall().execute( agent );
+    agent->setNeckAction( new Neck_ScanField() );
 }
 
 /*-------------------------------------------------------------------*/
@@ -260,6 +259,6 @@ Bhv_GoalieFreeKick::doWait( rcsc::PlayerAgent * agent )
                             0.0 );
     }
 
-    rcsc::Body_TurnToPoint( face_target ).execute( agent );
-    agent->setNeckAction( new rcsc::Neck_ScanField() );
+    Body_TurnToPoint( face_target ).execute( agent );
+    agent->setNeckAction( new Neck_ScanField() );
 }

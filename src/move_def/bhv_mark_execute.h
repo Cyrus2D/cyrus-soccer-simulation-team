@@ -17,17 +17,17 @@
 #include "strategy.h"
 #include <rcsc/player/intercept_table.h>
 #include <vector>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
-#include <rcsc/action/neck_turn_to_point.h>
-#include <rcsc/action/body_turn_to_point.h>
-#include <rcsc/action/body_turn_to_angle.h>
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
+#include "basic_actions/neck_turn_to_point.h"
+#include "basic_actions/body_turn_to_point.h"
+#include "basic_actions/body_turn_to_angle.h"
 #include <rcsc/common/audio_memory.h>
 #include <rcsc/player/world_model.h>
 #include <rcsc/player/player_agent.h>
-#include <rcsc/action/body_go_to_point.h>
+#include "basic_actions/body_go_to_point.h"
 #include <rcsc/common/say_message_parser.h>
 #include <rcsc/player/say_message_builder.h>
-#include <rcsc/action/neck_turn_to_ball_and_player.h>
+#include "basic_actions/neck_turn_to_ball_and_player.h"
 
 using namespace std;
 using namespace rcsc;

@@ -15,10 +15,10 @@
 
 void BhvMarkDecisionGreedy::midMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked, vector<MarkType> & global_how_mark, vector<size_t> & global_tm_mark_target, vector<size_t> & global_opp_marker) {
     const WorldModel &wm = agent->world();
-    int opp_reach_cycle = wm.interceptTable()->opponentReachCycle();
+    int opp_reach_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_reach_cycle);
-    size_t fastest_opp = (wm.interceptTable()->fastestOpponent() == NULL ? 0
-                                                                         : wm.interceptTable()->fastestOpponent()->unum());
+    size_t fastest_opp = (wm.interceptTable().firstOpponent() == NULL ? 0
+                                                                         : wm.interceptTable().firstOpponent()->unum());
     double mark_eval[12][12];
     for (int t = 1; t <= 11; t++) {
         for (int o = 1; o <= 11; o++) {
@@ -144,9 +144,9 @@ bool BhvMarkDecisionGreedy::isAntiOffensive(const WorldModel &wm) {
 
 vector <UnumEval> BhvMarkDecisionGreedy::oppEvaluatorMidMark(const WorldModel &wm, vector<size_t> offensive_opps, bool use_ball_dist) {
     vector <UnumEval> opp_eval;
-    size_t fastest_opp = (wm.interceptTable()->fastestOpponent() == NULL ? 0
-                                                                         : wm.interceptTable()->fastestOpponent()->unum());
-    Vector2D ball_inertia = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
+    size_t fastest_opp = (wm.interceptTable().firstOpponent() == NULL ? 0
+                                                                         : wm.interceptTable().firstOpponent()->unum());
+    Vector2D ball_inertia = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
     for (size_t o = 1; o <= 11; o++) {
         const AbstractPlayerObject *opp = wm.theirPlayer(o);
         auto EvalNode = opp_eval.insert(opp_eval.end(), make_pair(o, -1000));
@@ -156,7 +156,7 @@ vector <UnumEval> BhvMarkDecisionGreedy::oppEvaluatorMidMark(const WorldModel &w
             continue;
         Vector2D opp_pos = opp->pos();
         if (o == fastest_opp)
-            opp_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
+            opp_pos = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
         double opp_pos_x = -std::max(opp_pos.x - wm.ourDefenseLineX(), 0.0) + 105.0;
         opp_pos_x += std::max(0.0, 50.0 - opp_pos.dist(Vector2D(-52, 0))) * 1.2;
         if (use_ball_dist) {
@@ -196,10 +196,10 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
     double pos_z = Setting::i()->mDefenseMove->mMidTh_PosDistZ;
     double mark_eval_pos[12][12];
     double mark_eval_hpos[12][12];
-    int opp_reach_cycle = wm.interceptTable()->opponentReachCycle();
+    int opp_reach_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_reach_cycle);
-    size_t fastest_opp = (wm.interceptTable()->fastestOpponent() == NULL ? 0
-                                                                         : wm.interceptTable()->fastestOpponent()->unum());
+    size_t fastest_opp = (wm.interceptTable().firstOpponent() == NULL ? 0
+                                                                         : wm.interceptTable().firstOpponent()->unum());
     double tm_pos_def_line = wm.ourDefenseLineX();
     double tm_hpos_def_line = 0;
     for (int i = 2; i <= 11; i++) {
@@ -593,10 +593,10 @@ void BhvMarkDecisionGreedy::midMarkThMarkSetResults(const WorldModel &wm, pair<v
 
 void BhvMarkDecisionGreedy::midMarkLeadMarkCostFinder(const WorldModel &wm, double mark_eval[][12], bool used_hpos,
                                                       vector<double> block_eval, bool fastest_opp_marked) {
-    int opp_reach_cycle = wm.interceptTable()->opponentReachCycle();
+    int opp_reach_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_reach_cycle);
-    size_t fastest_opp = (wm.interceptTable()->fastestOpponent() == NULL ? 0
-                                                                         : wm.interceptTable()->fastestOpponent()->unum());
+    size_t fastest_opp = (wm.interceptTable().firstOpponent() == NULL ? 0
+                                                                         : wm.interceptTable().firstOpponent()->unum());
     for (int t = 1; t <= 11; t++) {
         for (int o = 1; o <= 11; o++) {
             mark_eval[o][t] = 1000;
@@ -872,7 +872,7 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkSetResults(const WorldModel &wm, pair
 
 bool BhvMarkDecisionGreedy::needProjectMark(const WorldModel &wm, int opp_unum, int tm_unum) {
     const AbstractPlayerObject *opp = wm.theirPlayer(opp_unum);
-    int opp_min = wm.interceptTable()->opponentReachCycle();
+    int opp_min = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min);
     double first_pass_speed = calc_first_term_geom_series_last(1.5,
                                                                ball_inertia.dist(opp->pos()),
@@ -946,9 +946,9 @@ BhvMarkDecisionGreedy::canCenterHalfMarkLeadNear(const WorldModel &wm, int t, Ve
 
 void BhvMarkDecisionGreedy::goalMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked, vector<MarkType> & global_how_mark, vector<size_t> & global_tm_mark_target, vector<size_t> & global_opp_marker) {
     const WorldModel &wm = agent->world();
-    int fastest_opp = (wm.interceptTable()->fastestOpponent() == NULL ? 0
-                                                                      : wm.interceptTable()->fastestOpponent()->unum());
-    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
+    int fastest_opp = (wm.interceptTable().firstOpponent() == NULL ? 0
+                                                                      : wm.interceptTable().firstOpponent()->unum());
+    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
     //determine arbitrary offside line
     double tm_hpos_x_min = 0;
     for (int i = 2; i <= 11; i++) {
@@ -1056,7 +1056,7 @@ void BhvMarkDecisionGreedy::goalMarkDecision(PlayerAgent *agent, MarkType &mark_
 
 vector <UnumEval> BhvMarkDecisionGreedy::oppEvaluatorGoalMark(const WorldModel &wm) {
     vector <UnumEval> opp_eval;
-    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
+    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
     for (int o = 1; o <= 11; o++) {
         const AbstractPlayerObject *Opp = wm.theirPlayer(o);
         auto EvalNode = opp_eval.insert(opp_eval.end(), make_pair(o, -1000));
@@ -1085,9 +1085,9 @@ vector <UnumEval> BhvMarkDecisionGreedy::oppEvaluatorGoalMark(const WorldModel &
 
 void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, double mark_eval[][12],
                                                        vector<int> who_go_to_goal) {
-    int fastest_opp = (wm.interceptTable()->fastestOpponent() == NULL ? 0
-                                                                      : wm.interceptTable()->fastestOpponent()->unum());
-    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
+    int fastest_opp = (wm.interceptTable().firstOpponent() == NULL ? 0
+                                                                      : wm.interceptTable().firstOpponent()->unum());
+    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
     vector<double> block_eval = bhv_block::blocker_eval(wm);
     for (int t = 1; t <= 11; t++) {
         for (int o = 1; o <= 11; o++) {
@@ -1221,8 +1221,8 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
 
 void
 BhvMarkDecisionGreedy::antiDefMarkDecision(const WorldModel &wm, MarkType &marktype, int &markunum, bool &blocked, vector<MarkType> & global_how_mark, vector<size_t> & global_tm_mark_target, vector<size_t> & global_opp_marker) {
-    int fastest_opp = (wm.interceptTable()->fastestOpponent() == NULL ? 0
-                                                                      : wm.interceptTable()->fastestOpponent()->unum());
+    int fastest_opp = (wm.interceptTable().firstOpponent() == NULL ? 0
+                                                                      : wm.interceptTable().firstOpponent()->unum());
     double mark_eval[12][12];
     for (int t = 1; t <= 11; t++) {
         for (int o = 1; o <= 11; o++) {
@@ -1260,7 +1260,7 @@ BhvMarkDecisionGreedy::antiDefMarkDecision(const WorldModel &wm, MarkType &markt
             if (Opp == NULL
                 || Opp->unum() < 1
                 || Opp->goalie()
-                || o == wm.interceptTable()->fastestOpponent()->unum())
+                || o == wm.interceptTable().firstOpponent()->unum())
                 continue;
             Vector2D opp_pos = Opp->pos();
             double dist_opp_tm = opp_pos.dist(tm_pos);

@@ -31,13 +31,12 @@
 #include "intention_receive.h"
 
 #include "chain_action/bhv_pass_kick_find_receiver.h"
-#include <rcsc/action/body_intercept.h>
-
-#include <rcsc/action/basic_actions.h>
-#include <rcsc/action/body_go_to_point.h>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
-#include <rcsc/action/neck_turn_to_low_conf_teammate.h>
-#include <rcsc/action/neck_scan_field.h>
+#include "basic_actions/body_intercept2009.h"
+#include "basic_actions/basic_actions.h"
+#include "basic_actions/body_go_to_point.h"
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
+#include "basic_actions/neck_turn_to_low_conf_teammate.h"
+#include "basic_actions/neck_scan_field.h"
 #include "chain_action/bhv_strict_check_shoot.h"
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/intercept_table.h>
@@ -163,15 +162,15 @@ IntentionReceive::execute( PlayerAgent * agent )
     M_ex_step += 1;
     M_last_execute_time = wm.time();
 
-    int self_min = wm.interceptTable()->selfReachCycle();
-    int opp_min = wm.interceptTable()->opponentReachCycle();
+    int self_min = wm.interceptTable().selfStep();
+    int opp_min = wm.interceptTable().opponentStep();
     Vector2D intercept_pos = wm.ball().inertiaPoint( self_min );
     Vector2D first_ball = wm.ball().pos();
     //    Vector2D heard_pos = wm.audioMemory().pass().front().receive_pos_;
     int heard_cycle = wm.self().playerTypePtr()->cyclesToReachDistance(M_target_point.dist(wm.self().pos()));
     bool prepass_received = M_prepass;
     int sender = M_passer;
-    int fastest_tm = wm.interceptTable()->fastestTeammate()->unum();
+    int fastest_tm = wm.interceptTable().firstTeammate()->unum();
     dlog.addText( Logger::INTERCEPT,
                   __FILE__":  (intentionReceive)");
 

@@ -14,8 +14,8 @@
 #include "bhv_basic_move.h"
 #include <rcsc/geom.h>
 #include "move_def/mark_position_finder.h"
-#include <rcsc/action/body_turn_to_ball.h>
-#include <rcsc/action/neck_turn_to_ball.h>
+#include "basic_actions/body_turn_to_ball.h"
+#include "basic_actions/neck_turn_to_ball.h"
 #include <ctime>
 #include "../debugs.h"
 #include "mark_position_finder.h"
@@ -33,7 +33,7 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
 //    if (defenseGoBack(agent)){
 //        return true;
 //    }
-    if (wm.interceptTable()->fastestOpponent() == NULL || wm.interceptTable()->fastestOpponent()->unum() < 1) {
+    if (wm.interceptTable().firstOpponent() == NULL || wm.interceptTable().firstOpponent()->unum() < 1) {
         #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, "Cant Mark fastest opp not found");
         #endif
@@ -42,7 +42,7 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
 
     int mark_unum = 0;
     bool blocked = false;
-    int opp_cycle = wm.interceptTable()->opponentReachCycle();
+    int opp_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_cycle);
     MarkType mark_type;
 
@@ -157,7 +157,7 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
 
 bool bhv_mark_execute::defenseGoBack(PlayerAgent *agent){
     const WorldModel & wm = agent->world();
-    Vector2D ball_inertia = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
+    Vector2D ball_inertia = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
     double def_line_x = wm.ourDefensePlayerLineX();
     if (ball_inertia.absY() > 20 || ball_inertia.x > -5)
         return false;
@@ -195,7 +195,7 @@ bool bhv_mark_execute::defenseBeInBack(PlayerAgent *agent){
     if (mark_dec != MarkDec::MidMark)
         return false;
 
-    double tm_pos_def_line = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle()).x;
+    double tm_pos_def_line = wm.ball().inertiaPoint(wm.interceptTable().opponentStep()).x;
     double tm_hpos_def_line = 0;
     for (int i = 2; i <= 11; i++) {
         if(Setting::i()->mStrategySetting->mIsGoalForward && i==2 )
@@ -212,7 +212,7 @@ bool bhv_mark_execute::defenseBeInBack(PlayerAgent *agent){
     }
     Vector2D target_point = Strategy::i().getPosition(wm.self().unum());
 
-    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
+    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
 //    if(Strategy::i().tm_Line(wm.self().unum()) == Strategy::PostLine::forward
 //        ||Strategy::i().tm_Line(wm.self().unum()) == Strategy::PostLine::half)
 //        if(ball_pos.x > tm_pos_def_line + 30 || ball_pos.x > -20)
@@ -305,7 +305,7 @@ bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType mark
     const WorldModel &wm = agent->world();
     const AbstractPlayerObject *opp = wm.theirPlayer(mark_unum);
     Target target;
-    int opp_cycle = wm.interceptTable()->opponentReachCycle();
+    int opp_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_cycle);
 
     if (wm.theirPlayer(mark_unum) == NULL || wm.theirPlayer(mark_unum)->unum() < 1){
@@ -380,7 +380,7 @@ void bhv_mark_execute::set_mark_target_thr(const WorldModel & wm,
                                            Target & target,
                                            double & dist_thr){
     int self_unum = wm.self().unum();
-    int opp_cycle = wm.interceptTable()->opponentReachCycle();
+    int opp_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_cycle);
     switch (mark_type) {
         case (MarkType::LeadProjectionMark): {
@@ -458,7 +458,7 @@ bool bhv_mark_execute::do_move_mark(PlayerAgent *agent, Target targ, double dist
     Vector2D self_pos = wm.self().pos();
     Vector2D opp_pos = wm.theirPlayer(opp_unum)->pos();
 
-    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
+    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
     Vector2D self_hpos = Strategy::i().getPosition(wm.self().unum());
 
     if (marktype != MarkType::ThMark)
@@ -499,7 +499,7 @@ bool bhv_mark_execute::do_move_mark(PlayerAgent *agent, Target targ, double dist
 
 double bhv_mark_execute::th_mark_power(PlayerAgent * agent, Vector2D opp_pos, Vector2D target_pos){
     const WorldModel & wm = agent->world();
-    int opp_min_cycle = wm.interceptTable()->opponentReachCycle();
+    int opp_min_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min_cycle);
     Vector2D self_pos = wm.self().pos();
     double dash_power = Strategy::get_normal_dash_power(wm);
@@ -542,8 +542,8 @@ void bhv_mark_execute::th_mark_move(PlayerAgent * agent, Target targ, double das
     Vector2D self_pos = wm.self().pos();
     Vector2D target_pos = targ.pos;
     double body_dif = (targ.th - wm.self().body()).abs();
-    int opp_min_cycle = wm.interceptTable()->opponentReachCycle();
-    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
+    int opp_min_cycle = wm.interceptTable().opponentStep();
+    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
     Vector2D self_hpos = Strategy::i().getPosition(wm.self().unum());
     Vector2D opp_pos = wm.theirPlayer(opp_unum)->pos();
     if (Setting::i()->mDefenseMove->mFixThMarkY){
@@ -607,7 +607,7 @@ void bhv_mark_execute::th_mark_move(PlayerAgent * agent, Target targ, double das
 double bhv_mark_execute::lead_mark_power(PlayerAgent * agent, Vector2D opp_pos, Vector2D target_pos){
     const WorldModel & wm = agent->world();
     Vector2D self_pos = wm.self().pos();
-    int opp_min_cycle = wm.interceptTable()->opponentReachCycle();
+    int opp_min_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min_cycle);
     double dash_power = Strategy::get_normal_dash_power(wm);
     if (opp_min_cycle < 3 && !(ball_inertia.dist(target_pos) > 15 && ball_inertia.x > -25
@@ -619,8 +619,8 @@ double bhv_mark_execute::lead_mark_power(PlayerAgent * agent, Vector2D opp_pos, 
     if (target_pos.dist(Vector2D(-52, 0)) < 25)
         if ((Strategy::i().self_Line() == Strategy::PostLine::back || target_pos.dist(ball_inertia) < 20))
             dash_power = 100;
-    if (wm.interceptTable()->fastestOpponent())
-        if (wm.interceptTable()->fastestOpponent()->pos().dist(target_pos) < 5)
+    if (wm.interceptTable().firstOpponent())
+        if (wm.interceptTable().firstOpponent()->pos().dist(target_pos) < 5)
             dash_power = 100;
     if (target_pos.x < -35)
         dash_power = 100;
@@ -639,7 +639,7 @@ double bhv_mark_execute::lead_mark_power(PlayerAgent * agent, Vector2D opp_pos, 
 
 void bhv_mark_execute::lead_mark_move(PlayerAgent * agent, Target targ, double dash_power, double dist_thr, MarkType mark_type, Vector2D opp_pos){
     const WorldModel & wm = agent->world();
-    int opp_min_cycle = wm.interceptTable()->opponentReachCycle();
+    int opp_min_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min_cycle);
     Vector2D self_pos = wm.self().pos();
     Vector2D target_pos = targ.pos;
@@ -716,7 +716,7 @@ void bhv_mark_execute::lead_mark_move(PlayerAgent * agent, Target targ, double d
 
 double bhv_mark_execute::other_mark_power(PlayerAgent * agent, Vector2D opp_pos, Vector2D target_pos){
     const WorldModel & wm = agent->world();
-    int opp_min_cycle = wm.interceptTable()->opponentReachCycle();
+    int opp_min_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min_cycle);
     double dash_power = Strategy::get_normal_dash_power(wm);
     if (opp_min_cycle < 5 && !(ball_inertia.dist(target_pos) > 15 && ball_inertia.x > -25
@@ -728,7 +728,7 @@ double bhv_mark_execute::other_mark_power(PlayerAgent * agent, Vector2D opp_pos,
     if (target_pos.dist(Vector2D(-52, 0)) < 25)
         if ((Strategy::i().self_Line() == Strategy::PostLine::back || target_pos.dist(ball_inertia) < 20))
             dash_power = 100;
-    if (wm.interceptTable()->fastestOpponent()->pos().dist(target_pos) < 5)
+    if (wm.interceptTable().firstOpponent()->pos().dist(target_pos) < 5)
         dash_power = 100;
     if (target_pos.x < -35)
         dash_power = 100;
@@ -739,7 +739,7 @@ double bhv_mark_execute::other_mark_power(PlayerAgent * agent, Vector2D opp_pos,
 
 void bhv_mark_execute::other_mark_move(PlayerAgent * agent, Target targ, double dash_power, double dist_thr){
     const WorldModel & wm = agent->world();
-    int opp_min_cycle = wm.interceptTable()->opponentReachCycle();
+    int opp_min_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min_cycle);
     Vector2D self_pos = wm.self().pos();
     Vector2D target_pos = targ.pos;
@@ -772,7 +772,7 @@ void bhv_mark_execute::other_mark_move(PlayerAgent * agent, Target targ, double 
 
 bool bhv_mark_execute::back_to_def(PlayerAgent *agent) {
     const WorldModel &wm = agent->world();
-    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
+    Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
     Vector2D home_pos = Strategy::i().getPosition(wm.self().unum());
     Vector2D self_pos = wm.self().pos();
     double def_line_x = std::min(wm.ourDefenseLineX(), ball_pos.x);

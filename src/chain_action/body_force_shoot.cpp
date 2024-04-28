@@ -41,8 +41,8 @@
 #include <rcsc/common/server_param.h>
 #include <rcsc/common/logger.h>
 
-#include <rcsc/action/body_smart_kick.h>
-#include <rcsc/action/body_kick_one_step.h>
+#include "basic_actions/body_smart_kick.h"
+#include "basic_actions/body_kick_one_step.h"
 
 /*-------------------------------------------------------------------*/
 /*!
@@ -78,14 +78,14 @@ Body_ForceShoot::execute( rcsc::PlayerAgent * agent )
 
     if ( wm.kickableOpponent() )
     {
-        if ( rcsc::Body_KickOneStep( target, param.ballSpeedMax() )
+        if ( Body_KickOneStep( target, param.ballSpeedMax() )
              .execute( agent ) )
         {
             return true;
         }
     }
 
-    if ( rcsc::Body_SmartKick( target,
+    if ( Body_SmartKick( target,
                                param.ballSpeedMax(),
                                param.ballSpeedMax() * 0.96,
                                3 ).execute( agent ) )
@@ -93,7 +93,7 @@ Body_ForceShoot::execute( rcsc::PlayerAgent * agent )
         return true;
     }
 
-    if ( rcsc::Body_KickOneStep( target, param.ballSpeedMax() )
+    if ( Body_KickOneStep( target, param.ballSpeedMax() )
          .execute( agent ) )
     {
         return true;

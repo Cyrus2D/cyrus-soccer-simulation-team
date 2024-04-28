@@ -42,16 +42,16 @@
 
 #include "neck_turn_to_receiver.h"
 
-#include <rcsc/action/bhv_scan_field.h>
-#include <rcsc/action/body_clear_ball.h>
-#include <rcsc/action/body_go_to_point.h>
-#include <rcsc/action/body_hold_ball.h>
-#include <rcsc/action/body_turn_to_point.h>
-#include <rcsc/action/neck_scan_field.h>
-#include <rcsc/action/neck_turn_to_goalie_or_scan.h>
-#include <rcsc/action/body_stop_ball.h>
+#include "basic_actions/bhv_scan_field.h"
+#include "basic_actions/body_clear_ball.h"
+#include "basic_actions/body_go_to_point.h"
+#include "basic_actions/body_hold_ball.h"
+#include "basic_actions/body_turn_to_point.h"
+#include "basic_actions/neck_scan_field.h"
+#include "basic_actions/neck_turn_to_goalie_or_scan.h"
+#include "basic_actions/body_stop_ball.h"
 
-#include <rcsc/action/kick_table.h>
+#include "basic_actions/kick_table.h"
 
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/player/soccer_intention.h>
@@ -130,7 +130,7 @@ IntentionTurnTo::finished( const PlayerAgent * agent )
 		return true;
 	}
 
-	if ( wm.interceptTable()->opponentReachCycle() <= 1 )
+	if ( wm.interceptTable().opponentStep() <= 1 )
 	{
 		dlog.addText( Logger::TEAM,
 				__FILE__": (finished) opponent may be kickable" );
@@ -389,7 +389,7 @@ bool Bhv_ChainAction::hold_ball(PlayerAgent *agent)
 
     Vector2D face = hold_body_face(wm);
     static int last_time_keep_in_target = 0;
-    if(wm.interceptTable()->opponentReachCycle() > 2 && wm.time().cycle() > last_time_keep_in_target + 1){
+    if(wm.interceptTable().opponentStep() > 2 && wm.time().cycle() > last_time_keep_in_target + 1){
         last_time_keep_in_target = wm.time().cycle();
         Vector2D self_next = wm.self().inertiaPoint(1);
         Vector2D target = self_next + Vector2D::polar2vector(0.3,(self_next - face).th());
@@ -407,7 +407,7 @@ bool Bhv_ChainAction::hold_ball(PlayerAgent *agent)
 
     static int holdballtime = wm.time().cycle();
     static int stopballtime = 0;
-    if(wm.interceptTable()->opponentReachCycle() > 2){
+    if(wm.interceptTable().opponentStep() > 2){
         if(holdballtime > stopballtime + 1){
             if(wm.ball().inertiaPoint(1).dist(wm.self().inertiaPoint(1)) < wm.self().playerTypePtr()->kickableArea() - 0.5){
                 doTurnToForward(agent);
@@ -422,7 +422,7 @@ bool Bhv_ChainAction::hold_ball(PlayerAgent *agent)
         }
     }
 
-    if(wm.interceptTable()->opponentReachCycle() > 3){
+    if(wm.interceptTable().opponentStep() > 3){
         Body_StopBall().execute(agent);
     }
     else if(holdballtime+1 == wm.time().cycle())
