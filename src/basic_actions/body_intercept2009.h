@@ -33,7 +33,7 @@
 #define RCSC_ACTION_BODY_INTERCEPT_2009_H
 
 #include <rcsc/player/soccer_action.h>
-#include <rcsc/player/intercept_table.h>
+#include <rcsc/player/intercept_table_cyrus.h>
 #include <rcsc/common/player_type.h>
 #include <rcsc/geom/vector_2d.h>
 
@@ -108,15 +108,15 @@ private:
       \return interception info object
     */
     Intercept getBestIntercept( const WorldModel & wm,
-                                    const InterceptTable & table,
+                                    const InterceptTableCyrus & table,
                                     unsigned int &ignore_intercept) const;
 
     Intercept getBestInterceptTackle( const WorldModel & wm,
-                                    const InterceptTable & table,
+                                    const InterceptTableCyrus & table,
                                     unsigned int &ignore_intercept) const;
 
     Intercept getBestIntercept_Test( const WorldModel & wm,
-                                         const InterceptTable & table ) const;
+                                         const InterceptTableCyrus & table ) const;
 
     /*!
       \brief try to perform ball wait action
