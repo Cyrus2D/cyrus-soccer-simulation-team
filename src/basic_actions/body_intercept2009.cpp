@@ -71,7 +71,7 @@ Body_Intercept2009::execute( PlayerAgent * agent )
         return true;;
     }
 
-    const InterceptTable & table = wm.interceptTable();
+    const auto & table = wm.interceptTable();
 
     /////////////////////////////////////////////
     if ( table.selfStep() > 100 )
@@ -234,7 +234,7 @@ Body_Intercept2009::doKickableOpponentCheck( PlayerAgent * agent )
 */
 Intercept
 Body_Intercept2009::getBestIntercept( const WorldModel & wm,
-                                      const InterceptTable & table,
+                                      const InterceptTableCyrus & table,
                                       unsigned int &ignore_intercept) const
 {
     const ServerParam & SP = ServerParam::i();
@@ -808,7 +808,7 @@ Body_Intercept2009::getBestIntercept( const WorldModel & wm,
 */
 Intercept
 Body_Intercept2009::getBestIntercept_Test( const WorldModel & /*wm*/,
-                                           const InterceptTable & /*table*/ ) const
+                                           const InterceptTableCyrus & /*table*/ ) const
 {
 #if 0
     const std::vector< Intercept > & cache = table->selfCache();
@@ -1291,7 +1291,7 @@ Body_Intercept2009::executeTackle( PlayerAgent * agent )
 
 Intercept
 Body_Intercept2009::getBestInterceptTackle( const WorldModel & wm,
-                                      const InterceptTable & table,
+                                      const InterceptTableCyrus & table,
                                       unsigned int &/*ignore_intercept*/) const
 {
     const ServerParam & SP = ServerParam::i();
