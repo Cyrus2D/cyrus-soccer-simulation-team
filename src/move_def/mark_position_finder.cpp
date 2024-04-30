@@ -11,7 +11,7 @@ using namespace rcsc;
 Target
 MarkPositionFinder::getLeadProjectionMarkTarget(int tmUnum, int oppUnum, const WorldModel &wm) {
     Target target;
-    int opp_reach_cycle = wm.interceptTable()->opponentReachCycle();
+    int opp_reach_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_pos = wm.ball().inertiaPoint(opp_reach_cycle);
     if (wm.getDistTeammateNearestTo(ball_pos, 5) > 5) {
         ball_pos.x -= 4.0;
@@ -47,7 +47,7 @@ Target
 MarkPositionFinder::getLeadNearMarkTarget(int tmUnum, int oppUnum, const WorldModel &wm) {
     Target target;
     const AbstractPlayerObject *opp = wm.theirPlayer(oppUnum);
-    int opp_reach_cycle = wm.interceptTable()->opponentReachCycle();
+    int opp_reach_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_pos = wm.ball().inertiaPoint(opp_reach_cycle);
     double dist2opp = 0.2;
     Vector2D opp_vel = opp->vel() / 0.4 * 2.0 * opp->playerTypePtr()->playerSpeedMax();
@@ -60,7 +60,7 @@ Target
 MarkPositionFinder::getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldModel &wm, bool debug) {
     Target target;
     const AbstractPlayerObject *opp = wm.theirPlayer(oppUnum);
-    int opp_min = wm.interceptTable()->opponentReachCycle();
+    int opp_min = wm.interceptTable().opponentStep();
 
 
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min);
@@ -281,7 +281,7 @@ Target
 MarkPositionFinder::getDengerMarkTarget(int tmUnum, int oppUnum, const WorldModel &wm) {
     Target target;
     const AbstractPlayerObject *opp = wm.theirPlayer(oppUnum);
-    Vector2D ball_inertia = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
+    Vector2D ball_inertia = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
 
     if (abs(ball_inertia.y - opp->pos().x) > 10
         || ball_inertia.x - 2 > wm.ourDefenseLineX()) {

@@ -39,12 +39,12 @@
 #include "action_chain_holder.h"
 #include "cooperative_action.h"
 
-#include <rcsc/action/neck_turn_to_point.h>
-#include <rcsc/action/neck_turn_to_ball_and_player.h>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
-#include <rcsc/action/view_wide.h>
-#include <rcsc/action/view_normal.h>
-#include <rcsc/action/view_synch.h>
+#include "basic_actions/neck_turn_to_point.h"
+#include "basic_actions/neck_turn_to_ball_and_player.h"
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
+#include "basic_actions/view_wide.h"
+#include "basic_actions/view_normal.h"
+#include "basic_actions/view_synch.h"
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/intercept_table.h>
@@ -117,7 +117,7 @@ Neck_DefaultInterceptNeck::doTurnToReceiver( PlayerAgent * agent )
 {
     const WorldModel & wm = agent->world();
 
-    if ( wm.interceptTable()->selfReachCycle() >= 2 )
+    if ( wm.interceptTable().selfStep() >= 2 )
     {
         dlog.addText( Logger::TEAM,
                             __FILE__": (doTurnToReceiver) self reach cycle >= 2 " );

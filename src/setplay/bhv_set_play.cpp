@@ -41,12 +41,12 @@
 #include "bhv_their_goal_kick_move.h"
 #include "../move_def/bhv_mark_execute.h"
 #include "../chain_action/field_analyzer.h"
-#include <rcsc/action/basic_actions.h>
-#include <rcsc/action/bhv_before_kick_off.h>
-#include <rcsc/action/bhv_scan_field.h>
-#include <rcsc/action/body_go_to_point.h>
-#include <rcsc/action/neck_scan_field.h>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
+#include "basic_actions/basic_actions.h"
+#include "basic_actions/bhv_before_kick_off.h"
+#include "basic_actions/bhv_scan_field.h"
+#include "basic_actions/body_go_to_point.h"
+#include "basic_actions/neck_scan_field.h"
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/debug_client.h>
@@ -632,10 +632,10 @@ Bhv_SetPlay::doBasicTheirSetPlayMove( PlayerAgent * agent )
     double dash_power = Bhv_SetPlay::get_set_play_dash_power( agent );
 
 
-//    if (wm.interceptTable()->opponentReachCycle() < 1000 && wm.ball().pos().x < -25 && bhv_mark_execute().execute(agent) && agent->effector().queuedNextMyPos().dist(wm.ball().pos()) > 11)
+//    if (wm.interceptTable().opponentStep() < 1000 && wm.ball().pos().x < -25 && bhv_mark_execute().execute(agent) && agent->effector().queuedNextMyPos().dist(wm.ball().pos()) > 11)
 //            return;
 
-    if (wm.interceptTable()->opponentReachCycle() < 1000 && wm.ball().pos().x < -25 && bhv_mark_execute().execute(agent)) {
+    if (wm.interceptTable().opponentStep() < 1000 && wm.ball().pos().x < -25 && bhv_mark_execute().execute(agent)) {
         auto dist =  agent->effector().queuedNextMyPos().dist(wm.ball().pos());
         if(dist > 10 || true){
             dlog.addText( Logger::TEAM,

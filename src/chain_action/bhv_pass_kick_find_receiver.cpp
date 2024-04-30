@@ -42,22 +42,23 @@
 #include "../neck/neck_decision.h"
 #include "neck_turn_to_receiver.h"
 
-#include <rcsc/action/bhv_scan_field.h>
-#include <rcsc/action/body_hold_ball.h>
-#include <rcsc/action/body_kick_one_step.h>
-#include <rcsc/action/body_smart_kick.h>
-#include <rcsc/action/body_stop_ball.h>
-#include <rcsc/action/body_turn_to_point.h>
-#include <rcsc/action/neck_scan_field.h>
-#include <rcsc/action/neck_turn_to_point.h>
-#include <rcsc/action/neck_turn_to_player_or_scan.h>
-#include <rcsc/action/view_synch.h>
-#include <rcsc/action/kick_table.h>
+#include "basic_actions/bhv_scan_field.h"
+#include "basic_actions/body_hold_ball.h"
+#include "basic_actions/body_kick_one_step.h"
+#include "basic_actions/body_smart_kick.h"
+#include "basic_actions/body_stop_ball.h"
+#include "basic_actions/body_turn_to_point.h"
+#include "basic_actions/neck_scan_field.h"
+#include "basic_actions/neck_turn_to_point.h"
+#include "basic_actions/neck_turn_to_player_or_scan.h"
+#include "basic_actions/view_synch.h"
+#include "basic_actions/kick_table.h"
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/abstract_player_object.h>
 #include <rcsc/player/soccer_intention.h>
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/player/say_message_builder.h>
+#include "../lib/cyrus_say_message_builder.h"
 #include <rcsc/common/server_param.h>
 #include <rcsc/common/logger.h>
 #include <rcsc/math_util.h>
@@ -166,7 +167,7 @@ IntentionPassKickFindReceiver::finished( const PlayerAgent * agent ) // CLIB CON
 		return true;
 	}
 
-//	if ( wm.interceptTable()->opponentReachCycle() <= 1 )
+//	if ( wm.interceptTable().opponentStep() <= 1 )
 //	{
 //		dlog.addText( Logger::TEAM,
 //				__FILE__": (finished) opponent may be kickable" );

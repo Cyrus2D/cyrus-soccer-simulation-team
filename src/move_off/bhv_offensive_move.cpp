@@ -14,8 +14,8 @@
 #include "../setting.h"
 #include "../neck/neck_decision.h"
 #include <rcsc/geom/voronoi_diagram.h>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
-#include <rcsc/action/neck_turn_to_low_conf_teammate.h>
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
+#include "basic_actions/neck_turn_to_low_conf_teammate.h"
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/debug_client.h>
@@ -24,8 +24,8 @@
 #include <rcsc/common/logger.h>
 #include <rcsc/common/server_param.h>
 #include <rcsc/common/audio_memory.h>
-#include <rcsc/action/body_go_to_point.h>
-#include <rcsc/action/basic_actions.h>
+#include "basic_actions/body_go_to_point.h"
+#include "basic_actions/basic_actions.h"
 
 
 static bool low_stamina = false;
@@ -79,9 +79,9 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
     Vector2D target_point = Strategy::i().getPosition(wm.self().unum());
 
     Vector2D centerGoalPos(52, 0);
-    const int self_min = wm.interceptTable()->selfReachCycle();
-    const int mate_min = wm.interceptTable()->teammateReachCycle();
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    const int self_min = wm.interceptTable().selfStep();
+    const int mate_min = wm.interceptTable().teammateStep();
+    const int opp_min = wm.interceptTable().opponentStep();
     const Vector2D ballPos = wm.ball().inertiaPoint(mate_min);
 
     //Broker Offside
@@ -158,7 +158,7 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
             }
             bool amIneartm = true;
             for (int t = 1; t <= 11; t++) {
-                if (t == wm.interceptTable()->fastestTeammate()->unum())
+                if (t == wm.interceptTable().firstTeammate()->unum())
                     continue;
                 if (t == wm.self().unum())
                     continue;
@@ -276,17 +276,17 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
 bool cyrus_offensive_move::pers_scap(PlayerAgent *agent) {
 
     const WorldModel &wm = agent->world();
-    const int self_min = wm.interceptTable()->selfReachCycle();
-    const int mate_min = wm.interceptTable()->teammateReachCycle();
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
-    Vector2D ball = wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle());
+    const int self_min = wm.interceptTable().selfStep();
+    const int mate_min = wm.interceptTable().teammateStep();
+    const int opp_min = wm.interceptTable().opponentStep();
+    Vector2D ball = wm.ball().inertiaPoint(wm.interceptTable().teammateStep());
     Vector2D me = wm.self().pos();
     int num = wm.self().unum();
     double max_x = std::max(wm.offsideLineX(), wm.ball().inertiaPoint(mate_min).x);
 
     if (num == 9
-            || (wm.interceptTable()->fastestTeammate() != NULL
-                && (wm.interceptTable()->fastestTeammate()->unum() == 9 || wm.interceptTable()->fastestTeammate()->unum() == 7)
+            || (wm.interceptTable().firstTeammate() != NULL
+                && (wm.interceptTable().firstTeammate()->unum() == 9 || wm.interceptTable().firstTeammate()->unum() == 7)
                 && wm.self().unum() == 11))
     {
     }else
@@ -340,9 +340,9 @@ bool cyrus_offensive_move::BackFromOffside(PlayerAgent *agent) {
     const Vector2D homePos = Strategy::i().getPosition(wm.self().unum());
 
     Vector2D self_pos = wm.self().pos();
-    const int self_min = wm.interceptTable()->selfReachCycle();
-    const int mate_min = wm.interceptTable()->teammateReachCycle();
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    const int self_min = wm.interceptTable().selfStep();
+    const int mate_min = wm.interceptTable().teammateStep();
+    const int opp_min = wm.interceptTable().opponentStep();
 
     double max_x = std::max(wm.offsideLineX(), wm.ball().inertiaPoint(mate_min).x);
 
@@ -397,7 +397,7 @@ bool cyrus_offensive_move::off_gotopoint(PlayerAgent *agent, Vector2D target, do
             }
         }
     }
-    if (mindist < 5 && wm.interceptTable()->teammateReachCycle() < 4) {
+    if (mindist < 5 && wm.interceptTable().teammateStep() < 4) {
         Line2D move_line = Line2D(self_pos, target);
         const AbstractPlayerObject *near_tm = wm.ourPlayer(min_unum);
         Vector2D new_target;

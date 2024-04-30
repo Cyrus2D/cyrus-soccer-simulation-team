@@ -39,6 +39,7 @@
 
 #include <rcsc/player/world_model.h>
 #include <rcsc/player/intercept_table.h>
+#include <rcsc/player/cut_ball_calculator.h>
 #include <rcsc/common/server_param.h>
 #include <rcsc/common/logger.h>
 #include <rcsc/geom/rect_2d.h>
@@ -195,9 +196,9 @@ CrossGenerator::updatePasser( const WorldModel & wm )
         return;
     }
 
-    int s_min = wm.interceptTable()->selfReachCycle();
-    int t_min = wm.interceptTable()->teammateReachCycle();
-    int o_min = wm.interceptTable()->opponentReachCycle();
+    int s_min = wm.interceptTable().selfStep();
+    int t_min = wm.interceptTable().teammateStep();
+    int o_min = wm.interceptTable().opponentStep();
 
     int our_min = std::min( s_min, t_min );
     if ( o_min < std::min( our_min - 4, (int)rint( our_min * 0.9 ) ) )
@@ -221,7 +222,7 @@ CrossGenerator::updatePasser( const WorldModel & wm )
     {
         if ( t_min <= 2 )
         {
-            M_passer = wm.interceptTable()->fastestTeammate();
+            M_passer = wm.interceptTable().firstTeammate();
             M_first_point = wm.ball().inertiaPoint( t_min );
         }
     }
@@ -531,7 +532,7 @@ CrossGenerator::createCross( const WorldModel & wm,
                         const AbstractPlayerObject * opp_near_me = wm.theirPlayer(wm.opponentsFromSelf().front()->unum());
                         if(opp_near_me != NULL && opp_near_me->unum() > 0){
                             int dc,tc,vc;
-                            if(kick_count - 1 > opp_near_me->cycles_to_cut_ball(wm,M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body().degree()))
+                            if(kick_count - 1 > CutBallCalculator().cycles_to_cut_ball(opp_near_me, M_first_point,4,true,dc,tc,vc,opp_near_me->pos() + opp_near_me->vel(),opp_near_me->vel(),opp_near_me->body().degree()))
                                 continue;
                         }
                     }
@@ -783,7 +784,7 @@ int CrossGenerator::newoldpredictOpponentReachStep(const WorldModel & wm,
         int dash_step;
         int view_step;
 
-         int c_step = opponent->cycles_to_cut_ball_with_safe_thr_dist(wm,
+         int c_step = CutBallCalculator().cycles_to_cut_ball_with_safe_thr_dist(opponent,
                                                                       ball_pos,
                                                                       cycle,
                                                                       false,
@@ -799,7 +800,7 @@ int CrossGenerator::newoldpredictOpponentReachStep(const WorldModel & wm,
         }
         if(FieldAnalyzer::isFRA(wm))
             view_step = 0;
-//        if(wm.interceptTable()->opponentReachCycle() > 2)
+//        if(wm.interceptTable().opponentStep() > 2)
 //            if(FieldAnalyzer::isFRA(wm) || FieldAnalyzer::isMT(wm) || FieldAnalyzer::isHFUT(wm)|| FieldAnalyzer::isYushan(wm) || FieldAnalyzer::isHelius(wm) || FieldAnalyzer::isCYRUS(wm)
 //                    || Strategy::i().my_team_tactic == Strategy::TeamTactic::AllDef || FieldAnalyzer::isOxsy(wm) || our_score < opp_score
 //                    || FieldAnalyzer::isKN2C(wm))
@@ -857,7 +858,7 @@ int CrossGenerator::newoldpredictOpponentReachStep(const WorldModel & wm,
             for(auto&p : predictpos){
 
                 int dc,tc,vc;
-                 int sc =opponent->cycles_to_cut_ball_with_safe_thr_dist(wm,
+                 int sc =CutBallCalculator().cycles_to_cut_ball_with_safe_thr_dist(opponent,
                                                                          ball_pos,
                                                                          cycle,
                                                                          false,

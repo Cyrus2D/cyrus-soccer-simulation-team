@@ -30,8 +30,8 @@
 
 #include "view_tactical.h"
 
-#include <rcsc/action/basic_actions.h>
-#include <rcsc/action/view_synch.h>
+#include "basic_actions/basic_actions.h"
+#include "basic_actions/view_synch.h"
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/intercept_table.h>
@@ -105,9 +105,9 @@ View_Tactical::doDefault( PlayerAgent * agent )
         return agent->doChangeView( ViewWidth::WIDE );
     }
 
-    int self_min = wm.interceptTable()->selfReachCycle();
-    int mate_min = wm.interceptTable()->teammateReachCycle();
-    int opp_min = wm.interceptTable()->opponentReachCycle();
+    int self_min = wm.interceptTable().selfStep();
+    int mate_min = wm.interceptTable().teammateStep();
+    int opp_min = wm.interceptTable().opponentStep();
     int ball_reach_cycle = std::min( self_min, std::min( mate_min, opp_min ) );
 
     if (self_min < mate_min && self_min <= opp_min){
@@ -269,5 +269,5 @@ View_Tactical::doOurGoalieFreeKick( PlayerAgent * agent )
     return doDefault( agent );
 }
 #include "chain_action/action_chain_holder.h"
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
-#include <rcsc/action/neck_turn_to_low_conf_teammate.h>
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
+#include "basic_actions/neck_turn_to_low_conf_teammate.h"

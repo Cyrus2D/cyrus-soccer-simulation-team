@@ -9,12 +9,13 @@
 #include "bhv_basic_tackle.h"
 #include "bhv_mark_decision_greedy.h"
 #include "../bhv_basic_move.h"
-#include <rcsc/action/basic_actions.h>
-#include <rcsc/action/body_go_to_point.h>
-#include <rcsc/action/body_turn_to_point.h>
-#include <rcsc/action/body_intercept.h>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
+#include "basic_actions/basic_actions.h"
+#include "basic_actions/body_go_to_point.h"
+#include "basic_actions/body_turn_to_point.h"
+#include "basic_actions/body_intercept2009.h"
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
 #include <rcsc/player/world_model.h>
+#include <rcsc/player/cut_ball_calculator.h>
 #include "../setting.h"
 #include <rcsc/common/logger.h>
 #include "../debugs.h"
@@ -24,8 +25,8 @@ bool bhv_block::do_tackle_block(PlayerAgent *agent) {
     const WorldModel &wm = agent->world();
     Vector2D my_inertia = wm.self().pos() + wm.self().vel();
     Vector2D ballPos = wm.ball().pos();
-    Vector2D opponentPos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
-    const PlayerObject *fastestOpp = wm.interceptTable()->fastestOpponent();
+    Vector2D opponentPos = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
+    const PlayerObject *fastestOpp = wm.interceptTable().firstOpponent();
     double dribleDir = get_dribble_angle(wm, opponentPos);
     if (my_inertia.dist(opponentPos) > 3.0) {
         return false;
@@ -58,7 +59,7 @@ bool bhv_block::do_tackle_block(PlayerAgent *agent) {
         }
         return Body_TurnToPoint(opponentPos).execute(agent);
     }
-    my_inertia += Vector2D::polar2vector(wm.self().playerType().dashDistanceTable()[0][1], myDir);
+    my_inertia += Vector2D::polar2vector(wm.self().playerType().dashDistanceTableOnDashDir()[0][1], myDir);
     const double tackleProb = calc_tackle_prob(opponentPos, my_inertia, myDir);
     if (tackleProb < 0.7) {
         #ifdef DEBUG_BLOCK
@@ -75,7 +76,7 @@ bool bhv_block::do_tackle_block(PlayerAgent *agent) {
     #ifdef DEBUG_BLOCK
     dlog.addText(Logger::BLOCK, "decided to go for tackle! Dash => tp = %.2f", tackleProb);
     #endif
-    Bhv_BasicMove::set_def_neck_with_ball(agent, opponentPos, wm.interceptTable()->fastestOpponent(), wm.self().unum());
+    Bhv_BasicMove::set_def_neck_with_ball(agent, opponentPos, wm.interceptTable().firstOpponent(), wm.self().unum());
     return agent->doDash(wm.self().getSafetyDashPower(100.0));
 }
 
@@ -144,9 +145,9 @@ double min_dist_opp_unum(const WorldModel &wm, Vector2D pos) {
 }
 
 rcsc::Vector2D bhv_block::get_block_center_pos(const WorldModel &wm) {
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    const int opp_min = wm.interceptTable().opponentStep();
     Vector2D opp_trap_pos = wm.ball().inertiaPoint(opp_min);
-    const PlayerObject *opponent = wm.interceptTable()->fastestOpponent();
+    const PlayerObject *opponent = wm.interceptTable().firstOpponent();
     if (opponent
         && opponent->bodyCount() <= 1
         && opponent->isKickable()
@@ -256,7 +257,7 @@ vector<double> bhv_block::blocker_eval(const WorldModel &wm) {
         block_zarib.push_back(1.0);
         block_cycle.push_back(1000);
     }
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    const int opp_min = wm.interceptTable().opponentStep();
     Vector2D start_drible = wm.ball().inertiaPoint(opp_min);
     if (start_drible.x < wm.ourDefensePlayerLineX() + 10)
         start_drible = start_drible + Vector2D::polar2vector(4, (Vector2D(-52, 0) - start_drible).th());
@@ -277,7 +278,7 @@ vector<double> bhv_block::blocker_eval(const WorldModel &wm) {
             if (Strategy::i().tm_Line(t) != Strategy::i().PostLine::back)
                 continue;
             if (min_dist_opp(wm, tm->pos()) < 15 &&
-                min_dist_opp_unum(wm, tm->pos()) != wm.interceptTable()->fastestOpponent()->unum()) {
+                min_dist_opp_unum(wm, tm->pos()) != wm.interceptTable().firstOpponent()->unum()) {
                 block_zarib[t] *= 1.5;
             }
         }
@@ -290,7 +291,7 @@ vector<double> bhv_block::blocker_eval(const WorldModel &wm) {
             if (Strategy::i().tm_Line(t) != Strategy::i().PostLine::back)
                 continue;
             if (min_dist_opp(wm, tm->pos()) < 5 &&
-                min_dist_opp_unum(wm, tm->pos()) != wm.interceptTable()->fastestOpponent()->unum()) {
+                min_dist_opp_unum(wm, tm->pos()) != wm.interceptTable().firstOpponent()->unum()) {
                 block_zarib[t] *= 1.5;
             }
         }
@@ -329,7 +330,7 @@ std::pair<vector<double>, vector<Vector2D> > bhv_block::blocker_eval_mark_decisi
         block_zarib.push_back(1.0);
         block_cycle.push_back(1000);
     }
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    const int opp_min = wm.interceptTable().opponentStep();
     Vector2D start_drible = wm.ball().inertiaPoint(opp_min);
     if (start_drible.x < wm.ourDefensePlayerLineX() + 10)
         start_drible = start_drible + Vector2D::polar2vector(4, (Vector2D(-52, 0) - start_drible).th());
@@ -349,7 +350,7 @@ std::pair<vector<double>, vector<Vector2D> > bhv_block::blocker_eval_mark_decisi
 //            if (Strategy::i().tm_Line(t) != Strategy::i().PostLine::back)
 //                continue;
 //            if (min_dist_opp(wm, tm->pos()) < 15 &&
-//                min_dist_opp_unum(wm, tm->pos()) != wm.interceptTable()->fastestOpponent()->unum()) {
+//                min_dist_opp_unum(wm, tm->pos()) != wm.interceptTable().firstOpponent()->unum()) {
 //                block_zarib[t] *= 1.5;
 //            }
 //        }
@@ -362,7 +363,7 @@ std::pair<vector<double>, vector<Vector2D> > bhv_block::blocker_eval_mark_decisi
 //            if (Strategy::i().tm_Line(t) != Strategy::i().PostLine::back)
 //                continue;
 //            if (min_dist_opp(wm, tm->pos()) < 5 &&
-//                min_dist_opp_unum(wm, tm->pos()) != wm.interceptTable()->fastestOpponent()->unum()) {
+//                min_dist_opp_unum(wm, tm->pos()) != wm.interceptTable().firstOpponent()->unum()) {
 //                block_zarib[t] *= 1.5;
 //            }
 //        }
@@ -419,12 +420,12 @@ int bhv_block::who_is_blocker(const WorldModel &wm, vector<int> marker) {
 
 void bhv_block::get_start_dribble(const WorldModel &wm, Vector2D &start_dribble, int &cycle) {
 
-    Vector2D inertia_ball_pos = wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle());
-    int oppCycles = wm.interceptTable()->opponentReachCycle();
+    Vector2D inertia_ball_pos = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
+    int oppCycles = wm.interceptTable().opponentStep();
     vector<Vector2D> ball_cache = CyrusPlayerIntercept::createBallCache(wm);
 
     CyrusPlayerIntercept ourpredictor(wm, ball_cache);
-    const PlayerObject *it = wm.interceptTable()->fastestOpponent();
+    const PlayerObject *it = wm.interceptTable().firstOpponent();
     if (it != nullptr && (*it).unum() >= 2) {
         const PlayerType *player_type = (*it).playerTypePtr();
         vector<CyrusOppInterceptTable> pred = ourpredictor.predict(*it, *player_type, 1000);
@@ -432,7 +433,7 @@ void bhv_block::get_start_dribble(const WorldModel &wm, Vector2D &start_dribble,
         oppCycles = tmp.cycle;
         inertia_ball_pos = tmp.current_position;
         if (oppCycles > 100 || !inertia_ball_pos.isValid()) {
-            oppCycles = wm.interceptTable()->opponentReachCycle();
+            oppCycles = wm.interceptTable().opponentStep();
             inertia_ball_pos = wm.ball().inertiaPoint(oppCycles);
         }
     }
@@ -444,10 +445,10 @@ void bhv_block::get_start_dribble(const WorldModel &wm, Vector2D &start_dribble,
     return;
 
     Vector2D ball_pos = wm.ball().pos();
-    Vector2D opp_pos = wm.interceptTable()->fastestOpponent()->pos();
-    int tm_min = wm.interceptTable()->teammateReachCycle();
-    int opp_min = wm.interceptTable()->opponentReachCycle();
-    int self_min = wm.interceptTable()->selfReachCycle();
+    Vector2D opp_pos = wm.interceptTable().firstOpponent()->pos();
+    int tm_min = wm.interceptTable().teammateStep();
+    int opp_min = wm.interceptTable().opponentStep();
+    int self_min = wm.interceptTable().selfStep();
     tm_min = std::min(tm_min,self_min);
 
     // double ball2opp = wm.ball().calc_travel_step(ball_pos.dist(opp_pos), wm.ball().vel().r()); CYURS_LIB fixed but check
@@ -508,7 +509,7 @@ void bhv_block::block_cycle(const WorldModel &wm, int unum, int &cycle, Vector2D
         Vector2D tm_pos = tm->pos();
         Vector2D tm_vel = tm->vel();
         int dc,tc,vc;
-        wm.ourPlayer(wm.self().unum())->cycles_to_cut_ball(wm, ball, drible_step, false, dc, tc, vc, tm_pos, tm_vel);
+        CutBallCalculator().cycles_to_cut_ball(wm.ourPlayer(wm.self().unum()), ball, drible_step, false, dc, tc, vc, tm_pos, tm_vel);
         int dash_step = dc + tc;
         if (dash_step <= drible_step) {
             target = ball;
@@ -561,7 +562,7 @@ bool bhv_block::do_block_pass(PlayerAgent *agent)
                 || opp->unum() < 1)
             continue;
         if(opp->pos().dist(Vector2D(-52,0)) < 30
-                || opp->unum() != wm.interceptTable()->fastestOpponent()->unum()){
+                || opp->unum() != wm.interceptTable().firstOpponent()->unum()){
             opps_pos.push_back(opp->pos());
             opp_near_goal = true;
         }
@@ -640,7 +641,7 @@ bool bhv_block::do_block_pass(PlayerAgent *agent)
     }
     Vector2D block_pos(pass_line.getX(block_pos_y),block_pos_y);
     Body_GoToPoint(block_pos, 0.5, 100, 2, 1, false, 15).execute(agent);
-    Bhv_BasicMove::set_def_neck_with_ball(agent, start_drible, wm.interceptTable()->fastestOpponent(), wm.self().unum());
+    Bhv_BasicMove::set_def_neck_with_ball(agent, start_drible, wm.interceptTable().firstOpponent(), wm.self().unum());
 
     agent->debugClient().addMessage("block pass");
     agent->debugClient().setTarget(block_pos);
@@ -658,7 +659,7 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
     Vector2D self_pos = wm.self().pos();
     AngleDeg self_body = wm.self().body();
     double kickable_area = wm.self().playerType().kickableArea();
-    if (wm.interceptTable()->fastestOpponent() == NULL || wm.interceptTable()->fastestOpponent()->unum() < 1)
+    if (wm.interceptTable().firstOpponent() == NULL || wm.interceptTable().firstOpponent()->unum() < 1)
         return false;
     if (wm.gameMode().type() != wm.gameMode().PlayOn)
         return false;
@@ -669,7 +670,7 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
         return true;
     }
     block_cycle(wm, wm.self().unum(), cycle, target, true);
-    auto fastest_opp = wm.interceptTable()->fastestOpponent();
+    auto fastest_opp = wm.interceptTable().firstOpponent();
     bool go_to_opp = false;
     if (Setting::i()->mDefenseMove->mBlockGoToOppPos){
         if (target.isValid()){
@@ -799,12 +800,12 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
             }
         }
 
-        Bhv_BasicMove::set_def_neck_with_ball(agent, target, wm.interceptTable()->fastestOpponent(), wm.self().unum());
+        Bhv_BasicMove::set_def_neck_with_ball(agent, target, wm.interceptTable().firstOpponent(), wm.self().unum());
 //        Vector2D start_drible;
 //        int start_drible_time;
 //        get_start_dribble(wm, start_drible, start_drible_time);
-        /*agent->setIntention(new IntentionBlock(wm.interceptTable()->fastestOpponent()->unum(),
-                                               wm.interceptTable()->fastestOpponent()->pos(),
+        /*agent->setIntention(new IntentionBlock(wm.interceptTable().firstOpponent()->unum(),
+                                               wm.interceptTable().firstOpponent()->pos(),
                                                target,
                                                wm.ball().pos(),
                                                start_drible,

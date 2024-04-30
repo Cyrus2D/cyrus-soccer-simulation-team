@@ -383,7 +383,7 @@ ActionChainGraph::calculateResult( const PlayerAgent* agent)
             dlog.addText(Logger::ACTION_CHAIN, ">>>> best danger chain is empty and hold > add hold");
             #endif
             add_hold_to_result(wm);
-        }else if(wm.interceptTable()->opponentReachCycle() > 3 && wm.gameMode().type() != GameMode::PlayOn && !wm.gameMode().isPenaltyKickMode()){
+        }else if(wm.interceptTable().opponentStep() > 3 && wm.gameMode().type() != GameMode::PlayOn && !wm.gameMode().isPenaltyKickMode()){
             #ifdef ACTION_CHAIN_DEBUG
             dlog.addText(Logger::ACTION_CHAIN, ">>>> opp is not near and hold  > add hold");
             #endif
@@ -411,7 +411,7 @@ ActionChainGraph::calculateResult( const PlayerAgent* agent)
     }
     #ifdef ACTION_CHAIN_DEBUG
     dlog.addText(Logger::ACTION_CHAIN, "best kick count is : %d", M_best_chain[0].action().kickCount());
-    if(wm.interceptTable()->opponentReachCycle() <= (wm.self().goalie() ? 6:3))
+    if(wm.interceptTable().opponentStep() <= (wm.self().goalie() ? 6:3))
         dlog.addText(Logger::ACTION_CHAIN, "opp is near");
     if( M_best_chain[0].action().category() == CooperativeAction::Pass)
         dlog.addText(Logger::ACTION_CHAIN, "best is pass");
@@ -429,7 +429,7 @@ ActionChainGraph::calculateResult( const PlayerAgent* agent)
     }
 
 
-    if(wm.interceptTable()->opponentReachCycle() <= (wm.self().goalie() ? 6:3)
+    if(wm.interceptTable().opponentStep() <= (wm.self().goalie() ? 6:3)
             && M_best_chain[0].action().category() == CooperativeAction::Pass
             && std::string(M_best_chain[0].action().description()).compare("strictThrough") != 0
             && M_best_chain[0].action().kickCount() > 1)
@@ -862,11 +862,11 @@ ActionChainGraph::calculateResultBestFirstSearch( const WorldModel & wm,
     //
     // main loop
     //
-    if(wm.interceptTable()->fastestTeammate()!=NULL)
-        if(wm.interceptTable()->teammateReachCycle() < wm.interceptTable()->selfReachCycle()
-                || wm.interceptTable()->selfReachCycle() > 2)
+    if(wm.interceptTable().firstTeammate()!=NULL)
+        if(wm.interceptTable().teammateStep() < wm.interceptTable().selfStep()
+                || wm.interceptTable().selfStep() > 2)
             return;
-    int opp_min = wm.interceptTable()->opponentReachCycle();
+    int opp_min = wm.interceptTable().opponentStep();
     for(;;)
     {
         //

@@ -39,7 +39,7 @@
 #include "strategy.h"
 
 #include <rcsc/player/intercept_table.h>
-#include <rcsc/action/kick_table.h>
+#include "basic_actions/kick_table.h"
 #include <rcsc/player/world_model.h>
 #include <rcsc/player/player_predicate.h>
 #include <rcsc/player/world_model.h>
@@ -49,7 +49,7 @@
 #include <rcsc/common/logger.h>
 #include <rcsc/timer.h>
 #include <rcsc/math_util.h>
-#include <rcsc/action/body_smart_kick.h>
+#include "basic_actions/body_smart_kick.h"
 
 #include <algorithm>
 
@@ -1387,10 +1387,10 @@ FieldAnalyzer::updateAntiOffenseState(const rcsc::WorldModel &wm)
 {
     dlog.addText( Logger::TEAM, "FieldAnalyzer::updateAntiOffenseState() started");
     M_is_anti_offense_state = false;
-    int self_min = wm.interceptTable()->selfReachCycle();
-    int tm_min = wm.interceptTable()->teammateReachCycle();
+    int self_min = wm.interceptTable().selfStep();
+    int tm_min = wm.interceptTable().teammateStep();
     tm_min = std::min(tm_min, self_min);
-    int opp_min = wm.interceptTable()->opponentReachCycle();
+    int opp_min = wm.interceptTable().opponentStep();
     if ( opp_min <= tm_min ){
         dlog.addText( Logger::TEAM, "FieldAnalyzer::updateAntiOffenseState() return, oppmin < tmmin");
         return;

@@ -279,10 +279,10 @@ public:
         }
         #endif
         int fastest_unum = -1;
-        if (wm.interceptTable()->fastestTeammate() != nullptr)
-                fastest_unum = wm.interceptTable()->fastestTeammate()->unum();
-        int tm_reach = wm.interceptTable()->teammateReachCycle();
-        int self_reach = wm.interceptTable()->selfReachCycle();
+        if (wm.interceptTable().firstTeammate() != nullptr)
+                fastest_unum = wm.interceptTable().firstTeammate()->unum();
+        int tm_reach = wm.interceptTable().teammateStep();
+        int self_reach = wm.interceptTable().selfStep();
         if (self_reach <= tm_reach){
             M_kicker_unum = wm.self().unum();
             M_kicker_player = M_known_teammates[wm.self().unum()];

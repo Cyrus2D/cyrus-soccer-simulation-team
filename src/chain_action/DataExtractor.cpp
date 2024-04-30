@@ -1356,7 +1356,7 @@
 //
 //void DataExtractor::extract_drible_angles(const WorldModel &wm) {
 //
-////    const PlayerObject *kicker = wm.interceptTable()->fastestTeammate(); // TODO What is error ?!?!
+////    const PlayerObject *kicker = wm.interceptTable().firstTeammate(); // TODO What is error ?!?!
 //    if (option.dribleAngle != Kicker)
 //        return;
 //    const AbstractPlayerObject *kicker = wm.ourPlayer(wm.self().unum());

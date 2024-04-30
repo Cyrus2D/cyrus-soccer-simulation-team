@@ -43,11 +43,11 @@
 #include "move_def/cyrus_interceptable.h"
 #include "chain_action/bhv_pass_kick_find_receiver.h"
 #include "chain_action/action_chain_holder.h"
-#include <rcsc/action/basic_actions.h>
-#include <rcsc/action/body_go_to_point.h>
-#include <rcsc/action/body_intercept.h>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
-#include <rcsc/action/neck_turn_to_low_conf_teammate.h>
+#include "basic_actions/basic_actions.h"
+#include "basic_actions/body_go_to_point.h"
+#include "basic_actions/body_intercept2009.h"
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
+#include "basic_actions/neck_turn_to_low_conf_teammate.h"
 #include "chain_action/shoot_generator.h"
 #include "chain_action/bhv_strict_check_shoot.h"
 #include <thread>
@@ -61,6 +61,7 @@
 #include <rcsc/common/audio_memory.h>
 
 #include <rcsc/player/abstract_player_object.h>
+#include <rcsc/player/cut_ball_calculator.h>
 #include "neck/neck_offensive_intercept_neck.h"
 #include "move_off/bhv_offensive_move.h"
 #include "neck/next_pass_predictor.h"
@@ -91,7 +92,7 @@ using namespace rcsc;
 //    const InterceptTable * table = wm.interceptTable();
 //
 //    /////////////////////////////////////////////
-//    if ( table->selfReachCycle() > 100 )
+//    if ( table.selfStep() > 100 )
 //    {
 //        Vector2D final_point = wm.ball().inertiaFinalPoint();
 //        agent->debugClient().setTarget( final_point );
@@ -404,9 +405,9 @@ using namespace rcsc;
 //    const double penalty_x = SP.ourPenaltyAreaLineX();
 //    const double penalty_y = SP.penaltyAreaHalfWidth();
 //    const double speed_max = wm.self().playerType().realSpeedMax() * 0.9;
-//    const int opp_min = table->opponentReachCycle();
-//    const int mate_min = table->teammateReachCycle();
-//    //const PlayerObject * fastest_opponent = table->fastestOpponent();
+//    const int opp_min = table.opponentStep();
+//    const int mate_min = table.teammateStep();
+//    //const PlayerObject * fastest_opponent = table.firstOpponent();
 //
 //    const InterceptInfo * attacker_best = static_cast< InterceptInfo * >( 0 );
 //    double attacker_score = 0.0;
@@ -610,7 +611,7 @@ using namespace rcsc;
 //        if ( cache[i].turnCycle() == 0 )
 //        {
 //            int diff = std::min(0, 4 - (opp_min - cache[i].dashCycle()));
-//            auto opp = table->fastestOpponent();
+//            auto opp = table.firstOpponent();
 //            if (opp){
 //                diff += opp->posCount();
 //            }
@@ -983,9 +984,9 @@ using namespace rcsc;
 //    const double penalty_x = SP.ourPenaltyAreaLineX();
 //    const double penalty_y = SP.penaltyAreaHalfWidth();
 //    const double speed_max = wm.self().playerType().realSpeedMax() * 0.9;
-//    const int opp_min = table->opponentReachCycle();
-//    const int mate_min = table->teammateReachCycle();
-//    //const PlayerObject * fastest_opponent = table->fastestOpponent();
+//    const int opp_min = table.opponentStep();
+//    const int mate_min = table.teammateStep();
+//    //const PlayerObject * fastest_opponent = table.firstOpponent();
 //
 //    const InterceptInfo * noturn_best = static_cast< InterceptInfo * >( 0 );
 //    double noturn_score = 10000.0;
@@ -1272,9 +1273,9 @@ using namespace rcsc;
 //    }
 //
 //    const ServerParam & SP = ServerParam::i();
-//    const int our_min = table->teammateReachCycle();
-//    const int opp_min = table->opponentReachCycle();
-//    const PlayerObject * opponent = table->fastestOpponent();
+//    const int our_min = table.teammateStep();
+//    const int opp_min = table.opponentStep();
+//    const PlayerObject * opponent = table.firstOpponent();
 //
 //    const std::size_t MAX = 0 // cache.size(); CYRUS_LIB
 //
@@ -1332,7 +1333,7 @@ using namespace rcsc;
 //            return false;
 //        }
 //
-//        int opp_min = wm.interceptTable()->opponentReachCycle();
+//        int opp_min = wm.interceptTable().opponentStep();
 //        if ( info.reachCycle() > opp_min - 5 )
 //        {
 //            dlog.addText( Logger::INTERCEPT,
@@ -1602,7 +1603,7 @@ bool Bhv_BasicMove::set_def_neck_with_ball(PlayerAgent *agent, Vector2D targetPo
                                            int blocker) {
     const WorldModel &wm = agent->world();
     Vector2D next_target = Vector2D::INVALIDATED;
-    int self_min = wm.interceptTable()->selfReachCycle();
+    int self_min = wm.interceptTable().selfStep();
     int ball_pos_count = wm.ball().posCount();
     int ball_pos_count_s = wm.ball().seenPosCount();
     int ball_vel_count = wm.ball().velCount();
@@ -1616,7 +1617,7 @@ bool Bhv_BasicMove::set_def_neck_with_ball(PlayerAgent *agent, Vector2D targetPo
     Vector2D ball_iner = wm.ball().inertiaPoint(self_min);
     const double next_view_width = agent->effector().queuedNextViewWidth().width();
     bool should_see_ball = false;
-    if (min_ball_count >= std::min(wm.interceptTable()->opponentReachCycle(), 5))
+    if (min_ball_count >= std::min(wm.interceptTable().opponentStep(), 5))
         should_see_ball = true;
     bool can_see_ball = false;
     if ((self_body - ball_angle).abs() < next_view_width * 0.5 + 85)
@@ -1642,9 +1643,9 @@ bool Bhv_BasicMove::set_def_neck_with_ball(PlayerAgent *agent, Vector2D targetPo
         targs.emplace_back(make_pair(opp->pos(), 1.3));
     //    targs.emplace_back(make_pair(targetPoint, 0.7));
     //    targs.push_back(ball_iner);
-    if (wm.interceptTable()->fastestOpponent() != NULL
-            && wm.interceptTable()->fastestOpponent()->posCount() > 0) {
-        targs.emplace_back(make_pair(wm.interceptTable()->fastestOpponent()->pos(), 1.1));
+    if (wm.interceptTable().firstOpponent() != NULL
+            && wm.interceptTable().firstOpponent()->posCount() > 0) {
+        targs.emplace_back(make_pair(wm.interceptTable().firstOpponent()->pos(), 1.1));
     }
     if (blocker != 0 && blocker != wm.self().unum() && wm.ourPlayer(blocker) != NULL &&
             wm.ourPlayer(blocker)->posCount() > 0)
@@ -1722,15 +1723,15 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
     const WorldModel &wm = agent->world();
     /*--------------------------------------------------------*/
     // chase ball
-    const int self_min = wm.interceptTable()->selfReachCycle();
-    const int mate_min = wm.interceptTable()->teammateReachCycle();
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    const int self_min = wm.interceptTable().selfStep();
+    const int mate_min = wm.interceptTable().teammateStep();
+    const int opp_min = wm.interceptTable().opponentStep();
 
     auto intercept_tackle_info = bhv_tackle_intercept::intercept_cycle(wm);
     int cycle_intercept_tackle = intercept_tackle_info.first;
 
     {
-        int self_tackle_min = wm.interceptTable()->selfReachCycleTackle();
+        int self_tackle_min = wm.interceptTable().selfStepTackle();
         Vector2D balliner = wm.ball().inertiaPoint(self_min);
         Vector2D balliner_tackle = wm.ball().inertiaPoint(self_tackle_min);
         Vector2D balltackle = wm.ball().inertiaPoint(cycle_intercept_tackle);
@@ -1836,11 +1837,11 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
         }
     }
     Vector2D inertia_ball_pos = wm.ball().inertiaPoint(
-                wm.interceptTable()->opponentReachCycle());
+                wm.interceptTable().opponentStep());
     int oppCycles = 0;
     vector<Vector2D> ball_cache = CyrusPlayerIntercept::createBallCache(wm);
     CyrusPlayerIntercept ourpredictor(wm, ball_cache);
-    const PlayerObject *it = wm.interceptTable()->fastestOpponent();
+    const PlayerObject *it = wm.interceptTable().firstOpponent();
     if (it != NULL && (*it).unum() >= 2) {
         const PlayerType *player_type = (*it).playerTypePtr();
         vector<CyrusOppInterceptTable> pred = ourpredictor.predict(*it, *player_type, 1000);
@@ -1848,7 +1849,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
         oppCycles = tmp.cycle;
         inertia_ball_pos = tmp.current_position;
         if (oppCycles > 100 || !inertia_ball_pos.isValid()) {
-            oppCycles = wm.interceptTable()->opponentReachCycle();
+            oppCycles = wm.interceptTable().opponentStep();
             inertia_ball_pos = wm.ball().inertiaPoint(oppCycles);
         }
     }
@@ -1979,7 +1980,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
     if (wm.ball().inertiaPoint(oppCycles).x > 35 && wm.ball().inertiaPoint(oppCycles).absY() < 20)
         diff = 0;
     agent->debugClient().addMessage("tc:%d", cycle_intercept_tackle);
-     int self_min_tackle = wm.interceptTable()->selfReachCycle();
+     int self_min_tackle = wm.interceptTable().selfStep();
      if (self_min_tackle < 10 && self_min_tackle < opp_min - diff &&
              self_min_tackle < mate_min - diff) {
          agent->debugClient().addMessage("TackleIntercept");
@@ -2015,9 +2016,9 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
 
     /*--------------------------------------------------------*/
     // chase ball
-    const int self_min = wm.interceptTable()->selfReachCycle();
-    const int mate_min = wm.interceptTable()->teammateReachCycle();
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    const int self_min = wm.interceptTable().selfStep();
+    const int mate_min = wm.interceptTable().teammateStep();
+    const int opp_min = wm.interceptTable().opponentStep();
     Vector2D ball_iner = wm.ball().inertiaPoint(std::min(std::min(opp_min, mate_min), self_min));
     int unum = wm.self().unum();
     int stamina = wm.self().stamina();
@@ -2106,10 +2107,10 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
 
 bool Bhv_BasicMove::TurnToTackle(rcsc::PlayerAgent *agent) {
     const WorldModel &wm = agent->world();
-    const int self_min = wm.interceptTable()->selfReachCycle();
-     const int self_min_tackle = wm.interceptTable()->selfReachCycleTackle();
-    const int mate_min = wm.interceptTable()->teammateReachCycle();
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    const int self_min = wm.interceptTable().selfStep();
+     const int self_min_tackle = wm.interceptTable().selfStepTackle();
+    const int mate_min = wm.interceptTable().teammateStep();
+    const int opp_min = wm.interceptTable().opponentStep();
 
     if (mate_min <= opp_min)
         return false;
@@ -2135,7 +2136,7 @@ bool Bhv_BasicMove::TurnToTackle(rcsc::PlayerAgent *agent) {
 }
 
 bool can_opp_shoot_to_goal(const WorldModel &wm) {
-    int opp_min = wm.interceptTable()->opponentReachCycle();
+    int opp_min = wm.interceptTable().opponentStep();
     Vector2D ballpos = wm.ball().inertiaPoint(opp_min);
     if (!ServerParam::i().ourPenaltyArea().contains(ballpos))
         return false;
@@ -2165,7 +2166,7 @@ bool can_opp_shoot_to_goal(const WorldModel &wm) {
                 int dc;
                 int dt;
                 int dv;
-                int intercept_cycle = tm->cycles_to_cut_ball(wm, ball_pos_sim, c, true, dc, dt, dv);
+                int intercept_cycle = CutBallCalculator().cycles_to_cut_ball(tm,  ball_pos_sim, c, true, dc, dt, dv);
                 if (intercept_cycle <= c) {
                     can_intercept = true;
                     break;
@@ -2188,7 +2189,7 @@ bool can_opp_shoot_to_goal(const WorldModel &wm) {
 vector<int> Bhv_BasicMove::who_goto_goal(PlayerAgent *agent) {
     const WorldModel &wm = agent->world();
     vector<int> results;
-    int opp_min = wm.interceptTable()->opponentReachCycle();
+    int opp_min = wm.interceptTable().opponentStep();
     Vector2D ballpos = wm.ball().inertiaPoint(opp_min);
     if (can_opp_shoot_to_goal(wm)) {
         double min_dist = 1000;
@@ -2210,7 +2211,7 @@ vector<int> Bhv_BasicMove::who_goto_goal(PlayerAgent *agent) {
                 const AbstractPlayerObject *tm = wm.ourPlayer(t);
                 if (tm == NULL || tm->unum() != t)
                     continue;
-                if (tm->pos().dist(wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle())) < 3)
+                if (tm->pos().dist(wm.ball().inertiaPoint(wm.interceptTable().opponentStep())) < 3)
                     continue;
                 Vector2D pos = tm->pos();
                 double dist = pos.dist(tar);
@@ -2229,9 +2230,9 @@ vector<int> Bhv_BasicMove::who_goto_goal(PlayerAgent *agent) {
 
 bool go_to_goal(PlayerAgent *agent) {
     const WorldModel &wm = agent->world();
-    int opp_min = wm.interceptTable()->opponentReachCycle();
+    int opp_min = wm.interceptTable().opponentStep();
     Vector2D ballpos = wm.ball().inertiaPoint(opp_min);
-    if (wm.self().pos().dist(wm.ball().inertiaPoint(wm.interceptTable()->opponentReachCycle())) < 3)
+    if (wm.self().pos().dist(wm.ball().inertiaPoint(wm.interceptTable().opponentStep())) < 3)
         return false;
     if (can_opp_shoot_to_goal(wm)) {
         double min_dist = 1000;
@@ -2290,7 +2291,7 @@ bool go_to_goal(PlayerAgent *agent) {
             }
 
             if (!Body_GoToPoint(tar, 1.5, 100, 2, 1, false, 20).execute(agent)) {
-                if (self_pos.dist(tar) < 1.0 && wm.interceptTable()->opponentReachCycle() <= 1 &&
+                if (self_pos.dist(tar) < 1.0 && wm.interceptTable().opponentStep() <= 1 &&
                         wm.self().body().abs() > 80 && wm.self().body().abs() < 100) {
                     agent->doDash(100, (tar - wm.self().pos()).th() - wm.self().body());
                 } else {
@@ -2318,12 +2319,12 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
     const WorldModel &wm = agent->world();
     /*--------------------------------------------------------*/
     // chase ball
-    const int self_min = wm.interceptTable()->selfReachCycle();
-    const int mate_min = wm.interceptTable()->teammateReachCycle();
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    const int self_min = wm.interceptTable().selfStep();
+    const int mate_min = wm.interceptTable().teammateStep();
+    const int opp_min = wm.interceptTable().opponentStep();
 
     //	cout<<"*****"<<wm.time().cycle()<<endl;
-    if (wm.interceptTable()->fastestOpponent() == NULL || wm.interceptTable()->fastestOpponent()->unum() < 1)
+    if (wm.interceptTable().firstOpponent() == NULL || wm.interceptTable().firstOpponent()->unum() < 1)
         return false;
 
     bool mark_or_block = true;
@@ -2363,7 +2364,7 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
     }
 
     Vector2D inertia_ball_pos = wm.ball().inertiaPoint(
-                wm.interceptTable()->opponentReachCycle());
+                wm.interceptTable().opponentStep());
     double mark_x_line = std::max(wm.ourDefenseLineX(), min_x_hpos);
 
     Vector2D target_point = Strategy::i().getPosition(wm.self().unum());

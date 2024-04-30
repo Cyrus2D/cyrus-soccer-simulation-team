@@ -12,17 +12,17 @@
 #include "bhv_basic_move.h"
 #include <rcsc/player/intercept_table.h>
 #include <vector>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
-#include <rcsc/action/neck_turn_to_point.h>
-#include <rcsc/action/body_turn_to_point.h>
-#include <rcsc/action/body_turn_to_angle.h>
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
+#include "basic_actions/neck_turn_to_point.h"
+#include "basic_actions/body_turn_to_point.h"
+#include "basic_actions/body_turn_to_angle.h"
 #include <rcsc/common/audio_memory.h>
 #include <rcsc/player/world_model.h>
 #include <rcsc/player/player_agent.h>
-#include <rcsc/action/body_go_to_point.h>
+#include "basic_actions/body_go_to_point.h"
 #include <rcsc/common/say_message_parser.h>
 #include <rcsc/player/say_message_builder.h>
-#include <rcsc/action/neck_turn_to_ball_and_player.h>
+#include "basic_actions/neck_turn_to_ball_and_player.h"
 
 #include <rcsc/common/logger.h>
 
@@ -68,9 +68,9 @@ public:
     bool finished(rcsc::PlayerAgent *agent) {
         const WorldModel &wm = agent->world();
         int self_unum = wm.self().unum();
-        int opp_reach_cycle = wm.interceptTable()->opponentReachCycle();
+        int opp_reach_cycle = wm.interceptTable().opponentStep();
         Vector2D ball_pos = wm.ball().inertiaPoint(opp_reach_cycle);
-        int fastest_opp = wm.interceptTable()->fastestOpponent()->unum();
+        int fastest_opp = wm.interceptTable().firstOpponent()->unum();
 
         if (wm.time().cycle() > start_time.cycle() + max_step)
             return true;
@@ -93,7 +93,7 @@ public:
     bool execute(rcsc::PlayerAgent *agent) {
         Target targ;
         const WorldModel &wm = agent->world();
-        int opp_reach_cycle = wm.interceptTable()->opponentReachCycle();
+        int opp_reach_cycle = wm.interceptTable().opponentStep();
         Vector2D ball_iner = wm.ball().inertiaPoint(opp_reach_cycle);
         int self_unum = wm.self().unum();
         double dist_thr = 1.0;
@@ -175,7 +175,7 @@ public:
                 case MarkType::DangerMark:
                     const AbstractPlayerObject *opp = wm.theirPlayer(opp_unum);
                     Vector2D targ = opp->pos() + opp->vel() - Vector2D(0.5, 0);
-                    int opp_cycle = wm.interceptTable()->opponentReachCycle();
+                    int opp_cycle = wm.interceptTable().opponentStep();
                     Vector2D ball_iner = wm.ball().inertiaPoint(opp_cycle);
 
                     if ((ball_iner - targ).th().abs() > 70) {
@@ -212,20 +212,20 @@ public:
         const WorldModel &wm = agent->world();
         Vector2D target_pos = targ.pos;
         Vector2D self_pos = wm.self().pos();
-        int oppmin = wm.interceptTable()->opponentReachCycle();
+        int oppmin = wm.interceptTable().opponentStep();
         int distToOpp = 10;
         if (target_pos.x < -35 && target_pos.absY() < 10) {
             distToOpp = 20;
         }
         if (self_pos.dist(target_pos) > 1 ||
             wm.gameMode().type() != wm.gameMode().PlayOn
-            || target_pos.dist(wm.interceptTable()->fastestOpponent()->pos()) > distToOpp) {
+            || target_pos.dist(wm.interceptTable().firstOpponent()->pos()) > distToOpp) {
             double dash_power = Strategy::get_normal_dash_power(wm);
             if (oppmin < 5)
                 dash_power = 100;
             if (target_pos.dist(Vector2D(-52, 0)) < 25)
                 dash_power = 100;
-            if (wm.interceptTable()->fastestOpponent()->pos().dist(target_pos) < 5)
+            if (wm.interceptTable().firstOpponent()->pos().dist(target_pos) < 5)
                 dash_power = 100;
             return Body_GoToPoint(target_pos, dist_thr, dash_power).execute(agent);
         } else if (self_pos.dist(Vector2D(-52.0, 0.0)) < 25.0) {

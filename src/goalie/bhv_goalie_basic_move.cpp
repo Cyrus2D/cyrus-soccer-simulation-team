@@ -32,15 +32,14 @@
 #include "../strategy.h"
 #include "../move_def/bhv_basic_tackle.h"
 #include "neck_goalie_turn_neck.h"
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
-#include <rcsc/action/neck_turn_to_low_conf_teammate.h>
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
+#include "basic_actions/neck_turn_to_low_conf_teammate.h"
 
-#include <rcsc/action/body_intercept.h>
-#include <rcsc/action/basic_actions.h>
-// #include <rcsc/action/body_goalie_go_to_point.h> CYRUS_LIB
-#include <rcsc/action/body_go_to_point.h>
-#include <rcsc/action/body_stop_dash.h>
-#include <rcsc/action/bhv_go_to_point_look_ball.h>
+#include "basic_actions/body_intercept2009.h"
+#include "basic_actions/basic_actions.h"
+#include "basic_actions/body_go_to_point.h"
+#include "basic_actions/body_stop_dash.h"
+#include "basic_actions/bhv_go_to_point_look_ball.h"
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/intercept_table.h>
@@ -190,8 +189,8 @@ Bhv_GoalieBasicMove::doOffensivePositioning( PlayerAgent * agent )
     getOffenseivePos( agent, homePos );
     dashPower = getOffensiveMoveDashPower( agent, homePos );
 
-    int opp_min = wm.interceptTable()->opponentReachCycle();
-    int mate_min = wm.interceptTable()->teammateReachCycle();
+    int opp_min = wm.interceptTable().opponentStep();
+    int mate_min = wm.interceptTable().teammateStep();
 
     rcsc::Vector2D ballFinal = rcsc::Vector2D( -30.0,0 );
 
@@ -255,16 +254,16 @@ Bhv_GoalieBasicMove::doOffensiveIntercept( PlayerAgent * agent )
     Vector2D ball = wm.ball().pos();
     Vector2D me = wm.self().pos();
 
-    int myCycles = wm.interceptTable()->selfReachCycle();
-    int tmmCycles = wm.interceptTable()->teammateReachCycle();
-    int oppCycles = wm.interceptTable()->opponentReachCycle();
+    int myCycles = wm.interceptTable().selfStep();
+    int tmmCycles = wm.interceptTable().teammateStep();
+    int oppCycles = wm.interceptTable().opponentStep();
 
     if( myCycles <= oppCycles && myCycles < tmmCycles &&
             !wm.kickableTeammate() && !wm.kickableOpponent() &&
             wm.gameMode().type() == GameMode::PlayOn )
     {
-        //       Body_Intercept().execute( agent );
-        Body_Intercept( false ).execute( agent );
+        //       Body_Intercept2009().execute( agent );
+        Body_Intercept2009( false ).execute( agent );
 
         if ( wm.ball().distFromSelf() < ServerParam::i().visibleDistance() )
             agent->setNeckAction( new Neck_TurnToLowConfTeammate() );
@@ -290,8 +289,8 @@ Bhv_GoalieBasicMove::getOffenseivePos( PlayerAgent * agent,
     Vector2D ball = wm.ball().pos();
     Vector2D me = wm.self().pos();
 
-    int tmmCycles = wm.interceptTable()->teammateReachCycle();
-    int oppCycles = wm.interceptTable()->opponentReachCycle();
+    int tmmCycles = wm.interceptTable().teammateStep();
+    int oppCycles = wm.interceptTable().opponentStep();
 
     if( tmmCycles < oppCycles )
         ball = wm.ball().inertiaPoint( tmmCycles );
@@ -336,7 +335,7 @@ Bhv_GoalieBasicMove::getOffenseivePos( PlayerAgent * agent,
         if( move_point.x < -48.0 )
             move_point.x = -48.0;
     }
-    if(wm.interceptTable()->teammateReachCycle() < wm.interceptTable()->opponentReachCycle()){
+    if(wm.interceptTable().teammateStep() < wm.interceptTable().opponentStep()){
         move_point.x +=5;
     }
 
@@ -376,7 +375,7 @@ Bhv_GoalieBasicMove::getOffensiveMoveDashPower( PlayerAgent * agent,
         if ( wm.ball().vel().x > 1.0 )
             return my_inc * 0.5;
 
-        int opp_min = wm.interceptTable()->opponentReachCycle();
+        int opp_min = wm.interceptTable().opponentStep();
         if ( opp_min <= 5 )
             return ServerParam::i().maxPower();
 
@@ -412,8 +411,8 @@ Bhv_GoalieBasicMove::getTargetPoint( PlayerAgent * agent )
          && ! wm.kickableOpponent() )
     {
         ball_reach_step
-                = std::min( wm.interceptTable()->teammateReachCycle(),
-                            wm.interceptTable()->opponentReachCycle() );
+                = std::min( wm.interceptTable().teammateStep(),
+                            wm.interceptTable().opponentStep() );
     }
     const Vector2D base_pos = wm.ball().inertiaPoint( ball_reach_step );
 
@@ -480,7 +479,7 @@ Bhv_GoalieBasicMove::getTargetPoint( PlayerAgent * agent )
         }
         else
         {
-            int opp_min = wm.interceptTable()->opponentReachCycle();
+            int opp_min = wm.interceptTable().opponentStep();
             if ( opp_min < ball_pred_cycle )
             {
                 ball_pred_cycle = opp_min;
@@ -588,7 +587,7 @@ Bhv_GoalieBasicMove::getBasicDashPower( PlayerAgent * agent,
             return my_inc * 0.5;
         }
 
-        int opp_min = wm.interceptTable()->opponentReachCycle();
+        int opp_min = wm.interceptTable().opponentStep();
         if ( opp_min <= 3 )
         {
             agent->debugClient().addMessage( "P2.3" );
@@ -843,7 +842,7 @@ Bhv_GoalieBasicMove::doCorrectX( PlayerAgent * agent,
         return false;
     }
 
-    int opp_min_cyc = wm.interceptTable()->opponentReachCycle();
+    int opp_min_cyc = wm.interceptTable().opponentStep();
     if ( ( ! wm.kickableOpponent() && opp_min_cyc >= 4 )
          || wm.ball().distFromSelf() > 18.0 )
     {
@@ -1123,9 +1122,9 @@ bool Bhv_GoalieBasicMove::doHeliosGolie(PlayerAgent *agent)
 {
     dlog.addText(Logger::PLAN, "start helios");
     const WorldModel & wm = agent->world();
-    const int self_min = wm.interceptTable()->selfReachCycle();
-    const int mate_min = wm.interceptTable()->teammateReachCycle();
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    const int self_min = wm.interceptTable().selfStep();
+    const int mate_min = wm.interceptTable().teammateStep();
+    const int opp_min = wm.interceptTable().opponentStep();
     Vector2D ball_pos = wm.ball().inertiaPoint(opp_min);
 
     if (opp_min > std::min(self_min, mate_min) + 5){
@@ -1167,10 +1166,10 @@ bool Bhv_GoalieBasicMove::doHeliosGolie(PlayerAgent *agent)
         target.x = -52.0;
     }
     Vector2D ball_opp_pos = ball_pos;
-    if(wm.interceptTable()->fastestOpponent() != nullptr){
-        if(wm.interceptTable()->fastestOpponent()->unum() > 0){
-            if(wm.interceptTable()->fastestOpponent()->isKickable()){
-                ball_opp_pos = wm.interceptTable()->fastestOpponent()->pos();
+    if(wm.interceptTable().firstOpponent() != nullptr){
+        if(wm.interceptTable().firstOpponent()->unum() > 0){
+            if(wm.interceptTable().firstOpponent()->isKickable()){
+                ball_opp_pos = wm.interceptTable().firstOpponent()->pos();
             }
         }
     }
@@ -1216,7 +1215,7 @@ bool Bhv_GoalieBasicMove::doHeliosGolie(PlayerAgent *agent)
     double body_diff_abs = (body_target - self_body).abs();
 
     int cycle_dash = wm.self().playerTypePtr()-> cyclesToReachDistance(target.dist(self_pos));
-    int cycle_dash_back_dash = wm.self().playerTypePtr()->cyclesToReachDistance(target.dist(self_pos), 180.0);
+    int cycle_dash_back_dash = wm.self().playerTypePtr()->cyclesToReachDistanceOnDashDir(target.dist(self_pos), 180.0);
     int cycle_turn = FieldAnalyzer::predict_player_turn_cycle(wm.self().playerTypePtr(),
                                                               wm.self().body(),
                                                               wm.self().vel().r(),

@@ -34,12 +34,11 @@
 
 #include "setplay/bhv_set_play.h"
 
-#include <rcsc/action/body_intercept.h>
-
-#include <rcsc/action/basic_actions.h>
-#include <rcsc/action/body_go_to_point.h>
-#include <rcsc/action/neck_scan_field.h>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
+#include "basic_actions/body_intercept2009.h"
+#include "basic_actions/basic_actions.h"
+#include "basic_actions/body_go_to_point.h"
+#include "basic_actions/neck_scan_field.h"
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/intercept_table.h>
@@ -206,7 +205,7 @@ Bhv_TheirGoalKickMove::doChaseBall( PlayerAgent * agent )
         return false;
     }
 
-    int self_min = wm.interceptTable()->selfReachCycle();
+    int self_min = wm.interceptTable().selfStep();
 
     if ( self_min > 10 )
     {
@@ -239,7 +238,7 @@ Bhv_TheirGoalKickMove::doChaseBall( PlayerAgent * agent )
 
     // can chase !!
     agent->debugClient().addMessage( "GKickGetBall" );
-    Body_Intercept().execute( agent );
+    Body_Intercept2009().execute( agent );
     agent->setNeckAction( new Neck_TurnToBallOrScan( 0 ) );
     return true;
 }

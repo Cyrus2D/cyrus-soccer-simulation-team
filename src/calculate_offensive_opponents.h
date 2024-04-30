@@ -99,8 +99,8 @@ public:
     bool finalize(const rcsc::WorldModel &wm) {
         if (finalized)
             return true;
-        int our_cycle = min(wm.interceptTable()->selfReachCycle(), wm.interceptTable()->teammateReachCycle());
-        int opp_cycle = wm.interceptTable()->opponentReachCycle();
+        int our_cycle = min(wm.interceptTable().selfStep(), wm.interceptTable().teammateStep());
+        int opp_cycle = wm.interceptTable().opponentStep();
         bool isSafe = wm.gameMode().type() != GameMode::PlayOn || wm.ball().pos().x > 0 || our_cycle < opp_cycle-2;
         if (wm.time().cycle() > finalize_cycle && isSafe) {
             vector<double> avg_opponent_observe_pos_x = vector<double>(11, 0);

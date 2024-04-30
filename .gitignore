@@ -57,3 +57,6 @@ team/src/am--include-marker
 *.profile-empty
 *.pb
 script/data_extractor/res
+build/
+cmake-build-debug/
+.idea/

@@ -77,7 +77,7 @@ BhvMarkDecisionGreedy::getMarkTargets(PlayerAgent *agent, MarkType &mark_type, i
                 dlog.addText(Logger::MARK, "**MarkDec select MarkDec::JustBlock");
                 #endif
                 mark_type = MarkType::Block;
-                mark_unum = wm.interceptTable()->fastestOpponent()->unum();
+                mark_unum = wm.interceptTable().firstOpponent()->unum();
                 global_how_mark[wm.self().unum()] = mark_type;
                 global_tm_mark_target[wm.self().unum()] = mark_unum;
                 global_opp_marker[mark_unum] = wm.self().unum();
@@ -104,8 +104,8 @@ double def_line_x = 0;
 double min_our_def_pos_x = 100;
 
 MarkDec BhvMarkDecisionGreedy::markDecision(const WorldModel &wm) {
-    int opp_reach_cycle = wm.interceptTable()->opponentReachCycle();
-    int tm_reach_cycle = wm.interceptTable()->teammateReachCycle();
+    int opp_reach_cycle = wm.interceptTable().opponentStep();
+    int tm_reach_cycle = wm.interceptTable().teammateStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(std::min(opp_reach_cycle, tm_reach_cycle));
     double tm_offense_pos_x_avg = 0;
     double tm_offense_hpos_x_avg = 0;
@@ -174,7 +174,7 @@ MarkDec BhvMarkDecisionGreedy::markDecision(const WorldModel &wm) {
     #ifdef DEBUG_MARK_DECISION_GREEDY
     dlog.addText(Logger::MARK, "DefLine Changed to %.1f", def_line_x);
     #endif
-    if (wm.interceptTable()->opponentReachCycle() < 10) {
+    if (wm.interceptTable().opponentStep() < 10) {
         #ifdef DEBUG_MARK_DECISION_GREEDY
         dlog.addText(Logger::MARK, "TmDefH changed to deflinx to %.1f", def_line_x);
         #endif
@@ -212,10 +212,10 @@ vector<int> BhvMarkDecisionGreedy::getOppOffensiveStatic(const WorldModel &wm) {
 
 vector<size_t> BhvMarkDecisionGreedy::getOppOffensive(const WorldModel &wm, bool &fastest_opp_marked) {
     vector<size_t> offensive_opps;
-    int opp_reach_cycle = wm.interceptTable()->opponentReachCycle();
+    int opp_reach_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_reach_cycle);
-    size_t fastest_opp = (wm.interceptTable()->fastestOpponent() == NULL ? 0
-                                                                         : wm.interceptTable()->fastestOpponent()->unum());
+    size_t fastest_opp = (wm.interceptTable().firstOpponent() == NULL ? 0
+                                                                         : wm.interceptTable().firstOpponent()->unum());
     size_t opp_offense_number = 0;
     auto static_offensive_opps = getOppOffensiveStatic(wm);
     double tm_hpos_def_line = 0;
@@ -439,7 +439,7 @@ double BhvMarkDecisionGreedy::getDir(const WorldModel &wm, rcsc::Vector2D start_
     double best_dir = -180.0;
     double max_eval = -100;
     const ServerParam &sp = ServerParam::i();
-    const PlayerObject *nearest_opp = wm.interceptTable()->fastestOpponent();
+    const PlayerObject *nearest_opp = wm.interceptTable().firstOpponent();
     for (int i = -180; i < 180; i += 10) {
         Vector2D next_pos = start_pos + Vector2D::polar2vector(5, i);
         if (next_pos.absX() > 52.5 || next_pos.absY() > 34)

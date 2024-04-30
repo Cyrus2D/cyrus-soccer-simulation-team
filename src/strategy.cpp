@@ -536,14 +536,7 @@ Strategy::read( const std::string & formation_dir )
 Formation::Ptr
 Strategy::readFormation( const std::string & filepath )
 {
-    FormationParser::Ptr parser = FormationParser::create( filepath );
-    if ( ! parser )
-    {
-        std::cerr << "(Strategy::createFormation) Could not create a formation parser for " << filepath << std::endl;
-        return Formation::Ptr();
-    }
-
-    Formation::Ptr f = parser->parse( filepath );
+    Formation::Ptr f = FormationParser::parse( filepath );
 
     if ( ! f )
     {
@@ -903,9 +896,9 @@ Strategy::updateSituation( const WorldModel & wm )
         return;
     }
 
-    int self_min = wm.interceptTable()->selfReachCycle();
-    int mate_min = wm.interceptTable()->teammateReachCycle();
-    int opp_min = wm.interceptTable()->opponentReachCycle();
+    int self_min = wm.interceptTable().selfStep();
+    int mate_min = wm.interceptTable().teammateStep();
+    int opp_min = wm.interceptTable().opponentStep();
     int our_min = std::min( self_min, mate_min );
 
     if ( isDefSit(wm,wm.self().unum())){
@@ -962,9 +955,9 @@ Strategy::updatePosition( const WorldModel & wm )
     if ( wm.gameMode().type() == GameMode::PlayOn
          || wm.gameMode().type() == GameMode::GoalKick_ )
     {
-        ball_step = std::min( 1000, wm.interceptTable()->teammateReachCycle() );
-        ball_step = std::min( ball_step, wm.interceptTable()->opponentReachCycle() );
-        ball_step = std::min( ball_step, wm.interceptTable()->selfReachCycle() );
+        ball_step = std::min( 1000, wm.interceptTable().teammateStep() );
+        ball_step = std::min( ball_step, wm.interceptTable().opponentStep() );
+        ball_step = std::min( ball_step, wm.interceptTable().selfStep() );
     }
 
     Vector2D ball_pos = wm.ball().inertiaPoint( ball_step );
@@ -996,7 +989,7 @@ Strategy::updatePosition( const WorldModel & wm )
         }
         else
         {
-            int mate_step = wm.interceptTable()->teammateReachCycle();
+            int mate_step = wm.interceptTable().teammateStep();
             if ( mate_step < 50 )
             {
                 Vector2D trap_pos = wm.ball().inertiaPoint( mate_step );
@@ -1021,8 +1014,8 @@ Strategy::updatePosition( const WorldModel & wm )
 
     M_position_types.clear();
     change9_11 = false;
-    if(wm.interceptTable()->fastestTeammate() != NULL && wm.interceptTable()->fastestTeammate()->unum() == 11 && wm.interceptTable()->opponentReachCycle() < wm.interceptTable()->opponentReachCycle() ){
-        if(wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle()).x > 30){
+    if(wm.interceptTable().firstTeammate() != NULL && wm.interceptTable().firstTeammate()->unum() == 11 && wm.interceptTable().opponentStep() < wm.interceptTable().opponentStep() ){
+        if(wm.ball().inertiaPoint(wm.interceptTable().teammateStep()).x > 30){
 //            change9_11 = true;
         }
     }
@@ -1221,8 +1214,8 @@ Strategy::getFormation( const WorldModel & wm )
                       : wm.gameMode().scoreLeft() );
 
     int time = wm.time().cycle();
-    int opp_min = wm.interceptTable()->opponentReachCycle();
-    int mate_min = std::min(wm.interceptTable()->teammateReachCycle(), wm.interceptTable()->selfReachCycle());
+    int opp_min = wm.interceptTable().opponentStep();
+    int mate_min = std::min(wm.interceptTable().teammateStep(), wm.interceptTable().selfStep());
     isGoal_forward = Setting::i()->mStrategySetting->mIsGoalForward;
 
     if(our_score > opp_score)
@@ -2188,9 +2181,9 @@ Strategy::get_normal_dash_power( const WorldModel & wm )
                          wm.self().stamina() + wm.self().playerType().extraStamina() );
     }
 
-    const int self_min = wm.interceptTable()->selfReachCycle();
-    const int mate_min = wm.interceptTable()->teammateReachCycle();
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    const int self_min = wm.interceptTable().selfStep();
+    const int mate_min = wm.interceptTable().teammateStep();
+    const int opp_min = wm.interceptTable().opponentStep();
 
     // check recover
     if ( wm.self().staminaModel().capacityIsEmpty() )
@@ -2272,9 +2265,9 @@ Strategy::get_normal_dash_power( const WorldModel & wm )
 }
 
 bool Strategy::isDefSit(const WorldModel & wm,int unum) const{
-    const int self_min = wm.interceptTable()->selfReachCycle();
-    const int mate_min = wm.interceptTable()->teammateReachCycle();
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    const int self_min = wm.interceptTable().selfStep();
+    const int mate_min = wm.interceptTable().teammateStep();
+    const int opp_min = wm.interceptTable().opponentStep();
     int myTeam_min = std::min(self_min,mate_min);
     int player_min = std::min(myTeam_min,opp_min);
     Vector2D ball_pos = wm.ball().inertiaPoint(player_min);
@@ -2381,7 +2374,7 @@ bool Strategy::isDefSit(const WorldModel & wm,int unum) const{
             || (wm.lastKickerSide() == wm.theirSide() && self_line==PostLine::half && wm.ball().pos().x < -35)) {
         return true;
     } else {
-        if(wm.interceptTable()->fastestTeammate() != NULL && wm.interceptTable()->fastestTeammate()->unum() == wm.self().unum() && opp_min <= self_min)
+        if(wm.interceptTable().firstTeammate() != NULL && wm.interceptTable().firstTeammate()->unum() == wm.self().unum() && opp_min <= self_min)
             return true;
         return false;
     }

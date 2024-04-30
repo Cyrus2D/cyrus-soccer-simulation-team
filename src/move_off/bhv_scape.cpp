@@ -15,21 +15,21 @@
 #include "../strategy.h"
 #include "../bhv_basic_move.h"
 #include "../setting.h"
-#include <rcsc/action/body_go_to_point.h>
+#include "basic_actions/body_go_to_point.h"
 #include <rcsc/common/server_param.h>
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/player/abstract_player_object.h>
 #include <rcsc/player/world_model.h>
-#include <rcsc/action/body_turn_to_angle.h>
-#include <rcsc/action/neck_turn_to_ball.h>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
+#include "basic_actions/body_turn_to_angle.h"
+#include "basic_actions/neck_turn_to_ball.h"
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
 using namespace rcsc;
 using namespace std;
 
 bool bhv_scape::can_scape(const WorldModel & wm){
-    const int self_min = wm.interceptTable()->selfReachCycle();
-    const int mate_min = wm.interceptTable()->teammateReachCycle();
-    const int opp_min = wm.interceptTable()->opponentReachCycle();
+    const int self_min = wm.interceptTable().selfStep();
+    const int mate_min = wm.interceptTable().teammateStep();
+    const int opp_min = wm.interceptTable().opponentStep();
     Vector2D ball_iner = wm.ball().inertiaPoint(std::min(std::min(opp_min,mate_min),self_min));
     int unum = wm.self().unum();
     double stamina = wm.self().stamina();
@@ -37,8 +37,8 @@ bool bhv_scape::can_scape(const WorldModel & wm){
     Vector2D self_pos = wm.self().pos();
     double offside = std::max(wm.offsideLineX(),ball_iner.x) - 0.3;
     int passer = 0;
-    if (wm.interceptTable()->fastestTeammate() != NULL)
-        passer = wm.interceptTable()->fastestTeammate()->unum();
+    if (wm.interceptTable().firstTeammate() != NULL)
+        passer = wm.interceptTable().firstTeammate()->unum();
     if(passer < 1)
         return false;
     if( Strategy::i().self_Line() != Strategy::PostLine::forward )
@@ -61,8 +61,8 @@ bool bhv_scape::can_scape(const WorldModel & wm){
             || ball_iner.dist(self_pos) > 35)
         return false;
     int fastest_tm = 0;
-    if (wm.interceptTable()->fastestTeammate() != nullptr && wm.interceptTable()->fastestTeammate()->unum() > 0){
-        fastest_tm = wm.interceptTable()->fastestTeammate()->unum();
+    if (wm.interceptTable().firstTeammate() != nullptr && wm.interceptTable().firstTeammate()->unum() > 0){
+        fastest_tm = wm.interceptTable().firstTeammate()->unum();
     }
     if (fastest_tm == 9 && wm.self().unum() == 10)
         return false;
@@ -83,9 +83,9 @@ bool bhv_scape::can_scape(const WorldModel & wm){
 
 bool bhv_scape::execute(rcsc::PlayerAgent * agent ){
 	const WorldModel & wm = agent->world();
-	const int self_min = wm.interceptTable()->selfReachCycle();
-	const int mate_min = wm.interceptTable()->teammateReachCycle();
-	const int opp_min = wm.interceptTable()->opponentReachCycle();
+	const int self_min = wm.interceptTable().selfStep();
+	const int mate_min = wm.interceptTable().teammateStep();
+	const int opp_min = wm.interceptTable().opponentStep();
 	Vector2D ball_iner = wm.ball().inertiaPoint(std::min(std::min(opp_min,mate_min),self_min));
 	int unum = wm.self().unum();
 	int stamina = wm.self().stamina();
@@ -96,7 +96,7 @@ bool bhv_scape::execute(rcsc::PlayerAgent * agent ){
 
     if(!can_scape(wm))
         return false;
-    int passer = wm.interceptTable()->fastestTeammate()->unum();
+    int passer = wm.interceptTable().firstTeammate()->unum();
 	if(last_new_scape.M_start_cycle < wm.time().cycle() + 5){
 		if(last_new_scape.M_passer == passer){
 			if(last_new_scape.M_first_target.dist(wm.self().pos()) > 0.5){
@@ -241,9 +241,9 @@ bool bhv_scape::execute(rcsc::PlayerAgent * agent ){
 bool bhv_scape::run_last_scape(PlayerAgent * agent){
 
 	const WorldModel & wm = agent->world();
-	const int self_min = wm.interceptTable()->selfReachCycle();
-	const int mate_min = wm.interceptTable()->teammateReachCycle();
-	const int opp_min = wm.interceptTable()->opponentReachCycle();
+	const int self_min = wm.interceptTable().selfStep();
+	const int mate_min = wm.interceptTable().teammateStep();
+	const int opp_min = wm.interceptTable().opponentStep();
 	Vector2D ball_iner = wm.ball().inertiaPoint(std::min(std::min(opp_min,mate_min),self_min));
 	int unum = wm.self().unum();
 	int stamina = wm.self().stamina();
@@ -298,9 +298,9 @@ bool bhv_scape::run_last_scape(PlayerAgent * agent){
 }
 //bool bhv_scape::execute(rcsc::PlayerAgent * agent ){
 //	const WorldModel & wm = agent->world();
-//	const int self_min = wm.interceptTable()->selfReachCycle();
-//	const int mate_min = wm.interceptTable()->teammateReachCycle();
-//	const int opp_min = wm.interceptTable()->opponentReachCycle();
+//	const int self_min = wm.interceptTable().selfStep();
+//	const int mate_min = wm.interceptTable().teammateStep();
+//	const int opp_min = wm.interceptTable().opponentStep();
 //	Vector2D ball_iner = wm.ball().inertiaPoint(std::min(std::min(opp_min,mate_min),self_min));
 //	int unum = wm.self().unum();
 //	int stamina = wm.self().stamina();

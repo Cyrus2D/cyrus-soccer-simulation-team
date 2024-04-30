@@ -8,13 +8,13 @@
 #include "bhv_unmark2019.h"
 #include "strategy.h"
 #include <rcsc/common/logger.h>
-#include <rcsc/action/body_go_to_point.h>
+#include "basic_actions/body_go_to_point.h"
 #include <rcsc/common/server_param.h>
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/player/abstract_player_object.h>
-#include <rcsc/action/body_turn_to_angle.h>
-#include <rcsc/action/neck_turn_to_ball.h>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
+#include "basic_actions/body_turn_to_angle.h"
+#include "basic_actions/neck_turn_to_ball.h"
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
 #include "field_analyzer.h"
 
 #define unmark_debug
@@ -201,12 +201,12 @@ double bhv_unmark_2019::min_tm_home_dist(const WorldModel & wm, Vector2D tmp) {
 }
 bool bhv_unmark_2019::is_good_for_pass_from_last(const WorldModel & wm) {
 	if (is_good_for_pass(wm)) {
-//		if (passer.unum == wm.interceptTable()->fastestTeammate()->unum()) { //borna
-		const PlayerObject * tm = wm.interceptTable()->fastestTeammate();
+//		if (passer.unum == wm.interceptTable().firstTeammate()->unum()) { //borna
+		const PlayerObject * tm = wm.interceptTable().firstTeammate();
 		if (tm != NULL && tm->unum() > 0) {
 			passer.cycle_recive_ball =
-					wm.interceptTable()->teammateReachCycle();
-			passer.oppmin_cycle = wm.interceptTable()->opponentReachCycle();
+					wm.interceptTable().teammateStep();
+			passer.oppmin_cycle = wm.interceptTable().opponentStep();
 			Vector2D ball_pos = wm.ball().inertiaPoint(
 					passer.cycle_recive_ball);
 			if (ball_pos.dist(passer.ballpos) > 5)
@@ -217,8 +217,8 @@ bool bhv_unmark_2019::is_good_for_pass_from_last(const WorldModel & wm) {
 //			const AbstractPlayerObject * tm = wm.ourPlayer(passer.unum);
 //			if (tm != NULL && tm->unum() > 0) {
 //				passer.cycle_recive_ball =
-//						wm.interceptTable()->teammateReachCycle();
-//				passer.oppmin_cycle = wm.interceptTable()->opponentReachCycle();
+//						wm.interceptTable().teammateStep();
+//				passer.oppmin_cycle = wm.interceptTable().opponentStep();
 //				Vector2D ball_pos = wm.ball().inertiaPoint(
 //						passer.cycle_recive_ball);
 //				if (ball_pos.dist(passer.ballpos) > 5)
@@ -231,12 +231,12 @@ bool bhv_unmark_2019::is_good_for_pass_from_last(const WorldModel & wm) {
 }
 bool bhv_unmark_2019::is_good_for_unmark_from_last(const WorldModel & wm) { //borna
 	if (is_good_for_unmark(wm)) {
-//		if (passer.unum == wm.interceptTable()->fastestTeammate()->unum()) {
-		const PlayerObject * tm = wm.interceptTable()->fastestTeammate();
+//		if (passer.unum == wm.interceptTable().firstTeammate()->unum()) {
+		const PlayerObject * tm = wm.interceptTable().firstTeammate();
 		if (tm != NULL && tm->unum() > 0) {
 			passer.cycle_recive_ball =
-					wm.interceptTable()->teammateReachCycle();
-			passer.oppmin_cycle = wm.interceptTable()->opponentReachCycle();
+					wm.interceptTable().teammateStep();
+			passer.oppmin_cycle = wm.interceptTable().opponentStep();
 			Vector2D ball_pos = wm.ball().inertiaPoint(
 					passer.cycle_recive_ball);
 			if (ball_pos.dist(passer.ballpos) > 5)
@@ -247,8 +247,8 @@ bool bhv_unmark_2019::is_good_for_unmark_from_last(const WorldModel & wm) { //bo
 //			const AbstractPlayerObject * tm = wm.ourPlayer(passer.unum);
 //			if (tm != NULL && tm->unum() > 0) {
 //				passer.cycle_recive_ball =
-//						wm.interceptTable()->teammateReachCycle();
-//				passer.oppmin_cycle = wm.interceptTable()->opponentReachCycle();
+//						wm.interceptTable().teammateStep();
+//				passer.oppmin_cycle = wm.interceptTable().opponentStep();
 //				Vector2D ball_pos = wm.ball().inertiaPoint(
 //						passer.cycle_recive_ball);
 //				if (ball_pos.dist(passer.ballpos) > 5)
@@ -265,7 +265,7 @@ Vector2D bhv_unmark_2019::penalty_unmark(const WorldModel & wm) {
 	double div_dist = 1.0;
 	double div_angle = 20;
 	double maxeval = 0;
-	int tm_cycle = wm.interceptTable()->teammateReachCycle();
+	int tm_cycle = wm.interceptTable().teammateStep();
 	Vector2D ball_inner = wm.ball().inertiaPoint(tm_cycle);
 	Vector2D best_target = Vector2D(0.0,0.0);
 	for (double y = self_pos.y + 3; y < self_pos.y - 4; y -= div_dist) {
@@ -701,7 +701,7 @@ bool bhv_unmarkes_2019::can_unmark(const WorldModel & wm) {
 	Strategy::PostLine pl_line = Strategy::i().self_Line();
 	int stamina = wm.self().stamina();
 	 static const Rect2D penalty_area=Rect2D(Vector2D(38,-17),Vector2D(53,17));
-	  if (wm.ball().inertiaPoint(wm.interceptTable()->teammateReachCycle()).dist(
+	  if (wm.ball().inertiaPoint(wm.interceptTable().teammateStep()).dist(
 			wm.self().pos()) > 30)
 		return false;
 	  if(penalty_area.contains(wm.self().pos()))
@@ -720,10 +720,10 @@ bool bhv_unmarkes_2019::can_unmark(const WorldModel & wm) {
 	return false;
 }
 unmark_passer_2019 bhv_unmarkes_2019::update_passer(const WorldModel & wm) {
-	const PlayerObject * tm = wm.interceptTable()->fastestTeammate();
+	const PlayerObject * tm = wm.interceptTable().firstTeammate();
 	if (tm != NULL && tm->unum() > 0) {
-		int tm_cycle = wm.interceptTable()->teammateReachCycle();
-		int opp_cycle = wm.interceptTable()->opponentReachCycle();
+		int tm_cycle = wm.interceptTable().teammateStep();
+		int opp_cycle = wm.interceptTable().opponentStep();
 		Vector2D ball_pos = wm.ball().inertiaPoint(tm_cycle);
 //		if (ball_pos.dist(wm.self().pos()) > 20) { //bonra
 		double max_eval = -10;

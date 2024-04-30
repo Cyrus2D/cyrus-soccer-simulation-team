@@ -8,9 +8,9 @@
 #include "../chain_action/action_chain_graph.h"
 #include "../chain_action/action_chain_holder.h"
 #include "../chain_action/field_analyzer.h"
-#include <rcsc/action/neck_turn_to_point.h>
-#include <rcsc/action/neck_turn_to_ball.h>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
+#include "basic_actions/neck_turn_to_point.h"
+#include "basic_actions/neck_turn_to_ball.h"
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
 #include "next_pass_predictor.h"
 #include "../chain_action/neck_turn_to_receiver.h"
 #include "../debugs.h"
@@ -64,7 +64,7 @@ void NeckDecisionWithBall::neckToReceiver(PlayerAgent *agent) {
 }
 void NeckDecisionWithBall::init(PlayerAgent *agent){
     const WorldModel & wm = agent->world();
-    M_self_min = wm.interceptTable()->selfReachCycle();
+    M_self_min = wm.interceptTable().selfStep();
     M_ball_pos_count = wm.ball().posCount();
     M_ball_vel_count = wm.ball().velCount();
     M_ball_count = std::min(M_ball_pos_count, M_ball_vel_count);

@@ -43,11 +43,11 @@
 #include "dribble.h"
 #include "short_dribble_generator.h"
 
-#include <rcsc/action/basic_actions.h>
-#include <rcsc/action/neck_scan_field.h>
-#include <rcsc/action/neck_turn_to_ball_or_scan.h>
-#include <rcsc/action/neck_turn_to_goalie_or_scan.h>
-#include <rcsc/action/view_synch.h>
+#include "basic_actions/basic_actions.h"
+#include "basic_actions/neck_scan_field.h"
+#include "basic_actions/neck_turn_to_ball_or_scan.h"
+#include "basic_actions/neck_turn_to_goalie_or_scan.h"
+#include "basic_actions/view_synch.h"
 
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/player/player_agent.h>
@@ -63,6 +63,7 @@
 #include "bhv_pass_kick_find_receiver.h"
 #include "../neck/next_pass_predictor.h"
 #include "../neck/neck_decision.h"
+#include "../lib/cyrus_say_message_builder.h"
 
 //#define DEBUG_PRINT
 
@@ -387,13 +388,13 @@ IntentionNormalDribble::execute( PlayerAgent * agent )
         int current_len = agent->effector().getSayMessageLength();
         int available_len = ServerParam::i().playerSayMsgSize() - current_len;
 
-        if(wm.interceptTable()->selfReachCycle() < 3 && PrePassMessage::slength() <= available_len){
+        if(wm.interceptTable().selfStep() < 3 && PrePassMessage::slength() <= available_len){
             const ActionChainGraph & chain_graph = ActionChainHolder::i().graph();
             const CooperativeAction & first_action = chain_graph.getFirstAction();
             switch (first_action.category()) {
             case CooperativeAction::Pass: {
                 chain_target = first_action.targetPoint();
-                if (wm.interceptTable()->selfReachCycle() <= 2) {
+                if (wm.interceptTable().selfStep() <= 2) {
                     Bhv_PassKickFindReceiver(chain_graph).doSayPrePass(agent,first_action);
                 }
                 break;
@@ -721,8 +722,8 @@ IntentionNormalDribble::doDash( PlayerAgent * agent )
 /*!
 
 */
-#include <rcsc/action/body_smart_kick.h>
-#include <rcsc/action/body_kick_one_step.h>
+#include "basic_actions/body_smart_kick.h"
+#include "basic_actions/body_kick_one_step.h"
 Bhv_NormalDribble::Bhv_NormalDribble( const CooperativeAction & action,
                                       NeckAction::Ptr neck,
                                       ViewAction::Ptr view )
