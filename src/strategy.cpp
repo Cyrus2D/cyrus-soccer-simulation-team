@@ -2039,22 +2039,22 @@ Strategy::getFormation( const WorldModel & wm )
 
         tm_line[2] = PostLine::back;
         tm_line[3] = PostLine::back;
-        tm_line[6] = PostLine::back;
+        tm_line[4] = PostLine::back;
         
         tm_post[2] = pp_cb;
         tm_post[3] = pp_cb;
-        tm_post[6] = pp_cb;
+        tm_post[4] = pp_cb;
 
         if(ball_inertia_pos.x < 15 || opp_min < mate_min - 2){
-            tm_line[4] = PostLine::back;
+            tm_line[6] = PostLine::back;
             tm_line[5] = PostLine::back;
-            tm_post[4] = pp_lb;
+            tm_post[6] = pp_lb;
             tm_post[5] = pp_rb;
         }
         else{
-            tm_line[4] = PostLine::half;
+            tm_line[6] = PostLine::half;
             tm_line[5] = PostLine::half;
-            tm_post[4] = pp_lh;
+            tm_post[6] = pp_lh;
             tm_post[5] = pp_rh;
         }
         tm_line[7] = PostLine::half;
