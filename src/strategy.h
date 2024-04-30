@@ -124,12 +124,24 @@ public:
     static const std::string Fhel_SETPLAY_OPP_FORMATION_CONF;
     static const std::string Fhel_SETPLAY_OUR_FORMATION_CONF;
 
+    static const std::string F523_BEFORE_KICK_OFF_CONF;
+    static const std::string F523_DEFENSE_CONF;
+    static const std::string F523_GOAL_BLOCK_CONF;
+    static const std::string F523_GOAL_KICK_OPP_CONF;
+    static const std::string F523_GOAL_KICK_OUR_CONF;
+    static const std::string F523_OFFENSE_CONF;
+    static const std::string F523_OFFENSE_WALLBREAK_CONF;
+    static const std::string F523_KICKIN_OUR_CONF;
+    static const std::string F523_SETPLAY_OPP_CONF;
+    static const std::string F523_SETPLAY_OUR_CONF;
+
     enum class FormationType{
         F550,
         F0343,
         Fsh,
         F433,
-        HeliosFra
+        HeliosFra,
+        F523
 	};
     FormationType StringToFormationType(std::string formation){
         if(formation.compare("sh")==0)
@@ -151,6 +163,10 @@ public:
         else if(formation.compare("550") == 0)
         {
             return FormationType::F550;
+        }
+        else if(formation.compare("523") == 0)
+        {
+            return FormationType::F523;
         }
         else
         {
@@ -246,6 +262,17 @@ private:
     rcsc::Formation::Ptr M_F433_kickin_our_formation;
     rcsc::Formation::Ptr M_F433_setplay_opp_formation;
     rcsc::Formation::Ptr M_F433_setplay_our_formation;
+
+    rcsc::Formation::Ptr M_F523_before_kick_off;
+    rcsc::Formation::Ptr M_F523_defense;
+    rcsc::Formation::Ptr M_F523_goal_block;
+    rcsc::Formation::Ptr M_F523_goal_kick_opp;
+    rcsc::Formation::Ptr M_F523_goal_kick_our;
+    rcsc::Formation::Ptr M_F523_offense;
+    rcsc::Formation::Ptr M_F523_offense_wallbreak;
+    rcsc::Formation::Ptr M_F523_kickin_our;
+    rcsc::Formation::Ptr M_F523_setplay_opp;
+    rcsc::Formation::Ptr M_F523_setplay_our;
 
 	rcsc::Formation::Ptr M_F550_before_kick_off_formation;
 	rcsc::Formation::Ptr M_F550_defense_formation;

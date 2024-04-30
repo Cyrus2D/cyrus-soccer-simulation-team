@@ -85,6 +85,27 @@ const std::string Strategy::F433_KICKIN_OUR_FORMATION_CONF = "F433_kickin-our-fo
 const std::string Strategy::F433_SETPLAY_OPP_FORMATION_CONF = "F433_setplay-opp-formation.conf";
 const std::string Strategy::F433_SETPLAY_OUR_FORMATION_CONF = "F433_setplay-our-formation.conf";
 
+    // rcsc::Formation::Ptr M_F523_before_kick_off;
+    // rcsc::Formation::Ptr M_F523_defense;
+    // rcsc::Formation::Ptr M_F523_goal_block;
+    // rcsc::Formation::Ptr M_F523_goal_kick_opp;
+    // rcsc::Formation::Ptr M_F523_goal_kick_our;
+    // rcsc::Formation::Ptr M_F523_offense;
+    // rcsc::Formation::Ptr M_F523_offense_wallbreak;
+    // rcsc::Formation::Ptr M_F523_kickin_our;
+    // rcsc::Formation::Ptr M_F523_setplay_opp;
+    // rcsc::Formation::Ptr M_F523_setplay_our;
+const std::string Strategy::F523_BEFORE_KICK_OFF_CONF = "F523-before-kick-off.conf";
+const std::string Strategy::F523_DEFENSE_CONF = "F523-defense.conf";
+const std::string Strategy::F523_GOAL_BLOCK_CONF = "F523-goal-block.conf";
+const std::string Strategy::F523_GOAL_KICK_OPP_CONF = "F523-goal-kick-opp.conf";
+const std::string Strategy::F523_GOAL_KICK_OUR_CONF = "F523-goal-kick-our.conf";
+const std::string Strategy::F523_OFFENSE_CONF = "F523-offense.conf";
+const std::string Strategy::F523_OFFENSE_WALLBREAK_CONF = "F523-offense-wallbreak.conf";
+const std::string Strategy::F523_KICKIN_OUR_CONF = "F523-kickin-our.conf";
+const std::string Strategy::F523_SETPLAY_OPP_CONF = "F523-setplay-opp.conf";
+const std::string Strategy::F523_SETPLAY_OUR_CONF = "F523-setplay-our.conf";
+
 const std::string Strategy::F0343_BEFORE_KICK_OFF_CONF = "F0343_before-kick-off.conf";
 const std::string Strategy::F0343_DEFENSE_FORMATION_CONF = "F0343_defense-formation.conf";
 const std::string Strategy::F0343_OFFENSE_FORMATION_CONF = "F0343_offense-formation.conf";
@@ -524,6 +545,68 @@ Strategy::read( const std::string & formation_dir )
         return false;
     }
 
+    //523
+    M_F523_before_kick_off = readFormation( configpath + F523_BEFORE_KICK_OFF_CONF );
+    if ( ! M_F523_before_kick_off )
+    {
+        std::cerr << "Failed to read before_kick_off formation" << std::endl;
+        return false;
+    }
+    M_F523_defense = readFormation( configpath + F523_DEFENSE_CONF );
+    if ( ! M_F523_defense )
+    {
+        std::cerr << "Failed to read defense formation" << std::endl;
+        return false;
+    }
+    M_F523_goal_block = readFormation( configpath + F523_GOAL_BLOCK_CONF );
+    if ( ! M_F523_goal_block )
+    {
+        std::cerr << "Failed to read goal_block formation" << std::endl;
+        return false;
+    }
+    M_F523_goal_kick_opp = readFormation( configpath + F523_GOAL_KICK_OPP_CONF );
+    if ( ! M_F523_goal_kick_opp )
+    {
+        std::cerr << "Failed to read goal_kick_opp formation" << std::endl;
+        return false;
+    }
+    M_F523_goal_kick_our = readFormation( configpath + F523_GOAL_KICK_OUR_CONF );
+    if ( ! M_F523_goal_kick_our )
+    {
+        std::cerr << "Failed to read goal_kick_our formation" << std::endl;
+        return false;
+    }
+    M_F523_offense = readFormation( configpath + F523_OFFENSE_CONF );
+    if ( ! M_F523_offense )
+    {
+        std::cerr << "Failed to read offense formation" << std::endl;
+        return false;
+    }
+    M_F523_offense_wallbreak = readFormation( configpath + F523_OFFENSE_WALLBREAK_CONF );
+    if ( ! M_F523_offense_wallbreak )
+    {
+        std::cerr << "Failed to read offense_wallbreak formation" << std::endl;
+        return false;
+    }
+    M_F523_kickin_our = readFormation( configpath + F523_KICKIN_OUR_CONF );
+    if ( ! M_F523_kickin_our )
+    {
+        std::cerr << "Failed to read kickin_our formation" << std::endl;
+        return false;
+    }
+    M_F523_setplay_opp = readFormation( configpath + F523_SETPLAY_OPP_CONF );
+    if ( ! M_F523_setplay_opp )
+    {
+        std::cerr << "Failed to read setplay_opp formation" << std::endl;
+        return false;
+    }
+    M_F523_setplay_our = readFormation( configpath + F523_SETPLAY_OUR_CONF );
+    if ( ! M_F523_setplay_our )
+    {
+        std::cerr << "Failed to read setplay_our formation" << std::endl;
+        return false;
+    }
+    
     s_initialized = true;
     return true;
 }
@@ -1216,6 +1299,7 @@ Strategy::getFormation( const WorldModel & wm )
     int time = wm.time().cycle();
     int opp_min = wm.interceptTable().opponentStep();
     int mate_min = std::min(wm.interceptTable().teammateStep(), wm.interceptTable().selfStep());
+    auto ball_inertia_pos = wm.ball().inertiaPoint(std::min(opp_min, mate_min));
     isGoal_forward = Setting::i()->mStrategySetting->mIsGoalForward;
 
     if(our_score > opp_score)
@@ -1260,168 +1344,7 @@ Strategy::getFormation( const WorldModel & wm )
         M_formation_type = StringToFormationType(Setting::i()->mStrategySetting->mDrawFormation);
     }
 
-    if(M_formation_type == FormationType::F550){
-        tm_line[1] = PostLine::golie;
-
-        tm_line[2] = PostLine::back;
-        tm_line[3] = PostLine::back;
-        tm_line[4] = PostLine::back;
-        tm_line[5] = PostLine::back;
-        tm_line[6] = PostLine::back;
-        tm_line[7] = PostLine::half;
-        tm_line[8] = PostLine::half;
-        tm_line[9] = PostLine::half;
-        tm_line[10] = PostLine::half;
-        tm_line[11] = PostLine::half;
-
-        tm_post[1] = pp_gk;
-        tm_post[2] = pp_cb;
-        tm_post[3] = pp_cb;
-        tm_post[4] = pp_lb;
-        tm_post[5] = pp_rb;
-        tm_post[6] = pp_cb;
-        tm_post[7] = pp_ch;
-        tm_post[8] = pp_ch;
-        tm_post[9] = pp_lh;
-        tm_post[10] = pp_rh;
-        tm_post[11] = pp_ch;
-
-        self_line = tm_line[wm.self().unum()];
-        self_post = tm_post[wm.self().unum()];
-
-        //
-        // play on
-        //
-        if ( wm.gameMode().type() == GameMode::PlayOn )
-        {
-            switch ( M_current_situation ) {
-            case Defense_Situation:
-                return M_F550_defense_formation;
-            case Offense_Situation:
-                if(FieldAnalyzer::isGLD(wm)){
-                    return M_F550_offense_formation_for_gld;
-                }else{
-                    return M_F550_offense_formation;
-                }
-            default:
-                break;
-            }
-            return M_F550_offense_formation;
-        }
-
-        //
-        // kick in, corner kick
-        //
-        if ( wm.gameMode().type() == GameMode::KickIn_
-             || wm.gameMode().type() == GameMode::CornerKick_ )
-        {
-            if ( wm.ourSide() == wm.gameMode().side() )
-            {
-                // our kick-in or corner-kick
-                return M_F550_kickin_our_formation;
-            }
-            else
-            {
-                return M_F550_setplay_opp_formation;
-            }
-        }
-
-        //
-        // our indirect free kick
-        //
-        if ( ( wm.gameMode().type() == GameMode::BackPass_
-               && wm.gameMode().side() == wm.theirSide() )
-             || ( wm.gameMode().type() == GameMode::IndFreeKick_
-                  && wm.gameMode().side() == wm.ourSide() ) )
-        {
-            return M_F550_setplay_our_formation;
-        }
-
-        //
-        // opponent indirect free kick
-        //
-        if ( ( wm.gameMode().type() == GameMode::BackPass_
-               && wm.gameMode().side() == wm.ourSide() )
-             || ( wm.gameMode().type() == GameMode::IndFreeKick_
-                  && wm.gameMode().side() == wm.theirSide() ) )
-        {
-            return M_F550_setplay_opp_formation;
-        }
-
-        //
-        // after foul
-        //
-        if ( wm.gameMode().type() == GameMode::FoulCharge_
-             || wm.gameMode().type() == GameMode::FoulPush_ )
-        {
-            if ( wm.gameMode().side() == wm.ourSide() )
-            {
-                //
-                // opponent (indirect) free kick
-                //
-                return M_F550_setplay_opp_formation;
-            }
-            else
-            {
-                //
-                // our (indirect) free kick
-                //
-                return M_F550_setplay_our_formation;
-            }
-        }
-
-        //
-        // goal kick
-        //
-        if ( wm.gameMode().type() == GameMode::GoalKick_ || wm.gameMode().type() == GameMode::GoalieCatch_)
-        {
-            if ( wm.gameMode().side() == wm.ourSide() )
-            {
-                return M_F550_goal_kick_our_formation;
-            }
-            else
-            {
-                return M_F550_goal_kick_opp_formation;
-            }
-        }
-
-        //
-        // before kick off
-        //
-        if ( wm.gameMode().type() == GameMode::BeforeKickOff
-             || wm.gameMode().type() == GameMode::AfterGoal_ )
-        {
-            return M_F550_before_kick_off_formation;
-        }
-
-        //
-        // other set play
-        //
-        if ( wm.gameMode().isOurSetPlay( wm.ourSide() ) )
-        {
-            return M_F550_setplay_our_formation;
-        }
-
-        if ( wm.gameMode().type() != GameMode::PlayOn )
-        {
-            return M_F550_setplay_opp_formation;
-        }
-
-        //
-        // unknown
-        //
-        switch ( M_current_situation ) {
-        case Defense_Situation:
-            return M_F550_defense_formation;
-        case Offense_Situation:
-            return M_F550_offense_formation;
-        default:
-            break;
-        }
-
-        return M_F550_offense_formation;
-    }
-    else if(M_formation_type == FormationType::F0343){
+    if(M_formation_type == FormationType::F0343){
         tm_line[1] = PostLine::forward;
 
         tm_line[2] = PostLine::back;
@@ -2110,6 +2033,194 @@ Strategy::getFormation( const WorldModel & wm )
 
         return M_F433_offense_formation;
     }
+    else if(M_formation_type == FormationType::F523){
+        tm_line[1] = PostLine::golie;
+        tm_post[1] = pp_gk;
+
+        tm_line[2] = PostLine::back;
+        tm_line[3] = PostLine::back;
+        tm_line[6] = PostLine::back;
+        
+        tm_post[2] = pp_cb;
+        tm_post[3] = pp_cb;
+        tm_post[6] = pp_cb;
+
+        if(ball_inertia_pos.x < 15 || opp_min < mate_min - 2){
+            tm_line[4] = PostLine::back;
+            tm_line[5] = PostLine::back;
+            tm_post[4] = pp_lb;
+            tm_post[5] = pp_rb;
+        }
+        else{
+            tm_line[4] = PostLine::half;
+            tm_line[5] = PostLine::half;
+            tm_post[4] = pp_lh;
+            tm_post[5] = pp_rh;
+        }
+        tm_line[7] = PostLine::half;
+        tm_line[8] = PostLine::half;
+        tm_post[7] = pp_ch;
+        tm_post[8] = pp_ch;
+
+        tm_line[9] = PostLine::forward;
+        tm_line[10] = PostLine::forward;
+        tm_line[11] = PostLine::forward;
+        tm_post[9] = pp_lf;
+        tm_post[10] = pp_rf;
+        tm_post[11] = pp_cf;
+
+        self_line = tm_line[wm.self().unum()];
+        self_post = tm_post[wm.self().unum()];
+
+        //
+        // play on
+        //
+        if ( wm.gameMode().type() == GameMode::PlayOn )
+        {
+            switch ( M_current_situation ) {
+            case Defense_Situation:{
+                if (ball_inertia_pos.x < -30)
+                    return M_F523_goal_block;
+                return M_F523_defense;
+            }
+            case Offense_Situation:{
+                return M_F523_offense;
+            }
+            default:
+                break;
+            }
+            return M_F523_offense;
+        }
+
+        //
+        // kick in, corner kick
+        //
+        if ( wm.gameMode().type() == GameMode::KickIn_
+             || wm.gameMode().type() == GameMode::CornerKick_ )
+        {
+            if ( wm.ourSide() == wm.gameMode().side() )
+            {
+                // our kick-in or corner-kick
+                return M_F523_kickin_our;
+            }
+            else
+            {
+                return M_F523_setplay_opp;
+            }
+        }
+
+        //
+        // our indirect free kick
+        //
+        if ( ( wm.gameMode().type() == GameMode::BackPass_
+               && wm.gameMode().side() == wm.theirSide() )
+             || ( wm.gameMode().type() == GameMode::IndFreeKick_
+                  && wm.gameMode().side() == wm.ourSide() ) )
+        {
+            return M_F523_setplay_our;
+        }
+
+        //
+        // opponent indirect free kick
+        //
+        if ( ( wm.gameMode().type() == GameMode::BackPass_
+               && wm.gameMode().side() == wm.ourSide() )
+             || ( wm.gameMode().type() == GameMode::IndFreeKick_
+                  && wm.gameMode().side() == wm.theirSide() ) )
+        {
+            return M_F523_setplay_opp;
+        }
+
+        //
+        // after foul
+        //
+        if ( wm.gameMode().type() == GameMode::FoulCharge_
+             || wm.gameMode().type() == GameMode::FoulPush_ )
+        {
+            if ( wm.gameMode().side() == wm.ourSide() )
+            {
+                //
+                // opponent (indirect) free kick
+                //
+                return M_F523_setplay_opp;
+            }
+            else
+            {
+                //
+                // our (indirect) free kick
+                //
+                return M_F523_setplay_our;
+            }
+        }
+
+        //
+        // goal kick
+        //
+        if ( wm.gameMode().type() == GameMode::GoalKick_ || wm.gameMode().type() == GameMode::GoalieCatch_)
+        {
+            if ( wm.gameMode().side() == wm.ourSide() )
+            {
+                return M_F523_goal_kick_our;
+            }
+            else
+            {
+                return M_F523_goal_kick_opp;
+            }
+        }
+
+        //
+        // before kick off
+        //
+        if ( wm.gameMode().type() == GameMode::BeforeKickOff
+             || wm.gameMode().type() == GameMode::AfterGoal_ )
+        {
+            if(wm.gameMode().type() == GameMode::BeforeKickOff){
+                if ( wm.ourSide() == get_before_kick_off_side(wm) )
+                    return M_F523_before_kick_off;
+                else
+                    return M_F523_before_kick_off;
+            }else{
+                // after our goal
+                if ( wm.gameMode().side() == wm.ourSide() )
+                {
+                    return M_F523_before_kick_off;
+                }
+                else
+                {
+                    return M_F523_before_kick_off;
+                }
+            }
+
+        }
+
+        //
+        // other set play
+        //
+        if ( wm.gameMode().isOurSetPlay( wm.ourSide() ) )
+        {
+            return M_F523_setplay_our;
+        }
+
+        if ( wm.gameMode().type() != GameMode::PlayOn )
+        {
+            return M_F523_setplay_opp;
+        }
+
+        //
+        // unknown
+        //
+        switch ( M_current_situation ) {
+        case Defense_Situation:
+            return M_F523_defense;
+        case Offense_Situation:
+            return M_F523_offense;
+        default:
+            break;
+        }
+
+        return M_F523_offense;
+    }
+    
     return M_F433_offense_formation;
 }
 
