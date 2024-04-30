@@ -2056,16 +2056,16 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
     }
     // todo check formation
     if (Strategy::i().isDefSit(wm, wm.self().unum())){
-        double dist_to_home5 = 1000;
+        double xdist_to_home5 = 1000;
         if(wm.ourPlayer(5)!= nullptr && wm.ourPlayer(5)->unum() > 0){
-            dist_to_home5 = Strategy::i().getPosition(5).dist(wm.ourPlayer(5)->pos());
+            xdist_to_home5 = wm.ourPlayer(5)->pos().x - Strategy::i().getPosition(5).x;
         }
-        double dist_to_home6 = 1000;
+        double xdist_to_home6 = 1000;
         if(wm.ourPlayer(6)!= nullptr && wm.ourPlayer(6)->unum() > 0){
-            dist_to_home6 = Strategy::i().getPosition(6).dist(wm.ourPlayer(6)->pos());
+            xdist_to_home6 = wm.ourPlayer(6)->pos().x - Strategy::i().getPosition(6).x;
         }
-        bool is_5_far = dist_to_home5 > 10;
-        bool is_6_far = dist_to_home6 > 10;
+        bool is_5_far = xdist_to_home5 > 10;
+        bool is_6_far = xdist_to_home6 > 10;
         Vector2D home2 = Strategy::i().getPosition(2);
         Vector2D home3 = Strategy::i().getPosition(3);
         Vector2D home4 = Strategy::i().getPosition(4);
