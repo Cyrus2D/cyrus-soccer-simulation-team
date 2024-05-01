@@ -1671,8 +1671,6 @@ int StrictCheckPassGenerator::predictReceiverReachStep(
                   target_dist, dash_dist, receiver.penalty_distance_,
                   n_turn, n_dash );
     #endif
-    if(Strategy::i().my_team_tactic == Strategy::TeamTactic::AllDef)
-        n_turn ++;
 
     return (n_turn == 0 ? n_turn + n_dash : n_turn + n_dash + 1); // 1 step penalty for observation delay.
     // if ( ! use_penalty )
@@ -1849,11 +1847,6 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
             //            if(wm.opponentsFromBall().size() > 0
             //                    && wm.opponentsFromBall().front()->distFromBall() > (M_first_point.x < 25 ? 2 : 4 ))
             //                safe_dist_thr = 0.2;
-        }
-        if(Strategy::i().my_team_tactic == Strategy::TeamTactic::AllDef){
-            safe_dist_thr += 0.7;
-            if(wm.getDistOpponentNearestToBall(5,false) > 3)
-                safe_dist_thr += 0.5;
         }
 
 //        if(FieldAnalyzer::isMT(wm) || FieldAnalyzer::isIT(wm) || FieldAnalyzer::isFRA(wm) || FieldAnalyzer::isHFUT(wm) || FieldAnalyzer::isHelius(wm) || FieldAnalyzer::isOxsy(wm)

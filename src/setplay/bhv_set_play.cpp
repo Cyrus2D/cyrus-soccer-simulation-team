@@ -94,27 +94,6 @@ Bhv_SetPlay::execute( PlayerAgent * agent )
                     home_pos, 0.5, "#0000ff", true );
 #endif
 
-
-    if ( wm.self().goalie() && !Strategy::i().isgoal_forward())
-    {
-        if(wm.gameMode().type() == GameMode::GoalKick_)
-            if ( wm.gameMode().side() == wm.ourSide() )
-            {
-                return Bhv_SetPlayGoalKick().execute( agent );
-            }
-        if ( wm.gameMode().type() != GameMode::BackPass_
-             && wm.gameMode().type() != GameMode::IndFreeKick_ )
-        {
-            Bhv_GoalieFreeKick().execute( agent );
-        }
-        else
-        {
-            Bhv_SetPlayIndirectFreeKick().execute( agent );
-        }
-
-        return true;
-    }
-
     switch ( wm.gameMode().type() ) {
     case GameMode::KickOff_:
         if ( wm.gameMode().side() == wm.ourSide() )
@@ -569,8 +548,6 @@ Bhv_SetPlay::is_delaying_tactics_situation( const PlayerAgent * agent )
     {
         return false;
     }
-    if(Strategy::i().my_team_tactic == Strategy::TeamTactic::AllDef)
-        return true;
 #if 1
     const int real_set_play_count = wm.time().cycle() - wm.lastSetPlayStartTime().cycle();
     const int wait_buf = ( wm.gameMode().type() == GameMode::GoalKick_

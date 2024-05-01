@@ -184,11 +184,6 @@ evaluate_state( const PredictState & state )
     point += std::max( 0.0,
                        40.0 - ServerParam::i().theirTeamGoalPos().dist( state.ball().pos() ) );
 
-    if(Strategy::i().isgoal_forward()){
-        if(state.ball().pos().y > 10){
-            point *= 2;
-        }
-    }
 #ifdef DEBUG_PRINT
     dlog.addText( Logger::ACTION_CHAIN,
                   "(eval) ball pos (%f, %f)",
