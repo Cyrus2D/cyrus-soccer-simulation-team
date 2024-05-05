@@ -330,6 +330,7 @@ private:
 	std::vector< PositionType > M_position_types;
 	std::vector< rcsc::Vector2D > M_positions;
 
+    rcsc::Formation::Ptr M_selected_formation;
 
 	// private for singleton
 	Strategy();
@@ -402,7 +403,7 @@ public:
 private:
 	void updateSituation( const rcsc::WorldModel & wm );
 	// update the current position table
-	void updatePosition( const rcsc::WorldModel & wm, rcsc::Formation::Ptr selected_formation = nullptr );
+	void updatePosition( const rcsc::WorldModel & wm);
 
 	rcsc::Formation::Ptr readFormation( const std::string & filepath );
 	rcsc::Formation::Ptr createFormation( const std::string & type_name ) const;
@@ -413,7 +414,11 @@ public:
 	static
 	double get_normal_dash_power( const rcsc::WorldModel & wm );
 
-    rcsc::Formation::Ptr getFormation( const rcsc::WorldModel & wm );
+    void updateFormation(const rcsc::WorldModel &wm );
+
+    rcsc::Formation::Ptr getFormation(){
+        return M_selected_formation;
+    }
 
     rcsc::SideID get_before_kick_off_side(const rcsc::WorldModel & wm);
     bool is_open_deffense(const rcsc::WorldModel & wm);

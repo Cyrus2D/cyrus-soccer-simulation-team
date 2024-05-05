@@ -380,9 +380,7 @@ bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType mark
     #ifdef DEBUG_MARK_EXECUTE
     dlog.addCircle(Logger::MARK, target.pos, 1.0, 100, 0, 100);
     #endif
-    agent->debugClient().addCircle(target.pos, 1.0);
-    agent->debugClient().addMessage("mark %d %s %d", mark_unum,
-                                    markTypeString(marktype).c_str());
+
     if (back_to_def_flag
         && Strategy::i().self_Line() == Strategy::PostLine::back
         && marktype != MarkType::ThMark) {
@@ -401,7 +399,9 @@ bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType mark
         #endif
         return false;
     }
-
+    agent->debugClient().addCircle(target.pos, 1.0);
+    agent->debugClient().addMessage("mark %d %s %d", mark_unum,
+                                    markTypeString(marktype).c_str());
     agent->debugClient().addLine(wm.self().pos(), target.pos);
     #ifdef DEBUG_MARK_EXECUTE
     dlog.addText(Logger::MARK, "mark target (%.2f,%.2f)", target.pos.x, target.pos.y);
@@ -492,9 +492,7 @@ bool bhv_mark_execute::do_move_mark(PlayerAgent *agent, Target targ, double dist
     #ifdef DEBUG_MARK_EXECUTE
     dlog.addText(Logger::MARK, ">>>>do_move_mark");
     #endif
-    agent->debugClient().addCircle(targ.pos, 0.5);
-    agent->debugClient().addCircle(targ.pos, 0.3);
-    agent->debugClient().addCircle(targ.pos, 0.1);
+
     const WorldModel &wm = agent->world();
     Vector2D target_pos = targ.pos;
     Vector2D self_pos = wm.self().pos();
@@ -504,6 +502,9 @@ bool bhv_mark_execute::do_move_mark(PlayerAgent *agent, Target targ, double dist
     Vector2D self_hpos = Strategy::i().getPosition(wm.self().unum());
 
     if (marktype != MarkType::ThMark)
+        agent->debugClient().addCircle(targ.pos, 0.5);
+        agent->debugClient().addCircle(targ.pos, 0.3);
+        agent->debugClient().addCircle(targ.pos, 0.1);
         if (self_pos.dist(target_pos) < dist_thr && targ.th.degree() != 1000) {
             if (Body_TurnToAngle(targ.th).execute(agent)) {
                 #ifdef DEBUG_MARK_EXECUTE
@@ -583,6 +584,9 @@ void bhv_mark_execute::th_mark_move(PlayerAgent * agent, Target targ, double das
     const WorldModel & wm = agent->world();
     Vector2D self_pos = wm.self().pos();
     targ = MarkPositionFinder::getThMarkTarget2(wm.self().unum(), opp_unum, wm, false);
+    agent->debugClient().addCircle(targ.pos, 0.5);
+    agent->debugClient().addCircle(targ.pos, 0.3);
+    agent->debugClient().addCircle(targ.pos, 0.1);
     Vector2D target_pos = targ.pos;
     double body_dif = (targ.th - wm.self().body()).abs();
     int opp_min_cycle = wm.interceptTable().opponentStep();
