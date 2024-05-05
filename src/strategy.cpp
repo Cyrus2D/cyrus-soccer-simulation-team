@@ -70,6 +70,9 @@ bool Strategy::change9_11 = false;
 const std::string Strategy::F433_BEFORE_KICK_OFF_CONF = "F433_before-kick-off.conf";
 const std::string Strategy::F433_BEFORE_KICK_OFF_CONF_FOR_OUR_KICK = "F433_before-kick-off_for_our_kick.conf";
 const std::string Strategy::F433_DEFENSE_FORMATION_CONF = "F433_defense-formation.conf";
+const std::string Strategy::F433_DEFENSE_FORMATION_CONF_NO5 = "F433_defense-formation_no5.conf";
+const std::string Strategy::F433_DEFENSE_FORMATION_CONF_NO6 = "F433_defense-formation_no6.conf";
+const std::string Strategy::F433_DEFENSE_FORMATION_CONF_NO56 = "F433_defense-formation_no56.conf";
 const std::string Strategy::F433_DEFENSE_FORMATION_CONF_FOR_NAMIRA = "F433_defense-formation_for_namira.conf";
 const std::string Strategy::F433_DEFENSE_FORMATION_CONF_FOR_KN2C = "F433_defense-formation_for_kn2c.conf";
 const std::string Strategy::F433_OFFENSE_FORMATION_CONF = "F433_offense-formation.conf";
@@ -264,6 +267,18 @@ Strategy::read( const std::string & formation_dir )
     if ( ! M_F433_defense_formation )
     {
         std::cerr << "Failed to read defense formation" << std::endl;
+        return false;
+    }
+    M_F433_defense_formation_no6 = readFormation( configpath + F433_DEFENSE_FORMATION_CONF_NO6 );
+    if ( ! M_F433_defense_formation_no6 )
+    {
+        std::cerr << "Failed to read defense no 6 formation" << std::endl;
+        return false;
+    }
+    M_F433_defense_formation_no56 = readFormation( configpath + F433_DEFENSE_FORMATION_CONF_NO56 );
+    if ( ! M_F433_defense_formation_no56 )
+    {
+        std::cerr << "Failed to read defense no 56 formation" << std::endl;
         return false;
     }
     M_F433_defense_formation_for_namira = readFormation( configpath + F433_DEFENSE_FORMATION_CONF_FOR_NAMIRA );
@@ -829,6 +844,38 @@ Strategy::update( const WorldModel & wm )
 
     updateSituation( wm );
     updatePosition( wm );
+
+    if (get_formation_type() == FormationType::F433 && getFormation(wm) == M_F433_defense_formation){
+        std::cout<<"AAAA1"<<std::endl;
+        bool p5_exist = true;
+        bool p6_exist = true;
+        double p5_dist_x = 1000;
+        double p6_dist_x = 1000;
+        const AbstractPlayerObject * p5 = wm.ourPlayer(5);
+        if (p5 != nullptr && p5->unum() == 5){
+            p5_dist_x = p5->pos().x - getPosition(5).x;
+        }
+        const AbstractPlayerObject * p6 = wm.ourPlayer(6);
+        if (p6 != nullptr && p6->unum() == 6){
+            p6_dist_x = p6->pos().x - getPosition(6).x;
+        }
+        if (p5_dist_x > 15)
+            p5_exist = false;
+        if (p6_dist_x > 15)
+            p6_exist = false;
+        auto new_formation = M_F433_defense_formation;
+        if (!p5_exist && !p6_exist){
+            new_formation = M_F433_defense_formation_no56;
+            std::cout<<"AAAA2"<<std::endl;
+        }else if (!p5_exist){
+            new_formation = M_F433_defense_formation_no6;
+            std::cout<<"AAAA3"<<std::endl;
+        } else if (!p6_exist){
+            new_formation = M_F433_defense_formation_no5;
+            std::cout<<"AAAA4"<<std::endl;
+        }
+        updatePosition(wm, new_formation);
+    }
 }
 
 /*-------------------------------------------------------------------*/
@@ -1016,7 +1063,7 @@ Strategy::updateSituation( const WorldModel & wm )
 
  */
 void
-Strategy::updatePosition( const WorldModel & wm )
+Strategy::updatePosition( const WorldModel & wm, rcsc::Formation::Ptr selected_formation )
 {
     static GameTime s_update_time( 0, 0 );
     if ( s_update_time == wm.time() )
@@ -1026,6 +1073,9 @@ Strategy::updatePosition( const WorldModel & wm )
     s_update_time = wm.time();
 
     Formation::Ptr f = getFormation( wm );
+    if (selected_formation != nullptr){
+        f = selected_formation;
+    }
     if ( ! f )
     {
         std::cerr << wm.teamName() << ':' << wm.self().unum() << ": "

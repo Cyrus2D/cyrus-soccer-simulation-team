@@ -2054,74 +2054,18 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
             }
         }
     }
-    // todo check formation
-    if (Strategy::i().isDefSit(wm, wm.self().unum())){
-        double xdist_to_home5 = 1000;
+
+    if(wm.self().unum() == 6 && !Strategy::i().isDefSit(wm, wm.self().unum())){
         if(wm.ourPlayer(5)!= nullptr && wm.ourPlayer(5)->unum() > 0){
-            xdist_to_home5 = wm.ourPlayer(5)->pos().x - Strategy::i().getPosition(5).x;
-        }
-        double xdist_to_home6 = 1000;
-        if(wm.ourPlayer(6)!= nullptr && wm.ourPlayer(6)->unum() > 0){
-            xdist_to_home6 = wm.ourPlayer(6)->pos().x - Strategy::i().getPosition(6).x;
-        }
-        bool is_5_far = xdist_to_home5 > 10;
-        bool is_6_far = xdist_to_home6 > 10;
-        Vector2D home2 = Strategy::i().getPosition(2);
-        Vector2D home3 = Strategy::i().getPosition(3);
-        Vector2D home4 = Strategy::i().getPosition(4);
-        Vector2D home5 = Strategy::i().getPosition(5);
-        Vector2D home6 = Strategy::i().getPosition(6);
-        if (ball_iner.x > -30){
-            if (is_5_far && is_6_far){
-                Vector2D new_home2 = home2 - Vector2D(4, 0);
-                Vector2D new_home3 = (home3 + home5) / 2.0 - Vector2D(4, 0);
-                Vector2D new_home4 = (home4 + home6) / 2.0 - Vector2D(4, 0);
-                Vector2D new_home5 = home5 - Vector2D(4, 0);
-                Vector2D new_home6 = home6 - Vector2D(4, 0);
-                Strategy::i().set_position(2, new_home2);
-                Strategy::i().set_position(3, new_home3);
-                Strategy::i().set_position(4, new_home4);
-                Strategy::i().set_position(5, new_home5);
-                Strategy::i().set_position(6, new_home6);
-            }
-            else if (is_5_far){
-                Vector2D new_home2 = (home2 * 2.0 + home5) / 3.0 - Vector2D(3, 0);
-                Vector2D new_home3 = (home3 + home5) / 2.0 - Vector2D(3, 0);
-                Vector2D new_home4 = (home4 * 2.0 + home6) / 3.0 - Vector2D(3, 0);
-                Vector2D new_home5 = home5 - Vector2D(3, 0);
-                Vector2D new_home6 = (home2 + home6 * 2.0) / 3.0 - Vector2D(3, 0);
-                Strategy::i().set_position(2, new_home2);
-                Strategy::i().set_position(3, new_home3);
-                Strategy::i().set_position(4, new_home4);
-                Strategy::i().set_position(5, new_home5);
-                Strategy::i().set_position(6, new_home6);
-            }
-            else if (is_6_far){
-                Vector2D new_home2 = (home2 * 2.0 + home6) / 3.0 - Vector2D(3, 0);
-                Vector2D new_home3 = (home3 + home5 * 2.0) / 3.0 - Vector2D(3, 0);
-                Vector2D new_home4 = (home4 + home6) / 2.0 - Vector2D(3, 0);
-                Vector2D new_home5 = (home3 + home5 * 2.0) / 3.0 - Vector2D(3, 0);
-                Vector2D new_home6 = home6 - Vector2D(3, 0);
-                Strategy::i().set_position(2, new_home2);
-                Strategy::i().set_position(3, new_home3);
-                Strategy::i().set_position(4, new_home4);
-                Strategy::i().set_position(5, new_home5);
-                Strategy::i().set_position(6, new_home6);
-            }
-        }
-    }
-    else{
-        if(wm.self().unum() == 6){
-            if(wm.ourPlayer(5)!= nullptr && wm.ourPlayer(5)->unum() > 0){
-                if(Strategy::i().getPosition(5).dist(wm.ourPlayer(5)->pos())>10){
-                    if(ball_iner.x > 20){
-                        Strategy::i().set_position(6, (Strategy::i().getPosition(5) + target_point)/ 2.0);
-                        target_point = Strategy::i().getPosition(wm.self().unum());
-                    }
+            if(Strategy::i().getPosition(5).dist(wm.ourPlayer(5)->pos())>10){
+                if(ball_iner.x > 20){
+                    Strategy::i().set_position(6, (Strategy::i().getPosition(5) + target_point)/ 2.0);
+                    target_point = Strategy::i().getPosition(wm.self().unum());
                 }
             }
         }
     }
+
     if (Strategy::i().isDefSit(wm, wm.self().unum()) ||
             (Strategy::i().tm_Line(wm.self().unum()) == Strategy::PostLine::back && wm.ball().inertiaPoint(opp_min).x > 30)) {
         if (DefSitPlan(agent))

@@ -72,6 +72,9 @@ public:
     static const std::string F433_BEFORE_KICK_OFF_CONF;
     static const std::string F433_BEFORE_KICK_OFF_CONF_FOR_OUR_KICK;
     static const std::string F433_DEFENSE_FORMATION_CONF;
+    static const std::string F433_DEFENSE_FORMATION_CONF_NO5;
+    static const std::string F433_DEFENSE_FORMATION_CONF_NO6;
+    static const std::string F433_DEFENSE_FORMATION_CONF_NO56;
     static const std::string F433_DEFENSE_FORMATION_CONF_FOR_NAMIRA;
     static const std::string F433_DEFENSE_FORMATION_CONF_FOR_KN2C;
     static const std::string F433_OFFENSE_FORMATION_CONF_FOR_OXSY;
@@ -248,6 +251,9 @@ private:
     rcsc::Formation::Ptr M_F433_before_kick_off_formation;
     rcsc::Formation::Ptr M_F433_before_kick_off_formation_for_our_kick;
     rcsc::Formation::Ptr M_F433_defense_formation;
+    rcsc::Formation::Ptr M_F433_defense_formation_no5;
+    rcsc::Formation::Ptr M_F433_defense_formation_no6;
+    rcsc::Formation::Ptr M_F433_defense_formation_no56;
     rcsc::Formation::Ptr M_F433_defense_formation_for_namira;
     rcsc::Formation::Ptr M_F433_defense_formation_for_kn2c;
     rcsc::Formation::Ptr M_F433_offense_formation;
@@ -396,7 +402,7 @@ public:
 private:
 	void updateSituation( const rcsc::WorldModel & wm );
 	// update the current position table
-	void updatePosition( const rcsc::WorldModel & wm );
+	void updatePosition( const rcsc::WorldModel & wm, rcsc::Formation::Ptr selected_formation = nullptr );
 
 	rcsc::Formation::Ptr readFormation( const std::string & filepath );
 	rcsc::Formation::Ptr createFormation( const std::string & type_name ) const;
