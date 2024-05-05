@@ -1884,7 +1884,7 @@ Strategy::getFormation( const WorldModel & wm )
         tm_line[3] = PostLine::back;
         tm_line[4] = PostLine::back;
 
-        if(ball_inertia_pos.x < 15 || opp_min < mate_min - 2){
+        if(ball_inertia_pos.x < 15 || opp_min < mate_min){
             tm_line[5] = PostLine::back;
             tm_line[6] = PostLine::back;
             tm_post[5] = pp_cb;
