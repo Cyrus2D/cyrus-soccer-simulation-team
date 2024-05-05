@@ -846,7 +846,6 @@ Strategy::update( const WorldModel & wm )
     updatePosition( wm );
 
     if (get_formation_type() == FormationType::F433 && getFormation(wm) == M_F433_defense_formation){
-        std::cout<<"AAAA1"<<std::endl;
         bool p5_exist = true;
         bool p6_exist = true;
         double p5_dist_x = 1000;
@@ -866,15 +865,14 @@ Strategy::update( const WorldModel & wm )
         auto new_formation = M_F433_defense_formation;
         if (!p5_exist && !p6_exist){
             new_formation = M_F433_defense_formation_no56;
-            std::cout<<"AAAA2"<<std::endl;
         }else if (!p5_exist){
             new_formation = M_F433_defense_formation_no6;
-            std::cout<<"AAAA3"<<std::endl;
         } else if (!p6_exist){
             new_formation = M_F433_defense_formation_no5;
-            std::cout<<"AAAA4"<<std::endl;
         }
-        updatePosition(wm, new_formation);
+        if (new_formation != M_F433_defense_formation){
+            updatePosition(wm, new_formation);
+        }
     }
 }
 
