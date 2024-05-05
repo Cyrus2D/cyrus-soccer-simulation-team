@@ -90,6 +90,7 @@ move_def/bhv_mark_decisions.cpp
 move_def/best_match_finder.cpp
 move_def/bhv_mark_execute.cpp
 move_def/cyrus_interceptable.cpp
+move_def/basic_defensive_move.cpp
 sample_trainer.cpp
 chain_action/self_pass_generator.cpp
 chain_action/simple_pass_checker.cpp

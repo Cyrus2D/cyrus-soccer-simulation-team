@@ -83,6 +83,17 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
     const int mate_min = wm.interceptTable().teammateStep();
     const int opp_min = wm.interceptTable().opponentStep();
     const Vector2D ballPos = wm.ball().inertiaPoint(mate_min);
+    Vector2D ball_iner = wm.ball().inertiaPoint(std::min(std::min(opp_min, mate_min), self_min));
+    
+    if(wm.self().unum() == 5){
+        if (!Strategy::i().isDefSit(wm, wm.self().unum())){
+            if(ball_iner.x > 0 && wm.self().pos().x < 0){
+                if(wm.self().stamina() < 5500){
+                    return false;
+                }
+            }
+        }
+    }
 
     //Broker Offside
     if ( Setting::i()->mOffensiveMove->mIs9BrokeOffside

@@ -19,6 +19,7 @@
 #include "../setting.h"
 #include <rcsc/common/logger.h>
 #include "../debugs.h"
+#include "basic_defensive_mode.h"
 
 //tackle block
 bool bhv_block::do_tackle_block(PlayerAgent *agent) {
@@ -76,7 +77,7 @@ bool bhv_block::do_tackle_block(PlayerAgent *agent) {
     #ifdef DEBUG_BLOCK
     dlog.addText(Logger::BLOCK, "decided to go for tackle! Dash => tp = %.2f", tackleProb);
     #endif
-    Bhv_BasicMove::set_def_neck_with_ball(agent, opponentPos, wm.interceptTable().firstOpponent(), wm.self().unum());
+    Bhv_DefensiveMove::set_def_neck_with_ball(agent, opponentPos, wm.interceptTable().firstOpponent(), wm.self().unum());
     return agent->doDash(wm.self().getSafetyDashPower(100.0));
 }
 
@@ -641,7 +642,7 @@ bool bhv_block::do_block_pass(PlayerAgent *agent)
     }
     Vector2D block_pos(pass_line.getX(block_pos_y),block_pos_y);
     Body_GoToPoint(block_pos, 0.5, 100, 2, 1, false, 15).execute(agent);
-    Bhv_BasicMove::set_def_neck_with_ball(agent, start_drible, wm.interceptTable().firstOpponent(), wm.self().unum());
+    Bhv_DefensiveMove::set_def_neck_with_ball(agent, start_drible, wm.interceptTable().firstOpponent(), wm.self().unum());
 
     agent->debugClient().addMessage("block pass");
     agent->debugClient().setTarget(block_pos);
@@ -800,20 +801,10 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
             }
         }
 
-        Bhv_BasicMove::set_def_neck_with_ball(agent, target, wm.interceptTable().firstOpponent(), wm.self().unum());
-//        Vector2D start_drible;
-//        int start_drible_time;
-//        get_start_dribble(wm, start_drible, start_drible_time);
-        /*agent->setIntention(new IntentionBlock(wm.interceptTable().firstOpponent()->unum(),
-                                               wm.interceptTable().firstOpponent()->pos(),
-                                               target,
-                                               wm.ball().pos(),
-                                               start_drible,
-                                               cycle - 2,
-                                               wm.time()));*/
+        Bhv_DefensiveMove::set_def_neck_with_ball(agent, target, wm.interceptTable().firstOpponent(), wm.self().unum());
+
         return true;
     }else{
-//        std::cout<<"B9"<<std::endl;
         return Bhv_BasicMove().intercept_plan(agent, true);
     }
     return false;

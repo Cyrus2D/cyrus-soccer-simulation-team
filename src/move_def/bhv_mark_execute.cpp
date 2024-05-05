@@ -6,20 +6,16 @@
  */
 #include "bhv_mark_execute.h"
 #include "bhv_mark_decision_greedy.h"
-#include "bhv_mark_intention.h"
 #include "bhv_block.h"
-#include "../strategy.h"
-#include "bhv_mark_execute.h"
 #include "bhv_basic_tackle.h"
-#include "bhv_basic_move.h"
 #include <rcsc/geom.h>
 #include "move_def/mark_position_finder.h"
 #include "basic_actions/body_turn_to_ball.h"
 #include "basic_actions/neck_turn_to_ball.h"
 #include <ctime>
 #include "../debugs.h"
-#include "mark_position_finder.h"
 #include "../setting.h"
+#include "basic_defensive_mode.h"
 
 using namespace std;
 using namespace rcsc;
@@ -370,7 +366,7 @@ bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType mark
 
     do_move_mark(agent, target, dist_thr, marktype, mark_unum);
     agent->debugClient().addMessage("domove(%.1f,%.1f)", target.pos.x, target.pos.y);
-    Bhv_BasicMove::set_def_neck_with_ball(agent, target.pos, wm.theirPlayer(mark_unum), blocker);
+    Bhv_DefensiveMove::set_def_neck_with_ball(agent, target.pos, wm.theirPlayer(mark_unum), blocker);
     return true;
 }
 
