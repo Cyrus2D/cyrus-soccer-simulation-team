@@ -40,7 +40,7 @@
 #include "basic_actions/body_go_to_point.h"
 #include "basic_actions/body_intercept2009.h"
 #include "basic_actions/neck_turn_to_ball_or_scan.h"
-#include "move_def/basic_defensive_mode.h"
+#include "move_def/basic_defensive_move.h"
 #include "move_def/bhv_basic_tackle.h"
 #include "move_def/bhv_block.h"
 #include "move_def/bhv_tackle_intercept.h"
