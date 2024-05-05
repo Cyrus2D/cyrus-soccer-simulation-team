@@ -843,6 +843,7 @@ Strategy::update( const WorldModel & wm )
     s_update_time = wm.time();
 
     updateSituation( wm );
+    updateFormation(wm);
     updatePosition( wm );
 
     if (get_formation_type() == FormationType::F433 && getFormation() == M_F433_defense_formation){
@@ -1072,7 +1073,6 @@ Strategy::updatePosition( const WorldModel & wm)
     }
     s_update_time = wm.time();
 
-    updateFormation(wm);
     Formation::Ptr f = getFormation();
     if ( ! f )
     {
