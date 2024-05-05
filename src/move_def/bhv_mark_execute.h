@@ -42,6 +42,8 @@ public:
 
     bool execute(PlayerAgent *agent);
 
+    void update_formation_for_low_stamina_player(PlayerAgent *agent);
+
     bool run_mark(PlayerAgent *agent, int mark_unum, MarkType markType);
 
     void set_mark_target_thr(const WorldModel & wm,

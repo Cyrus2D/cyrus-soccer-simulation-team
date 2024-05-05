@@ -69,22 +69,6 @@ MarkPositionFinder::getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldMo
         opp_vel.x = -1;
     target.pos = opp->pos() + opp_vel;
     Vector2D opp_pos = target.pos;
-    bool tm_is_tired = false;
-    double tm_tired_x = 0;
-
-
-    for(int t = 2; t <= 11; t++){
-        if(Strategy::i().tm_Line(t) == Strategy::PostLine::back){
-            const AbstractPlayerObject * tm = wm.ourPlayer(t);
-            if(tm != nullptr && tm->unum() > 0){
-                if(tm->seenStaminaCount() < 15 && tm->seenStamina() < 4500){
-                    tm_is_tired = true;
-                    tm_tired_x = tm->pos().x;
-                    break;
-                }
-            }
-        }
-    }
 
     bool isGoalieForward=Setting::i()->mStrategySetting->mIsGoalForward;
     double tm_def_hpos_x = isGoalieForward?Strategy::i().getPosition(3).x:Strategy::i().getPosition(2).x;
@@ -182,14 +166,11 @@ MarkPositionFinder::getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldMo
             dlog.addText(Logger::MARK,"go forward step step, tm tired:%d tm tired x:%.1f defpos x:%.1f", tm_is_tired, tm_tired_x, tm_def_pos_x);
             #endif
             target.pos.x = tm_def_pos_x;
-            //agar opp posht defline bood va dalil defline bazikon khaste bood kheili az bazikone khaste fasele namigirim
-            if (!tm_is_tired || tm_tired_x > tm_def_pos_x - 1){
-                if (ball_inertia.x > tm_def_pos_x + 15){
-                    target.pos.x += 5.0;
-                }
-                else{
-                    target.pos.x += 1.5;
-                }
+            if (ball_inertia.x > tm_def_pos_x + 15){
+                target.pos.x += 5.0;
+            }
+            else{
+                target.pos.x += 1.5;
             }
         }
         if(target.pos.x < -36){
@@ -197,14 +178,11 @@ MarkPositionFinder::getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldMo
             dlog.addText(Logger::MARK,"go forward step step targx < -36, tm tired:%d tm tired x:%.1f defpos x:%.1f", tm_is_tired, tm_tired_x, tm_def_pos_x);
             #endif
             target.pos.x = tm_def_pos_x;
-            //agar opp posht defline bood va dalil defline bazikon khaste bood kheili az bazikone khaste fasele namigirim
-            if (!tm_is_tired || tm_tired_x > tm_def_pos_x - 1){
-                if (ball_inertia.x > tm_def_pos_x + 15){
-                    target.pos.x += 5.0;
-                }
-                else{
-                    target.pos.x += 1.5;
-                }
+            if (ball_inertia.x > tm_def_pos_x + 15){
+                target.pos.x += 5.0;
+            }
+            else{
+                target.pos.x += 1.5;
             }
         }
         target.pos.x = std::min(target.pos.x, tm_def_hpos_x);
@@ -274,6 +252,21 @@ MarkPositionFinder::getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldMo
 //        target.pos.x = tm_def_hpos_x;
 //    }
 
+    return target;
+}
+
+Target
+MarkPositionFinder::getThMarkTarget2(size_t tmUnum, size_t oppUnum, const WorldModel &wm, bool debug) {
+    Target target;
+    const AbstractPlayerObject *opp = wm.theirPlayer(oppUnum);
+    int opp_min = wm.interceptTable().opponentStep();
+    target.pos = Strategy::i().getPosition(tmUnum);
+    Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min);
+    Vector2D opp_vel = opp->vel() / 0.4 * 2.0 * opp->playerTypePtr()->playerSpeedMax();
+    if (opp_vel.x > -1)
+        opp_vel.x = -1;
+    Vector2D opp_pos = opp->pos() + opp_vel;;
+    target.th = (target.pos - opp_pos).th();
     return target;
 }
 

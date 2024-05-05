@@ -2068,6 +2068,7 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
 
     if (Strategy::i().isDefSit(wm, wm.self().unum()) ||
             (Strategy::i().tm_Line(wm.self().unum()) == Strategy::PostLine::back && wm.ball().inertiaPoint(opp_min).x > 30)) {
+        bhv_mark_execute().update_formation_for_low_stamina_player(agent);
         if (DefSitPlan(agent))
             return true;
     } else {

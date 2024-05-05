@@ -120,20 +120,20 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
             if (!th_mark_xs.empty()){
                 double min_th_mark_x = 100;
                 double max_th_mark_x = -100;
-                double sum_th_mark_x = 0;
-                for (auto & x: th_mark_xs){
-                    if (x < min_th_mark_x)
-                        min_th_mark_x = x;
-                    if (x < max_th_mark_x)
-                        max_th_mark_x = x;
-                    sum_th_mark_x += x;
-                }
-                double avg_th_mark_x = sum_th_mark_x / static_cast<double>(th_mark_xs.size());
+//                double sum_th_mark_x = 0;
+//                for (auto & x: th_mark_xs){
+//                    if (x < min_th_mark_x)
+//                        min_th_mark_x = x;
+//                    if (x < max_th_mark_x)
+//                        max_th_mark_x = x;
+//                    sum_th_mark_x += x;
+//                }
+//                double avg_th_mark_x = sum_th_mark_x / static_cast<double>(th_mark_xs.size());
                 Vector2D target = Strategy::i().getPosition(wm.self().unum());
-                target.x = avg_th_mark_x;
+//                target.x = avg_th_mark_x;
                 agent->debugClient().addCircle(target, 0.5);
                 agent->debugClient().setTarget(target);
-                agent->debugClient().addMessage("go to defend line");
+                agent->debugClient().addMessage("go to defend line (%.1f,%.1f)", target.x, target.y);
                 double dist_thr = wm.ball().distFromSelf() * 0.1;
                 if (dist_thr < 1.0) dist_thr = 1.0;
                 double dash_power = Strategy::get_normal_dash_power(wm);
@@ -155,6 +155,48 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
     return false;
 }
 
+void bhv_mark_execute::update_formation_for_low_stamina_player(PlayerAgent *agent){
+    const WorldModel & wm = agent->world();
+    int opp_min = wm.interceptTable().opponentStep();
+    Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min);
+    double current_h_def_line = Strategy::i().getPosition(2).x;
+    bool tm_is_tired = false;
+    double tm_tired_x = 0;
+    int tm_tired_unum = 0;
+    for(int t = 2; t <= 11; t++){
+        const AbstractPlayerObject * tm = wm.ourPlayer(t);
+        if(tm != nullptr && tm->unum() > 0){
+            if(tm->seenStaminaCount() < 15 && tm->seenStamina() < 4500 + 50 * tm->seenStaminaCount()){
+                tm_is_tired = true;
+                if (tm->pos().x > tm_tired_x){
+                    tm_tired_x = tm->pos().x;
+                    tm_tired_unum = t;
+                }
+            }
+        }
+    }
+    if (tm_is_tired && tm_tired_x < current_h_def_line){
+        agent->debugClient().addMessage("tired:p %d x %.1f", tm_tired_unum, tm_tired_x);
+        double tmp_ball_pos_x = 0;
+        double h_def_line_diff = 1000;
+        double best_tmp_ball_pos_x = 0;
+        while(tmp_ball_pos_x > -52){
+            Vector2D h_pos_p_2 = Strategy::i().getPositionWithBall(2, Vector2D(tmp_ball_pos_x, 0), wm);
+            double diff = abs(h_pos_p_2.x - tm_tired_x);
+            if (diff < h_def_line_diff){
+                h_def_line_diff = diff;
+                best_tmp_ball_pos_x = tmp_ball_pos_x;
+            }
+            tmp_ball_pos_x -= 5;
+        }
+        agent->debugClient().addMessage("newballx %.1f", best_tmp_ball_pos_x);
+        double best_tmp_ball_pos_y = ball_inertia.y;
+        for (int t = 2; t <= 11; t++){
+            auto new_pos = Strategy::i().getPositionWithBall(t, Vector2D(best_tmp_ball_pos_x, best_tmp_ball_pos_y), wm);
+            Strategy::i().set_position(t, new_pos);
+        }
+    }
+}
 bool bhv_mark_execute::defenseGoBack(PlayerAgent *agent){
     const WorldModel & wm = agent->world();
     Vector2D ball_inertia = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
@@ -540,22 +582,23 @@ double bhv_mark_execute::th_mark_power(PlayerAgent * agent, Vector2D opp_pos, Ve
 void bhv_mark_execute::th_mark_move(PlayerAgent * agent, Target targ, double dash_power, double dist_thr, int opp_unum){
     const WorldModel & wm = agent->world();
     Vector2D self_pos = wm.self().pos();
+    targ = MarkPositionFinder::getThMarkTarget2(wm.self().unum(), opp_unum, wm, false);
     Vector2D target_pos = targ.pos;
     double body_dif = (targ.th - wm.self().body()).abs();
     int opp_min_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
     Vector2D self_hpos = Strategy::i().getPosition(wm.self().unum());
     Vector2D opp_pos = wm.theirPlayer(opp_unum)->pos();
-    if (Setting::i()->mDefenseMove->mFixThMarkY){
-        if (Strategy::i().self_Line() == Strategy::PostLine::back){
-            if (abs(self_hpos.y - target_pos.y) > 5.0 && (ball_pos - opp_pos).th().abs() > 30.0) {
-                target_pos.y = self_hpos.y;
-                targ.pos.y = self_hpos.y;
-                agent->debugClient().addCircle(targ.pos, 0.5);
-                agent->debugClient().setTarget(targ.pos);
-            }
-        }
-    }
+//    if (Setting::i()->mDefenseMove->mFixThMarkY){
+//        if (Strategy::i().self_Line() == Strategy::PostLine::back){
+//            if (abs(self_hpos.y - target_pos.y) > 5.0 && (ball_pos - opp_pos).th().abs() > 30.0) {
+//                target_pos.y = self_hpos.y;
+//                targ.pos.y = self_hpos.y;
+//                agent->debugClient().addCircle(targ.pos, 0.5);
+//                agent->debugClient().setTarget(targ.pos);
+//            }
+//        }
+//    }
 
     if (self_pos.dist(target_pos) < dist_thr && targ.th.degree() != 1000) {
         if (Body_TurnToAngle(targ.th).execute(agent)) {

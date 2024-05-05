@@ -14,6 +14,8 @@ public:
 
     static Target getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldModel &wm, bool debug = false);
 
+    static Target getThMarkTarget2(size_t tmUnum, size_t oppUnum, const WorldModel &wm, bool debug = false);
+
     static Target getDengerMarkTarget(int tmUnum, int oppUnum, const WorldModel &wm);
 
 };
