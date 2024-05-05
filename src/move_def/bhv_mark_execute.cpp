@@ -15,7 +15,7 @@
 #include <ctime>
 #include "../debugs.h"
 #include "../setting.h"
-#include "basic_defensive_mode.h"
+#include "basic_defensive_move.h"
 
 using namespace std;
 using namespace rcsc;

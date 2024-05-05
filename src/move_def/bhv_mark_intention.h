@@ -23,7 +23,7 @@
 #include <rcsc/common/say_message_parser.h>
 #include <rcsc/player/say_message_builder.h>
 #include "basic_actions/neck_turn_to_ball_and_player.h"
-#include "basic_defensive_mode.h"
+#include "basic_defensive_move.h"
 #include <rcsc/common/logger.h>
 
 class IntentionMark
