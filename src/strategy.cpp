@@ -847,6 +847,7 @@ Strategy::update( const WorldModel & wm )
     updatePosition( wm );
 
     if (get_formation_type() == FormationType::F433 && getFormation() == M_F433_defense_formation){
+        dlog.addText(Logger::TEAM, "Current formation is F433 defense formation");
         bool p5_exist = true;
         bool p6_exist = true;
         double p5_dist_x = 1000;
@@ -863,15 +864,21 @@ Strategy::update( const WorldModel & wm )
             p5_exist = false;
         if (p6_dist_x > 15)
             p6_exist = false;
+        dlog.addText(Logger::TEAM, "p5_dist_x = %f, p6_dist_x = %f", p5_dist_x, p6_dist_x);
+        dlog.addText(Logger::TEAM, "p5_exist = %d, p6_exist = %d", p5_exist, p6_exist);
         auto new_formation = M_F433_defense_formation;
         if (!p5_exist && !p6_exist){
             new_formation = M_F433_defense_formation_no56;
+            dlog.addText(Logger::TEAM, "Change to F433 defense formation no 56");
         }else if (!p5_exist){
-            new_formation = M_F433_defense_formation_no6;
-        } else if (!p6_exist){
             new_formation = M_F433_defense_formation_no5;
+            dlog.addText(Logger::TEAM, "Change to F433 defense formation no 5");
+        } else if (!p6_exist){
+            new_formation = M_F433_defense_formation_no6;
+            dlog.addText(Logger::TEAM, "Change to F433 defense formation no 6");
         }
         if (new_formation != M_F433_defense_formation){
+            dlog.addText(Logger::TEAM, "Change formation");
             M_selected_formation = new_formation;
             updatePosition(wm);
         }
