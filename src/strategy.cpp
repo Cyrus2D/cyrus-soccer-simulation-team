@@ -1073,12 +1073,12 @@ Strategy::updateSituation( const WorldModel & wm )
 void
 Strategy::updatePosition( const WorldModel & wm)
 {
-    static GameTime s_update_time( 0, 0 );
-    if ( s_update_time == wm.time() )
-    {
-        return;
-    }
-    s_update_time = wm.time();
+//    static GameTime s_update_time( 0, 0 );
+//    if ( s_update_time == wm.time() )
+//    {
+//        return;
+//    }
+//    s_update_time = wm.time();
 
     Formation::Ptr f = getFormation();
     if ( ! f )
