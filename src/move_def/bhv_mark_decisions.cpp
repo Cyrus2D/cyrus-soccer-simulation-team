@@ -266,6 +266,8 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
                 if (Strategy::i().tm_Line(t) == Strategy::PostLine::back) {
                     if (opp_pos.pos.x > tm_hpos_def_line + 12 && opp_pos.pos.x > wm.ourDefenseLineX() + 12)
                         max_hpos_dist = Setting::i()->mDefenseMove->mMidTh_HPosMaxDistBlock * 0.75;
+                    if (block_target[t].x > tm_hpos_def_line + 1)
+                        continue;
                 }
                 if (tm_pos.dist(opp_pos.pos) > max_pos_dist) {
                     #ifdef DEBUG_MARK_DECISIONS
