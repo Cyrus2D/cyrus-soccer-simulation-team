@@ -274,20 +274,31 @@ MarkPositionFinder::getThMarkTarget2(size_t tmUnum, size_t oppUnum, const WorldM
     if (target.pos.x > offside_line_except_self + 2)
         target.pos.x = offside_line_except_self + 2;
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min);
-    Vector2D opp_vel = opp->vel() / 0.4 * 2.0 * opp->playerTypePtr()->playerSpeedMax();
-    if (opp_vel.x > -1)
-        opp_vel.x = -1;
-    Vector2D opp_pos = opp->pos() + opp_vel;
+    Vector2D opp_vel = Vector2D(0, 0);
+    if (oppUnum != -1){
+        opp->vel() / 0.4 * 2.0 * opp->playerTypePtr()->playerSpeedMax();
+        if (opp_vel.x > -1)
+            opp_vel.x = -1;
 
-    if (opp_pos.x < wm.ourDefenseLineX()){
-        if (opp_pos.y > target.pos.y)
+        Vector2D opp_pos = opp->pos() + opp_vel;
+
+        if (opp_pos.x < wm.ourDefenseLineX()){
+            if (opp_pos.y > target.pos.y)
+                target.th = AngleDeg(90);
+            else
+                target.th = AngleDeg(-90);
+        }
+        else{
+            target.th = (opp_pos - target.pos).th();
+        }
+    }
+    else{
+        if (ball_inertia.y > target.pos.y)
             target.th = AngleDeg(90);
         else
             target.th = AngleDeg(-90);
     }
-    else{
-        target.th = (opp_pos - target.pos).th();
-    }
+
     return target;
 }
 
