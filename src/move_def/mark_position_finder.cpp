@@ -260,6 +260,7 @@ MarkPositionFinder::getThMarkTarget2(size_t tmUnum, size_t oppUnum, const WorldM
     Target target;
     const AbstractPlayerObject *opp = wm.theirPlayer(oppUnum);
     int opp_min = wm.interceptTable().opponentStep();
+    Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min);
     double offside_line_except_self = 0;
     for (int t = 2; t <= 11; t++) {
         if (t == tmUnum)
@@ -273,7 +274,96 @@ MarkPositionFinder::getThMarkTarget2(size_t tmUnum, size_t oppUnum, const WorldM
     target.pos = Strategy::i().getPosition(tmUnum);
     if (target.pos.x > offside_line_except_self + 2)
         target.pos.x = offside_line_except_self + 2;
-    Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min);
+    {
+        if (Strategy::i().tm_Post(tmUnum) == Strategy::pp_lb){
+            Vector2D side_opp_pos = Vector2D::INVALIDATED;
+            double min_y = 0;
+            for (auto opp_candid: wm.theirPlayers()){
+                if (opp_candid->pos().x < target.pos.x - 5)
+                    continue;
+                if (opp_candid->pos().x > target.pos.x + 5)
+                    continue;
+                if (opp_candid->pos().y < min_y){
+                    min_y = opp_candid->pos().y;
+                    side_opp_pos = opp_candid->pos();
+                }
+            }
+            if (side_opp_pos.isValid() &&
+                side_opp_pos.y < 0 &&
+                side_opp_pos.y > target.pos.y + 5.0 &&
+                ball_inertia.y > target.pos.y - 3){
+                Vector2D side_tm_pos_except_self = Vector2D::INVALIDATED;
+                min_y = 0;
+                for (int t = 2; t <= 11; t++) {
+                    if (t == tmUnum)
+                        continue;
+                    const AbstractPlayerObject *tm = wm.ourPlayer(t);
+                    if (tm == nullptr || tm->unum() != t)
+                        continue;
+                    if (tm->pos().x < target.pos.x - 5)
+                        continue;
+                    if (tm->pos().x > target.pos.x + 5)
+                        continue;
+                    if (tm->pos().y < min_y){
+                        min_y = tm->pos().y;
+                        side_tm_pos_except_self = tm->pos();
+                    }
+                }
+                if (side_tm_pos_except_self.isValid() &&
+                    side_tm_pos_except_self.y > target.pos.y + 5 &&
+                    side_tm_pos_except_self.y > side_opp_pos.y &&
+                    ball_inertia.x > target.pos.x + 3 &&
+                    ball_inertia.y < 0 &&
+                    ball_inertia.y < side_tm_pos_except_self.y + 5){
+                    target.pos.y += std::min(5.0, ball_inertia.y - target.pos.y);
+                }
+            }
+        }
+        if (Strategy::i().tm_Post(tmUnum) == Strategy::pp_rb){
+            Vector2D side_opp_pos = Vector2D::INVALIDATED;
+            double max_y = 0;
+            for (auto opp_candid: wm.theirPlayers()){
+                if (opp_candid->pos().x < target.pos.x - 5)
+                    continue;
+                if (opp_candid->pos().x > target.pos.x + 5)
+                    continue;
+                if (opp_candid->pos().y > max_y){
+                    max_y = opp_candid->pos().y;
+                    side_opp_pos = opp_candid->pos();
+                }
+            }
+            if (side_opp_pos.isValid() &&
+                side_opp_pos.y > 0 &&
+                side_opp_pos.y < target.pos.y - 5.0 &&
+                ball_inertia.y < target.pos.y + 3){
+                Vector2D side_tm_pos_except_self = Vector2D::INVALIDATED;
+                max_y = 0;
+                for (int t = 2; t <= 11; t++) {
+                    if (t == tmUnum)
+                        continue;
+                    const AbstractPlayerObject *tm = wm.ourPlayer(t);
+                    if (tm == nullptr || tm->unum() != t)
+                        continue;
+                    if (tm->pos().x < target.pos.x - 5)
+                        continue;
+                    if (tm->pos().x > target.pos.x + 5)
+                        continue;
+                    if (tm->pos().y > max_y){
+                        max_y = tm->pos().y;
+                        side_tm_pos_except_self = tm->pos();
+                    }
+                }
+                if (side_tm_pos_except_self.isValid() &&
+                    side_tm_pos_except_self.y < target.pos.y - 5 &&
+                    side_tm_pos_except_self.y < side_opp_pos.y &&
+                    ball_inertia.x > target.pos.x + 3 &&
+                    ball_inertia.y > 0 &&
+                    ball_inertia.y > side_tm_pos_except_self.y - 5){
+                    target.pos.y -= std::min(5.0, target.pos.y - ball_inertia.y);
+                }
+            }
+        }
+    }
     Vector2D opp_vel = Vector2D(0, 0);
     if (oppUnum != -1){
         opp->vel() / 0.4 * 2.0 * opp->playerTypePtr()->playerSpeedMax();
