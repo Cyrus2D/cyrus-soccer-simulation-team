@@ -118,40 +118,43 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
                 }
             }
             if (!th_mark_xs.empty()){
+                if (Setting::i()->mDefenseMove->mUseGetThMarkTarget2ForThMark){
+                    double dash_power = Strategy::get_normal_dash_power(wm);
+                    th_mark_move(agent, Target(), dash_power, 1, -1);
+                    return true;
+                }
+
+                double min_th_mark_x = 100;
+                double max_th_mark_x = -100;
+                double sum_th_mark_x = 0;
+                for (auto & x: th_mark_xs){
+                    if (x < min_th_mark_x)
+                        min_th_mark_x = x;
+                    if (x < max_th_mark_x)
+                        max_th_mark_x = x;
+                    sum_th_mark_x += x;
+                }
+                double avg_th_mark_x = sum_th_mark_x / static_cast<double>(th_mark_xs.size());
+                Vector2D target = Strategy::i().getPosition(wm.self().unum());
+                target.x = avg_th_mark_x;
+                agent->debugClient().addCircle(target, 0.5);
+                agent->debugClient().setTarget(target);
+                agent->debugClient().addMessage("go to defend line (%.1f,%.1f)", target.x, target.y);
+                double dist_thr = wm.ball().distFromSelf() * 0.1;
+                if (dist_thr < 1.0) dist_thr = 1.0;
                 double dash_power = Strategy::get_normal_dash_power(wm);
-                th_mark_move(agent, Target(), dash_power, 1, -1);
+                if (!Body_GoToPoint(target, dist_thr, dash_power
+                ).execute(agent)) {
+                    Body_TurnToBall().execute(agent);
+                }
+
+                if (wm.kickableOpponent()
+                    && wm.ball().distFromSelf() < 18.0) {
+                    agent->setNeckAction(new Neck_TurnToBall());
+                } else {
+                    agent->setNeckAction(new Neck_TurnToBallOrScan(0));
+                }
                 return true;
-//                double min_th_mark_x = 100;
-//                double max_th_mark_x = -100;
-//                double sum_th_mark_x = 0;
-//                for (auto & x: th_mark_xs){
-//                    if (x < min_th_mark_x)
-//                        min_th_mark_x = x;
-//                    if (x < max_th_mark_x)
-//                        max_th_mark_x = x;
-//                    sum_th_mark_x += x;
-//                }
-//                double avg_th_mark_x = sum_th_mark_x / static_cast<double>(th_mark_xs.size());
-//                Vector2D target = Strategy::i().getPosition(wm.self().unum());
-//                target.x = avg_th_mark_x;
-//                agent->debugClient().addCircle(target, 0.5);
-//                agent->debugClient().setTarget(target);
-//                agent->debugClient().addMessage("go to defend line (%.1f,%.1f)", target.x, target.y);
-//                double dist_thr = wm.ball().distFromSelf() * 0.1;
-//                if (dist_thr < 1.0) dist_thr = 1.0;
-//                double dash_power = Strategy::get_normal_dash_power(wm);
-//                if (!Body_GoToPoint(target, dist_thr, dash_power
-//                ).execute(agent)) {
-//                    Body_TurnToBall().execute(agent);
-//                }
-//
-//                if (wm.kickableOpponent()
-//                    && wm.ball().distFromSelf() < 18.0) {
-//                    agent->setNeckAction(new Neck_TurnToBall());
-//                } else {
-//                    agent->setNeckAction(new Neck_TurnToBallOrScan(0));
-//                }
-//                return true;
             }
         }
     }
