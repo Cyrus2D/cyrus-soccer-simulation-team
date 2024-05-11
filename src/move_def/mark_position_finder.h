@@ -16,6 +16,8 @@ public:
 
     static Target getThMarkTarget2(size_t tmUnum, size_t oppUnum, const WorldModel &wm, bool debug = false);
 
+    static void updateThMarkTargetForSideDefender(size_t tmUnum, const WorldModel &wm, Target &target, bool debug = false);
+
     static Target getDengerMarkTarget(int tmUnum, int oppUnum, const WorldModel &wm);
 
 };
