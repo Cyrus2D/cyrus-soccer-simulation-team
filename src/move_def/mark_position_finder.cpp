@@ -258,7 +258,7 @@ MarkPositionFinder::getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldMo
 Target
 MarkPositionFinder::getThMarkTarget2(size_t tmUnum, size_t oppUnum, const WorldModel &wm, bool debug) {
     Target target;
-    const AbstractPlayerObject *opp = wm.theirPlayer(oppUnum);
+
     int opp_min = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min);
     double offside_line_except_self = 0;
@@ -279,8 +279,9 @@ MarkPositionFinder::getThMarkTarget2(size_t tmUnum, size_t oppUnum, const WorldM
         updateThMarkTargetForSideDefender(tmUnum, wm, target, debug);
 
     Vector2D opp_vel = Vector2D(0, 0);
-    if (oppUnum != -1){
-        opp->vel() / 0.4 * 2.0 * opp->playerTypePtr()->playerSpeedMax();
+    const AbstractPlayerObject *opp = wm.theirPlayer(oppUnum);
+    if (opp != nullptr && opp->unum() == oppUnum){
+        opp_vel = opp->vel() / 0.4 * 2.0 * opp->playerTypePtr()->playerSpeedMax();
         if (opp_vel.x > -1)
             opp_vel.x = -1;
 

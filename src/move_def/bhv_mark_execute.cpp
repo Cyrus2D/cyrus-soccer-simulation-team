@@ -600,18 +600,20 @@ void bhv_mark_execute::th_mark_move(PlayerAgent * agent, Target targ, double das
     Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
     Vector2D self_hpos = Strategy::i().getPosition(wm.self().unum());
 
-    Vector2D opp_pos = wm.theirPlayer(opp_unum)->pos();
-    if (Setting::i()->mDefenseMove->mFixThMarkY){
-        if (Strategy::i().self_Line() == Strategy::PostLine::back){
-            if (abs(self_hpos.y - target_pos.y) > 5.0 && (ball_pos - opp_pos).th().abs() > 30.0) {
-                target_pos.y = self_hpos.y;
-                targ.pos.y = self_hpos.y;
-                agent->debugClient().addCircle(targ.pos, 0.5);
-                agent->debugClient().setTarget(targ.pos);
+    const AbstractPlayerObject * opp = wm.theirPlayer(opp_unum);
+    if (opp != nullptr && opp->unum() == opp_unum) {
+        Vector2D opp_pos = opp->pos();
+        if (Setting::i()->mDefenseMove->mFixThMarkY) {
+            if (Strategy::i().self_Line() == Strategy::PostLine::back) {
+                if (abs(self_hpos.y - target_pos.y) > 5.0 && (ball_pos - opp_pos).th().abs() > 30.0) {
+                    target_pos.y = self_hpos.y;
+                    targ.pos.y = self_hpos.y;
+                    agent->debugClient().addCircle(targ.pos, 0.5);
+                    agent->debugClient().setTarget(targ.pos);
+                }
             }
         }
     }
-
     if (self_pos.dist(target_pos) < dist_thr && targ.th.degree() != 1000) {
         if (Body_TurnToAngle(targ.th).execute(agent)) {
             #ifdef DEBUG_MARK_EXECUTE
