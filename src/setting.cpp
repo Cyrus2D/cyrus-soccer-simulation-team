@@ -96,6 +96,9 @@ ChainActionSetting::ChainActionSetting(Value & value){
 }
 
 StrategySetting::StrategySetting(Value & value){
+    if (value.HasMember("UpdateFormationWhenDefenderDoesNotExists")){
+        mUpdateFormationWhenDefenderDoesNotExists = value["UpdateFormationWhenDefenderDoesNotExists"].GetBool();
+    }
     if(value.HasMember("Formation")){
         auto & o = (value.GetObject())["Formation"];
         if(o.HasMember("Win")){
@@ -163,6 +166,12 @@ OffensiveMoveSetting::OffensiveMoveSetting(Value &value)
 }
 
 DefenseMoveSetting::DefenseMoveSetting(Value & value){
+    if (value.HasMember("UpdateThMarkTargetForSideDefenders"))
+        mUpdateThMarkTargetForSideDefenders = value["UpdateThMarkTargetForSideDefenders"].GetBool();
+    if(value.HasMember("UseGetThMarkTarget2ForThMark"))
+        mUseGetThMarkTarget2ForThMark = value["UseGetThMarkTarget2ForThMark"].GetBool();
+    if (value.HasMember("UpdateFormationForLowStaminaPlayers"))
+        mUpdateFormationForLowStaminaPlayers = value["UpdateFormationForLowStaminaPlayers"].GetBool();
     if(value.HasMember("BackBlockMaxXToDefHPosX")){
         mBackBlockMaxXToDefHPosX = value["BackBlockMaxXToDefHPosX"].GetDouble();
     }

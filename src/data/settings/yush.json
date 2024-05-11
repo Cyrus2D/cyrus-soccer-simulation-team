@@ -1,9 +1,10 @@
 {
 	"Strategy":	{
+		"UpdateFormationWhenDefenderDoesNotExists":true,
 		"Formation":	{
-			"Win":"433",
-			"Lost":"433",
-			"Draw":"433"
+			"Win":"523",
+			"Lost":"523",
+			"Draw":"523"
 		},
 		"Is5ForwardWin":true,
 		"Is5ForwardLost":true,
@@ -44,10 +45,13 @@
 		"UseThPassSimInVoroScape": false
 	},
 	"DefenseMove": {
+		"UseGetThMarkTarget2ForThMark": true,
+		"UpdateFormationForLowStaminaPlayers": true,
+		"FixThMarkY": false,
+		"UpdateThMarkTargetForSideDefenders": true,
 		"BackBlockMaxXToDefHPosX": 50.0,
 		"BlockGoToOppPos": false,
 		"GoToDefendX": true,
-		"FixThMarkY": false,
 		"MidTh_PosFinderHPosXNegativeTerm": 0.0,
 		"MidTh_PosFinderBackDistXPlusTerm": 0.0,
 		"BlockZ_CB_Next" : 3.0,

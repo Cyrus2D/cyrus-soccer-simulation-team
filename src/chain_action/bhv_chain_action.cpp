@@ -212,26 +212,6 @@ Bhv_ChainAction::execute( PlayerAgent * agent )
     const ServerParam & SP = ServerParam::i();
     const WorldModel & wm = agent->world();
 
-    if ( Strategy::i().M_formation_type == Strategy::FormationType::F550
-         && FieldAnalyzer::isHelius(agent->world()))
-    {
-        Body_ClearBall().execute( agent );
-        NeckDecisionWithBall().setNeck(agent, NeckDecisionType::chain_action);
-        return true;
-    }
-
-    if( Strategy::i().my_team_tactic == Strategy::TeamTactic::AllDef
-            && Strategy::i().M_formation_type == Strategy::FormationType::F550)
-    {
-        if(wm.ball().pos().dist(Vector2D(-52,0)) < 20
-                && wm.opponents().size() > 0
-                && wm.opponentsFromBall().front()->pos().dist(wm.ball().pos()) < 5)
-        {
-            Body_ClearBall().execute( agent );
-            NeckDecisionWithBall().setNeck(agent, NeckDecisionType::chain_action);
-            return true;
-        }
-    }
     if ( doTurnToForward( agent ) )
 	{
 		return true;

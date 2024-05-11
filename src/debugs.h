@@ -9,7 +9,7 @@
 
 //#define DEBUG_MARK_MATCH_FINDER
 //
-//#define DEBUG_BLOCK
+#define DEBUG_BLOCK
 //
 //#define DEBUG_MARK_DECISION_GREEDY
 //

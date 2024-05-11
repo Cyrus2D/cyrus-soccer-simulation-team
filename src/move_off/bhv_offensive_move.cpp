@@ -87,7 +87,8 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
     //Broker Offside
     if ( Setting::i()->mOffensiveMove->mIs9BrokeOffside
          && Strategy::i().self_Post() == Strategy::player_post::pp_lf
-         && Strategy::i().get_formation_type() == Strategy::FormationType::F433)
+         && (Strategy::i().get_formation_type() == Strategy::FormationType::F433
+            || Strategy::i().get_formation_type() == Strategy::FormationType::F523))
     {
         if ( wm.ball().inertiaPoint(mate_min).x > -25
              && target_point.x < 40 ){

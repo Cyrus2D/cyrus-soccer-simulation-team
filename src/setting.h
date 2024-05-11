@@ -67,6 +67,7 @@ public:
     bool mIs5ForwardDraw = true;
     bool mIs5ForwardLost = true;
     bool mIsGoalForward = false;
+    bool mUpdateFormationWhenDefenderDoesNotExists = true;
 };
 
 class NeckSetting{
@@ -95,6 +96,9 @@ class DefenseMoveSetting{
 public:
     DefenseMoveSetting(){}
     DefenseMoveSetting(Value & value);
+    bool mUseGetThMarkTarget2ForThMark = true;
+    bool mUpdateThMarkTargetForSideDefenders = true;
+    bool mUpdateFormationForLowStaminaPlayers = false;
     double mBackBlockMaxXToDefHPosX = 10.0;
     bool mBlockGoToOppPos = false;
     bool mGoToDefendX = true;

@@ -71,7 +71,8 @@ bool bhv_scape::can_scape(const WorldModel & wm){
 //    if(ball_iner.x < target_point.x - 20)
 //        return false;
     if(Setting::i()->mOffensiveMove->mIs9BrokeOffside
-            && Strategy::i().get_formation_type() == Strategy::FormationType::F433
+            && (Strategy::i().get_formation_type() == Strategy::FormationType::F433
+                || Strategy::i().get_formation_type() == Strategy::FormationType::F523)
             && unum == 11
             && ball_iner.y < -10
             && passer != 9 && passer != 10

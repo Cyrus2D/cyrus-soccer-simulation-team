@@ -586,7 +586,8 @@ double bhv_mark_execute::th_mark_power(PlayerAgent * agent, Vector2D opp_pos, Ve
 void bhv_mark_execute::th_mark_move(PlayerAgent * agent, Target targ, double dash_power, double dist_thr, int opp_unum){
     const WorldModel & wm = agent->world();
     Vector2D self_pos = wm.self().pos();
-    targ = MarkPositionFinder::getThMarkTarget2(wm.self().unum(), opp_unum, wm, false);
+    if (Setting::i()->mDefenseMove->mUseGetThMarkTarget2ForThMark)
+        targ = MarkPositionFinder::getThMarkTarget2(wm.self().unum(), opp_unum, wm, false);
     agent->debugClient().addCircle(targ.pos, 0.5);
     agent->debugClient().addCircle(targ.pos, 0.3);
     agent->debugClient().addCircle(targ.pos, 0.1);
@@ -595,6 +596,18 @@ void bhv_mark_execute::th_mark_move(PlayerAgent * agent, Target targ, double das
     int opp_min_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_pos = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
     Vector2D self_hpos = Strategy::i().getPosition(wm.self().unum());
+
+    Vector2D opp_pos = wm.theirPlayer(opp_unum)->pos();
+    if (Setting::i()->mDefenseMove->mFixThMarkY){
+        if (Strategy::i().self_Line() == Strategy::PostLine::back){
+            if (abs(self_hpos.y - target_pos.y) > 5.0 && (ball_pos - opp_pos).th().abs() > 30.0) {
+                target_pos.y = self_hpos.y;
+                targ.pos.y = self_hpos.y;
+                agent->debugClient().addCircle(targ.pos, 0.5);
+                agent->debugClient().setTarget(targ.pos);
+            }
+        }
+    }
 
     if (self_pos.dist(target_pos) < dist_thr && targ.th.degree() != 1000) {
         if (Body_TurnToAngle(targ.th).execute(agent)) {
