@@ -276,7 +276,7 @@ MarkPositionFinder::getThMarkTarget2(size_t tmUnum, size_t oppUnum, const WorldM
         target.pos.x = offside_line_except_self + 2;
 
     updateThMarkTargetForSideDefender(tmUnum, wm, target, debug);
-    
+
     Vector2D opp_vel = Vector2D(0, 0);
     if (oppUnum != -1){
         opp->vel() / 0.4 * 2.0 * opp->playerTypePtr()->playerSpeedMax();
@@ -376,7 +376,9 @@ MarkPositionFinder::updateThMarkTargetForSideDefender(size_t tmUnum, const World
     Vector2D side_tm_pos_except_self = getOurDefenderSidePosExceptX(wm, side, tmUnum);
     if (!side_tm_pos_except_self.isValid())
         return;
-    if (side_tm_pos_except_self.absY() > side_opp_pos.absY() - 2.0)
+    if (side_tm_pos_except_self.absY() > side_opp_pos.absY() - 3.0)
+        return;
+    if (side_opp_pos.absY() > target.pos.absY())
         return;
     target.pos.y = side_opp_pos.y;
 }
