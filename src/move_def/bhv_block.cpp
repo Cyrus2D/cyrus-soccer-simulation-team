@@ -302,8 +302,13 @@ vector<double> bhv_block::blocker_eval(const WorldModel &wm) {
             continue;
         Vector2D tm_pos = tm->pos();
         int cycle_reach = tm->playerTypePtr()->cyclesToReachDistance(tm_pos.dist(start_drible));
-        Vector2D target;
-        bhv_block::block_cycle(wm, t, cycle_reach, target);
+        vector<BlockObject> block_objects;
+        bhv_block::block_cycle(wm, t, block_objects);
+        Vector2D target = Vector2D::INVALIDATED;
+        if (block_objects.size() > 0) {
+            target = block_objects[0].target_pos;
+            cycle_reach = block_objects[0].dribble_cycle;
+        }
         if (tm->isTackling())
             cycle_reach += 9;
         cycle_reach *= block_zarib[t];
@@ -374,8 +379,15 @@ std::pair<vector<double>, vector<Vector2D> > bhv_block::blocker_eval_mark_decisi
             continue;
         Vector2D tm_pos = tm->pos();
         int cycle_reach = tm->playerTypePtr()->cyclesToReachDistance(tm_pos.dist(start_drible));
-	Vector2D target;
-	bhv_block::block_cycle(wm, t, cycle_reach, target);
+
+        vector<BlockObject> block_objects;
+	    bhv_block::block_cycle(wm, t, block_objects);
+        Vector2D target = Vector2D::INVALIDATED;
+        if (block_objects.size() > 0) {
+            target = block_objects[0].target_pos;
+            cycle_reach = block_objects[0].reach_cycle;
+        }
+
         if (tm->isTackling())
             cycle_reach += 9;
         if (Strategy::i().tm_Post(t) == Strategy::player_post::pp_cb){
@@ -469,7 +481,7 @@ void bhv_block::get_start_dribble(const WorldModel &wm, Vector2D &start_dribble,
     cycle = opp_min;
 }
 
-void bhv_block::block_cycle(const WorldModel &wm, int unum, int &cycle, Vector2D &target, bool debug) {
+void bhv_block::block_cycle(const WorldModel &wm, int unum, vector<BlockObject> & block_objects, bool debug) {
     Vector2D start_drible;
     int start_drible_time;
     get_start_dribble(wm, start_drible, start_drible_time);
@@ -495,8 +507,6 @@ void bhv_block::block_cycle(const WorldModel &wm, int unum, int &cycle, Vector2D
     }
     Vector2D vel = Vector2D::polar2vector(dribble_speed, best_angle);
     if (wm.ourPlayer(unum) == NULL || wm.ourPlayer(unum)->unum() < 1) {
-        target = Vector2D::INVALIDATED;
-        cycle = 1000;
         return;
     }
     Vector2D ball = start_drible;
@@ -512,9 +522,10 @@ void bhv_block::block_cycle(const WorldModel &wm, int unum, int &cycle, Vector2D
         CutBallCalculator().cycles_to_cut_ball(wm.ourPlayer(wm.self().unum()), ball, drible_step, false, dc, tc, vc, tm_pos, tm_vel);
         int dash_step = dc + tc;
         if (dash_step <= drible_step) {
-            target = ball;
-            cycle = drible_step;
+            block_objects.emplace_back(ball, drible_step, dash_step);
             #ifdef DEBUG_BLOCK
+            if (debug)
+            {
                 dlog.addCircle(Logger::BLOCK, ball, 0.2, 0, 0, 255);
                 char num[8];
                 snprintf(num, 8, "%d", drible_step);
@@ -522,10 +533,12 @@ void bhv_block::block_cycle(const WorldModel &wm, int unum, int &cycle, Vector2D
                 snprintf(num2, 8, "%d", dash_step);
                 dlog.addMessage(Logger::BLOCK, ball - Vector2D(0, 1), num);
                 dlog.addMessage(Logger::BLOCK, ball - Vector2D(0, 2), num2);
+            }
             #endif
-            return;
+//            return;
         } else {
             #ifdef DEBUG_BLOCK
+            if (debug){
                 dlog.addCircle(Logger::BLOCK, ball, 0.2, 255, 0, 0);
                 char num[8];
                 snprintf(num, 8, "%d", drible_step);
@@ -533,11 +546,10 @@ void bhv_block::block_cycle(const WorldModel &wm, int unum, int &cycle, Vector2D
                 snprintf(num2, 8, "%d", dash_step);
                 dlog.addMessage(Logger::BLOCK, ball - Vector2D(0, 1), num);
                 dlog.addMessage(Logger::BLOCK, ball - Vector2D(0, 2), num2);
+            }
             #endif
         }
     }
-    cycle = 1000;
-    target = Vector2D::INVALIDATED;
 }
 
 bool bhv_block::do_block_pass(PlayerAgent *agent)
@@ -663,14 +675,25 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
         return false;
     if (wm.gameMode().type() != wm.gameMode().PlayOn)
         return false;
-    Vector2D target;
-    int cycle;
+
+
     if(Setting::i()->mDefenseMove->mUsePassBlock
             && do_block_pass(agent)){
         return true;
     }
-    block_cycle(wm, wm.self().unum(), cycle, target, true);
+    vector<BlockObject> block_objects;
+    block_cycle(wm, wm.self().unum(), block_objects, true);
+    if (block_objects.size() == 0)
+        return false;
+    auto opp_behaviors = OpponentBehaviorsCalculator(wm, wm.interceptTable().firstOpponent()->unum());
+
+    int cycle = block_objects[0].dribble_cycle;
+    Vector2D target = block_objects[0].target_pos;
     auto fastest_opp = wm.interceptTable().firstOpponent();
+
+    if (doCornerBlock(agent, wm, block_objects, opp_behaviors))
+        return true;
+
     bool go_to_opp = false;
     if (Setting::i()->mDefenseMove->mBlockGoToOppPos){
         if (target.isValid()){
@@ -815,6 +838,34 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
     }else{
 //        std::cout<<"B9"<<std::endl;
         return Bhv_BasicMove().intercept_plan(agent, true);
+    }
+    return false;
+}
+
+bool bhv_block::doCornerBlock(PlayerAgent *agent, const WorldModel &wm, vector<BlockObject> blockObjects,
+                              OpponentBehaviorsCalculator opponentBehaviors) {
+    Vector2D start_dribble;
+    int start_dribble_time;
+    get_start_dribble(wm, start_dribble, start_dribble_time);
+    if (start_dribble.x > -35 || start_dribble.absY() < 15)
+        return false;
+
+    // check if opponentBehaviors has a behavior that can dribble by using lambda function
+    bool can_dribble = opponentBehaviors.existDribble();
+    if (!can_dribble)
+    {
+
+    }
+    else
+    {
+        auto dribbleBehaviorPtr = opponentBehaviors.getDribble();
+        if (dribbleBehaviorPtr->behavior_sector.contains(wm.self().pos())){
+
+        }
+        else
+        {
+
+        }
     }
     return false;
 }

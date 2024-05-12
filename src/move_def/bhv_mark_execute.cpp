@@ -344,9 +344,14 @@ bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType mark
     if (back_to_def_flag
         && Strategy::i().self_Line() == Strategy::PostLine::back
         && marktype != MarkType::ThMark) {
-        Vector2D blockTarget;
-        int blockCycle;
-        bhv_block::block_cycle(wm, blocker, blockCycle, blockTarget, true);
+        Vector2D blockTarget = Vector2D::INVALIDATED;
+        int blockCycle = 1000;
+        vector<BlockObject> blockObjects;
+        bhv_block::block_cycle(wm, blocker, blockObjects, true);
+        if (blockObjects.size() > 0) {
+            blockTarget = blockObjects[0].target_pos;
+            blockCycle = blockObjects[0].dribble_cycle;
+        }
         target.pos.x = std::min(blockTarget.x, target.pos.x);
         #ifdef DEBUG_MARK_EXECUTE
         dlog.addText(Logger::MARK, ">>>> Change target because of back_to_def, target:(0.1f, 0.1f)", target.pos.x,

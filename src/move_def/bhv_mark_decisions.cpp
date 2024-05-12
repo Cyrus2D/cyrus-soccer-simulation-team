@@ -1039,6 +1039,7 @@ void BhvMarkDecisionGreedy::goalMarkDecision(PlayerAgent *agent, MarkType &mark_
     for (size_t t = 1; t <= 11; t++) {
         global_how_mark[t] = how_mark[t];
         global_tm_mark_target[t] = tm_mark_target[t];
+        global_opp_marker[tm_mark_target[t]] = t;
     }
     mark_unum = tm_mark_target[wm.self().unum()];
     mark_type = how_mark[wm.self().unum()];
@@ -1216,6 +1217,13 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
             #endif
         }
     }
+    #ifdef  DEBUG_MARK_DECISIONS
+    for (int t = 1; t <= 11; t++) {
+        for (int o = 1; o <= 11; o++) {
+            dlog.addText(Logger::MARK, "-----$def mark off tm %d opp %d eval %.2f", t, o, mark_eval[o][t]);
+        }
+    }
+    #endif
 }
 
 

@@ -8,6 +8,7 @@
 #ifndef SRC_BHV_BLOCK_H_
 #define SRC_BHV_BLOCK_H_
 
+#include <debugs.h>
 #include <rcsc/game_time.h>
 #include <rcsc/geom/vector_2d.h>
 
@@ -22,6 +23,22 @@
 using namespace std;
 using namespace rcsc;
 
+class BlockObject
+{
+public:
+    Vector2D target_pos;
+    int dribble_cycle;
+    int reach_cycle;
+
+    BlockObject(Vector2D _target_pos, int _dribble_cycle, int _reach_cycle)
+    {
+        target_pos = _target_pos;
+        dribble_cycle = _dribble_cycle;
+        reach_cycle = _reach_cycle;
+    }
+};
+class OpponentBehaviorsCalculator;
+
 class bhv_block{
 public:
     bool do_tackle_block(PlayerAgent *agent);
@@ -33,8 +50,11 @@ public:
     static Vector2D get_block_center_pos( const WorldModel & wm );
     static double get_dribble_angle(const WorldModel & wm, Vector2D start_dribble);
     static void get_start_dribble(const WorldModel & wm, Vector2D & start_dribble, int & cycle);
-    static void block_cycle(const WorldModel & wm,int unum, int & cycle, Vector2D & target,bool debug = false);
+    static void block_cycle(const WorldModel & wm,int unum, vector<BlockObject> & block_objects,bool debug = false);
     static bool do_block_pass(PlayerAgent * agent);
+
+    bool doCornerBlock(PlayerAgent *agent, const WorldModel &wm, vector<BlockObject> blockObjects,
+                       OpponentBehaviorsCalculator opponentBehaviors);
 };
 
 #ifndef INTENAION_BLOCK_H
@@ -103,9 +123,15 @@ public:
         int fastest_opp = wm.interceptTable().firstOpponent()->unum();
         Vector2D start_pos; int start_cycle;
         bhv_block::get_start_dribble(wm,start_pos,start_cycle);
-        Vector2D target_pos;int target_cycle;
-        bhv_block::block_cycle(wm,self_unum,target_cycle,target_pos);
+        vector<BlockObject> block_objects;
 
+        bhv_block::block_cycle(wm,self_unum,block_objects);
+        Vector2D target_pos = Vector2D::INVALIDATED;
+        int target_cycle = 1000;
+        if (block_objects.size() > 0){
+            target_cycle = block_objects[0].dribble_cycle;
+            target_pos = block_objects[0].target_pos;
+        }
         if(wm.theirPlayer(opp_unum)==NULL
                 || wm.theirPlayer(opp_unum)->unum() < 1)
             return true;
@@ -152,5 +178,146 @@ public:
     }
 };
 
+class OpponentBehaviorWithBall
+{
+public:
+    enum BehaviorType{
+        Pass,
+        Dribble,
+        Shoot
+    };
+    BehaviorType behavior_type;
+    int target_unum;
+    Vector2D target_pos;
+    double target_eval;
+    Sector2D behavior_sector = Sector2D(Vector2D::INVALIDATED, 0, 0, 0, 0);
+};
+
+class OpponentBehaviorsCalculator
+{
+public:
+    Vector2D start_dribble;
+    int start_dribble_time;
+    std::vector<OpponentBehaviorWithBall> behaviors;
+    OpponentBehaviorsCalculator(const WorldModel & wm, int unum){
+        bhv_block::get_start_dribble(wm, start_dribble, start_dribble_time);
+        checkDribble(wm, unum);
+        checkDirectPass(wm, unum);
+        checkShoot(wm, unum);
+        #ifdef DEBUG_BLOCK
+        for(auto behavior: behaviors){
+           dlog.addLine(Logger::BLOCK, start_dribble, behavior.target_pos, 255, 0, 0);
+        }
+        #endif
+    }
+
+    void checkDribble(const WorldModel & wm, int oppUnum) {
+        int self_unum = wm.self().unum();
+        double best_angle = bhv_block::get_dribble_angle(wm, start_dribble);
+        double max_dribble_dist = 3.0;
+        if (start_dribble.x > -27)
+            max_dribble_dist = 10.0;
+        else if (start_dribble.absY() > 15)
+            max_dribble_dist = 7.0;
+        Sector2D dribble_sector(start_dribble, 0, max_dribble_dist, best_angle - 20, best_angle + 20);
+        // is one teammate exist in sector?
+        bool is_teammate_in_sector = false;
+        for (int i = 1; i <= 11; i++) {
+            if (i == self_unum)
+                continue;
+            const AbstractPlayerObject * tm = wm.ourPlayer(i);
+            if (tm == nullptr || tm->unum() != i)
+                continue;
+            if (dribble_sector.contains(tm->pos())) {
+                is_teammate_in_sector = true;
+                break;
+            }
+        }
+        if (!is_teammate_in_sector) {
+            OpponentBehaviorWithBall behavior;
+            behavior.behavior_type = OpponentBehaviorWithBall::Dribble;
+            behavior.target_unum = oppUnum;
+            behavior.target_pos = start_dribble + Vector2D::polar2vector(max_dribble_dist, best_angle);
+            behavior.target_eval = evalCalculator(behavior.behavior_type, behavior.target_pos);
+            behavior.behavior_sector = dribble_sector;
+            behaviors.push_back(behavior);
+        }
+    }
+
+    void checkDirectPass(const WorldModel & wm, int oppUnum) {
+        int self_unum = wm.self().unum();
+        for (int o = 1; o <= 11; o++){
+            if (o == oppUnum)
+                continue;
+            const AbstractPlayerObject * opp = wm.theirPlayer(o);
+            if (opp == nullptr || opp->unum() != o)
+                continue;
+            auto opp_pos = opp->pos();
+            if (opp_pos.dist(start_dribble) > 25)
+                continue;
+            AngleDeg pass_angle = (opp_pos - start_dribble).th();
+            Sector2D pass_sector(start_dribble, 0, opp_pos.dist(start_dribble), pass_angle - 20, pass_angle + 20);
+
+            // is one teammate exist in sector?
+            bool is_teammate_in_sector = false;
+            for (int i = 1; i <= 11; i++) {
+                if (i == self_unum)
+                    continue;
+                const AbstractPlayerObject * tm = wm.ourPlayer(i);
+                if (tm == nullptr || tm->unum() != i)
+                    continue;
+                if (pass_sector.contains(tm->pos())) {
+                    is_teammate_in_sector = true;
+                    break;
+                }
+            }
+            if (!is_teammate_in_sector) {
+                OpponentBehaviorWithBall behavior;
+                behavior.behavior_type = OpponentBehaviorWithBall::Pass;
+                behavior.target_unum = o;
+                behavior.target_pos = opp_pos;
+                behavior.target_eval = evalCalculator(behavior.behavior_type, behavior.target_pos);
+                behavior.behavior_sector = pass_sector;
+                behaviors.push_back(behavior);
+            }
+        }
+    }
+
+    void checkShoot(const WorldModel & wm, int oppUnum) {
+        if (start_dribble.dist(Vector2D(-52.5, 0)) > 16)
+            return;
+        OpponentBehaviorWithBall behavior;
+        behavior.behavior_type = OpponentBehaviorWithBall::Shoot;
+        behavior.target_unum = oppUnum;
+        behavior.target_pos = Vector2D(-52.0, 0);
+        behavior.target_eval = evalCalculator(behavior.behavior_type, behavior.target_pos);
+        AngleDeg shoot_angle = (behavior.target_pos - start_dribble).th();
+        behavior.behavior_sector = Sector2D(behavior.target_pos, 0, 10, shoot_angle - 20.0, shoot_angle + 20.0);
+        behaviors.push_back(behavior);
+    }
+
+    double evalCalculator(OpponentBehaviorWithBall::BehaviorType type, Vector2D target_pos){
+        if (type == OpponentBehaviorWithBall::Shoot){
+            return 100.0;
+        }
+        return -target_pos.x + std::min(40.0, target_pos.dist(Vector2D(-52.5, 0)));
+    }
+
+    bool existDribble(){
+        for (auto behavior: behaviors){
+            if (behavior.behavior_type == OpponentBehaviorWithBall::Dribble)
+                return true;
+        }
+        return false;
+    }
+
+    OpponentBehaviorWithBall * getDribble(){
+        for (auto behavior: behaviors){
+            if (behavior.behavior_type == OpponentBehaviorWithBall::Dribble)
+                return &behavior;
+        }
+        return nullptr;
+    }
+};
 #endif
 #endif
