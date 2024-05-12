@@ -863,6 +863,13 @@ Strategy::updatePosition( const WorldModel & wm)
     }
 
     Vector2D ball_pos = wm.ball().inertiaPoint( ball_step );
+    if (wm.gameMode().type() != GameMode::PlayOn){
+        ball_pos = wm.ball().pos();
+        if (ball_pos.y > 34.0)
+            ball_pos.y = 34.0;
+        if (ball_pos.y < -34.0)
+            ball_pos.y = -34.0;
+    }
 
     dlog.addText( Logger::TEAM,
                   __FILE__": HOME POSITION: ball pos=(%.1f %.1f) step=%d",
