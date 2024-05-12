@@ -193,7 +193,7 @@ void bhv_mark_execute::update_formation_for_low_stamina_player(PlayerAgent *agen
                 h_def_line_diff = diff;
                 best_tmp_ball_pos_x = tmp_ball_pos_x;
             }
-            tmp_ball_pos_x -= 5;
+            tmp_ball_pos_x -= 1;
         }
         agent->debugClient().addMessage("newballx %.1f", best_tmp_ball_pos_x);
         double best_tmp_ball_pos_y = ball_inertia.y;
