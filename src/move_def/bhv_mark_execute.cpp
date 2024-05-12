@@ -172,9 +172,9 @@ void bhv_mark_execute::update_formation_for_low_stamina_player(PlayerAgent *agen
     for(int t = 2; t <= 11; t++){
         const AbstractPlayerObject * tm = wm.ourPlayer(t);
         if(tm != nullptr && tm->unum() > 0){
-            if(tm->seenStaminaCount() < 15 && tm->seenStamina() < 4500 + 50 * tm->seenStaminaCount()){
+            if(tm->seenStaminaCount() < 15 && tm->seenStamina() < 4000 + 50 * tm->seenStaminaCount()){
                 tm_is_tired = true;
-                if (tm->pos().x > tm_tired_x){
+                if (tm->pos().x < tm_tired_x){
                     tm_tired_x = tm->pos().x;
                     tm_tired_unum = t;
                 }
