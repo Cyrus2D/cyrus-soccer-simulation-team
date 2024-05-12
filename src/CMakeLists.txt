@@ -126,7 +126,8 @@ chain_action/actgen_strict_check_pass.cpp
 dkm/dkm.hpp
 denoising/localization_denoiser.cpp
 denoising/localization_denoiser_by_action.cpp
-denoising/localization_denoiser_by_area.cpp)
+denoising/localization_denoiser_by_area.cpp
+data_extractor/KickPredictor/KickDataGenerator.cpp)
 
 target_include_directories(sample_player
   PRIVATE
