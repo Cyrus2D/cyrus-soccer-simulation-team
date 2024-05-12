@@ -125,6 +125,40 @@ public:
         }
     }
 
+    std::string FormationToString(rcsc::Formation::Ptr formation){
+        if (formation == M_F433_before_kick_off_formation) return "M_F433_before_kick_off_formation";
+        if (formation == M_F433_before_kick_off_formation_for_our_kick) return "M_F433_before_kick_off_formation_for_our_kick";
+        if (formation == M_F433_defense_formation) return "M_F433_defense_formation";
+        if (formation == M_F433_offense_formation) return "M_F433_offense_formation";
+        if (formation == M_F433_offense_formation_for_oxsy) return "M_F433_offense_formation_for_oxsy";
+        if (formation == M_F433_goal_kick_opp_formation) return "M_F433_goal_kick_opp_formation";
+        if (formation == M_F433_goal_kick_our_formation) return "M_F433_goal_kick_our_formation";
+        if (formation == M_F433_kickin_our_formation) return "M_F433_kickin_our_formation";
+        if (formation == M_F433_setplay_opp_formation) return "M_F433_setplay_opp_formation";
+        if (formation == M_F433_setplay_our_formation) return "M_F433_setplay_our_formation";
+        if (formation == M_F523_before_kick_off_formation) return "M_F523_before_kick_off_formation";
+        if (formation == M_F523_before_kick_off_formation_for_our_kick) return "M_F523_before_kick_off_formation_for_our_kick";
+        if (formation == M_F523_defense_formation) return "M_F523_defense_formation";
+        if (formation == M_F523_defense_formation_no5) return "M_F523_defense_formation_no5";
+        if (formation == M_F523_defense_formation_no6) return "M_F523_defense_formation_no6";
+        if (formation == M_F523_defense_formation_no56) return "M_F523_defense_formation_no56";
+        if (formation == M_F523_offense_formation) return "M_F523_offense_formation";
+        if (formation == M_F523_goal_kick_opp_formation) return "M_F523_goal_kick_opp_formation";
+        if (formation == M_F523_goal_kick_our_formation) return "M_F523_goal_kick_our_formation";
+        if (formation == M_F523_kickin_our_formation) return "M_F523_kickin_our_formation";
+        if (formation == M_F523_setplay_opp_formation) return "M_F523_setplay_opp_formation";
+        if (formation == M_F523_setplay_our_formation) return "M_F523_setplay_our_formation";
+        if (formation == M_Fhel_before_kick_off_formation) return "M_Fhel_before_kick_off_formation";
+        if (formation == M_Fhel_defense_formation) return "M_Fhel_defense_formation";
+        if (formation == M_Fhel_offense_formation) return "M_Fhel_offense_formation";
+        if (formation == M_Fhel_goal_kick_opp_formation) return "M_Fhel_goal_kick_opp_formation";
+        if (formation == M_Fhel_goal_kick_our_formation) return "M_Fhel_goal_kick_our_formation";
+        if (formation == M_Fhel_kickin_our_formation) return "M_Fhel_kickin_our_formation";
+        if (formation == M_Fhel_setplay_opp_formation) return "M_Fhel_setplay_opp_formation";
+        if (formation == M_Fhel_setplay_our_formation) return "M_Fhel_setplay_our_formation";
+        return "No Formation Found";
+    }
+
 	FormationType M_formation_type;
     enum class PostLine{
         golie,

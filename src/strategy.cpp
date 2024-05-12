@@ -606,6 +606,7 @@ Strategy::update( const WorldModel & wm )
 
     updateSituation( wm );
     updateFormation(wm);
+    dlog.addText(Logger::TEAM, "Selected formation = %s", FormationToString( M_selected_formation ).c_str());
     updatePosition( wm );
 
     if (Setting::i()->mStrategySetting->mUpdateFormationWhenDefenderDoesNotExists)
