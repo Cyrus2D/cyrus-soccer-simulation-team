@@ -275,8 +275,8 @@ MarkPositionFinder::getThMarkTarget2(size_t tmUnum, size_t oppUnum, const WorldM
     if (target.pos.x > offside_line_except_self + 2)
         target.pos.x = offside_line_except_self + 2;
 
-    if (Setting::i()->mDefenseMove->mUpdateThMarkTargetForSideDefenders)
-        updateThMarkTargetForSideDefender(tmUnum, wm, target, debug);
+//    if (Setting::i()->mDefenseMove->mUpdateThMarkTargetForSideDefenders)
+//        updateThMarkTargetForSideDefender(tmUnum, wm, target, debug);
 
     Vector2D opp_vel = Vector2D(0, 0);
     const AbstractPlayerObject *opp = wm.theirPlayer(oppUnum);
