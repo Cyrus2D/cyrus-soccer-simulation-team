@@ -867,13 +867,13 @@ Strategy::update( const WorldModel & wm )
         dlog.addText(Logger::TEAM, "p5_dist_x = %f, p6_dist_x = %f", p5_dist_x, p6_dist_x);
         dlog.addText(Logger::TEAM, "p5_exist = %d, p6_exist = %d", p5_exist, p6_exist);
         auto new_formation = M_F433_defense_formation;
-        if (!p5_exist && !p6_exist){
+        if (!p5_exist && !p6_exist && wm.self().unum() != 5 && wm.self().unum() != 6){
             new_formation = M_F433_defense_formation_no56;
             dlog.addText(Logger::TEAM, "Change to F433 defense formation no 56");
-        }else if (!p5_exist){
+        }else if (!p5_exist && wm.self().unum() != 5){
             new_formation = M_F433_defense_formation_no5;
             dlog.addText(Logger::TEAM, "Change to F433 defense formation no 5");
-        } else if (!p6_exist){
+        } else if (!p6_exist && wm.self().unum() != 6){
             new_formation = M_F433_defense_formation_no6;
             dlog.addText(Logger::TEAM, "Change to F433 defense formation no 6");
         }
