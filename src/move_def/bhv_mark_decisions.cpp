@@ -796,21 +796,12 @@ BhvMarkDecisionGreedy::midMarkLeadMarkMarkedFinder(const WorldModel &wm, vector 
         if (opp_marker[o] != 0) {
 
             if (Opp->unum() == fastest_opp) {
-//                        if (!Setting::i()->mDefenseMove->mMidNear_BlockAgain) {
                 if (how_mark[opp_marker[Opp->unum()]] != MarkType::ThMarkFastestOpp)
                     continue;
             }
             else {
                 if (how_mark[opp_marker[Opp->unum()]] == MarkType::ThMark)
                     continue;
-//                        if (Opp->pos().x < wm.ourDefensePlayerLineX() + 10)
-//                            continue;
-//                        if (!Setting::i()->mDefenseMove->mMidNear_MarkAgain)
-//                            continue;
-//                        if(Opp->pos().dist(Opp->pos()) < Setting::i()->mDefenseMove->mMidNear_MarkAgainMaxDistToChangeCost)
-//                            for(int t=1; t <= 11; t++){
-//                                mark_eval[o][t] *= Setting::i()->mDefenseMove->mMidNear_MarkAgainChangeCostZ;
-//                            }
             }
         }
         temp_opps.push_back(o);

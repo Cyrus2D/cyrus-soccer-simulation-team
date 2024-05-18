@@ -235,17 +235,8 @@ DefenseMoveSetting::DefenseMoveSetting(Value & value){
     if(value.HasMember("MidTh_HPosYMaxDistBlock")){
         mMidTh_HPosYMaxDistBlock = value["MidTh_HPosYMaxDistBlock"].GetDouble();
     }
-    if(value.HasMember("Mid_UseProjectionMark")){
-        mMid_UseProjectionMark = value["Mid_UseProjectionMark"].GetBool();
-    }
-    if(value.HasMember("MidProj_PosMaxDistMark")){
-        mMidProj_PosMaxDistMark = value["MidProj_PosMaxDistMark"].GetDouble();
-    }
     if(value.HasMember("MidProj_HPosMaxDistBlock")){
         mMidProj_HPosMaxDistBlock = value["MidProj_HPosMaxDistBlock"].GetDouble();
-    }
-    if(value.HasMember("MidProj_PosMaxDistMark")){
-        mMidProj_PosMaxDistMark = value["MidProj_PosMaxDistMark"].GetDouble();
     }
     if(value.HasMember("MidProj_HPosMaxDistBlock")){
         mMidProj_HPosMaxDistBlock = value["MidProj_HPosMaxDistBlock"].GetDouble();
@@ -276,18 +267,6 @@ DefenseMoveSetting::DefenseMoveSetting(Value & value){
     }
     if(value.HasMember("MidNear_OppsDistXToHPos2X")){
         mMidNear_OppsDistXToHPos2X = value["MidNear_OppsDistXToHPos2X"].GetDouble();
-    }
-    if(value.HasMember("MidNear_MarkAgain")){
-        mMidNear_MarkAgain = value["MidNear_MarkAgain"].GetBool();
-    }
-    if(value.HasMember("MidNear_BlockAgain")){
-        mMidNear_BlockAgain = value["MidNear_BlockAgain"].GetBool();
-    }
-    if(value.HasMember("MidNear_MarkAgainMaxDistToChangeCost")){
-        mMidNear_MarkAgainMaxDistToChangeCost = value["MidNear_MarkAgainMaxDistToChangeCost"].GetDouble();
-    }
-    if(value.HasMember("MidNear_MarkAgainChangeCostZ")){
-        mMidNear_MarkAgainChangeCostZ = value["MidNear_MarkAgainChangeCostZ"].GetDouble();
     }
     if(value.HasMember("MidNear_PosMaxDistMark")){
         mMidNear_PosMaxDistMark = value["MidNear_PosMaxDistMark"].GetDouble();

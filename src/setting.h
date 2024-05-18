@@ -118,11 +118,7 @@ public:
     double mMidTh_PosMaxDistBlock = 20.0;
     double mMidTh_HPosMaxDistBlock = 20.0;
     double mMidTh_HPosYMaxDistBlock = 15.0;
-    double mMidProj_PosMaxDistMark = 10.0;
-    double mMidProj_HPosMaxDistMark = 10.0;
-    double mMidProj_PosMaxDistBlock = 25.0;
     double mMidProj_HPosMaxDistBlock = 25.0;
-    bool mMid_UseProjectionMark = true;
     double mMidNear_StartX = 30.0;
     bool mMidNear_BackInMark = false;
     bool mMidNear_BackInBlock = false;
@@ -132,10 +128,6 @@ public:
     bool mMidNear_ForwardInBlock = true;
     double mMidNear_OppsDistXToBall = 25.0;
     double mMidNear_OppsDistXToHPos2X = 25.0;
-    bool mMidNear_MarkAgain = true;
-    bool mMidNear_BlockAgain = true;
-    double mMidNear_MarkAgainMaxDistToChangeCost = 5.0;
-    double mMidNear_MarkAgainChangeCostZ = 1.4;
     double mMidNear_PosMaxDistMark = 10.0;
     double mMidNear_HPosMaxDistMark = 15.0;
     double mMidNear_PosMaxDistBlock = 20.0;
