@@ -826,9 +826,6 @@ ActionChainGraph::calculateResultBestFirstSearch( const WorldModel & wm,
     const std::vector< ActionStatePair > empty_path;
 
     double current_evaluation = (*M_evaluator)(current_state,wm, empty_path);
-    if(Strategy::i().my_team_tactic == Strategy::TeamTactic::AllDef){
-        current_evaluation = 100;
-    }
     if(wm.countOpponentsIn(Circle2D(wm.ball().pos(),2.0),3,true) > 0)
         current_evaluation -= 20;
     double danger_eval = calc_danger_eval_for_target(wm,current_state.ball().pos(),0);

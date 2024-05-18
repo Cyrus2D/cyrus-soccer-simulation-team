@@ -1671,8 +1671,6 @@ int StrictCheckPassGenerator::predictReceiverReachStep(
                   target_dist, dash_dist, receiver.penalty_distance_,
                   n_turn, n_dash );
     #endif
-    if(Strategy::i().my_team_tactic == Strategy::TeamTactic::AllDef)
-        n_turn ++;
 
     return (n_turn == 0 ? n_turn + n_dash : n_turn + n_dash + 1); // 1 step penalty for observation delay.
     // if ( ! use_penalty )
@@ -1850,14 +1848,6 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
             //                    && wm.opponentsFromBall().front()->distFromBall() > (M_first_point.x < 25 ? 2 : 4 ))
             //                safe_dist_thr = 0.2;
         }
-        if(Strategy::i().my_team_tactic == Strategy::TeamTactic::AllDef){
-            safe_dist_thr += 0.7;
-            if(wm.getDistOpponentNearestToBall(5,false) > 3)
-                safe_dist_thr += 0.5;
-        }
-
-//        if(FieldAnalyzer::isMT(wm) || FieldAnalyzer::isIT(wm) || FieldAnalyzer::isFRA(wm) || FieldAnalyzer::isHFUT(wm) || FieldAnalyzer::isHelius(wm) || FieldAnalyzer::isOxsy(wm)
-//                || FieldAnalyzer::isCYRUS(wm) || FieldAnalyzer::isKN2C(wm))
         if(M_pass_type != 'T')
             if(M_first_point.x < 30 || our_score < opp_score)
                 safe_dist_thr += 0.2;
@@ -1955,11 +1945,7 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
 
         int n_step = c_step;
 
-//        if(FieldAnalyzer::isFRA(wm) || FieldAnalyzer::isMT(wm) || FieldAnalyzer::isHFUT(wm) || FieldAnalyzer::isYushan(wm) || FieldAnalyzer::isHelius(wm) || FieldAnalyzer::isCYRUS(wm)
-//                ||Strategy::i().my_team_tactic == Strategy::TeamTactic::AllDef || FieldAnalyzer::isOxsy(wm) || FieldAnalyzer::isIT(wm) || our_score < opp_score
-//                || FieldAnalyzer::isKN2C(wm)){
         view_step = 0;
-//        }
         c_step = c_turn_step + c_dash_step + view_step;
         n_step = turn_step + dash_step + view_step;
 

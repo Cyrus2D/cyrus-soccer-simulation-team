@@ -120,7 +120,7 @@ public:
 		pp_gk,pp_cb,pp_rb,pp_lb,pp_ch,pp_rh,pp_lh,pp_cf,pp_rf,pp_lf
 	};
     enum class TeamTactic{
-        AllDef, Normal, AllOff
+        Normal
     };
     TeamTactic StringToTeamTactic(std::string formation){
         if(formation.compare("Normal")==0)
@@ -278,8 +278,6 @@ private:
 
 	rcsc::Formation::Ptr readFormation( const std::string & filepath );
 	rcsc::Formation::Ptr createFormation( const std::string & type_name ) const;
-
-//	rcsc::Formation::Ptr getFormation( const rcsc::WorldModel & wm );
 
 public:
 	static

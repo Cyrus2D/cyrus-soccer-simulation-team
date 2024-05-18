@@ -849,55 +849,6 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkSetResults(const WorldModel &wm, pair
     }
 }
 
-
-bool BhvMarkDecisionGreedy::needProjectMark(const WorldModel &wm, int opp_unum, int tm_unum) {
-    const AbstractPlayerObject *opp = wm.theirPlayer(opp_unum);
-    int opp_min = wm.interceptTable().opponentStep();
-    Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min);
-    double first_pass_speed = calc_first_term_geom_series_last(1.5,
-                                                               ball_inertia.dist(opp->pos()),
-                                                               ServerParam::i().ballDecay());
-    if (first_pass_speed > 3.0)
-        first_pass_speed = calc_first_term_geom_series_last(1.0,
-                                                            ball_inertia.dist(opp->pos()),
-                                                            ServerParam::i().ballDecay());
-    if (first_pass_speed > 3.0)
-        first_pass_speed = calc_first_term_geom_series_last(0.5,
-                                                            ball_inertia.dist(opp->pos()),
-                                                            ServerParam::i().ballDecay());
-    if (first_pass_speed > 3.0)
-        first_pass_speed = calc_first_term_geom_series_last(0.0,
-                                                            ball_inertia.dist(opp->pos()),
-                                                            ServerParam::i().ballDecay());
-    if (first_pass_speed > 3.0)
-        return false;
-
-    int pass_cycle = calc_length_geom_series(first_pass_speed,
-                                             ball_inertia.dist(opp->pos()),
-                                             ServerParam::i().ballDecay());
-    Vector2D ball_pos = ball_inertia;
-    Vector2D ball_vel = Vector2D::polar2vector(first_pass_speed, (opp->pos() - ball_inertia).th());
-    Segment2D pass_segment(ball_inertia, opp->pos());
-    for (int c = 1; c < pass_cycle; c++) {
-        ball_pos += ball_vel;
-        for (int t = 2; t <= 11; t++) {
-            if (t == tm_unum)
-                continue;
-            const AbstractPlayerObject *tm = wm.ourPlayer(t);
-            if (tm == nullptr || tm->unum() != t)
-                continue;
-            if (!pass_segment.projection(tm->pos()).isValid())
-                continue;
-            int reach_cycle = tm->playerTypePtr()->cyclesToReachDistance(ball_pos.dist(tm->pos()));
-            if (reach_cycle < c)
-                return false;
-        }
-        ball_vel *= ServerParam::i().ballDecay();
-    }
-    return true;
-}
-
-
 bool
 BhvMarkDecisionGreedy::canCenterHalfMarkLeadNear(const WorldModel &wm, int t, Vector2D opp_pos, Vector2D ball_inertia) {
     if (Strategy::i().tm_Post(t) != Strategy::i().player_post::pp_ch)
@@ -1091,17 +1042,6 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
         #ifdef DEBUG_MARK_DECISIONS
         dlog.addText(Logger::MARK, "###tm %d", t);
         #endif
-//        bool goto_goal = false;
-//        for (auto go_goal_nums : who_go_to_goal) {
-//            if (go_goal_nums == tm->unum())
-//                goto_goal = true;
-//        }
-//        if (goto_goal) {
-//            #ifdef DEBUG_MARK_DECISIONS
-//            dlog.addText(Logger::MARK, "------continue because goto goal for tm %d", t);
-//            #endif
-//            continue;
-//        }
         const Vector2D &tm_pos = tm->pos();
         const Vector2D &tm_hpos = Strategy::i().getPosition(t);
         for (int o = 1; o <= 11; o++) {

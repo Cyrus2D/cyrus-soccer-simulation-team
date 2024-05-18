@@ -569,8 +569,6 @@ Bhv_SetPlay::is_delaying_tactics_situation( const PlayerAgent * agent )
     {
         return false;
     }
-    if(Strategy::i().my_team_tactic == Strategy::TeamTactic::AllDef)
-        return true;
 #if 1
     const int real_set_play_count = wm.time().cycle() - wm.lastSetPlayStartTime().cycle();
     const int wait_buf = ( wm.gameMode().type() == GameMode::GoalKick_
