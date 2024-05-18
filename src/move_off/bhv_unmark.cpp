@@ -323,7 +323,7 @@ bool bhv_unmark::is_good_for_unmark(const WorldModel & wm) {
 
     }
     if (target_pos.dist(Vector2D(52, 0)) < 20 && is_passer_x_more30
-        && Strategy::i().self_line == Strategy::PostLine::forward)
+        && Strategy::i().self_line == PostLine::forward)
         min_dist_opp = 1.5;
     if (target_pos.dist(Vector2D(52, 34)) < 20
         || target_pos.dist(Vector2D(52, -34)) < 20) {
@@ -437,9 +437,9 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
     double stamina = wm.self().stamina();
     double dash_power = Strategy::get_normal_dash_power(wm);
     double stamina_z = 1.0;
-    if(Strategy::i().tm_Line(wm.self().unum()) == Strategy::PostLine::back)
+    if(Strategy::i().tm_Line(wm.self().unum()) == PostLine::back)
         stamina_z = 1.4;
-    if(Strategy::i().tm_Line(wm.self().unum()) == Strategy::PostLine::half)
+    if(Strategy::i().tm_Line(wm.self().unum()) == PostLine::half)
         stamina_z = 1.2;
     if(wm.self().unum() == 5)
         stamina_z = 1.3;
@@ -458,7 +458,7 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
         }
         if (stamina < 5000 * stamina_z)
             dash_power = Strategy::get_normal_dash_power(wm);
-        if (Strategy::i().tm_Line(wm.self().unum()) != Strategy::PostLine::back){
+        if (Strategy::i().tm_Line(wm.self().unum()) != PostLine::back){
             if (ball_inertia.x > 10
                 && self_hpos.x > 10){
                 if(self_pos.dist(self_hpos) > 10)
@@ -467,7 +467,7 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
         }
         if (stamina < 4000 * stamina_z)
             dash_power = Strategy::get_normal_dash_power(wm);
-        if (Strategy::i().tm_Line(wm.self().unum()) != Strategy::PostLine::back){
+        if (Strategy::i().tm_Line(wm.self().unum()) != PostLine::back){
             if (ball_inertia.x > 30
                 && self_hpos.x > 25){
                 dash_power = 100;
@@ -741,7 +741,7 @@ bool bhv_unmarkes::execute(PlayerAgent * agent) {
 }
 
 bool bhv_unmarkes::can_unmark(const WorldModel & wm) {
-    Strategy::PostLine pl_line = Strategy::i().self_Line();
+    PostLine pl_line = Strategy::i().self_Line();
     int stamina = wm.self().stamina();
     static const Rect2D penalty_area=Rect2D(Vector2D(38,-17),Vector2D(53,17));
     if (wm.ball().inertiaPoint(wm.interceptTable().teammateStep()).dist(wm.self().pos()) > 30){
@@ -773,7 +773,7 @@ bool bhv_unmarkes::can_unmark(const WorldModel & wm) {
         return true;
     }
 
-    if (pl_line == Strategy::PostLine::back) {
+    if (pl_line == PostLine::back) {
         if (stamina > 5500){
             #ifdef DEBUG_UNMARK
             dlog.addText(Logger::POSITIONING, "Can unmarking because back stamina > 5500");
@@ -781,7 +781,7 @@ bool bhv_unmarkes::can_unmark(const WorldModel & wm) {
             return true;
         }
     }
-    else if (pl_line == Strategy::PostLine::half) {
+    else if (pl_line == PostLine::half) {
         if (stamina > 4500){
             #ifdef DEBUG_UNMARK
             dlog.addText(Logger::POSITIONING, "Can unmarking because half stamina > 4500");

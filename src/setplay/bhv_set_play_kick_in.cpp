@@ -414,11 +414,11 @@ Bhv_SetPlayKickIn::doMove( PlayerAgent * agent )
             bool turn_back = false;
             if(wm.ball().pos().x > 45){
                 if(wm.ball().pos().y > 0){
-                    if(Strategy::i().tm_Post(wm.self().unum()) == Strategy::pp_rf){
+                    if(Strategy::i().tm_Post(wm.self().unum()) == pp_rf){
                         turn_back = true;
                     }
                 }else{
-                    if(Strategy::i().tm_Post(wm.self().unum()) == Strategy::pp_lf){
+                    if(Strategy::i().tm_Post(wm.self().unum()) == pp_lf){
                         turn_back = true;
                     }
                 }

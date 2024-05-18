@@ -117,7 +117,7 @@ MarkDec BhvMarkDecisionGreedy::markDecision(const WorldModel &wm) {
     double tm_hpos_x_avg = 0;
     size_t tm_count = 0;
     min_our_def_pos_x = 1000;
-    vector<const AbstractPlayerObject *> my_line = Strategy::i().myLineTmms(wm, Strategy::PostLine::back);
+    vector<const AbstractPlayerObject *> my_line = Strategy::i().myLineTmms(wm, PostLine::back);
     for (size_t i = 0; i < my_line.size(); i++) {
         if (my_line.at(i)->pos().x < min_our_def_pos_x)
             min_our_def_pos_x = my_line.at(i)->pos().x;
@@ -125,12 +125,12 @@ MarkDec BhvMarkDecisionGreedy::markDecision(const WorldModel &wm) {
 
     for (size_t i = 2; i < 12; i++) {
         if (wm.ourPlayer(i) != NULL && wm.ourPlayer(i)->unum() > 1) {
-            if (Strategy::i().tm_Line(i) != Strategy::PostLine::back) {
+            if (Strategy::i().tm_Line(i) != PostLine::back) {
                 tm_offense_pos_x_avg += wm.ourPlayer(i)->pos().x;
                 tm_offense_hpos_x_avg += Strategy::i().getPosition(i).x;
                 tm_offense_count += 1;
             }
-            if (Strategy::i().tm_Line(i) != Strategy::PostLine::forward) {
+            if (Strategy::i().tm_Line(i) != PostLine::forward) {
                 tm_defense_pos_x_avg += wm.ourPlayer(i)->pos().x;
                 tm_defense_hpos_x_avg += Strategy::i().getPosition(i).x;
                 tm_defense_count += 1;

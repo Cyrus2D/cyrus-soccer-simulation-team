@@ -86,8 +86,8 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
 
     //Broker Offside
     if ( Setting::i()->mOffensiveMove->mIs9BrokeOffside
-         && Strategy::i().self_Post() == Strategy::player_post::pp_lf
-         && Strategy::i().get_formation_type() == Strategy::FormationType::F433)
+         && Strategy::i().self_Post() == PlayerPost::pp_lf
+         && Strategy::i().get_formation_type() == FormationType::F433)
     {
         if ( wm.ball().inertiaPoint(mate_min).x > -25
              && target_point.x < 40 ){
@@ -100,21 +100,21 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
         }
     }
 
-    if (Strategy::i().self_Line() == Strategy::PostLine::back) {
+    if (Strategy::i().self_Line() == PostLine::back) {
         if (wm.self().stamina() < 4000 && !low_stamina) {
             low_stamina = true;
         } else if (low_stamina && wm.self().stamina() > 6000) {
             low_stamina = false;
         }
     }
-    if (Strategy::i().self_Line() == Strategy::PostLine::half) {
+    if (Strategy::i().self_Line() == PostLine::half) {
         if (wm.self().stamina() < 3000 && !low_stamina) {
             low_stamina = true;
         } else if (low_stamina && wm.self().stamina() > 5000) {
             low_stamina = false;
         }
     }
-    if (Strategy::i().self_Line() == Strategy::PostLine::forward) {
+    if (Strategy::i().self_Line() == PostLine::forward) {
         if (wm.self().stamina() < 3000 && !low_stamina) {
             low_stamina = true;
         } else if (low_stamina && wm.self().stamina() > 5000) {
@@ -128,7 +128,7 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
     }
 
     bool unmark_or_scape = true;
-    if(ballPos.x > target_point.x + 20 && ballPos.x > 10 && Strategy::i().self_Line() == Strategy::PostLine::back)
+    if(ballPos.x > target_point.x + 20 && ballPos.x > 10 && Strategy::i().self_Line() == PostLine::back)
         unmark_or_scape = false;
 
     if(unmark_or_scape)
@@ -217,7 +217,7 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
     Vector2D ball = wm.ball().inertiaPoint(mate_min);
     Vector2D self_pos = wm.self().pos();
 
-    if (Strategy::i().self_Line() == Strategy::PostLine::forward) {
+    if (Strategy::i().self_Line() == PostLine::forward) {
         if (self_pos.dist(target_point) > 2) {
             if (stamina > 4000 && ball.x > 20) {
                 dash_power = 100;
@@ -225,7 +225,7 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
                 dash_power = 100;
             }
         }
-    } else if (Strategy::i().self_Line() == Strategy::PostLine::half) {
+    } else if (Strategy::i().self_Line() == PostLine::half) {
         if (self_pos.dist(target_point) > 2) {
             if (stamina > 4500 && ball.x > 20) {
                 dash_power = 100;
@@ -239,12 +239,12 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
     }
 
     double dist_thr = wm.ball().distFromSelf() * 0.1;
-    if(Strategy::i().self_Line() == Strategy::PostLine::back)
+    if(Strategy::i().self_Line() == PostLine::back)
         dist_thr = wm.ball().distFromSelf() * 0.3;
     if (dist_thr < 1.0)
         dist_thr = 1.0;
 
-    if(ballPos.x > target_point.x + 20 && ballPos.x > 20 && Strategy::i().self_Line() == Strategy::PostLine::back)
+    if(ballPos.x > target_point.x + 20 && ballPos.x > 20 && Strategy::i().self_Line() == PostLine::back)
         dash_power = dash_power / 3.0 * 2.0;
 
     dlog.addText(Logger::TEAM,
@@ -342,7 +342,7 @@ bool cyrus_offensive_move::BackFromOffside(PlayerAgent *agent) {
 
     Vector2D ball = wm.ball().inertiaPoint(
                 std::min(self_min, std::min(mate_min, opp_min)));
-    if ((Strategy::i().self_Line() == Strategy::PostLine::forward)
+    if ((Strategy::i().self_Line() == PostLine::forward)
             && wm.self().pos().x > max_x - 0.6
             && wm.self().pos().x < max_x + 3.0
             && homePos.x > max_x - 4

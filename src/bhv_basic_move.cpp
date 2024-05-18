@@ -324,7 +324,7 @@ bool Bhv_BasicMove::intercept_plan(rcsc::PlayerAgent *agent, bool from_block) {
     }
     int dif = 2;
     if (opp_min < mate_min && self_min < mate_min && opp_min < self_min) {
-        if (Strategy::i().self_Line() == Strategy::PostLine::forward
+        if (Strategy::i().self_Line() == PostLine::forward
                 && wm.ball().inertiaPoint(opp_min).x > 25) {
             dif = 5;
         }
@@ -517,7 +517,7 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
         }
     }
     if (Strategy::i().isDefSit(wm, wm.self().unum()) ||
-            (Strategy::i().tm_Line(wm.self().unum()) == Strategy::PostLine::back && wm.ball().inertiaPoint(opp_min).x > 30)) {
+            (Strategy::i().tm_Line(wm.self().unum()) == PostLine::back && wm.ball().inertiaPoint(opp_min).x > 30)) {
         if (DefSitPlan(agent))
             return true;
     } else {
@@ -649,7 +649,7 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
         return false;
 
     bool mark_or_block = true;
-    if (Strategy::i().self_Line() == Strategy::PostLine::forward) {
+    if (Strategy::i().self_Line() == PostLine::forward) {
 
         if (wm.ball().pos().x < -20) {
             if (wm.self().stamina() < 4000) {
@@ -682,7 +682,7 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
 
     if (wm.audioMemory().waitRequest().size() > 0) {
         if (wm.audioMemory().waitRequestTime().cycle() > wm.time().cycle() - 4) {
-            if (Strategy::i().tm_Line(wm.self().unum()) == Strategy::PostLine::back) {
+            if (Strategy::i().tm_Line(wm.self().unum()) == PostLine::back) {
                 if (wm.audioMemory().waitRequest().front().sender_ != wm.self().unum()) {
                     const AbstractPlayerObject *tm = wm.ourPlayer(wm.audioMemory().waitRequest().front().sender_);
                     if (tm != NULL && tm->unum() > 1) {
@@ -702,10 +702,10 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
 
     double dash_power = Strategy::get_normal_dash_power(wm);
     if (wm.ball().pos().x < wm.self().pos().x
-            && Strategy::i().self_Line() == Strategy::PostLine::back) {
+            && Strategy::i().self_Line() == PostLine::back) {
         dash_power = 100;
     }
-    if (Strategy::i().self_Line() == Strategy::PostLine::back || Strategy::i().self_Line() == Strategy::PostLine::half) {
+    if (Strategy::i().self_Line() == PostLine::back || Strategy::i().self_Line() == PostLine::half) {
         if (wm.ball().inertiaPoint(opp_min).x < -20
                 && (wm.self().pos().dist(target_point) > 4
                     || wm.self().pos().x > target_point.x + 2)) {
@@ -715,7 +715,7 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
 
     if (wm.self().pos().x < min_x_strategy)
         dash_power = 100;
-    if (Strategy::i().self_line == Strategy::PostLine::back && abs(inertia_ball_pos.x - wm.ourDefenseLineX()) < 20) {
+    if (Strategy::i().self_line == PostLine::back && abs(inertia_ball_pos.x - wm.ourDefenseLineX()) < 20) {
         dash_power = 100;
     }
     double dist_thr = wm.ball().distFromSelf() * 0.1;

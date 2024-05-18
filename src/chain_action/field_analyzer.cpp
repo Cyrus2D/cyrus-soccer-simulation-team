@@ -1403,8 +1403,8 @@ FieldAnalyzer::updateAntiOffenseState(const rcsc::WorldModel &wm)
         const rcsc::AbstractPlayerObject * tm = wm.ourPlayer(t);
         if (tm == nullptr || tm->unum() < 1)
             continue;
-        if (Strategy::i().tm_Line(t) == Strategy::PostLine::golie
-            || Strategy::i().tm_Line(t) == Strategy::PostLine::back)
+        if (Strategy::i().tm_Line(t) == PostLine::golie
+            || Strategy::i().tm_Line(t) == PostLine::back)
             continue;
         sum_position_x += tm->pos().x;
         sum_formation_x += Strategy::i().getPosition(t).x;

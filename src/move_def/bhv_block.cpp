@@ -273,7 +273,7 @@ vector<double> bhv_block::blocker_eval(const WorldModel &wm) {
             const AbstractPlayerObject *tm = wm.ourPlayer(t);
             if (tm == NULL || tm->unum() < 1)
                 continue;
-            if (Strategy::i().tm_Line(t) != Strategy::i().PostLine::back)
+            if (Strategy::i().tm_Line(t) != PostLine::back)
                 continue;
             if (min_dist_opp(wm, tm->pos()) < 15 &&
                 min_dist_opp_unum(wm, tm->pos()) != wm.interceptTable().firstOpponent()->unum()) {
@@ -286,7 +286,7 @@ vector<double> bhv_block::blocker_eval(const WorldModel &wm) {
             const AbstractPlayerObject *tm = wm.ourPlayer(t);
             if (tm == NULL || tm->unum() < 1)
                 continue;
-            if (Strategy::i().tm_Line(t) != Strategy::i().PostLine::back)
+            if (Strategy::i().tm_Line(t) != PostLine::back)
                 continue;
             if (min_dist_opp(wm, tm->pos()) < 5 &&
                 min_dist_opp_unum(wm, tm->pos()) != wm.interceptTable().firstOpponent()->unum()) {
@@ -338,32 +338,6 @@ std::pair<vector<double>, vector<Vector2D> > bhv_block::blocker_eval_mark_decisi
         if (hpos.x < my_hdef_x)
             my_hdef_x = hpos.x;
     }
-//    if (start_drible.x > -20 && start_drible.x > my_hdef_x + 5) {
-//        for (int t = 2; t <= 11; t++) {
-//            const AbstractPlayerObject *tm = wm.ourPlayer(t);
-//            if (tm == NULL || tm->unum() < 1)
-//                continue;
-//            if (Strategy::i().tm_Line(t) != Strategy::i().PostLine::back)
-//                continue;
-//            if (min_dist_opp(wm, tm->pos()) < 15 &&
-//                min_dist_opp_unum(wm, tm->pos()) != wm.interceptTable().firstOpponent()->unum()) {
-//                block_zarib[t] *= 1.5;
-//            }
-//        }
-//    }
-//    if (start_drible.x > -20 && start_drible.x > my_hdef_x + 5) {
-//        for (int t = 2; t <= 11; t++) {
-//            const AbstractPlayerObject *tm = wm.ourPlayer(t);
-//            if (tm == NULL || tm->unum() < 1)
-//                continue;
-//            if (Strategy::i().tm_Line(t) != Strategy::i().PostLine::back)
-//                continue;
-//            if (min_dist_opp(wm, tm->pos()) < 5 &&
-//                min_dist_opp_unum(wm, tm->pos()) != wm.interceptTable().firstOpponent()->unum()) {
-//                block_zarib[t] *= 1.5;
-//            }
-//        }
-//    }
     for (int t = 2; t <= 11; t++) {
         const AbstractPlayerObject *tm = wm.ourPlayer(t);
         if (tm == NULL || tm->unum() < 1)
@@ -374,14 +348,14 @@ std::pair<vector<double>, vector<Vector2D> > bhv_block::blocker_eval_mark_decisi
 	bhv_block::block_cycle(wm, t, cycle_reach, target);
         if (tm->isTackling())
             cycle_reach += 9;
-        if (Strategy::i().tm_Post(t) == Strategy::player_post::pp_cb){
+        if (Strategy::i().tm_Post(t) == PlayerPost::pp_cb){
             if (target.isValid() && target.absY() > 15){
                 block_zarib[t] = Setting::i()->mDefenseMove->mBlockZ_CB_Next;
             }else if (target.isValid() && target.x > my_hdef_x + 10){
                 block_zarib[t] = Setting::i()->mDefenseMove->mBlockZ_CB_Forward;
             }
         }
-        if (Strategy::i().tm_Post(t) == Strategy::player_post::pp_rb || Strategy::i().tm_Post(t) == Strategy::player_post::pp_lb){
+        if (Strategy::i().tm_Post(t) == PlayerPost::pp_rb || Strategy::i().tm_Post(t) == PlayerPost::pp_lb){
             if (target.isValid() && target.x > my_hdef_x + 10){
                 block_zarib[t] = Setting::i()->mDefenseMove->mBlockZ_LB_RB_Forward;
             }
@@ -746,7 +720,7 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
         agent->debugClient().addMessage("blockk");
         bool move = false;
         double dash_power = 100;
-        if(Strategy::i().self_Line() == Strategy::PostLine::forward && target.x > 10)
+        if(Strategy::i().self_Line() == PostLine::forward && target.x > 10)
             dash_power = Strategy::i().get_normal_dash_power(wm);
         double body_diff_degree = ((target - wm.self().pos()).th() - wm.self().body()).abs();
         Vector2D self_inertia = wm.self().inertiaPoint(1);

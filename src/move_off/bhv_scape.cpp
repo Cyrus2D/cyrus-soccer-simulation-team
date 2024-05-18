@@ -41,7 +41,7 @@ bool bhv_scape::can_scape(const WorldModel & wm){
         passer = wm.interceptTable().firstTeammate()->unum();
     if(passer < 1)
         return false;
-    if( Strategy::i().self_Line() != Strategy::PostLine::forward )
+    if( Strategy::i().self_Line() != PostLine::forward )
         return false;
     if(stamina < 5500)
         return false;
@@ -71,7 +71,7 @@ bool bhv_scape::can_scape(const WorldModel & wm){
 //    if(ball_iner.x < target_point.x - 20)
 //        return false;
     if(Setting::i()->mOffensiveMove->mIs9BrokeOffside
-            && Strategy::i().get_formation_type() == Strategy::FormationType::F433
+            && Strategy::i().get_formation_type() == FormationType::F433
             && unum == 11
             && ball_iner.y < -10
             && passer != 9 && passer != 10

@@ -74,7 +74,7 @@ MarkPositionFinder::getThMarkTarget(size_t tmUnum, size_t oppUnum, const WorldMo
 
 
     for(int t = 2; t <= 11; t++){
-        if(Strategy::i().tm_Line(t) == Strategy::PostLine::back){
+        if(Strategy::i().tm_Line(t) == PostLine::back){
             const AbstractPlayerObject * tm = wm.ourPlayer(t);
             if(tm != nullptr && tm->unum() > 0){
                 if(tm->seenStaminaCount() < 15 && tm->seenStamina() < 4500){
