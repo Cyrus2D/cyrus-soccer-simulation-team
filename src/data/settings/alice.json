@@ -1,15 +1,7 @@
 {
 	"Strategy":	{
-				"Formation":	{
-							"Win":"433",
-							"Lost":"433",
-							"Draw":"433"
-						},
-				"Is5ForwardWin":true,
-				"Is5ForwardLost":true,
-				"Is5ForwardDraw":true,
-				"TeamTactic":"Normal",
-				"IsGoalForward":false
+				"Formation": "433",
+				"TeamTactic":"Normal"
 			},
 	"ChainAction":	{
 				"ChainNodeNumber":750,
@@ -73,11 +65,7 @@
 				"MidTh_PosMaxDistBlock":20.0,
 				"MidTh_HPosMaxDistBlock":20.0,
 				"MidTh_HPosYMaxDistBlock":15.0,
-				"MidProj_PosMaxDistMark":10.0,
-				"MidProj_HPosMaxDistMark":10.0,
-				"MidProj_PosMaxDistBlock":25.0,
 				"MidProj_HPosMaxDistBlock":25.0,
-				"Mid_UseProjectionMark":true,
 				"MidNear_StartX":30.0,
 				"MidNear_BackInMark":false,
 				"MidNear_BackInBlock":false,
@@ -87,10 +75,6 @@
 				"MidNear_ForwardInBlock":true,
 				"MidNear_OppsDistXToBall":25.0,
 				"MidNear_OppsDistXToHPos2X": 20.0,
-				"MidNear_MarkAgain":true,
-				"MidNear_BlockAgain":false,
-				"MidNear_MarkAgainMaxDistToChangeCost":5.0,
-				"MidNear_MarkAgainChangeCostZ":1.4,
 				"MidNear_PosMaxDistMark":10.0,
 				"MidNear_HPosMaxDistMark":15.0,
 				"MidNear_PosMaxDistBlock":20.0,

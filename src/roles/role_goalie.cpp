@@ -256,11 +256,6 @@ void RoleGoalie::doMove(PlayerAgent * agent) {
     }
     if(!action_selected)
     {
-        if(Strategy::i().isgoal_forward())
-        {
-            RolePlayer().execute(agent);
-        }
-        else
-            Bhv_GoalieBasicMove().execute(agent);
+        Bhv_GoalieBasicMove().execute(agent);
     }
 }

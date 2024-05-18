@@ -72,48 +72,14 @@ public:
     static const std::string F433_BEFORE_KICK_OFF_CONF;
     static const std::string F433_BEFORE_KICK_OFF_CONF_FOR_OUR_KICK;
     static const std::string F433_DEFENSE_FORMATION_CONF;
-    static const std::string F433_DEFENSE_FORMATION_CONF_FOR_NAMIRA;
-    static const std::string F433_DEFENSE_FORMATION_CONF_FOR_KN2C;
     static const std::string F433_OFFENSE_FORMATION_CONF_FOR_OXSY;
-    static const std::string F433_OFFENSE_FORMATION_CONF_FOR_KN2C;
     static const std::string F433_OFFENSE_FORMATION_CONF_FOR_MT;
-    static const std::string F433_OFFENSE_FORMATION_CONF_FOR_HEL;
     static const std::string F433_OFFENSE_FORMATION_CONF;
-    static const std::string F433_OFFENSE_FORMATION_CONF_FOR_GLD;
     static const std::string F433_GOAL_KICK_OPP_FORMATION_CONF;
-    static const std::string F433_GOAL_KICK_OPP_FORMATION_CONF_FOR_NAMIRA;
     static const std::string F433_GOAL_KICK_OUR_FORMATION_CONF;
     static const std::string F433_KICKIN_OUR_FORMATION_CONF;
     static const std::string F433_SETPLAY_OPP_FORMATION_CONF;
     static const std::string F433_SETPLAY_OUR_FORMATION_CONF;
-
-	static const std::string F0343_BEFORE_KICK_OFF_CONF;
-	static const std::string F0343_DEFENSE_FORMATION_CONF;
-	static const std::string F0343_OFFENSE_FORMATION_CONF;
-	static const std::string F0343_GOAL_KICK_OPP_FORMATION_CONF;
-	static const std::string F0343_GOAL_KICK_OUR_FORMATION_CONF;
-	static const std::string F0343_KICKIN_OUR_FORMATION_CONF;
-	static const std::string F0343_SETPLAY_OPP_FORMATION_CONF;
-	static const std::string F0343_SETPLAY_OUR_FORMATION_CONF;
-
-	static const std::string F550_BEFORE_KICK_OFF_CONF;
-	static const std::string F550_DEFENSE_FORMATION_CONF;
-    static const std::string F550_OFFENSE_FORMATION_CONF_FOR_GLD;
-    static const std::string F550_OFFENSE_FORMATION_CONF;
-	static const std::string F550_GOAL_KICK_OPP_FORMATION_CONF;
-	static const std::string F550_GOAL_KICK_OUR_FORMATION_CONF;
-	static const std::string F550_KICKIN_OUR_FORMATION_CONF;
-	static const std::string F550_SETPLAY_OPP_FORMATION_CONF;
-	static const std::string F550_SETPLAY_OUR_FORMATION_CONF;
-
-	static const std::string Fsh_BEFORE_KICK_OFF_CONF;
-	static const std::string Fsh_DEFENSE_FORMATION_CONF;
-	static const std::string Fsh_OFFENSE_FORMATION_CONF;
-	static const std::string Fsh_GOAL_KICK_OPP_FORMATION_CONF;
-	static const std::string Fsh_GOAL_KICK_OUR_FORMATION_CONF;
-	static const std::string Fsh_KICKIN_OUR_FORMATION_CONF;
-	static const std::string Fsh_SETPLAY_OPP_FORMATION_CONF;
-	static const std::string Fsh_SETPLAY_OUR_FORMATION_CONF;
 
     static const std::string Fhel_BEFORE_KICK_OFF_CONF;
     static const std::string Fhel_DEFENSE_FORMATION_CONF;
@@ -125,32 +91,17 @@ public:
     static const std::string Fhel_SETPLAY_OUR_FORMATION_CONF;
 
     enum class FormationType{
-        F550,
-        F0343,
-        Fsh,
         F433,
         HeliosFra
 	};
     FormationType StringToFormationType(std::string formation){
-        if(formation.compare("sh")==0)
-        {
-            return FormationType::Fsh;
-        }
-        else if(formation.compare("HeliosFra")==0)
+        if(formation.compare("HeliosFra")==0)
         {
             return FormationType::HeliosFra;
         }
         else if(formation.compare("433")==0)
         {
             return FormationType::F433;
-        }
-        else if(formation.compare("0343") == 0)
-        {
-            return FormationType::F0343;
-        }
-        else if(formation.compare("550") == 0)
-        {
-            return FormationType::F550;
         }
         else
         {
@@ -169,20 +120,12 @@ public:
 		pp_gk,pp_cb,pp_rb,pp_lb,pp_ch,pp_rh,pp_lh,pp_cf,pp_rf,pp_lf
 	};
     enum class TeamTactic{
-        AllDef, Normal, AllOff
+        Normal
     };
     TeamTactic StringToTeamTactic(std::string formation){
-        if(formation.compare("AllDef")==0)
-        {
-            return TeamTactic::AllDef;
-        }
-        else if(formation.compare("Normal")==0)
+        if(formation.compare("Normal")==0)
         {
             return TeamTactic::Normal;
-        }
-        else if(formation.compare("AllOff")==0)
-        {
-            return TeamTactic::AllOff;
         }
         else
         {
@@ -232,48 +175,14 @@ private:
     rcsc::Formation::Ptr M_F433_before_kick_off_formation;
     rcsc::Formation::Ptr M_F433_before_kick_off_formation_for_our_kick;
     rcsc::Formation::Ptr M_F433_defense_formation;
-    rcsc::Formation::Ptr M_F433_defense_formation_for_namira;
-    rcsc::Formation::Ptr M_F433_defense_formation_for_kn2c;
     rcsc::Formation::Ptr M_F433_offense_formation;
     rcsc::Formation::Ptr M_F433_offense_formation_for_oxsy;
-    rcsc::Formation::Ptr M_F433_offense_formation_for_kn2c;
     rcsc::Formation::Ptr M_F433_offense_formation_for_mt;
-    rcsc::Formation::Ptr M_F433_offense_formation_for_hel;
-    rcsc::Formation::Ptr M_F433_offense_formation_for_gld;
     rcsc::Formation::Ptr M_F433_goal_kick_opp_formation;
-    rcsc::Formation::Ptr M_F433_goal_kick_opp_formation_for_namira;
     rcsc::Formation::Ptr M_F433_goal_kick_our_formation;
     rcsc::Formation::Ptr M_F433_kickin_our_formation;
     rcsc::Formation::Ptr M_F433_setplay_opp_formation;
     rcsc::Formation::Ptr M_F433_setplay_our_formation;
-
-	rcsc::Formation::Ptr M_F550_before_kick_off_formation;
-	rcsc::Formation::Ptr M_F550_defense_formation;
-	rcsc::Formation::Ptr M_F550_offense_formation;
-    rcsc::Formation::Ptr M_F550_offense_formation_for_gld;
-	rcsc::Formation::Ptr M_F550_goal_kick_opp_formation;
-	rcsc::Formation::Ptr M_F550_goal_kick_our_formation;
-	rcsc::Formation::Ptr M_F550_kickin_our_formation;
-	rcsc::Formation::Ptr M_F550_setplay_opp_formation;
-	rcsc::Formation::Ptr M_F550_setplay_our_formation;
-
-	rcsc::Formation::Ptr M_F0343_before_kick_off_formation;
-	rcsc::Formation::Ptr M_F0343_defense_formation;
-	rcsc::Formation::Ptr M_F0343_offense_formation;
-	rcsc::Formation::Ptr M_F0343_goal_kick_opp_formation;
-	rcsc::Formation::Ptr M_F0343_goal_kick_our_formation;
-	rcsc::Formation::Ptr M_F0343_kickin_our_formation;
-	rcsc::Formation::Ptr M_F0343_setplay_opp_formation;
-	rcsc::Formation::Ptr M_F0343_setplay_our_formation;
-
-	rcsc::Formation::Ptr M_Fsh_before_kick_off_formation;
-	rcsc::Formation::Ptr M_Fsh_defense_formation;
-	rcsc::Formation::Ptr M_Fsh_offense_formation;
-	rcsc::Formation::Ptr M_Fsh_goal_kick_opp_formation;
-	rcsc::Formation::Ptr M_Fsh_goal_kick_our_formation;
-	rcsc::Formation::Ptr M_Fsh_kickin_our_formation;
-	rcsc::Formation::Ptr M_Fsh_setplay_opp_formation;
-	rcsc::Formation::Ptr M_Fsh_setplay_our_formation;
 
     rcsc::Formation::Ptr M_Fhel_before_kick_off_formation;
     rcsc::Formation::Ptr M_Fhel_defense_formation;
@@ -348,10 +257,6 @@ public:
 	}
 
 	bool isMarkerType( const int unum ) const;
-        bool isgoal_forward() const;
-        bool isGoal_forward;
-        bool is5_forward;
-
 
 	SoccerRole::Ptr createRole( const int unum,
 			const rcsc::WorldModel & wm );
@@ -373,8 +278,6 @@ private:
 
 	rcsc::Formation::Ptr readFormation( const std::string & filepath );
 	rcsc::Formation::Ptr createFormation( const std::string & type_name ) const;
-
-//	rcsc::Formation::Ptr getFormation( const rcsc::WorldModel & wm );
 
 public:
 	static

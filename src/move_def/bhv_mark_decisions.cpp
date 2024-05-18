@@ -124,8 +124,6 @@ bool BhvMarkDecisionGreedy::isAntiOffensive(const WorldModel &wm) {
     double avg_x = 0;
     for (int i = 2; i <= 11; i++) {
         const AbstractPlayerObject *tm = wm.ourPlayer(i);
-        if(Setting::i()->mStrategySetting->mIsGoalForward && i==2 )
-            continue;
         if (!tm || tm->unum() != i)
             continue;
         if (Strategy::i().tm_Line(i) == Strategy::PostLine::back && i != 5)
@@ -203,8 +201,6 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
     double tm_pos_def_line = wm.ourDefenseLineX();
     double tm_hpos_def_line = 0;
     for (int i = 2; i <= 11; i++) {
-        if(Setting::i()->mStrategySetting->mIsGoalForward && i==2 )
-            continue;
         double hpos_x = Strategy::i().getPosition(i).x;
         if (hpos_x < tm_hpos_def_line)
             tm_hpos_def_line = hpos_x;
@@ -224,8 +220,6 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
         const AbstractPlayerObject *tm = wm.ourPlayer(t);
         if (tm == NULL
             || tm->unum() < 1)
-            continue;
-        if(Setting::i()->mStrategySetting->mIsGoalForward && t==2 )
             continue;
         Vector2D tm_pos = tm->pos();
         Vector2D tm_hpos = Strategy::i().getPosition(t);
@@ -494,8 +488,7 @@ vector <size_t> BhvMarkDecisionGreedy::midMarkThMarkRemoveCloseOpp(const WorldMo
     #ifdef DEBUG_MARK_DECISIONS
     dlog.addText(Logger::MARK, "Start to remove same opp");
     #endif
-    bool isGoalieForward=Setting::i()->mStrategySetting->mIsGoalForward;
-    double base_def_pos_x = isGoalieForward?Strategy::i().getPosition(3).x:Strategy::i().getPosition(2).x;
+    double base_def_pos_x = Strategy::i().getPosition(2).x;
     for (int i = 0; i < temp_opps.size(); i++) {
         int o1 = temp_opps[i];
         if (wm.theirPlayer(o1)->pos().x <
@@ -607,8 +600,6 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkCostFinder(const WorldModel &wm, doub
         if (tm == NULL
             || tm->unum() < 1)
             continue;
-        if(Setting::i()->mStrategySetting->mIsGoalForward && t==2 )
-            continue;
         Vector2D tm_pos = tm->pos();
         Vector2D tm_hpos = Strategy::i().getPosition(t);
         #ifdef DEBUG_MARK_DECISIONS
@@ -631,8 +622,7 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkCostFinder(const WorldModel &wm, doub
                 max_hpos_dist = Setting::i()->mDefenseMove->mMidNear_HPosMaxDistBlock; //20
                 max_pos_dist = Setting::i()->mDefenseMove->mMidNear_PosMaxDistBlock; //20
                 opp_pos.pos = ball_inertia;
-                bool isGoalieForward=Setting::i()->mStrategySetting->mIsGoalForward;
-                double base_def_pos_x = isGoalieForward?Strategy::i().getPosition(3).x:Strategy::i().getPosition(2).x;
+                double base_def_pos_x = Strategy::i().getPosition(2).x;
                 if (Strategy::i().tm_Post(t) == Strategy::i().player_post::pp_ch
                     && ball_inertia.x > base_def_pos_x + 10) {
                     max_hpos_dist = Setting::i()->mDefenseMove->mMidNear_HPosMaxDistBlock * 0.75;
@@ -791,8 +781,7 @@ BhvMarkDecisionGreedy::midMarkLeadMarkMarkedFinder(const WorldModel &wm, vector 
                                                    vector <UnumEval> &opp_eval, size_t fastest_opp,
                                                    Vector2D &ball_inertia, size_t opp_marker[], MarkType how_mark[]) {
     vector <size_t> temp_opps;
-    bool isGoalieForward=Setting::i()->mStrategySetting->mIsGoalForward;
-    double base_def_pos_x = isGoalieForward?Strategy::i().getPosition(3).x:Strategy::i().getPosition(2).x;
+    double base_def_pos_x = Strategy::i().getPosition(2).x;
     for (int d = 1; d <= 11; d++) {
         if (opp_eval[d].second < -999)
             break;
@@ -807,21 +796,12 @@ BhvMarkDecisionGreedy::midMarkLeadMarkMarkedFinder(const WorldModel &wm, vector 
         if (opp_marker[o] != 0) {
 
             if (Opp->unum() == fastest_opp) {
-//                        if (!Setting::i()->mDefenseMove->mMidNear_BlockAgain) {
                 if (how_mark[opp_marker[Opp->unum()]] != MarkType::ThMarkFastestOpp)
                     continue;
             }
             else {
                 if (how_mark[opp_marker[Opp->unum()]] == MarkType::ThMark)
                     continue;
-//                        if (Opp->pos().x < wm.ourDefensePlayerLineX() + 10)
-//                            continue;
-//                        if (!Setting::i()->mDefenseMove->mMidNear_MarkAgain)
-//                            continue;
-//                        if(Opp->pos().dist(Opp->pos()) < Setting::i()->mDefenseMove->mMidNear_MarkAgainMaxDistToChangeCost)
-//                            for(int t=1; t <= 11; t++){
-//                                mark_eval[o][t] *= Setting::i()->mDefenseMove->mMidNear_MarkAgainChangeCostZ;
-//                            }
             }
         }
         temp_opps.push_back(o);
@@ -869,55 +849,6 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkSetResults(const WorldModel &wm, pair
     }
 }
 
-
-bool BhvMarkDecisionGreedy::needProjectMark(const WorldModel &wm, int opp_unum, int tm_unum) {
-    const AbstractPlayerObject *opp = wm.theirPlayer(opp_unum);
-    int opp_min = wm.interceptTable().opponentStep();
-    Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min);
-    double first_pass_speed = calc_first_term_geom_series_last(1.5,
-                                                               ball_inertia.dist(opp->pos()),
-                                                               ServerParam::i().ballDecay());
-    if (first_pass_speed > 3.0)
-        first_pass_speed = calc_first_term_geom_series_last(1.0,
-                                                            ball_inertia.dist(opp->pos()),
-                                                            ServerParam::i().ballDecay());
-    if (first_pass_speed > 3.0)
-        first_pass_speed = calc_first_term_geom_series_last(0.5,
-                                                            ball_inertia.dist(opp->pos()),
-                                                            ServerParam::i().ballDecay());
-    if (first_pass_speed > 3.0)
-        first_pass_speed = calc_first_term_geom_series_last(0.0,
-                                                            ball_inertia.dist(opp->pos()),
-                                                            ServerParam::i().ballDecay());
-    if (first_pass_speed > 3.0)
-        return false;
-
-    int pass_cycle = calc_length_geom_series(first_pass_speed,
-                                             ball_inertia.dist(opp->pos()),
-                                             ServerParam::i().ballDecay());
-    Vector2D ball_pos = ball_inertia;
-    Vector2D ball_vel = Vector2D::polar2vector(first_pass_speed, (opp->pos() - ball_inertia).th());
-    Segment2D pass_segment(ball_inertia, opp->pos());
-    for (int c = 1; c < pass_cycle; c++) {
-        ball_pos += ball_vel;
-        for (int t = 2; t <= 11; t++) {
-            if (t == tm_unum)
-                continue;
-            const AbstractPlayerObject *tm = wm.ourPlayer(t);
-            if (tm == nullptr || tm->unum() != t)
-                continue;
-            if (!pass_segment.projection(tm->pos()).isValid())
-                continue;
-            int reach_cycle = tm->playerTypePtr()->cyclesToReachDistance(ball_pos.dist(tm->pos()));
-            if (reach_cycle < c)
-                return false;
-        }
-        ball_vel *= ServerParam::i().ballDecay();
-    }
-    return true;
-}
-
-
 bool
 BhvMarkDecisionGreedy::canCenterHalfMarkLeadNear(const WorldModel &wm, int t, Vector2D opp_pos, Vector2D ball_inertia) {
     if (Strategy::i().tm_Post(t) != Strategy::i().player_post::pp_ch)
@@ -952,8 +883,6 @@ void BhvMarkDecisionGreedy::goalMarkDecision(PlayerAgent *agent, MarkType &mark_
     //determine arbitrary offside line
     double tm_hpos_x_min = 0;
     for (int i = 2; i <= 11; i++) {
-        if(Setting::i()->mStrategySetting->mIsGoalForward && i==2 )
-            continue;
         double tm_hpos_x = Strategy::i().getPosition(i).x;
         if (tm_hpos_x < tm_hpos_x_min)
             tm_hpos_x_min = tm_hpos_x;
@@ -1096,8 +1025,6 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
     }
     double tm_hpos_x_min = 0;
     for (int i = 2; i <= 11; i++) {
-        if(Setting::i()->mStrategySetting->mIsGoalForward && i==2 )
-            continue;
         double tm_hpos_x = Strategy::i().getPosition(i).x;
         if (tm_hpos_x < tm_hpos_x_min)
             tm_hpos_x_min = tm_hpos_x;
@@ -1112,22 +1039,9 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
         if (tm == NULL
             || tm->unum() < 1)
             continue;
-        if(Setting::i()->mStrategySetting->mIsGoalForward && t==2 )
-            continue;
         #ifdef DEBUG_MARK_DECISIONS
         dlog.addText(Logger::MARK, "###tm %d", t);
         #endif
-//        bool goto_goal = false;
-//        for (auto go_goal_nums : who_go_to_goal) {
-//            if (go_goal_nums == tm->unum())
-//                goto_goal = true;
-//        }
-//        if (goto_goal) {
-//            #ifdef DEBUG_MARK_DECISIONS
-//            dlog.addText(Logger::MARK, "------continue because goto goal for tm %d", t);
-//            #endif
-//            continue;
-//        }
         const Vector2D &tm_pos = tm->pos();
         const Vector2D &tm_hpos = Strategy::i().getPosition(t);
         for (int o = 1; o <= 11; o++) {
@@ -1245,8 +1159,6 @@ BhvMarkDecisionGreedy::antiDefMarkDecision(const WorldModel &wm, MarkType &markt
     //    for (int i = 1; i <= 11; i++)
     //        dlog.addText(Logger::MARK, "oppdanger %d is oppunum %d with eval %.2f", i, OppUnum[i], opp_eval[i]);
     for (int t = 2; t <= 11; t++) {
-        if(Setting::i()->mStrategySetting->mIsGoalForward && t==2 )
-            continue;
         const AbstractPlayerObject *Tm = wm.ourPlayer(t);
         if (Tm == NULL
             || Tm->unum() < 1

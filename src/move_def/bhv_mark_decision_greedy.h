@@ -119,8 +119,6 @@ public:
                                           size_t tm_mark_target[], size_t opp_marker[],
                                           size_t opp_mark_count[], size_t fastest_opp);
 
-    static bool needProjectMark(const WorldModel &wm, int opp_unum, int tm_unum);
-
     static bool canCenterHalfMarkLeadNear(const WorldModel &wm, int t, Vector2D opp_pos, Vector2D ball_inertia);
 
     static void goalMarkDecision(PlayerAgent *agent, MarkType &mark_type, int &mark_unum, bool &blocked, vector<MarkType> & global_how_mark, vector<size_t> & global_tm_mark_target, vector<size_t> & global_opp_marker);

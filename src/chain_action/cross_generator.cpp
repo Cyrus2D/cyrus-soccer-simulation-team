@@ -800,10 +800,6 @@ int CrossGenerator::newoldpredictOpponentReachStep(const WorldModel & wm,
         }
         if(FieldAnalyzer::isFRA(wm))
             view_step = 0;
-//        if(wm.interceptTable().opponentStep() > 2)
-//            if(FieldAnalyzer::isFRA(wm) || FieldAnalyzer::isMT(wm) || FieldAnalyzer::isHFUT(wm)|| FieldAnalyzer::isYushan(wm) || FieldAnalyzer::isHelius(wm) || FieldAnalyzer::isCYRUS(wm)
-//                    || Strategy::i().my_team_tactic == Strategy::TeamTactic::AllDef || FieldAnalyzer::isOxsy(wm) || our_score < opp_score
-//                    || FieldAnalyzer::isKN2C(wm))
         view_step = 0;
 
         c_step -= bonus_step;
@@ -871,9 +867,6 @@ int CrossGenerator::newoldpredictOpponentReachStep(const WorldModel & wm,
                                                                          p.body.degree());
                 dc -= pos_count_effect/2.0;
                 tc -= body_count_effect/2.0;
-//                if(FieldAnalyzer::isFRA(wm) || FieldAnalyzer::isMT(wm) || FieldAnalyzer::isHFUT(wm)|| FieldAnalyzer::isYushan(wm) || FieldAnalyzer::isHelius(wm) || FieldAnalyzer::isCYRUS(wm)
-//                        || Strategy::i().my_team_tactic == Strategy::TeamTactic::AllDef || FieldAnalyzer::isOxsy(wm) || our_score < opp_score
-//                        || FieldAnalyzer::isKN2C(wm))
                 vc = 0;
                 sc = dc + tc + vc;
                 if(minsc > sc)

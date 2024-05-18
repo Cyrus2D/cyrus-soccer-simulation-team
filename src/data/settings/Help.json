@@ -1,13 +1,7 @@
 {
 	"Strategy":	{
-				"Formation":	{
-							"Win":"433 or sh or HeliosFra or 0343 or 550",
-							"Lost":"433 or sh or HeliosFra or 0343 or 550",
-							"Draw":"433 or sh or HeliosFra or 0343 or 550"
-						},
-				"Is5Forward":true,
-				"TeamTactic":"Normal or AllDef or AllOff",
-				"IsGoalForward":false
+				"Formation": "433 or HeliosFra",
+				"TeamTactic":"Normal"
 			},
 	"ChainAction":	{
 				"ChainNodeNumber":2000,

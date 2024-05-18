@@ -100,12 +100,6 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
         }
     }
 
-//    Vector2D centerGoalPos(52, 0);
-    if(wm.self().unum() == 5
-            && !Strategy::i().is5_forward
-            && ballPos.x > 25){
-        target_point.y = (Strategy::i().getPosition(2).y + Strategy::i().getPosition(3).y)/2.0;
-    }
     if (Strategy::i().self_Line() == Strategy::PostLine::back) {
         if (wm.self().stamina() < 4000 && !low_stamina) {
             low_stamina = true;
