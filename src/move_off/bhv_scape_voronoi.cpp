@@ -70,7 +70,7 @@ bool IntentionScape::finished( const rcsc::PlayerAgent * agent ){
         return true;
     if(wm.self().pos().x > wm.offsideLineX() - 0.3)
         return true;
-    if(Strategy::i().isDefSit(wm,wm.self().unum()))
+    if(Strategy::i().isDefenseSituation(wm, wm.self().unum()))
         return true;
     if(wm.gameMode().type() != GameMode::PlayOn)
         return true;

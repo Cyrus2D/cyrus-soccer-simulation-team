@@ -134,7 +134,7 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
                 agent->debugClient().addMessage("go to defend line");
                 double dist_thr = wm.ball().distFromSelf() * 0.1;
                 if (dist_thr < 1.0) dist_thr = 1.0;
-                double dash_power = Strategy::get_normal_dash_power(wm);
+                double dash_power = Strategy::getNormalDashPower(wm);
                 if (!Body_GoToPoint(target, dist_thr, dash_power
                 ).execute(agent)) {
                     Body_TurnToBall().execute(agent);
@@ -255,7 +255,7 @@ bool bhv_mark_execute::defenseBeInBack(PlayerAgent *agent){
                  target_point.x, target_point.y,
                  dist_thr);
     #endif
-    double dash_power = Strategy::get_normal_dash_power(wm);
+    double dash_power = Strategy::getNormalDashPower(wm);
     agent->debugClient().addMessage("be in back", dash_power);
     agent->debugClient().setTarget(target_point);
     agent->debugClient().addCircle(target_point, dist_thr);
@@ -498,7 +498,7 @@ double bhv_mark_execute::th_mark_power(PlayerAgent * agent, Vector2D opp_pos, Ve
     int opp_min_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min_cycle);
     Vector2D self_pos = wm.self().pos();
-    double dash_power = Strategy::get_normal_dash_power(wm);
+    double dash_power = Strategy::getNormalDashPower(wm);
     double z = 1.0;
     if (wm.self().stamina() < 3500) {
         z = 0.5;
@@ -527,7 +527,7 @@ double bhv_mark_execute::th_mark_power(PlayerAgent * agent, Vector2D opp_pos, Ve
         agent->debugClient().addMessage("SE");
     }
     if (wm.self().stamina() < 3000) {
-        dash_power = Strategy::get_normal_dash_power(wm);
+        dash_power = Strategy::getNormalDashPower(wm);
         agent->debugClient().addMessage("SF");
     }
     return dash_power;
@@ -605,7 +605,7 @@ double bhv_mark_execute::lead_mark_power(PlayerAgent * agent, Vector2D opp_pos, 
     Vector2D self_pos = wm.self().pos();
     int opp_min_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min_cycle);
-    double dash_power = Strategy::get_normal_dash_power(wm);
+    double dash_power = Strategy::getNormalDashPower(wm);
     if (opp_min_cycle < 3 && !(ball_inertia.dist(target_pos) > 15 && ball_inertia.x > -25
                                && Strategy::i().selfLine() != PostLine::back))
         dash_power = 100;
@@ -621,15 +621,15 @@ double bhv_mark_execute::lead_mark_power(PlayerAgent * agent, Vector2D opp_pos, 
     if (target_pos.x < -35)
         dash_power = 100;
     if (opp_pos.dist(ball_inertia) > 40 && self_pos.dist(target_pos) < 10)
-        dash_power = Strategy::get_normal_dash_power(wm);
+        dash_power = Strategy::getNormalDashPower(wm);
     if (opp_pos.dist(ball_inertia) > 30 && self_pos.dist(target_pos) < 5)
-        dash_power = Strategy::get_normal_dash_power(wm);
+        dash_power = Strategy::getNormalDashPower(wm);
     if (opp_pos.dist(ball_inertia) > 20 && self_pos.dist(target_pos) < 3)
-        dash_power = Strategy::get_normal_dash_power(wm);
+        dash_power = Strategy::getNormalDashPower(wm);
     if (wm.self().stamina() < 4500)
-        dash_power = Strategy::get_normal_dash_power(wm);
+        dash_power = Strategy::getNormalDashPower(wm);
     if (wm.self().stamina() < 5500 && Strategy::i().selfLine() == PostLine::forward)
-        dash_power = Strategy::get_normal_dash_power(wm);
+        dash_power = Strategy::getNormalDashPower(wm);
     return dash_power;
 }
 
@@ -714,7 +714,7 @@ double bhv_mark_execute::other_mark_power(PlayerAgent * agent, Vector2D opp_pos,
     const WorldModel & wm = agent->world();
     int opp_min_cycle = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min_cycle);
-    double dash_power = Strategy::get_normal_dash_power(wm);
+    double dash_power = Strategy::getNormalDashPower(wm);
     if (opp_min_cycle < 5 && !(ball_inertia.dist(target_pos) > 15 && ball_inertia.x > -25
                                && Strategy::i().selfLine() != PostLine::back))
         dash_power = 100;

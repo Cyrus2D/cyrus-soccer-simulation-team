@@ -455,7 +455,7 @@ bool bhv_unmark_2019::execute(PlayerAgent * agent) {
 	Vector2D self_pos = wm.self().pos();
 //	cout<<wm.time().cycle()<<endl;
 	if (self_pos.dist(target_pos) > 0.5) {
-		double dash_power = Strategy::get_normal_dash_power(wm);
+		double dash_power = Strategy::getNormalDashPower(wm);
 		if (passer.oppmin_cycle < 5)
 			dash_power = 100;
 		if (target_pos.dist(Vector2D(52, 0)) < 25)

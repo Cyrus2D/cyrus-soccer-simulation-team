@@ -90,7 +90,7 @@ bool bhv_scape::execute(rcsc::PlayerAgent * agent ){
 	int unum = wm.self().unum();
 	int stamina = wm.self().stamina();
 	const Vector2D target_point = Strategy::i().getPosition( wm.self().unum() );
-	double dash_power = Strategy::get_normal_dash_power( wm );
+	double dash_power = Strategy::getNormalDashPower(wm);
 	Vector2D self_pos = wm.self().pos();
     double offside = std::max(wm.offsideLineX(),ball_iner.x) - 0.3;
 
@@ -248,7 +248,7 @@ bool bhv_scape::run_last_scape(PlayerAgent * agent){
 	int unum = wm.self().unum();
 	int stamina = wm.self().stamina();
 	const Vector2D target_point = Strategy::i().getPosition( wm.self().unum() );
-	double dash_power = Strategy::get_normal_dash_power( wm );
+	double dash_power = Strategy::getNormalDashPower(wm);
 	Vector2D self_pos = wm.self().pos();
 	double offside = wm.offsideLineX();
 

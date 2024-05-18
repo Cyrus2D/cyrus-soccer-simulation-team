@@ -435,7 +435,7 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
     int tm_reach_cycle = wm.interceptTable().teammateStep();
     int opp_reach_cycle = wm.interceptTable().opponentStep();
     double stamina = wm.self().stamina();
-    double dash_power = Strategy::get_normal_dash_power(wm);
+    double dash_power = Strategy::getNormalDashPower(wm);
     double stamina_z = 1.0;
     if(Strategy::i().tmLine(wm.self().unum()) == PostLine::back)
         stamina_z = 1.4;
@@ -454,10 +454,10 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
         if (min_opp_dist(wm, self_pos) < 5)
             dash_power = 100;
         if (stamina < 6000 && dash_power > 99){
-            dash_power = (Strategy::get_normal_dash_power(wm) + stamina / 8000.0 * dash_power) / 2.0;
+            dash_power = (Strategy::getNormalDashPower(wm) + stamina / 8000.0 * dash_power) / 2.0;
         }
         if (stamina < 5000 * stamina_z)
-            dash_power = Strategy::get_normal_dash_power(wm);
+            dash_power = Strategy::getNormalDashPower(wm);
         if (Strategy::i().tmLine(wm.self().unum()) != PostLine::back){
             if (ball_inertia.x > 10
                 && self_hpos.x > 10){
@@ -466,7 +466,7 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
             }
         }
         if (stamina < 4000 * stamina_z)
-            dash_power = Strategy::get_normal_dash_power(wm);
+            dash_power = Strategy::getNormalDashPower(wm);
         if (Strategy::i().tmLine(wm.self().unum()) != PostLine::back){
             if (ball_inertia.x > 30
                 && self_hpos.x > 25){
@@ -474,7 +474,7 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
             }
         }
         if (stamina < 3500)
-            dash_power = Strategy::get_normal_dash_power(wm);
+            dash_power = Strategy::getNormalDashPower(wm);
         agent->debugClient().addMessage("Unmark");
         if (wm.ball().pos().x > 40 && self_pos.x > 40 && penalty_unmark(wm) != Vector2D(0.0,0.0)) {
             target_pos = penalty_unmark(wm);

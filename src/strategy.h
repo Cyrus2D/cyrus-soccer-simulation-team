@@ -134,7 +134,6 @@ private:
     rcsc::Formation::Ptr M_Fhel_setplay_opp_formation;
     rcsc::Formation::Ptr M_Fhel_setplay_our_formation;
 
-    static bool change9_11;
     FormationType M_formation_type;
     TeamTactic my_team_tactic;
     PostLine self_line;
@@ -169,10 +168,9 @@ private:
     void updatePosition( const rcsc::WorldModel & wm );
 
     rcsc::Formation::Ptr readFormation( const std::string & filepath );
-    rcsc::Formation::Ptr createFormation( const std::string & type_name ) const;
 
 public:
-    void set_position(int unum, rcsc::Vector2D tar){
+    void setPosition(int unum, rcsc::Vector2D tar){
         M_positions[unum - 1] = tar;
     }
 	static
@@ -195,8 +193,7 @@ public:
 	// update
 	//
 	void update( const rcsc::WorldModel & wm );
-	void exchangeRole( const int unum0,
-			const int unum1 );
+	void exchangeRole( const int unum0, const int unum1 );
 
 	//
 	// accessor to the current information
@@ -210,32 +207,26 @@ public:
 		return M_role_number[unum - 1];
 	}
 
-	bool isMarkerType( const int unum ) const;
-
 	SoccerRole::Ptr createRole( int unum, const rcsc::WorldModel & wm );
-	PositionType getPositionType( int unum ) const;
 	rcsc::Vector2D getPosition( int unum ) const;
     rcsc::Vector2D getPositionWithBall( int unum, rcsc::Vector2D ball, const rcsc::WorldModel & wm );
-    std::vector<const rcsc::AbstractPlayerObject*> myLineTmms(const rcsc::WorldModel & wm, PostLine tm_line);
-	bool isDefSit(const rcsc::WorldModel & wm,int unum) const;
+    static std::vector<const rcsc::AbstractPlayerObject*> getTeammatesInPostLine(const rcsc::WorldModel &wm, PostLine tm_line);
+	bool isDefenseSituation(const rcsc::WorldModel &wm, int unum) const;
     FormationType get_formation_type() const{
         return M_formation_type;
     }
-	void set_formation_type(FormationType ft){
-		M_formation_type = ft;
-	}
 
 	static
-	double get_normal_dash_power( const rcsc::WorldModel & wm );
+	double getNormalDashPower(const rcsc::WorldModel & wm );
 
     void setFormation( const rcsc::Formation::Ptr & formation);
     void updateFormation( const rcsc::WorldModel & wm );
     rcsc::Formation::Ptr getFormation( const rcsc::WorldModel & wm );
 
-    rcsc::SideID get_before_kick_off_side(const rcsc::WorldModel & wm);
-    bool is_open_deffense(const rcsc::WorldModel & wm);
+    static rcsc::SideID getBeforeKickOffSide(const rcsc::WorldModel &wm);
+    static bool doesOpponentDefenseDense(const rcsc::WorldModel &wm);
 
-    static FormationType StringToFormationType(const std::string& formation){
+    static FormationType stringToFormationType(const std::string& formation){
         if (formation == "HeliosFra")
             return FormationType::HeliosFra;
         else if (formation == "433")
@@ -244,7 +235,7 @@ public:
             return FormationType::HeliosFra;
     }
 
-    static TeamTactic StringToTeamTactic(const std::string& formation){
+    static TeamTactic stringToTeamTactic(const std::string& formation){
         if(formation=="Normal")
             return TeamTactic::Normal;
         else

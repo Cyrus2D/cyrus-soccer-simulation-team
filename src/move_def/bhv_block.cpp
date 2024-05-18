@@ -721,7 +721,7 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
         bool move = false;
         double dash_power = 100;
         if(Strategy::i().selfLine() == PostLine::forward && target.x > 10)
-            dash_power = Strategy::i().get_normal_dash_power(wm);
+            dash_power = Strategy::i().getNormalDashPower(wm);
         double body_diff_degree = ((target - wm.self().pos()).th() - wm.self().body()).abs();
         Vector2D self_inertia = wm.self().inertiaPoint(1);
         Line2D direct_dash_line(self_inertia, self_body);

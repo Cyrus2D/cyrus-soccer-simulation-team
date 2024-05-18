@@ -527,7 +527,7 @@ SampleCommunication::updateCurrentSender( const PlayerAgent * agent )
 
     int self_min = wm.interceptTable().selfStep();
     int mate_min = wm.interceptTable().teammateStep();
-    if ( !Strategy::i().isDefSit(wm,wm.self().unum())){
+    if ( !Strategy::i().isDefenseSituation(wm, wm.self().unum())){
         Vector2D ball = wm.ball().inertiaPoint(std::min(self_min,mate_min));
         vector<int> unums;
         for(int i=1;i<=11;i++){
@@ -564,7 +564,7 @@ SampleCommunication::updateCurrentSender( const PlayerAgent * agent )
     //    candidate_unum.reserve( 11 );
 
     Vector2D ball_pos = wm.ball().pos();
-    if(Strategy::i().isDefSit(wm,wm.self().unum())){
+    if(Strategy::i().isDefenseSituation(wm, wm.self().unum())){
         ball_pos = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
         //		M_current_sender_unum = bhv_mark_execute().get_mark_sender(wm);
         for ( int unum = 1; unum <= 8; ++unum )
@@ -1138,7 +1138,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
 //                            }
 //                        }
 //                    }
-                    if(Strategy::i().isDefSit(wm, wm.self().unum())){
+                    if(Strategy::i().isDefenseSituation(wm, wm.self().unum())){
                         if(BhvMarkDecisionGreedy::markDecision(wm) == MarkDec::MidMark){
                                 if(Strategy::i().tmLine(unum) != PostLine::back){
                                     objects[unum].score_ *= 2.0;
@@ -1168,7 +1168,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
                     double d = distance_from_ball( o, ball_pos, x_rate, y_rate );
                     objects[unum + 11].score_ *= distance_rate( d, variance );
                     objects[unum + 11].score_ *= std::pow( 0.3, o->unumCount() );
-                    if(Strategy::i().isDefSit(wm, wm.self().unum())){
+                    if(Strategy::i().isDefenseSituation(wm, wm.self().unum())){
                         if(BhvMarkDecisionGreedy::markDecision(wm) == MarkDec::MidMark){
                             auto OffStaticOpp = BhvMarkDecisionGreedy::getOppOffensiveStatic(wm);
                                 if(std::find(OffStaticOpp.begin(), OffStaticOpp.end(), unum) == OffStaticOpp.end()){
@@ -1380,7 +1380,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
     //
     // send players
     //
-    if(!Strategy::i().isDefSit(wm,wm.self().unum())){
+    if(!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
 //        sayUnmark(agent);
     }
     if ( wm.ball().pos().x > 34.0
@@ -3399,7 +3399,7 @@ SampleCommunication::attentiontoOffMove( PlayerAgent * agent ){
     const int opp_min = wm.interceptTable().opponentStep();
 
 
-    if(!Strategy::i().isDefSit(wm,wm.self().unum())){
+    if(!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
         agent->debugClient().addMessage("attOffmove");
         int eval[12] = {1000};
         Vector2D ball_pos = wm.ball().pos();

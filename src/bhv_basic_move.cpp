@@ -122,7 +122,8 @@ bool Bhv_BasicMove::set_def_neck_with_ball(PlayerAgent *agent, Vector2D targetPo
     if (wm.ball().posCount() > 0)
         targs.emplace_back(make_pair(wm.ball().pos(), 1.2));
 
-    vector<const AbstractPlayerObject *> myLine = Strategy::i().myLineTmms(wm, Strategy::i().tmLine(wm.self().unum()));
+    vector<const AbstractPlayerObject *> myLine = Strategy::i().getTeammatesInPostLine(wm, Strategy::i().tmLine(
+            wm.self().unum()));
     for (auto &i : myLine) {
         if (i->unum() != wm.self().unum() && i->posCount() > 2)
             targs.emplace_back(make_pair(i->pos(), 0.7));
@@ -473,7 +474,7 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
     int unum = wm.self().unum();
     int stamina = wm.self().stamina();
     Vector2D target_point = Strategy::i().getPosition(wm.self().unum());
-    double dash_power = Strategy::get_normal_dash_power(wm);
+    double dash_power = Strategy::getNormalDashPower(wm);
     Vector2D self_pos = wm.self().pos();
 
 
@@ -486,7 +487,7 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
 
     bool can_5_go_forward = true;
     if(wm.self().unum() == 5){
-        if (!Strategy::i().isDefSit(wm, wm.self().unum())){
+        if (!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
             if(ball_iner.x > 0 && self_pos.x < 0){
                 if(stamina < 5500){
                     can_5_go_forward = false;
@@ -496,7 +497,7 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
         }
     }
     if(wm.self().unum() < 5){
-        if (!Strategy::i().isDefSit(wm, wm.self().unum())){
+        if (!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
             if(ball_iner.x > 0 && self_pos.x < 0){
                 if(stamina < 6000){
                     target_point.x = std::min(target_point.x, -1.0);
@@ -508,16 +509,16 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
         if(wm.ourPlayer(5)!= nullptr && wm.ourPlayer(5)->unum() > 0){
             if(Strategy::i().getPosition(5).dist(wm.ourPlayer(5)->pos())>10){
                 if(ball_iner.x > 20){
-                    if(!Strategy::i().isDefSit(wm, wm.self().unum())){
-                        Strategy::i().set_position(6, (Strategy::i().getPosition(5) + target_point)/ 2.0);
+                    if(!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
+                        Strategy::i().setPosition(6, (Strategy::i().getPosition(5) + target_point) / 2.0);
                         target_point = Strategy::i().getPosition(wm.self().unum());
                     }
                 }
             }
         }
     }
-    if (Strategy::i().isDefSit(wm, wm.self().unum()) ||
-            (Strategy::i().tmLine(wm.self().unum()) == PostLine::back && wm.ball().inertiaPoint(opp_min).x > 30)) {
+    if (Strategy::i().isDefenseSituation(wm, wm.self().unum()) ||
+        (Strategy::i().tmLine(wm.self().unum()) == PostLine::back && wm.ball().inertiaPoint(opp_min).x > 30)) {
         if (DefSitPlan(agent))
             return true;
     } else {
@@ -700,7 +701,7 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
             min_x_strategy = x;
     }
 
-    double dash_power = Strategy::get_normal_dash_power(wm);
+    double dash_power = Strategy::getNormalDashPower(wm);
     if (wm.ball().pos().x < wm.self().pos().x
             && Strategy::i().selfLine() == PostLine::back) {
         dash_power = 100;

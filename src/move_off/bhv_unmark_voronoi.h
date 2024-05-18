@@ -44,7 +44,7 @@ bool go_to_target(PlayerAgent * agent, Vector2D target, unmark_type type){
     Vector2D ball_pos = wm.ball().inertiaPoint(mate_min);
     double dist2target = self_pos.dist(target);
 
-    double dash_power = Strategy::i().get_normal_dash_power(wm);
+    double dash_power = Strategy::i().getNormalDashPower(wm);
 
     if(type == ut_directpass){
         if (dist2target < mate_min){
@@ -130,7 +130,7 @@ public:
             return true;
         if(wm.self().pos().x > wm.offsideLineX() - 0.3)
             return true;
-        if(Strategy::i().isDefSit(wm,wm.self().unum()))
+        if(Strategy::i().isDefenseSituation(wm, wm.self().unum()))
             return true;
         if(wm.gameMode().type() != GameMode::PlayOn)
             return true;

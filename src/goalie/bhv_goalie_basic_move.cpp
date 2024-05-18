@@ -1297,7 +1297,7 @@ bool Bhv_GoalieBasicMove::doHeliosGolie(PlayerAgent *agent)
     else if(ball_pos.dist(Vector2D(-52,0)) > 25)
     {//opp is'nt danger
         dlog.addText(Logger::TEAM,__FILE__":opp is'nt danger");
-        if(!Body_GoToPoint(target, 0.5, Strategy::get_normal_dash_power(wm),1.5,1,false,20).execute(agent)){
+        if(!Body_GoToPoint(target, 0.5, Strategy::getNormalDashPower(wm), 1.5, 1, false, 20).execute(agent)){
             Body_TurnToAngle(body_target).execute(agent);
         }
     }

@@ -208,7 +208,7 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
             target_point = Vector2D::polar2vector(2.0,
                                                   (target_point - wm.self().pos()).th().degree() + 90);
         }
-    double dash_power = Strategy::get_normal_dash_power(wm);
+    double dash_power = Strategy::getNormalDashPower(wm);
     //	if(low_stamina)
     //		dash_power *=(2.0 / 3.0);
 
