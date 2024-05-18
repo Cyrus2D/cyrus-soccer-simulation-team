@@ -1027,14 +1027,12 @@ void Strategy::updateFormation( const WorldModel & wm )
             //
             // play on
             //
-            switch ( M_current_situation ) {
-            case Defense_Situation:
+            if (M_current_situation == Defense_Situation)
                 M_current_formation = M_Fhel_defense_formation;
-            case Offense_Situation:
+            else if (M_current_situation == Offense_Situation)
                 M_current_formation = M_Fhel_offense_formation;
-            default:
+            else
                 M_current_formation = M_Fhel_offense_formation;
-            }
         }
         else if ( wm.gameMode().type() == GameMode::KickIn_
              || wm.gameMode().type() == GameMode::CornerKick_ )
@@ -1131,14 +1129,12 @@ void Strategy::updateFormation( const WorldModel & wm )
             //
             // unknown
             //
-            switch ( M_current_situation ) {
-                case Defense_Situation:
-                    M_current_formation = M_Fhel_defense_formation;
-                case Offense_Situation:
-                    M_current_formation = M_Fhel_offense_formation;
-                default:
-                    M_current_formation = M_Fhel_offense_formation;
-            }
+            if (M_current_situation == Defense_Situation)
+                M_current_formation = M_Fhel_defense_formation;
+            else if (M_current_situation == Offense_Situation)
+                M_current_formation = M_Fhel_offense_formation;
+            else
+                M_current_formation = M_Fhel_offense_formation;
         }
     }
     else if(M_formation_type == FormationType::F433){
@@ -1183,23 +1179,18 @@ void Strategy::updateFormation( const WorldModel & wm )
             //
             // play on
             //
-            switch ( M_current_situation ) {
-            case Defense_Situation:
+            if (M_current_situation == Defense_Situation)
                 M_current_formation = M_F433_defense_formation;
-            case Offense_Situation:{
-                if(FieldAnalyzer::isHelius(wm)){
-                    M_current_formation = M_F433_offense_formation;
-                }else if(FieldAnalyzer::isMT(wm)){
+            else if (M_current_situation == Offense_Situation)
+                if(FieldAnalyzer::isMT(wm)){
                     M_current_formation = M_F433_offense_formation_for_mt;
                 }else if(is_open_deffense(wm)){
                     M_current_formation = M_F433_offense_formation_for_oxsy;
                 }else{
                     M_current_formation = M_F433_offense_formation;
                 }
-            }
-            default:
+            else
                 M_current_formation = M_F433_offense_formation;
-            }
         }
         else if ( wm.gameMode().type() == GameMode::KickIn_
              || wm.gameMode().type() == GameMode::CornerKick_ )
@@ -1316,14 +1307,12 @@ void Strategy::updateFormation( const WorldModel & wm )
             //
             // unknown
             //
-            switch ( M_current_situation ) {
-                case Defense_Situation:
-                    M_current_formation = M_F433_defense_formation;
-                case Offense_Situation:
-                    M_current_formation = M_F433_offense_formation;
-                default:
-                    M_current_formation = M_F433_offense_formation;
-            }
+            if (M_current_situation == Defense_Situation)
+                M_current_formation = M_F433_defense_formation;
+            else if (M_current_situation == Offense_Situation)
+                M_current_formation = M_F433_offense_formation;
+            else
+                M_current_formation = M_F433_offense_formation;
         }
     }
 }
