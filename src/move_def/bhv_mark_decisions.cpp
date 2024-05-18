@@ -126,7 +126,7 @@ bool BhvMarkDecisionGreedy::isAntiOffensive(const WorldModel &wm) {
         const AbstractPlayerObject *tm = wm.ourPlayer(i);
         if (!tm || tm->unum() != i)
             continue;
-        if (Strategy::i().tm_Line(i) == PostLine::back && i != 5)
+        if (Strategy::i().tmLine(i) == PostLine::back && i != 5)
             continue;
         Vector2D tm_pos = tm->pos();
         Vector2D tm_hpos = Strategy::i().getPosition(i);
@@ -257,7 +257,7 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
                 if (tm_pos.dist(opp_pos.pos) < 10 && opp_pos.pos.x < tm_hpos_def_line + 15) {
                     max_hpos_dist = Setting::i()->mDefenseMove->mMidTh_HPosMaxDistBlock * 1.1;
                 }
-                if (Strategy::i().tm_Line(t) == PostLine::back) {
+                if (Strategy::i().tmLine(t) == PostLine::back) {
                     if (opp_pos.pos.x > tm_hpos_def_line + 12 && opp_pos.pos.x > wm.ourDefenseLineX() + 12)
                         max_hpos_dist = Setting::i()->mDefenseMove->mMidTh_HPosMaxDistBlock * 0.75;
                 }
@@ -289,11 +289,11 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
                 if (tm_pos.dist(opp_pos.pos) < 10 && opp_pos.pos.x < tm_hpos_def_line + 10) {
                     max_hpos_dist_y = Setting::i()->mDefenseMove->mMidTh_HPosYMaxDistMark * 1.3;
                 }
-                if ((opp_pos.pos.y > 15 && (Strategy::i().tm_Post(t) == PlayerPost::pp_rb ||
-                                            Strategy::i().tm_Post(t) == PlayerPost::pp_rh)
+                if ((opp_pos.pos.y > 15 && (Strategy::i().tmPost(t) == PlayerPost::pp_rb ||
+                        Strategy::i().tmPost(t) == PlayerPost::pp_rh)
                      && ball_inertia.y > 10)
-                    || (opp_pos.pos.y < -15 && (Strategy::i().tm_Post(t) == PlayerPost::pp_lb ||
-                                                Strategy::i().tm_Post(t) == PlayerPost::pp_lh)
+                    || (opp_pos.pos.y < -15 && (Strategy::i().tmPost(t) == PlayerPost::pp_lb ||
+                        Strategy::i().tmPost(t) == PlayerPost::pp_lh)
                         && ball_inertia.y < -10)) {
                     if (ball_inertia.x > 20) {
                         max_hpos_dist = Setting::i()->mDefenseMove->mMidTh_HPosMaxDistMark * 2.0;
@@ -306,11 +306,11 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
                         max_hpos_dist_y = Setting::i()->mDefenseMove->mMidTh_HPosYMaxDistMark * 1.5;
                     }
                 }
-                if ((opp_pos.pos.y > 0 && (Strategy::i().tm_Post(t) == PlayerPost::pp_rb ||
-                                           Strategy::i().tm_Post(t) == PlayerPost::pp_rh)
+                if ((opp_pos.pos.y > 0 && (Strategy::i().tmPost(t) == PlayerPost::pp_rb ||
+                        Strategy::i().tmPost(t) == PlayerPost::pp_rh)
                      && ball_inertia.y < -5)
-                    || (opp_pos.pos.y < 0 && (Strategy::i().tm_Post(t) == PlayerPost::pp_lb ||
-                                              Strategy::i().tm_Post(t) == PlayerPost::pp_lh)
+                    || (opp_pos.pos.y < 0 && (Strategy::i().tmPost(t) == PlayerPost::pp_lb ||
+                        Strategy::i().tmPost(t) == PlayerPost::pp_lh)
                         && ball_inertia.y > +5)) {
                     max_hpos_dist = Setting::i()->mDefenseMove->mMidTh_HPosMaxDistMark * 2.0;
                     max_pos_dist = Setting::i()->mDefenseMove->mMidTh_PosMaxDistMark * 2.0;
@@ -350,7 +350,7 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
                 mark_eval[o][t] = dist_tm_opp;
                 mark_eval_pos[o][t] = opp_pos.pos.dist(tm_pos);
                 mark_eval_hpos[o][t] = opp_pos.pos.dist(tm_hpos);
-                if (Strategy::i().tm_Line(t) != PostLine::back
+                if (Strategy::i().tmLine(t) != PostLine::back
                     && o != fastest_opp) {
                     if (opp_reach_cycle > 4) {
                         mark_eval[o][t] += 10;
@@ -385,7 +385,7 @@ void BhvMarkDecisionGreedy::midMarkThMarkCostFinder(const WorldModel &wm, double
 vector <size_t> BhvMarkDecisionGreedy::midMarkThMarkMarkerFinder(double (*mark_eval)[12], size_t fastest_opp) {
     vector <size_t> temp_tms;
     for (size_t t = 2; t <= 11; t++) {
-        if (Strategy::i().tm_Line(t) == PostLine::back) {
+        if (Strategy::i().tmLine(t) == PostLine::back) {
             if (Setting::i()->mDefenseMove->mMidTh_BackInMark
                 || Setting::i()->mDefenseMove->mMidTh_BackInBlock) {
                 #ifdef DEBUG_MARK_DECISIONS
@@ -404,7 +404,7 @@ vector <size_t> BhvMarkDecisionGreedy::midMarkThMarkMarkerFinder(double (*mark_e
                 }
             }
         }
-        else if (Strategy::i().tm_Line(t) == PostLine::half) {
+        else if (Strategy::i().tmLine(t) == PostLine::half) {
             if (Setting::i()->mDefenseMove->mMidTh_HalfInMark
                 || Setting::i()->mDefenseMove->mMidTh_HalfInBlock) {
                 #ifdef DEBUG_MARK_DECISIONS
@@ -423,7 +423,7 @@ vector <size_t> BhvMarkDecisionGreedy::midMarkThMarkMarkerFinder(double (*mark_e
                 }
             }
         }
-        else if (Strategy::i().tm_Line(t) == PostLine::forward) {
+        else if (Strategy::i().tmLine(t) == PostLine::forward) {
             if (Setting::i()->mDefenseMove->mMidTh_ForwardInMark
                 || Setting::i()->mDefenseMove->mMidTh_ForwardInBlock) {
                 #ifdef DEBUG_MARK_DECISIONS
@@ -613,7 +613,7 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkCostFinder(const WorldModel &wm, doub
                 max_pos_dist = Setting::i()->mDefenseMove->mMidNear_PosMaxDistBlock; //20
                 opp_pos.pos = ball_inertia;
                 double base_def_pos_x = Strategy::i().getPosition(2).x;
-                if (Strategy::i().tm_Post(t) == PlayerPost::pp_ch
+                if (Strategy::i().tmPost(t) == PlayerPost::pp_ch
                     && ball_inertia.x > base_def_pos_x + 10) {
                     max_hpos_dist = Setting::i()->mDefenseMove->mMidNear_HPosMaxDistBlock * 0.75;
                     if (!canCenterHalfMarkLeadNear(wm, t, opp_pos.pos, ball_inertia)) {
@@ -649,9 +649,9 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkCostFinder(const WorldModel &wm, doub
                     max_hpos_dist *= 1.3;
 //                    max_pos_dist = 20;
                 }
-                if (Strategy::i().tm_Post(t) != PlayerPost::pp_ch)
+                if (Strategy::i().tmPost(t) != PlayerPost::pp_ch)
                     max_hpos_dist /= 1.5;
-                if (Strategy::i().tm_Line(t) == PostLine::forward) {
+                if (Strategy::i().tmLine(t) == PostLine::forward) {
                     if (abs(opp_pos.pos.y - tm_hpos.y) < 15)
                         max_hpos_dist *= 1.3;
                 }
@@ -704,7 +704,7 @@ vector <size_t> BhvMarkDecisionGreedy::midMarkLeadMarkMarkerFinder(double (*mark
     for (size_t t = 2; t <= 11; t++) {
         if (tm_mark_target[t] != 0)
             continue;
-        if (Strategy::i().tm_Line(t) == PostLine::back) {
+        if (Strategy::i().tmLine(t) == PostLine::back) {
             if (Setting::i()->mDefenseMove->mMidNear_BackInMark
                 || Setting::i()->mDefenseMove->mMidNear_BackInBlock) {
                 #ifdef DEBUG_MARK_DECISIONS
@@ -723,7 +723,7 @@ vector <size_t> BhvMarkDecisionGreedy::midMarkLeadMarkMarkerFinder(double (*mark
                 }
             }
         }
-        else if (Strategy::i().tm_Line(t) == PostLine::half) {
+        else if (Strategy::i().tmLine(t) == PostLine::half) {
             if (Setting::i()->mDefenseMove->mMidNear_HalfInMark
                 || Setting::i()->mDefenseMove->mMidNear_HalfInBlock) {
                 #ifdef DEBUG_MARK_DECISIONS
@@ -742,7 +742,7 @@ vector <size_t> BhvMarkDecisionGreedy::midMarkLeadMarkMarkerFinder(double (*mark
                 }
             }
         }
-        else if (Strategy::i().tm_Line(t) == PostLine::forward) {
+        else if (Strategy::i().tmLine(t) == PostLine::forward) {
             if (Setting::i()->mDefenseMove->mMidNear_ForwardInMark
                 || Setting::i()->mDefenseMove->mMidNear_ForwardInBlock) {
                 #ifdef DEBUG_MARK_DECISIONS
@@ -841,7 +841,7 @@ void BhvMarkDecisionGreedy::midMarkLeadMarkSetResults(const WorldModel &wm, pair
 
 bool
 BhvMarkDecisionGreedy::canCenterHalfMarkLeadNear(const WorldModel &wm, int t, Vector2D opp_pos, Vector2D ball_inertia) {
-    if (Strategy::i().tm_Post(t) != PlayerPost::pp_ch)
+    if (Strategy::i().tmPost(t) != PlayerPost::pp_ch)
         return true;
     const AbstractPlayerObject *tm5 = wm.ourPlayer(5);
     const AbstractPlayerObject *tm2 = wm.ourPlayer(2);
@@ -899,7 +899,7 @@ void BhvMarkDecisionGreedy::goalMarkDecision(PlayerAgent *agent, MarkType &mark_
         vector <size_t> temp_opps;
         vector <size_t> temp_tms;
         for (int t = 2; t < 12; ++t) {
-            if (Strategy::i().tm_Line(t) == PostLine::forward) {
+            if (Strategy::i().tmLine(t) == PostLine::forward) {
                 if (!Setting::i()->mDefenseMove->mGoal_ForwardInMark
                     && !Setting::i()->mDefenseMove->mGoal_ForwardInBlock)
                     continue;
@@ -1052,7 +1052,7 @@ void BhvMarkDecisionGreedy::goalMarkLeadMarkCostFinder(const WorldModel &wm, dou
                 max_hpos_dist = Setting::i()->mDefenseMove->mGoal_HPosMaxDistBlock;
                 max_pos_dist = Setting::i()->mDefenseMove->mGoal_PosMaxDistBlock;
                 max_dist_to_offside = Setting::i()->mDefenseMove->mGoal_OffsideMaxDistBlock;
-                if (Strategy::i().tm_Line(t) == PostLine::back) {
+                if (Strategy::i().tmLine(t) == PostLine::back) {
                     max_hpos_dist = Setting::i()->mDefenseMove->mGoal_HPosMaxDistBlock * 0.6;
                     max_pos_dist = Setting::i()->mDefenseMove->mGoal_PosMaxDistBlock * 0.6;
                     max_dist_to_offside = Setting::i()->mDefenseMove->mGoal_OffsideMaxDistBlock * 0.6;
@@ -1152,8 +1152,8 @@ BhvMarkDecisionGreedy::antiDefMarkDecision(const WorldModel &wm, MarkType &markt
         const AbstractPlayerObject *Tm = wm.ourPlayer(t);
         if (Tm == NULL
             || Tm->unum() < 1
-            || Strategy::i().tm_Line(t) == PostLine::forward
-            || Strategy::i().tm_Line(t) == PostLine::half)
+            || Strategy::i().tmLine(t) == PostLine::forward
+            || Strategy::i().tmLine(t) == PostLine::half)
             continue;
         Vector2D tm_pos = Tm->pos();
         Vector2D tm_hpos = Strategy::i().getPosition(t);
@@ -1201,7 +1201,7 @@ BhvMarkDecisionGreedy::antiDefMarkDecision(const WorldModel &wm, MarkType &markt
         double BestEval = 1000;
         int BestTm = 0;
         for (int t = 2; t <= 11; t++) {
-            if (Strategy::i().tm_Line(t) != PostLine::back)
+            if (Strategy::i().tmLine(t) != PostLine::back)
                 continue;
             if (t == whoBlocker(wm))
                 continue;

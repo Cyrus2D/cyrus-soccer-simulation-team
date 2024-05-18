@@ -251,7 +251,7 @@ public:
         return false;
     }
     bool can_unmark(const WorldModel & wm) {
-        PostLine pl_line = Strategy::i().self_Line();
+        PostLine pl_line = Strategy::i().selfLine();
         int stamina = wm.self().stamina();
         static const Rect2D penalty_area=Rect2D(Vector2D(38,-17),Vector2D(53,17));
         if (wm.ball().inertiaPoint(wm.interceptTable().teammateStep()).dist(
@@ -279,7 +279,7 @@ public:
     vector<Vector2D> voronoi_points(rcsc::PlayerAgent *agent) {
 
         std::vector<Vector2D> v_points;
-        if(Strategy::i().self_Line() != PostLine::forward && Strategy::i().self_Line() != PostLine::half)
+        if(Strategy::i().selfLine() != PostLine::forward && Strategy::i().selfLine() != PostLine::half)
             return v_points;
 
         const WorldModel &wm = agent->world();
@@ -290,8 +290,8 @@ public:
         vector<Vector2D> tm_home_poses;
         double min_tm_home_x = 100;
         for(int u = 1; u <= 11; u++){
-            if(Strategy::i().tm_Line(u) != PostLine::forward
-                    && Strategy::i().tm_Line(u) != PostLine::half)
+            if(Strategy::i().tmLine(u) != PostLine::forward
+                    && Strategy::i().tmLine(u) != PostLine::half)
                 continue;
             if(u == wm.self().unum())
                 continue;

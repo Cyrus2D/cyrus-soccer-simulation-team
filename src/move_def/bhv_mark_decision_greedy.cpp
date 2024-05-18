@@ -125,12 +125,12 @@ MarkDec BhvMarkDecisionGreedy::markDecision(const WorldModel &wm) {
 
     for (size_t i = 2; i < 12; i++) {
         if (wm.ourPlayer(i) != NULL && wm.ourPlayer(i)->unum() > 1) {
-            if (Strategy::i().tm_Line(i) != PostLine::back) {
+            if (Strategy::i().tmLine(i) != PostLine::back) {
                 tm_offense_pos_x_avg += wm.ourPlayer(i)->pos().x;
                 tm_offense_hpos_x_avg += Strategy::i().getPosition(i).x;
                 tm_offense_count += 1;
             }
-            if (Strategy::i().tm_Line(i) != PostLine::forward) {
+            if (Strategy::i().tmLine(i) != PostLine::forward) {
                 tm_defense_pos_x_avg += wm.ourPlayer(i)->pos().x;
                 tm_defense_hpos_x_avg += Strategy::i().getPosition(i).x;
                 tm_defense_count += 1;

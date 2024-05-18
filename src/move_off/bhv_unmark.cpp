@@ -323,7 +323,7 @@ bool bhv_unmark::is_good_for_unmark(const WorldModel & wm) {
 
     }
     if (target_pos.dist(Vector2D(52, 0)) < 20 && is_passer_x_more30
-        && Strategy::i().self_line == PostLine::forward)
+        && Strategy::i().selfLine() == PostLine::forward)
         min_dist_opp = 1.5;
     if (target_pos.dist(Vector2D(52, 34)) < 20
         || target_pos.dist(Vector2D(52, -34)) < 20) {
@@ -437,9 +437,9 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
     double stamina = wm.self().stamina();
     double dash_power = Strategy::get_normal_dash_power(wm);
     double stamina_z = 1.0;
-    if(Strategy::i().tm_Line(wm.self().unum()) == PostLine::back)
+    if(Strategy::i().tmLine(wm.self().unum()) == PostLine::back)
         stamina_z = 1.4;
-    if(Strategy::i().tm_Line(wm.self().unum()) == PostLine::half)
+    if(Strategy::i().tmLine(wm.self().unum()) == PostLine::half)
         stamina_z = 1.2;
     if(wm.self().unum() == 5)
         stamina_z = 1.3;
@@ -458,7 +458,7 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
         }
         if (stamina < 5000 * stamina_z)
             dash_power = Strategy::get_normal_dash_power(wm);
-        if (Strategy::i().tm_Line(wm.self().unum()) != PostLine::back){
+        if (Strategy::i().tmLine(wm.self().unum()) != PostLine::back){
             if (ball_inertia.x > 10
                 && self_hpos.x > 10){
                 if(self_pos.dist(self_hpos) > 10)
@@ -467,7 +467,7 @@ bool bhv_unmark::execute(PlayerAgent * agent) {
         }
         if (stamina < 4000 * stamina_z)
             dash_power = Strategy::get_normal_dash_power(wm);
-        if (Strategy::i().tm_Line(wm.self().unum()) != PostLine::back){
+        if (Strategy::i().tmLine(wm.self().unum()) != PostLine::back){
             if (ball_inertia.x > 30
                 && self_hpos.x > 25){
                 dash_power = 100;
@@ -741,7 +741,7 @@ bool bhv_unmarkes::execute(PlayerAgent * agent) {
 }
 
 bool bhv_unmarkes::can_unmark(const WorldModel & wm) {
-    PostLine pl_line = Strategy::i().self_Line();
+    PostLine pl_line = Strategy::i().selfLine();
     int stamina = wm.self().stamina();
     static const Rect2D penalty_area=Rect2D(Vector2D(38,-17),Vector2D(53,17));
     if (wm.ball().inertiaPoint(wm.interceptTable().teammateStep()).dist(wm.self().pos()) > 30){

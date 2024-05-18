@@ -961,7 +961,7 @@ Strategy::myLineTmms(const WorldModel &wm, PostLine tm_line) {
         if (!p->pos().isValid())
             continue;
 
-        if (Strategy::i().tm_Line(p->unum()) == tm_line)
+        if (Strategy::i().tmLine(p->unum()) == tm_line)
             results.push_back(p);
     }
     return results;

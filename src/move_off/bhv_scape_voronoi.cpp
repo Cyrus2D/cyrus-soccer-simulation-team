@@ -172,7 +172,7 @@ bool bhv_scape_voronoi::execute(PlayerAgent *agent) {
     return false;
 }
 bool bhv_scape_voronoi::can_scape(const WorldModel & wm) {
-    PostLine pl_line = Strategy::i().self_Line();
+    PostLine pl_line = Strategy::i().selfLine();
     double stamina = wm.self().stamina();
     if (wm.ball().inertiaPoint(wm.interceptTable().teammateStep()).dist(
             wm.self().pos()) > 30)
@@ -199,7 +199,7 @@ bool bhv_scape_voronoi::can_scape(const WorldModel & wm) {
 vector<Vector2D> bhv_scape_voronoi::voronoi_points(rcsc::PlayerAgent *agent) {
 
     std::vector<Vector2D> v_points;
-    if(Strategy::i().self_Line() != PostLine::forward)
+    if(Strategy::i().selfLine() != PostLine::forward)
         return v_points;
 
     const WorldModel &wm = agent->world();
@@ -210,7 +210,7 @@ vector<Vector2D> bhv_scape_voronoi::voronoi_points(rcsc::PlayerAgent *agent) {
     vector<Vector2D> tm_home_poses;
     double min_tm_home_x = 100;
     for(int u = 1; u <= 11; u++){
-        if(Strategy::i().tm_Line(u) != PostLine::forward)
+        if(Strategy::i().tmLine(u) != PostLine::forward)
             continue;
         if(u == wm.self().unum())
             continue;

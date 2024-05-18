@@ -105,19 +105,6 @@ public:
     static const std::string Fhel_SETPLAY_OUR_FORMATION_CONF;
 
 
-
-
-	FormationType M_formation_type;
-
-    TeamTactic my_team_tactic;
-
-    PostLine self_line;
-    PostLine tm_line[12];
-	PlayerPost self_post;
-	PlayerPost tm_post[12];
-
-
-
 private:
 	//
 	// factories
@@ -150,6 +137,13 @@ private:
     rcsc::Formation::Ptr M_Fhel_kickin_our_formation;
     rcsc::Formation::Ptr M_Fhel_setplay_opp_formation;
     rcsc::Formation::Ptr M_Fhel_setplay_our_formation;
+
+    FormationType M_formation_type;
+    TeamTactic my_team_tactic;
+    PostLine self_line;
+    PostLine tm_line[12];
+    PlayerPost self_post;
+    PlayerPost tm_post[12];
 
 	int M_goalie_unum;
 
@@ -258,16 +252,16 @@ public:
         else
             return TeamTactic::Normal;
     }
-    PostLine self_Line() const{
+    PostLine selfLine() const{
         return self_line;
     }
-    PlayerPost self_Post() const{
+    PlayerPost selfPost() const{
         return self_post;
     }
-    PostLine tm_Line(size_t unum){
+    PostLine tmLine(size_t unum){
         return tm_line[unum];
     }
-    PlayerPost tm_Post(size_t unum){
+    PlayerPost tmPost(size_t unum){
         return tm_post[unum];
     }
 };
