@@ -77,8 +77,6 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
                     vector<Vector2D> block_target = block_eval_target.second;
                     double tm_hpos_def_line = 0;
                     for (int i = 2; i <= 11; i++) {
-                        if(Setting::i()->mStrategySetting->mIsGoalForward && i==2 )
-                            continue;
                         double hpos_x = Strategy::i().getPosition(i).x;
 
                         if (hpos_x < tm_hpos_def_line)
@@ -198,8 +196,6 @@ bool bhv_mark_execute::defenseBeInBack(PlayerAgent *agent){
     double tm_pos_def_line = wm.ball().inertiaPoint(wm.interceptTable().opponentStep()).x;
     double tm_hpos_def_line = 0;
     for (int i = 2; i <= 11; i++) {
-        if(Setting::i()->mStrategySetting->mIsGoalForward && i==2 )
-            continue;
         const AbstractPlayerObject * tm = wm.ourPlayer(i);
         if (tm != nullptr && tm->unum() > 0){
             if (tm->pos().x < tm_pos_def_line)

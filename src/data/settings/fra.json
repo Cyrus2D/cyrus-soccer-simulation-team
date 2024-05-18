@@ -1,15 +1,7 @@
 {
 	"Strategy":	{
-				"Formation":	{
-							"Win":"HeliosFra",
-							"Lost":"HeliosFra",
-							"Draw":"HeliosFra"
-						},
-				"Is5ForwardWin":true,
-				"Is5ForwardLost":true,
-				"Is5ForwardDraw":true,
-				"TeamTactic":"Normal",
-				"IsGoalForward":false
+				"Formation": "HeliosFra",
+				"TeamTactic":"Normal"
 			},
 	"ChainAction":	{
 				"ChainNodeNumber":750,

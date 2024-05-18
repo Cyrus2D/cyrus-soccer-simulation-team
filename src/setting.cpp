@@ -97,31 +97,10 @@ ChainActionSetting::ChainActionSetting(Value & value){
 
 StrategySetting::StrategySetting(Value & value){
     if(value.HasMember("Formation")){
-        auto & o = (value.GetObject())["Formation"];
-        if(o.HasMember("Win")){
-            mWinFormation = o["Win"].GetString();
-        }
-        if(o.HasMember("Lost")){
-            mLostFormation = o["Lost"].GetString();
-        }
-        if(o.HasMember("Draw")){
-            mDrawFormation = o["Draw"].GetString();
-        }
-    }
-    if(value.HasMember("Is5ForwardWin")){
-        mIs5ForwardWin = value["Is5ForwardWin"].GetBool();
-    }
-    if(value.HasMember("Is5ForwardDraw")){
-        mIs5ForwardDraw = value["Is5ForwardDraw"].GetBool();
-    }
-    if(value.HasMember("Is5ForwardLost")){
-        mIs5ForwardLost = value["Is5ForwardLost"].GetBool();
+        mFormation = value["Formation"].GetString();
     }
     if(value.HasMember("TeamTactic")){
         mTeamTactic = value["TeamTactic"].GetString();
-    }
-    if(value.HasMember("IsGoalForward")){
-        mIsGoalForward = value["IsGoalForward"].GetBool();
     }
 }
 

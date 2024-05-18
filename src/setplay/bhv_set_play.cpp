@@ -95,7 +95,7 @@ Bhv_SetPlay::execute( PlayerAgent * agent )
 #endif
 
 
-    if ( wm.self().goalie() && !Strategy::i().isgoal_forward())
+    if ( wm.self().goalie())
     {
         if(wm.gameMode().type() == GameMode::GoalKick_)
             if ( wm.gameMode().side() == wm.ourSide() )

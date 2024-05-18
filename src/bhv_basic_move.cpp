@@ -2338,14 +2338,6 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
             mark_or_block = false;
         }
     }
-    if(Setting::i()->mStrategySetting->mIsGoalForward && wm.self().unum()==2)
-        mark_or_block = false;
-//    if (Strategy::i().self_Line() == Strategy::PostLine::back) {
-//        if (go_to_goal(agent)){
-//            agent->debugClient().addMessage("GoToGoal");
-//            return true;
-//        }
-//    }
     if (mark_or_block) {
         dlog.addText(Logger::BLOCK, "block or mark");
         if (bhv_mark_execute().execute(agent)){
@@ -2356,8 +2348,6 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
 
     double min_x_hpos = 1000;
     for (int i = 2; i <= 11; i++) {
-        if (Setting::i()->mStrategySetting->mIsGoalForward && i==2)
-            continue;
         double hposx = Strategy::i().getPosition(i).x;
         if (hposx < min_x_hpos)
             min_x_hpos = hposx;
@@ -2411,8 +2401,6 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
 
     double min_x_strategy = 100;
     for (int i = 2; i <= 11; i++) {
-        if (Setting::i()->mStrategySetting->mIsGoalForward && i==2)
-            continue;
         double x = Strategy::i().getPosition(i).x;
         if (x < min_x_strategy)
             min_x_strategy = x;
@@ -2463,8 +2451,7 @@ bool Bhv_BasicMove::DefSitPlan(rcsc::PlayerAgent *agent) {
     agent->debugClient().addMessage("BasicMoveDef%.0f", dash_power);
     agent->debugClient().setTarget(target_point);
     agent->debugClient().addCircle(target_point, dist_thr);
-    bool isGoalieForward=Setting::i()->mStrategySetting->mIsGoalForward;
-    double base_def_pos_x = isGoalieForward?Strategy::i().getPosition(3).x:Strategy::i().getPosition(2).x;
+    double base_def_pos_x = Strategy::i().getPosition(2).x;
     if (wm.self().stamina() < 4500 && wm.self().pos().x < base_def_pos_x) {
         agent->addSayMessage(new WaitRequestMessage());
     }

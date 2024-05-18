@@ -59,14 +59,8 @@ class StrategySetting{
 public:
     StrategySetting(){}
     StrategySetting(Value & value);
-    string mWinFormation = "433";
-    string mLostFormation = "433";
-    string mDrawFormation = "433";
+    string mFormation = "433";
     string mTeamTactic = "Normal";
-    bool mIs5ForwardWin = true;
-    bool mIs5ForwardDraw = true;
-    bool mIs5ForwardLost = true;
-    bool mIsGoalForward = false;
 };
 
 class NeckSetting{
