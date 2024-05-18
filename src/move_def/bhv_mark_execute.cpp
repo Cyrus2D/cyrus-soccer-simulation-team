@@ -20,6 +20,7 @@
 #include "../debugs.h"
 #include "mark_position_finder.h"
 #include "../setting.h"
+#include "bhv_defensive_move.h"
 
 using namespace std;
 using namespace rcsc;
@@ -366,7 +367,7 @@ bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType mark
 
     do_move_mark(agent, target, dist_thr, marktype, mark_unum);
     agent->debugClient().addMessage("domove(%.1f,%.1f)", target.pos.x, target.pos.y);
-    Bhv_BasicMove::set_def_neck_with_ball(agent, target.pos, wm.theirPlayer(mark_unum), blocker);
+    Bhv_DefensiveMove::setDefNeckWithBall(agent, target.pos, wm.theirPlayer(mark_unum), blocker);
     return true;
 }
 

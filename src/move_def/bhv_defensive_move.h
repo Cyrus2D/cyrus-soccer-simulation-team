@@ -23,8 +23,8 @@
  */
 
 /////////////////////////////////////////////////////////////////////
-#ifndef BHV_BASIC_MOVE_H
-#define BHV_BASIC_MOVE_H
+#ifndef BHV_DEFENSIVE_MOVE_H
+#define BHV_DEFENSIVE_MOVE_H
 
 #include <rcsc/geom/vector_2d.h>
 #include <rcsc/player/soccer_action.h>
@@ -38,12 +38,14 @@ using namespace rcsc;
 using namespace std;
 
 #include "move_def/cyrus_interceptable.h"
-class Bhv_BasicMove: public rcsc::SoccerBehavior {
+class Bhv_DefensiveMove: public rcsc::SoccerBehavior {
 public:
-    Bhv_BasicMove() = default;
+    Bhv_DefensiveMove() = default;
     bool execute(rcsc::PlayerAgent * agent) override;
-    bool intercept_plan(rcsc::PlayerAgent * agent, bool from_block = false);
-    bool TurnToTackle(rcsc::PlayerAgent * agent);
+    static bool setDefNeckWithBall(PlayerAgent * agent,
+                                   Vector2D targetPoint,
+                                   const AbstractPlayerObject* opp,
+                                   int blocker);
 };
 
 #endif

@@ -82,6 +82,7 @@ sample_player.cpp
 bhv_basic_move.cpp
 sample_coach.cpp
 setting.cpp
+move_def/bhv_defensive_move.cpp
 move_def/mark_position_finder.cpp
 move_def/bhv_basic_tackle.cpp
 move_def/bhv_mark_decision_greedy.cpp
