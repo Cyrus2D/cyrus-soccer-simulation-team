@@ -81,8 +81,17 @@ enum class TeamTactic{
 };
 
 class Strategy {
-public:
-    static bool change9_11;
+private:
+	//
+	// factories
+	//
+    typedef std::map< std::string, SoccerRole::Creator > RoleFactory;
+
+    RoleFactory M_role_factory;
+
+	//
+	// formations
+	//
     static const std::string F433_BEFORE_KICK_OFF_CONF;
     static const std::string F433_BEFORE_KICK_OFF_CONF_FOR_OUR_KICK;
     static const std::string F433_DEFENSE_FORMATION_CONF;
@@ -103,19 +112,6 @@ public:
     static const std::string Fhel_KICKIN_OUR_FORMATION_CONF;
     static const std::string Fhel_SETPLAY_OPP_FORMATION_CONF;
     static const std::string Fhel_SETPLAY_OUR_FORMATION_CONF;
-
-
-private:
-	//
-	// factories
-	//
-    typedef std::map< std::string, SoccerRole::Creator > RoleFactory;
-
-    RoleFactory M_role_factory;
-
-	//
-	// formations
-	//
 
     rcsc::Formation::Ptr M_F433_before_kick_off_formation;
     rcsc::Formation::Ptr M_F433_before_kick_off_formation_for_our_kick;
@@ -138,6 +134,7 @@ private:
     rcsc::Formation::Ptr M_Fhel_setplay_opp_formation;
     rcsc::Formation::Ptr M_Fhel_setplay_our_formation;
 
+    static bool change9_11;
     FormationType M_formation_type;
     TeamTactic my_team_tactic;
     PostLine self_line;
@@ -149,6 +146,9 @@ private:
 
 	// situation type
 	SituationType M_current_situation;
+
+    // current formation
+    rcsc::Formation::Ptr M_current_formation;
 
 	// role assignment
 	std::vector< int > M_role_number;
@@ -170,8 +170,6 @@ private:
 
     rcsc::Formation::Ptr readFormation( const std::string & filepath );
     rcsc::Formation::Ptr createFormation( const std::string & type_name ) const;
-
-    rcsc::Formation::Ptr M_current_formation;
 
 public:
     void set_position(int unum, rcsc::Vector2D tar){
