@@ -23,7 +23,7 @@
 #include <rcsc/common/say_message_parser.h>
 #include <rcsc/player/say_message_builder.h>
 #include "basic_actions/neck_turn_to_ball_and_player.h"
-
+#include "bhv_defensive_move.h"
 #include <rcsc/common/logger.h>
 
 class IntentionMark
@@ -74,7 +74,7 @@ public:
 
         if (wm.time().cycle() > start_time.cycle() + max_step)
             return true;
-        if (!Strategy::i().isDefSit(wm, self_unum))
+        if (!Strategy::i().isDefenseSituation(wm, self_unum))
             return true;
         if (ball_pos.dist(first_ball_pos) > 20)
             return true;
@@ -135,7 +135,7 @@ public:
         agent->doPointto(targ.pos.x, targ.pos.y);
         if (opp->posCount() > 3)
             if (Body_TurnToPoint(opp->pos()).execute(agent))
-                Bhv_BasicMove::set_def_neck_with_ball(agent, targ.pos, wm.theirPlayer(opp_unum), blocker);
+                Bhv_DefensiveMove::setDefNeckWithBall(agent, targ.pos, wm.theirPlayer(opp_unum), blocker);
 
 
         agent->debugClient().addMessage("mark %d %s", opp_unum,
@@ -202,7 +202,7 @@ public:
 //                    new Neck_TurnToBallAndPlayer(
 //                            wm.theirPlayer(opp_unum), 1));
 //        }
-        Bhv_BasicMove::set_def_neck_with_ball(agent, targ.pos, opp, blocker);
+        Bhv_DefensiveMove::setDefNeckWithBall(agent, targ.pos, opp, blocker);
 
 
         return true;
@@ -220,7 +220,7 @@ public:
         if (self_pos.dist(target_pos) > 1 ||
             wm.gameMode().type() != wm.gameMode().PlayOn
             || target_pos.dist(wm.interceptTable().firstOpponent()->pos()) > distToOpp) {
-            double dash_power = Strategy::get_normal_dash_power(wm);
+            double dash_power = Strategy::getNormalDashPower(wm);
             if (oppmin < 5)
                 dash_power = 100;
             if (target_pos.dist(Vector2D(-52, 0)) < 25)

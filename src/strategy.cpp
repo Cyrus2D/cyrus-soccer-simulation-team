@@ -34,24 +34,13 @@
 #endif
 
 #include "strategy.h"
-
 #include "roles/soccer_role.h"
-
-
-#ifndef USE_GENERIC_FACTORY
 #include "roles/role_sample.h"
-
 #include "roles/role_goalie.h"
 #include "roles/role_player.h"
-
 #include "chain_action/field_analyzer.h"
-
 #include "setting.h"
-#include <rcsc/formation/formation_static.h>
-#include <rcsc/formation/formation_dt.h>
-#endif
 
-#include <rcsc/player/intercept_table.h>
 #include <rcsc/player/world_model.h>
 #include <rcsc/formation/formation_parser.h>
 #include <rcsc/common/logger.h>
@@ -59,14 +48,14 @@
 #include <rcsc/param/cmd_line_parser.h>
 #include <rcsc/param/param_map.h>
 #include <rcsc/game_mode.h>
+#include <rcsc/formation/formation_static.h>
 
 #include <set>
-#include <fstream>
 #include <iostream>
 #include <cstdio>
 
+
 using namespace rcsc;
-bool Strategy::change9_11 = false;
 const std::string Strategy::F433_BEFORE_KICK_OFF_CONF = "F433_before-kick-off.conf";
 const std::string Strategy::F433_BEFORE_KICK_OFF_CONF_FOR_OUR_KICK = "F433_before-kick-off_for_our_kick.conf";
 const std::string Strategy::F433_DEFENSE_FORMATION_CONF = "F433_defense-formation.conf";
@@ -380,141 +369,6 @@ Strategy::readFormation( const std::string & filepath )
     return f;
 }
 
-//Formation::Ptr
-//Strategy::readFormation( const std::string & filepath )
-//{
-//    Formation::Ptr f;
-//
-//    std::ifstream fin( filepath.c_str() );
-//    if ( ! fin.is_open() )
-//    {
-//        std::cerr << __FILE__ << ':' << __LINE__ << ':'
-//                  << " ***ERROR*** failed to open file [" << filepath << "]"
-//                  << std::endl;
-//        return f;
-//    }
-//
-//    std::string temp, type;
-//    fin >> temp >> type; // read training method type name
-//    fin.seekg( 0 );
-//
-//    f = createFormation( type );
-//
-//    if ( ! f )
-//    {
-//        std::cerr << __FILE__ << ':' << __LINE__ << ':'
-//                  << " ***ERROR*** failed to create formation [" << filepath << "]"
-//                  << std::endl;
-//        return f;
-//    }
-//
-//    //
-//    // read data from file
-//    //
-//    if ( ! f->read( fin ) )
-//    {
-//        std::cerr << __FILE__ << ':' << __LINE__ << ':'
-//                  << " ***ERROR*** failed to read formation [" << filepath << "]"
-//                  << std::endl;
-//        f.reset();
-//        return f;
-//    }
-//
-//
-//    //
-//    // check role names
-//    //
-//    for ( int unum = 1; unum <= 11; ++unum )
-//    {
-//        const std::string role_name = f->getRoleName( unum );
-//        if ( role_name == "Savior"
-//             || role_name == "Goalie" )
-//        {
-//            if ( M_goalie_unum == Unum_Unknown )
-//            {
-//                M_goalie_unum = unum;
-//            }
-//
-//            if ( M_goalie_unum != unum )
-//            {
-//                std::cerr << __FILE__ << ':' << __LINE__ << ':'
-//                          << " ***ERROR*** Illegal goalie's uniform number"
-//                          << " read unum=" << unum
-//                          << " expected=" << M_goalie_unum
-//                          << std::endl;
-//                f.reset();
-//                return f;
-//            }
-//        }
-//
-//
-//#ifdef USE_GENERIC_FACTORY
-//        SoccerRole::Ptr role = SoccerRole::create( role_name );
-//        if ( ! role )
-//        {
-//            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-//                      << " ***ERROR*** Unsupported role name ["
-//                      << role_name << "] is appered in ["
-//                      << filepath << "]" << std::endl;
-//            f.reset();
-//            return f;
-//        }
-//#else
-//        if ( M_role_factory.find( role_name ) == M_role_factory.end() )
-//        {
-//            std::cerr << __FILE__ << ':' << __LINE__ << ':'
-//                      << " ***ERROR*** Unsupported role name ["
-//                      << role_name << "] is appered in ["
-//                      << filepath << "]" << std::endl;
-//            f.reset();
-//            return f;
-//        }
-//#endif
-//    }
-//
-//    return f;
-//}
-
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
-//Formation::Ptr
-//Strategy::createFormation( const std::string & type_name ) const
-//{
-//    Formation::Ptr f;
-//
-//#ifdef USE_GENERIC_FACTORY
-//    f = Formation::create( type_name );
-//#else
-//    FormationFactory::const_iterator creator = M_formation_factory.find( type_name );
-//    if ( creator == M_formation_factory.end() )
-//    {
-//        std::cerr << __FILE__ << ": " << __LINE__
-//                  << " ***ERROR*** unsupported formation type ["
-//                  << type_name << "]"
-//                  << std::endl;
-//        return f;
-//    }
-//    f = creator->second();
-//#endif
-//
-//    if ( ! f )
-//    {
-//        std::cerr << __FILE__ << ": " << __LINE__
-//                  << " ***ERROR*** unsupported formation type ["
-//                  << type_name << "]"
-//                  << std::endl;
-//    }
-//
-//    return f;
-//}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
 void
 Strategy::update( const WorldModel & wm )
 {
@@ -579,26 +433,6 @@ Strategy::exchangeRole( const int unum0,
 /*!
 
  */
-bool
-Strategy::isMarkerType( const int unum ) const
-{
-    int number = roleNumber( unum );
-
-    if ( number == 2
-         || number == 3
-         || number == 4
-         || number == 5 )
-    {
-        return true;
-    }
-
-    return false;
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
 SoccerRole::Ptr
 Strategy::createRole( const int unum,
                       const WorldModel & world )
@@ -614,6 +448,7 @@ Strategy::createRole( const int unum,
                   << std::endl;
         return role;
     }
+    updateFormation(world);
     Formation::Ptr f = getFormation( world );
     if ( ! f )
     {
@@ -675,36 +510,7 @@ Strategy::updateSituation( const WorldModel & wm )
         return;
     }
 
-    int self_min = wm.interceptTable().selfStep();
-    int mate_min = wm.interceptTable().teammateStep();
-    int opp_min = wm.interceptTable().opponentStep();
-    int our_min = std::min( self_min, mate_min );
-
-    if ( isDefSit(wm,wm.self().unum())){
-        M_current_situation = Defense_Situation;
-        return;
-    }else{
-        M_current_situation = Offense_Situation;
-        return;
-    }
-    if ( opp_min <= our_min - 2 )
-    {
-        dlog.addText( Logger::TEAM,
-                      __FILE__": Situation Defense" );
-        M_current_situation = Defense_Situation;
-        return;
-    }
-
-    if ( our_min <= opp_min - 2 )
-    {
-        dlog.addText( Logger::TEAM,
-                      __FILE__": Situation Offense" );
-        M_current_situation = Offense_Situation;
-        return;
-    }
-
-    dlog.addText( Logger::TEAM,
-                  __FILE__": Situation Normal" );
+    M_current_situation = isDefenseSituation(wm, wm.self().unum()) ? Defense_Situation : Offense_Situation;
 }
 
 /*-------------------------------------------------------------------*/
@@ -721,6 +527,7 @@ Strategy::updatePosition( const WorldModel & wm )
     }
     s_update_time = wm.time();
 
+    updateFormation(wm);
     Formation::Ptr f = getFormation( wm );
     if ( ! f )
     {
@@ -804,34 +611,7 @@ Strategy::updatePosition( const WorldModel & wm )
     }
 
     M_position_types.clear();
-    change9_11 = false;
-    if(wm.interceptTable().firstTeammate() != NULL && wm.interceptTable().firstTeammate()->unum() == 11 && wm.interceptTable().opponentStep() < wm.interceptTable().opponentStep() ){
-        if(wm.ball().inertiaPoint(wm.interceptTable().teammateStep()).x > 30){
-//            change9_11 = true;
-        }
-    }
-    //change position of 2 to center of 2 and 5
-    //TODO should be check in the future
-//    bool need_to_change_in_def = false;
-//    double def_line_x = wm.ourDefensePlayerLineX();
-//    const AbstractPlayerObject * tm5 = wm.ourPlayer(5);
-//    if (tm5 == NULL || tm5->unum() < 1)
-//        need_to_change_in_def = true;
-//    else if (tm5->pos().x > def_line_x + 10 && ball_pos.x > -35){
-//        need_to_change_in_def = true;
-//    }
-//    if(need_to_change_in_def && M_formation_type == FormationType::F433){
-//        Vector2D old_hpos2 = M_positions[2 - 1];
-//        Vector2D old_hpos3 = M_positions[3 - 1];
-//        Vector2D old_hpos4 = M_positions[4 - 1];
-//        Vector2D old_hpos5 = M_positions[5 - 1];
-//        M_positions[2 - 1] = (old_hpos2 + old_hpos5) / 2.0;
-//        M_positions[3 - 1] = (old_hpos5 + old_hpos3 + old_hpos3) / 3.0;
-//        M_positions[4 - 1] = (old_hpos2 + old_hpos4 + old_hpos4) / 3.0;
-//        M_positions[2 - 1].x = old_hpos2.x;
-//        M_positions[3 - 1].x = old_hpos3.x;
-//        M_positions[4 - 1].x = old_hpos4.x;
-//    }
+
     for ( int unum = 1; unum <= 11; ++unum )
     {
         PositionType type = Position_Center;
@@ -864,39 +644,10 @@ Strategy::updatePosition( const WorldModel & wm )
 /*!
 
  */
-PositionType
-Strategy::getPositionType( const int unum ) const
-{
-    const int number = roleNumber( unum );
-
-    if ( number < 1 || 11 < number )
-    {
-        std::cerr << __FILE__ << ' ' << __LINE__
-                  << ": Illegal number : " << number
-                  << std::endl;
-        return Position_Center;
-    }
-
-    try
-    {
-        return M_position_types.at( number - 1 );
-    }
-    catch ( std::exception & e )
-    {
-        std::cerr<< __FILE__ << ':' << __LINE__ << ':'
-                 << " Exception caught! " << e.what()
-                 << std::endl;
-        return Position_Center;
-    }
-}
-
-/*-------------------------------------------------------------------*/
-/*!
-
- */
 rcsc::Vector2D
 Strategy::getPositionWithBall( const int unum, rcsc::Vector2D ball, const WorldModel & wm ){
     try {
+        updateFormation(wm);
         Formation::Ptr f = getFormation( wm );
         if ( ! f )
         {
@@ -921,12 +672,6 @@ Strategy::getPosition( const int unum ) const
 {
     int number = roleNumber( unum );
 
-    if(change9_11){
-        if(number == 11)
-            number = 9;
-        else if(number == 9)
-            number = 11;
-    }
     if ( number < 1 || 11 < number )
     {
         std::cerr << __FILE__ << ' ' << __LINE__
@@ -950,17 +695,15 @@ Strategy::getPosition( const int unum ) const
 
 
 std::vector<const AbstractPlayerObject *>
-Strategy::myLineTmms(const WorldModel &wm, Strategy::PostLine tm_line) {
+Strategy::getTeammatesInPostLine(const rcsc::WorldModel &wm, PostLine tm_line) {
     std::vector<const AbstractPlayerObject *> results;
-//    for (AbstractPlayerCont::const_iterator p = wm.ourPlayers().begin(), end =
-//            wm.ourPlayers().end(); p != end; ++p) {
     for ( const AbstractPlayerObject * p : wm.ourPlayers() ){
-        if (p == NULL)
+        if (p == nullptr)
             continue;
         if (!p->pos().isValid())
             continue;
 
-        if (Strategy::i().tm_Line(p->unum()) == tm_line)
+        if (Strategy::i().tmLine(p->unum()) == tm_line)
             results.push_back(p);
     }
     return results;
@@ -971,21 +714,21 @@ Strategy::myLineTmms(const WorldModel &wm, Strategy::PostLine tm_line) {
 
  */
 Formation::Ptr
-Strategy::getFormation( const WorldModel & wm )
-{
-    int our_score = ( wm.ourSide() == LEFT
-                      ? wm.gameMode().scoreLeft()
-                      : wm.gameMode().scoreRight() );
-    int opp_score = ( wm.ourSide() == LEFT
-                      ? wm.gameMode().scoreRight()
-                      : wm.gameMode().scoreLeft() );
+Strategy::getFormation( const WorldModel & wm ){
+    return M_current_formation;
+}
 
-    int time = wm.time().cycle();
+void Strategy::setFormation(const rcsc::Formation::Ptr &formation) {
+    M_current_formation = formation;
+}
+
+void Strategy::updateFormation( const WorldModel & wm )
+{
     int opp_min = wm.interceptTable().opponentStep();
     int mate_min = std::min(wm.interceptTable().teammateStep(), wm.interceptTable().selfStep());
 
-    my_team_tactic = StringToTeamTactic(Setting::i()->mStrategySetting->mTeamTactic);
-    M_formation_type = StringToFormationType(Setting::i()->mStrategySetting->mFormation);
+    my_team_tactic = stringToTeamTactic(Setting::i()->mStrategySetting->mTeamTactic);
+    M_formation_type = stringToFormationType(Setting::i()->mStrategySetting->mFormation);
 
     if(M_formation_type == FormationType::HeliosFra){
         tm_line[1] = PostLine::golie;
@@ -1020,133 +763,121 @@ Strategy::getFormation( const WorldModel & wm )
         self_line = tm_line[wm.self().unum()];
         self_post = tm_post[wm.self().unum()];
 
-        //
-        // play on
-        //
+
         if ( wm.gameMode().type() == GameMode::PlayOn )
         {
-            switch ( M_current_situation ) {
-            case Defense_Situation:
-                return M_Fhel_defense_formation;
-            case Offense_Situation:
-                return M_Fhel_offense_formation;
-            default:
-                break;
-            }
-            return M_Fhel_offense_formation;
+            //
+            // play on
+            //
+            if (M_current_situation == Defense_Situation)
+                M_current_formation = M_Fhel_defense_formation;
+            else if (M_current_situation == Offense_Situation)
+                M_current_formation = M_Fhel_offense_formation;
+            else
+                M_current_formation = M_Fhel_offense_formation;
         }
-
-        //
-        // kick in, corner kick
-        //
-        if ( wm.gameMode().type() == GameMode::KickIn_
+        else if ( wm.gameMode().type() == GameMode::KickIn_
              || wm.gameMode().type() == GameMode::CornerKick_ )
         {
+            //
+            // kick in, corner kick
+            //
             if ( wm.ourSide() == wm.gameMode().side() )
             {
                 // our kick-in or corner-kick
-                return M_Fhel_kickin_our_formation;
+                M_current_formation = M_Fhel_kickin_our_formation;
             }
             else
             {
-                return M_Fhel_setplay_opp_formation;
+                M_current_formation = M_Fhel_setplay_opp_formation;
             }
         }
-
-        //
-        // our indirect free kick
-        //
-        if ( ( wm.gameMode().type() == GameMode::BackPass_
+        else if ( ( wm.gameMode().type() == GameMode::BackPass_
                && wm.gameMode().side() == wm.theirSide() )
              || ( wm.gameMode().type() == GameMode::IndFreeKick_
                   && wm.gameMode().side() == wm.ourSide() ) )
         {
-            return M_Fhel_setplay_our_formation;
+            //
+            // our indirect free kick
+            //
+            M_current_formation = M_Fhel_setplay_our_formation;
         }
-
-        //
-        // opponent indirect free kick
-        //
-        if ( ( wm.gameMode().type() == GameMode::BackPass_
+        else if ( ( wm.gameMode().type() == GameMode::BackPass_
                && wm.gameMode().side() == wm.ourSide() )
              || ( wm.gameMode().type() == GameMode::IndFreeKick_
                   && wm.gameMode().side() == wm.theirSide() ) )
         {
-            return M_Fhel_setplay_opp_formation;
+            //
+            // opponent indirect free kick
+            //
+            M_current_formation = M_Fhel_setplay_opp_formation;
         }
-
-        //
-        // after foul
-        //
-        if ( wm.gameMode().type() == GameMode::FoulCharge_
+        else if ( wm.gameMode().type() == GameMode::FoulCharge_
              || wm.gameMode().type() == GameMode::FoulPush_ )
         {
+            //
+            // after foul
+            //
             if ( wm.gameMode().side() == wm.ourSide() )
             {
                 //
                 // opponent (indirect) free kick
                 //
-                return M_Fhel_setplay_opp_formation;
+                M_current_formation = M_Fhel_setplay_opp_formation;
             }
             else
             {
                 //
                 // our (indirect) free kick
                 //
-                return M_Fhel_setplay_our_formation;
+                M_current_formation =  M_Fhel_setplay_our_formation;
             }
         }
-
-        //
-        // goal kick
-        //
-        if ( wm.gameMode().type() == GameMode::GoalKick_ || wm.gameMode().type() == GameMode::GoalieCatch_)
+        else if ( wm.gameMode().type() == GameMode::GoalKick_ || wm.gameMode().type() == GameMode::GoalieCatch_)
         {
+            //
+            // goal kick
+            //
             if ( wm.gameMode().side() == wm.ourSide() )
             {
-                return M_Fhel_goal_kick_our_formation;
+                M_current_formation = M_Fhel_goal_kick_our_formation;
             }
             else
             {
-                return M_Fhel_goal_kick_opp_formation;
+                M_current_formation = M_Fhel_goal_kick_opp_formation;
             }
         }
-
-        //
-        // before kick off
-        //
-        if ( wm.gameMode().type() == GameMode::BeforeKickOff
+        else if ( wm.gameMode().type() == GameMode::BeforeKickOff
              || wm.gameMode().type() == GameMode::AfterGoal_ )
         {
-            return M_Fhel_before_kick_off_formation;
+            //
+            // before kick off
+            //
+            M_current_formation =  M_Fhel_before_kick_off_formation;
         }
-
-        //
-        // other set play
-        //
-        if ( wm.gameMode().isOurSetPlay( wm.ourSide() ) )
+        else if ( wm.gameMode().isOurSetPlay( wm.ourSide() ) )
         {
-            return M_Fhel_setplay_our_formation;
+            //
+            // other set play
+            //
+            M_current_formation =  M_Fhel_setplay_our_formation;
         }
-
-        if ( wm.gameMode().type() != GameMode::PlayOn )
+        else if ( wm.gameMode().type() != GameMode::PlayOn )
         {
-            return M_Fhel_setplay_opp_formation;
+            M_current_formation = M_Fhel_setplay_opp_formation;
         }
-
-        //
-        // unknown
-        //
-        switch ( M_current_situation ) {
-        case Defense_Situation:
-            return M_Fhel_defense_formation;
-        case Offense_Situation:
-            return M_Fhel_offense_formation;
-        default:
-            break;
+        else
+        {
+            //
+            // unknown
+            //
+            if (M_current_situation == Defense_Situation)
+                M_current_formation = M_Fhel_defense_formation;
+            else if (M_current_situation == Offense_Situation)
+                M_current_formation = M_Fhel_offense_formation;
+            else
+                M_current_formation = M_Fhel_offense_formation;
         }
-
-        return M_Fhel_offense_formation;
     }
     else if(M_formation_type == FormationType::F433){
         tm_line[1] = PostLine::golie;
@@ -1184,164 +915,151 @@ Strategy::getFormation( const WorldModel & wm )
         self_line = tm_line[wm.self().unum()];
         self_post = tm_post[wm.self().unum()];
 
-        //
-        // play on
-        //
+
         if ( wm.gameMode().type() == GameMode::PlayOn )
         {
-            switch ( M_current_situation ) {
-            case Defense_Situation:{
-                return M_F433_defense_formation;
-            }
-            case Offense_Situation:{
-                if(FieldAnalyzer::isHelius(wm)){
-                    return M_F433_offense_formation;
-                }else if(FieldAnalyzer::isMT(wm)){
-                    return M_F433_offense_formation_for_mt;
-                }else if(is_open_deffense(wm)){
-                    return M_F433_offense_formation_for_oxsy;
+            //
+            // play on
+            //
+            if (M_current_situation == Defense_Situation)
+                M_current_formation = M_F433_defense_formation;
+            else if (M_current_situation == Offense_Situation)
+                if(FieldAnalyzer::isMT(wm)){
+                    M_current_formation = M_F433_offense_formation_for_mt;
+                }else if(doesOpponentDefenseDense(wm)){
+                    M_current_formation = M_F433_offense_formation_for_oxsy;
                 }else{
-                    return M_F433_offense_formation;
+                    M_current_formation = M_F433_offense_formation;
                 }
-            }
-            default:
-                break;
-            }
-            return M_F433_offense_formation;
+            else
+                M_current_formation = M_F433_offense_formation;
         }
-
-        //
-        // kick in, corner kick
-        //
-        if ( wm.gameMode().type() == GameMode::KickIn_
+        else if ( wm.gameMode().type() == GameMode::KickIn_
              || wm.gameMode().type() == GameMode::CornerKick_ )
         {
+            //
+            // kick in, corner kick
+            //
             if ( wm.ourSide() == wm.gameMode().side() )
             {
                 // our kick-in or corner-kick
-                return M_F433_kickin_our_formation;
+                M_current_formation = M_F433_kickin_our_formation;
             }
             else
             {
-                return M_F433_setplay_opp_formation;
+                M_current_formation = M_F433_setplay_opp_formation;
             }
         }
-
-        //
-        // our indirect free kick
-        //
-        if ( ( wm.gameMode().type() == GameMode::BackPass_
+        else if ( ( wm.gameMode().type() == GameMode::BackPass_
                && wm.gameMode().side() == wm.theirSide() )
              || ( wm.gameMode().type() == GameMode::IndFreeKick_
                   && wm.gameMode().side() == wm.ourSide() ) )
         {
-            return M_F433_setplay_our_formation;
+            //
+            // our indirect free kick
+            //
+            M_current_formation = M_F433_setplay_our_formation;
         }
-
-        //
-        // opponent indirect free kick
-        //
-        if ( ( wm.gameMode().type() == GameMode::BackPass_
+        else if ( ( wm.gameMode().type() == GameMode::BackPass_
                && wm.gameMode().side() == wm.ourSide() )
              || ( wm.gameMode().type() == GameMode::IndFreeKick_
                   && wm.gameMode().side() == wm.theirSide() ) )
         {
-            return M_F433_setplay_opp_formation;
+            //
+            // opponent indirect free kick
+            //
+            M_current_formation = M_F433_setplay_opp_formation;
         }
-
-        //
-        // after foul
-        //
-        if ( wm.gameMode().type() == GameMode::FoulCharge_
+        else if ( wm.gameMode().type() == GameMode::FoulCharge_
              || wm.gameMode().type() == GameMode::FoulPush_ )
         {
+            //
+            // after foul
+            //
+
             if ( wm.gameMode().side() == wm.ourSide() )
             {
                 //
                 // opponent (indirect) free kick
                 //
-                return M_F433_setplay_opp_formation;
+                M_current_formation = M_F433_setplay_opp_formation;
             }
             else
             {
                 //
                 // our (indirect) free kick
                 //
-                return M_F433_setplay_our_formation;
+                M_current_formation = M_F433_setplay_our_formation;
             }
         }
-
-        //
-        // goal kick
-        //
-        if ( wm.gameMode().type() == GameMode::GoalKick_ || wm.gameMode().type() == GameMode::GoalieCatch_)
+        else if ( wm.gameMode().type() == GameMode::GoalKick_ || wm.gameMode().type() == GameMode::GoalieCatch_)
         {
+            //
+            // goal kick
+            //
             if ( wm.gameMode().side() == wm.ourSide() )
             {
-                return M_F433_goal_kick_our_formation;
+                M_current_formation = M_F433_goal_kick_our_formation;
             }
             else
             {
-                return M_F433_goal_kick_opp_formation;
+                M_current_formation = M_F433_goal_kick_opp_formation;
             }
         }
-
-        //
-        // before kick off
-        //
-        if ( wm.gameMode().type() == GameMode::BeforeKickOff
+        else if ( wm.gameMode().type() == GameMode::BeforeKickOff
              || wm.gameMode().type() == GameMode::AfterGoal_ )
         {
-            if(wm.gameMode().type() == GameMode::BeforeKickOff){
-                if ( wm.ourSide() == get_before_kick_off_side(wm) )
-                    return M_F433_before_kick_off_formation_for_our_kick;
+            //
+            // before kick off
+            //
+            if(wm.gameMode().type() == GameMode::BeforeKickOff)
+            {
+                if (wm.ourSide() == getBeforeKickOffSide(wm) )
+                    M_current_formation = M_F433_before_kick_off_formation_for_our_kick;
                 else
-                    return M_F433_before_kick_off_formation;
-            }else{
+                    M_current_formation = M_F433_before_kick_off_formation;
+            }
+            else
+            {
                 // after our goal
                 if ( wm.gameMode().side() == wm.ourSide() )
                 {
-                    return M_F433_before_kick_off_formation;
+                    M_current_formation = M_F433_before_kick_off_formation;
                 }
                 else
                 {
-                    return M_F433_before_kick_off_formation_for_our_kick;
+                    M_current_formation = M_F433_before_kick_off_formation_for_our_kick;
                 }
             }
 
         }
-
-        //
-        // other set play
-        //
-        if ( wm.gameMode().isOurSetPlay( wm.ourSide() ) )
+        else if ( wm.gameMode().isOurSetPlay( wm.ourSide() ) )
         {
-            return M_F433_setplay_our_formation;
+            //
+            // other set play
+            //
+            M_current_formation = M_F433_setplay_our_formation;
         }
-
-        if ( wm.gameMode().type() != GameMode::PlayOn )
+        else if ( wm.gameMode().type() != GameMode::PlayOn )
         {
-            return M_F433_setplay_opp_formation;
+            M_current_formation = M_F433_setplay_opp_formation;
         }
-
-        //
-        // unknown
-        //
-        switch ( M_current_situation ) {
-        case Defense_Situation:
-            return M_F433_defense_formation;
-        case Offense_Situation:
-            return M_F433_offense_formation;
-        default:
-            break;
+        else
+        {
+            //
+            // unknown
+            //
+            if (M_current_situation == Defense_Situation)
+                M_current_formation = M_F433_defense_formation;
+            else if (M_current_situation == Offense_Situation)
+                M_current_formation = M_F433_offense_formation;
+            else
+                M_current_formation = M_F433_offense_formation;
         }
-
-        return M_F433_offense_formation;
     }
-    return M_F433_offense_formation;
 }
 
-SideID Strategy::get_before_kick_off_side(const WorldModel &wm)
+SideID Strategy::getBeforeKickOffSide(const rcsc::WorldModel &wm)
 {
     SideID kickoff_side;
     const ServerParam & SP = ServerParam::i();
@@ -1374,7 +1092,7 @@ SideID Strategy::get_before_kick_off_side(const WorldModel &wm)
     return kickoff_side;
 }
 
-bool Strategy::is_open_deffense(const WorldModel &wm)
+bool Strategy::doesOpponentDefenseDense(const rcsc::WorldModel &wm)
 {
     int our_score = ( wm.ourSide() == LEFT
                       ? wm.gameMode().scoreLeft()
@@ -1382,9 +1100,6 @@ bool Strategy::is_open_deffense(const WorldModel &wm)
     int opp_score = ( wm.ourSide() == LEFT
                       ? wm.gameMode().scoreRight()
                       : wm.gameMode().scoreLeft() );
-    //if(FieldAnalyzer::isOxsy(wm)
-    //        || FieldAnalyzer::isKN2C(wm))
-    //    return true;
     if(FieldAnalyzer::isAlice(wm))
         return true;
     if(FieldAnalyzer::isNexus(wm)
@@ -1399,7 +1114,7 @@ bool Strategy::is_open_deffense(const WorldModel &wm)
 
  */
 double
-Strategy::get_normal_dash_power( const WorldModel & wm )
+Strategy::getNormalDashPower(const rcsc::WorldModel &wm )
 {
     static bool s_recover_mode = false;
 
@@ -1437,7 +1152,7 @@ Strategy::get_normal_dash_power( const WorldModel & wm )
          && wm.ball().pos().x < wm.ourDefenseLineX() + 20.0 )
     {
         dlog.addText( Logger::TEAM,
-                      __FILE__": (get_normal_dash_power) correct DF line. keep max power" );
+                      __FILE__": (getNormalDashPower) correct DF line. keep max power" );
         // keep max power
         dash_power = ServerParam::i().maxDashPower();
     }
@@ -1447,7 +1162,7 @@ Strategy::get_normal_dash_power( const WorldModel & wm )
         if ( dash_power < 0.0 ) dash_power = 0.0;
 
         dlog.addText( Logger::TEAM,
-                      __FILE__": (get_normal_dash_power) recovering" );
+                      __FILE__": (getNormalDashPower) recovering" );
     }
     // exist kickable teammate
     else if ( wm.kickableTeammate()
@@ -1456,7 +1171,7 @@ Strategy::get_normal_dash_power( const WorldModel & wm )
         dash_power = std::min( my_inc * 1.1,
                                ServerParam::i().maxDashPower() );
         dlog.addText( Logger::TEAM,
-                      __FILE__": (get_normal_dash_power) exist kickable teammate. dash_power=%.1f",
+                      __FILE__": (getNormalDashPower) exist kickable teammate. dash_power=%.1f",
                       dash_power );
     }
     // in offside area
@@ -1476,7 +1191,7 @@ Strategy::get_normal_dash_power( const WorldModel & wm )
                             my_inc * 0.5,
                             ServerParam::i().maxDashPower() );
         dlog.addText( Logger::TEAM,
-                      __FILE__": (get_normal_dash_power) opponent ball dash_power=%.1f",
+                      __FILE__": (getNormalDashPower) opponent ball dash_power=%.1f",
                       dash_power );
     }
     // normal
@@ -1485,14 +1200,14 @@ Strategy::get_normal_dash_power( const WorldModel & wm )
         dash_power = std::min( my_inc * 1.7,
                                ServerParam::i().maxDashPower() );
         dlog.addText( Logger::TEAM,
-                      __FILE__": (get_normal_dash_power) normal mode dash_power=%.1f",
+                      __FILE__": (getNormalDashPower) normal mode dash_power=%.1f",
                       dash_power );
     }
 
     return dash_power;
 }
 
-bool Strategy::isDefSit(const WorldModel & wm,int unum) const{
+bool Strategy::isDefenseSituation(const rcsc::WorldModel &wm, int unum) const{
     const int self_min = wm.interceptTable().selfStep();
     const int mate_min = wm.interceptTable().teammateStep();
     const int opp_min = wm.interceptTable().opponentStep();
@@ -1556,45 +1271,6 @@ bool Strategy::isDefSit(const WorldModel & wm,int unum) const{
         }
     }
 
-    double zarib = 1;
-    switch (dif) {
-    case -4:
-        zarib = 1.3;
-        break;
-    case -3:
-        zarib = 1.2;
-        break;
-    case -2:
-        zarib = 1.1;
-        break;
-    case -1:
-        zarib = 1.05;
-        break;
-    case 0:
-        zarib = 1.0;
-        break;
-    case 1:
-        zarib = 0.95;
-        break;
-    case 2:
-        zarib = 0.9;
-        break;
-    case 3:
-        zarib = 0.8;
-        break;
-    case 4:
-        zarib = 0.7;
-        break;
-
-    default:
-        break;
-    }
-    //    if( double(myTeam_min) / double(opp_min) > 0.8
-    //            ||(wm.lastKickerSide() == wm.theirSide() && self_line==PostLine::back)){
-    //        return true;
-    //    }else{
-    //        return false;
-    //    }
     if (self_min == myTeam_min && opp_min <= self_min)
         return true;
     if (opp_min - myTeam_min < dif
@@ -1602,7 +1278,7 @@ bool Strategy::isDefSit(const WorldModel & wm,int unum) const{
             || (wm.lastKickerSide() == wm.theirSide() && self_line==PostLine::half && wm.ball().pos().x < -35)) {
         return true;
     } else {
-        if(wm.interceptTable().firstTeammate() != NULL && wm.interceptTable().firstTeammate()->unum() == wm.self().unum() && opp_min <= self_min)
+        if(wm.interceptTable().firstTeammate() != nullptr && wm.interceptTable().firstTeammate()->unum() == wm.self().unum() && opp_min <= self_min)
             return true;
         return false;
     }

@@ -44,7 +44,7 @@ bool go_to_target(PlayerAgent * agent, Vector2D target, unmark_type type){
     Vector2D ball_pos = wm.ball().inertiaPoint(mate_min);
     double dist2target = self_pos.dist(target);
 
-    double dash_power = Strategy::i().get_normal_dash_power(wm);
+    double dash_power = Strategy::i().getNormalDashPower(wm);
 
     if(type == ut_directpass){
         if (dist2target < mate_min){
@@ -130,7 +130,7 @@ public:
             return true;
         if(wm.self().pos().x > wm.offsideLineX() - 0.3)
             return true;
-        if(Strategy::i().isDefSit(wm,wm.self().unum()))
+        if(Strategy::i().isDefenseSituation(wm, wm.self().unum()))
             return true;
         if(wm.gameMode().type() != GameMode::PlayOn)
             return true;
@@ -251,7 +251,7 @@ public:
         return false;
     }
     bool can_unmark(const WorldModel & wm) {
-        Strategy::PostLine pl_line = Strategy::i().self_Line();
+        PostLine pl_line = Strategy::i().selfLine();
         int stamina = wm.self().stamina();
         static const Rect2D penalty_area=Rect2D(Vector2D(38,-17),Vector2D(53,17));
         if (wm.ball().inertiaPoint(wm.interceptTable().teammateStep()).dist(
@@ -261,10 +261,10 @@ public:
             return false;
         if(penalty_area.contains(wm.self().pos()))
             return true;
-        if (pl_line == Strategy::PostLine::back) {
+        if (pl_line == PostLine::back) {
             if (stamina > 4500)
                 return true;
-        } else if (pl_line == Strategy::PostLine::half) {
+        } else if (pl_line == PostLine::half) {
             if (stamina > 3500)
                 return true;
         } else {
@@ -279,7 +279,7 @@ public:
     vector<Vector2D> voronoi_points(rcsc::PlayerAgent *agent) {
 
         std::vector<Vector2D> v_points;
-        if(Strategy::i().self_Line() != Strategy::PostLine::forward && Strategy::i().self_Line() != Strategy::Strategy::PostLine::half)
+        if(Strategy::i().selfLine() != PostLine::forward && Strategy::i().selfLine() != PostLine::half)
             return v_points;
 
         const WorldModel &wm = agent->world();
@@ -290,8 +290,8 @@ public:
         vector<Vector2D> tm_home_poses;
         double min_tm_home_x = 100;
         for(int u = 1; u <= 11; u++){
-            if(Strategy::i().tm_Line(u) != Strategy::PostLine::forward
-                    && Strategy::i().tm_Line(u) != Strategy::PostLine::half)
+            if(Strategy::i().tmLine(u) != PostLine::forward
+                    && Strategy::i().tmLine(u) != PostLine::half)
                 continue;
             if(u == wm.self().unum())
                 continue;

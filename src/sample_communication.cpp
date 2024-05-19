@@ -527,17 +527,17 @@ SampleCommunication::updateCurrentSender( const PlayerAgent * agent )
 
     int self_min = wm.interceptTable().selfStep();
     int mate_min = wm.interceptTable().teammateStep();
-    if ( !Strategy::i().isDefSit(wm,wm.self().unum())){
+    if ( !Strategy::i().isDefenseSituation(wm, wm.self().unum())){
         Vector2D ball = wm.ball().inertiaPoint(std::min(self_min,mate_min));
         vector<int> unums;
         for(int i=1;i<=11;i++){
-            Strategy::PostLine pl = Strategy::i().tm_Line(i);
+            PostLine pl = Strategy::i().tmLine(i);
             if(ball.x > 10){
-                if(pl == Strategy::PostLine::golie
-                        || pl == Strategy::PostLine::back)
+                if(pl == PostLine::golie
+                        || pl == PostLine::back)
                     continue;
             }else if(ball.x > -25){
-                if(pl == Strategy::PostLine::golie)
+                if(pl == PostLine::golie)
                     continue;
             }
             unums.push_back(i);
@@ -564,7 +564,7 @@ SampleCommunication::updateCurrentSender( const PlayerAgent * agent )
     //    candidate_unum.reserve( 11 );
 
     Vector2D ball_pos = wm.ball().pos();
-    if(Strategy::i().isDefSit(wm,wm.self().unum())){
+    if(Strategy::i().isDefenseSituation(wm, wm.self().unum())){
         ball_pos = wm.ball().inertiaPoint(wm.interceptTable().opponentStep());
         //		M_current_sender_unum = bhv_mark_execute().get_mark_sender(wm);
         for ( int unum = 1; unum <= 8; ++unum )
@@ -1126,7 +1126,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
                     objects[unum].score_ *= distance_rate( d, variance );
                     objects[unum].score_ *= std::pow( 0.3, t->unumCount() );
 //                    if(wm.interceptTable().opponentStep() == min_step){
-//                        if(Strategy::i().tm_Line(unum) == Strategy::PostLine::back || Strategy::i().tm_Line(unum) == Strategy::PostLine::half)
+//                        if(Strategy::i().tm_Line(unum) == PostLine::back || Strategy::i().tm_Line(unum) == PostLine::half)
 //                            objects[unum].score_ *= 2;
 //                    }
 //                    if(wm.interceptTable().teammateStep() == min_step){
@@ -1138,17 +1138,17 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
 //                            }
 //                        }
 //                    }
-                    if(Strategy::i().isDefSit(wm, wm.self().unum())){
+                    if(Strategy::i().isDefenseSituation(wm, wm.self().unum())){
                         if(BhvMarkDecisionGreedy::markDecision(wm) == MarkDec::MidMark){
-                                if(Strategy::i().tm_Line(unum)!=Strategy::PostLine::back){
+                                if(Strategy::i().tmLine(unum) != PostLine::back){
                                     objects[unum].score_ *= 2.0;
                                     use_z = true;
                                 }
                         }
                     }
                     else if(wm.ball().pos().x > 0){
-                        if(Strategy::i().tm_Line(unum)!=Strategy::PostLine::forward
-                            || Strategy::i().tm_Line(unum)!=Strategy::PostLine::half){
+                        if(Strategy::i().tmLine(unum) != PostLine::forward
+                            || Strategy::i().tmLine(unum) != PostLine::half){
                             objects[unum].score_ *= 2.0;
                             use_z = true;
                         }
@@ -1168,7 +1168,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
                     double d = distance_from_ball( o, ball_pos, x_rate, y_rate );
                     objects[unum + 11].score_ *= distance_rate( d, variance );
                     objects[unum + 11].score_ *= std::pow( 0.3, o->unumCount() );
-                    if(Strategy::i().isDefSit(wm, wm.self().unum())){
+                    if(Strategy::i().isDefenseSituation(wm, wm.self().unum())){
                         if(BhvMarkDecisionGreedy::markDecision(wm) == MarkDec::MidMark){
                             auto OffStaticOpp = BhvMarkDecisionGreedy::getOppOffensiveStatic(wm);
                                 if(std::find(OffStaticOpp.begin(), OffStaticOpp.end(), unum) == OffStaticOpp.end()){
@@ -1380,7 +1380,7 @@ SampleCommunication::sayBallAndPlayers( PlayerAgent * agent )
     //
     // send players
     //
-    if(!Strategy::i().isDefSit(wm,wm.self().unum())){
+    if(!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
 //        sayUnmark(agent);
     }
     if ( wm.ball().pos().x > 34.0
@@ -3334,35 +3334,35 @@ SampleCommunication::attentiontoReceiver( PlayerAgent * agent ){
             if(ball_pos.x > 0){
                 if(ball_pos.y > 20){
                     if(ball_pos.x > 20){
-                        if(Strategy::i().tm_Line(t) == Strategy::PostLine::golie
-                                ||Strategy::i().tm_Line(t) == Strategy::PostLine::back
-                                || Strategy::i().tm_Post(t) == Strategy::pp_lh)
+                        if(Strategy::i().tmLine(t) == PostLine::golie
+                                || Strategy::i().tmLine(t) == PostLine::back
+                                || Strategy::i().tmPost(t) == PlayerPost::pp_lh)
                             continue;
                     }else{
-                        if(Strategy::i().tm_Line(t) == Strategy::PostLine::golie
-                                ||Strategy::i().tm_Post(t) == Strategy::pp_lb
-                                || Strategy::i().tm_Post(t) == Strategy::pp_lh)
+                        if(Strategy::i().tmLine(t) == PostLine::golie
+                                || Strategy::i().tmPost(t) == PlayerPost::pp_lb
+                                || Strategy::i().tmPost(t) == PlayerPost::pp_lh)
                             continue;
                     }
                 }else if(ball_pos.y < -20){
                     if(ball_pos.x > 20){
-                        if(Strategy::i().tm_Line(t) == Strategy::PostLine::golie
-                                ||Strategy::i().tm_Line(t) == Strategy::PostLine::back
-                                || Strategy::i().tm_Post(t) == Strategy::pp_rh)
+                        if(Strategy::i().tmLine(t) == PostLine::golie
+                                || Strategy::i().tmLine(t) == PostLine::back
+                                || Strategy::i().tmPost(t) == PlayerPost::pp_rh)
                             continue;
                     }else{
-                        if(Strategy::i().tm_Line(t) == Strategy::PostLine::golie
-                                ||Strategy::i().tm_Post(t) == Strategy::pp_rb
-                                || Strategy::i().tm_Post(t) == Strategy::pp_rh)
+                        if(Strategy::i().tmLine(t) == PostLine::golie
+                                || Strategy::i().tmPost(t) == PlayerPost::pp_rb
+                                || Strategy::i().tmPost(t) == PlayerPost::pp_rh)
                             continue;
                     }
                 }else{
-                    if(Strategy::i().tm_Line(t) == Strategy::PostLine::golie
-                            ||Strategy::i().tm_Line(t) == Strategy::PostLine::back)
+                    if(Strategy::i().tmLine(t) == PostLine::golie
+                            || Strategy::i().tmLine(t) == PostLine::back)
                         continue;
                 }
             }else if(ball_pos.x < -25){
-                if(Strategy::i().tm_Line(t) == Strategy::PostLine::forward)
+                if(Strategy::i().tmLine(t) == PostLine::forward)
                     continue;
             }else{
 
@@ -3399,7 +3399,7 @@ SampleCommunication::attentiontoOffMove( PlayerAgent * agent ){
     const int opp_min = wm.interceptTable().opponentStep();
 
 
-    if(!Strategy::i().isDefSit(wm,wm.self().unum())){
+    if(!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
         agent->debugClient().addMessage("attOffmove");
         int eval[12] = {1000};
         Vector2D ball_pos = wm.ball().pos();
@@ -3414,35 +3414,35 @@ SampleCommunication::attentiontoOffMove( PlayerAgent * agent ){
             if(ball_pos.x > 0){
                 if(ball_pos.y > 20){
                     if(ball_pos.x > 20){
-                        if(Strategy::i().tm_Line(t) == Strategy::PostLine::golie
-                                ||Strategy::i().tm_Line(t) == Strategy::PostLine::back
-                                || Strategy::i().tm_Post(t) == Strategy::pp_lh)
+                        if(Strategy::i().tmLine(t) == PostLine::golie
+                                || Strategy::i().tmLine(t) == PostLine::back
+                                || Strategy::i().tmPost(t) == PlayerPost::pp_lh)
                             continue;
                     }else{
-                        if(Strategy::i().tm_Line(t) == Strategy::PostLine::golie
-                                ||Strategy::i().tm_Post(t) == Strategy::pp_lb
-                                || Strategy::i().tm_Post(t) == Strategy::pp_lh)
+                        if(Strategy::i().tmLine(t) == PostLine::golie
+                                || Strategy::i().tmPost(t) == PlayerPost::pp_lb
+                                || Strategy::i().tmPost(t) == PlayerPost::pp_lh)
                             continue;
                     }
                 }else if(ball_pos.y < -20){
                     if(ball_pos.x > 20){
-                        if(Strategy::i().tm_Line(t) == Strategy::PostLine::golie
-                                ||Strategy::i().tm_Line(t) == Strategy::PostLine::back
-                                || Strategy::i().tm_Post(t) == Strategy::pp_rh)
+                        if(Strategy::i().tmLine(t) == PostLine::golie
+                                || Strategy::i().tmLine(t) == PostLine::back
+                                || Strategy::i().tmPost(t) == PlayerPost::pp_rh)
                             continue;
                     }else{
-                        if(Strategy::i().tm_Line(t) == Strategy::PostLine::golie
-                                ||Strategy::i().tm_Post(t) == Strategy::pp_rb
-                                || Strategy::i().tm_Post(t) == Strategy::pp_rh)
+                        if(Strategy::i().tmLine(t) == PostLine::golie
+                                || Strategy::i().tmPost(t) == PlayerPost::pp_rb
+                                || Strategy::i().tmPost(t) == PlayerPost::pp_rh)
                             continue;
                     }
                 }else{
-                    if(Strategy::i().tm_Line(t) == Strategy::PostLine::golie
-                            ||Strategy::i().tm_Line(t) == Strategy::PostLine::back)
+                    if(Strategy::i().tmLine(t) == PostLine::golie
+                            || Strategy::i().tmLine(t) == PostLine::back)
                         continue;
                 }
             }else if(ball_pos.x < -25){
-                if(Strategy::i().tm_Line(t) == Strategy::PostLine::forward)
+                if(Strategy::i().tmLine(t) == PostLine::forward)
                     continue;
             }else{
 

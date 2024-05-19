@@ -299,7 +299,7 @@ bool bhv_unmark_2019::is_good_for_pass(const WorldModel & wm) {
 	double min_dist_tm = 5;
 	double min_dist_opp = 5;
 	if (target_pos.dist(Vector2D(52, 0)) < 20 && passer.ballpos.x > 30
-			&& Strategy::i().self_line == Strategy::PostLine::forward)
+			&& Strategy::i().selfLine() == PostLine::forward)
 		min_dist_opp = 1.5;
 	if (target_pos.dist(Vector2D(52, 34)) < 20
 			|| target_pos.dist(Vector2D(52, -34)) < 20) {
@@ -378,7 +378,7 @@ bool bhv_unmark_2019::is_good_for_unmark(const WorldModel & wm) {
 	double min_dist_opp = 5;
 	double min_dist_tm = 5;
 	if (target_pos.dist(Vector2D(52, 0)) < 20 && passer.ballpos.x > 30
-			&& Strategy::i().self_line == Strategy::PostLine::forward)
+			&& Strategy::i().selfLine() == PostLine::forward)
 		min_dist_opp = 1.5;
 	if (target_pos.dist(Vector2D(52, 34)) < 20
 			|| target_pos.dist(Vector2D(52, -34)) < 20) {
@@ -455,7 +455,7 @@ bool bhv_unmark_2019::execute(PlayerAgent * agent) {
 	Vector2D self_pos = wm.self().pos();
 //	cout<<wm.time().cycle()<<endl;
 	if (self_pos.dist(target_pos) > 0.5) {
-		double dash_power = Strategy::get_normal_dash_power(wm);
+		double dash_power = Strategy::getNormalDashPower(wm);
 		if (passer.oppmin_cycle < 5)
 			dash_power = 100;
 		if (target_pos.dist(Vector2D(52, 0)) < 25)
@@ -698,7 +698,7 @@ bool bhv_unmarkes_2019::execute(PlayerAgent * agent) {
 }
 
 bool bhv_unmarkes_2019::can_unmark(const WorldModel & wm) {
-	Strategy::PostLine pl_line = Strategy::i().self_Line();
+	PostLine pl_line = Strategy::i().selfLine();
 	int stamina = wm.self().stamina();
 	 static const Rect2D penalty_area=Rect2D(Vector2D(38,-17),Vector2D(53,17));
 	  if (wm.ball().inertiaPoint(wm.interceptTable().teammateStep()).dist(
@@ -706,10 +706,10 @@ bool bhv_unmarkes_2019::can_unmark(const WorldModel & wm) {
 		return false;
 	  if(penalty_area.contains(wm.self().pos()))
 	  	    return true;
-	  if (pl_line == Strategy::PostLine::back) {
+	  if (pl_line == PostLine::back) {
 		if (stamina > 4500)
 			return true;
-	} else if (pl_line == Strategy::PostLine::half) {
+	} else if (pl_line == PostLine::half) {
 		if (stamina > 3500)
 			return true;
 	} else {
