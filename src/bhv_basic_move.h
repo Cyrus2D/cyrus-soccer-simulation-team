@@ -42,8 +42,6 @@ class Bhv_BasicMove: public rcsc::SoccerBehavior {
 public:
     Bhv_BasicMove() = default;
     bool execute(rcsc::PlayerAgent * agent) override;
-    bool intercept_plan(rcsc::PlayerAgent * agent, bool from_block = false);
-    bool TurnToTackle(rcsc::PlayerAgent * agent);
 };
 
 #endif

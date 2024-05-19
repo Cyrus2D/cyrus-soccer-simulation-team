@@ -21,6 +21,8 @@
 #include "../debugs.h"
 #include "bhv_defensive_move.h"
 #include "bhv_defensive_move.h"
+#include "basic_actions/body_intercept_plan.h"
+
 //tackle block
 bool bhv_block::do_tackle_block(PlayerAgent *agent) {
     const WorldModel &wm = agent->world();
@@ -774,7 +776,7 @@ bool bhv_block::execute(rcsc::PlayerAgent *agent) {
         Bhv_DefensiveMove::setDefNeckWithBall(agent, target, wm.interceptTable().firstOpponent(), wm.self().unum());
         return true;
     }else{
-        return Bhv_BasicMove().intercept_plan(agent, true);
+        return Body_InterceptPlan(true).execute(agent);
     }
     return false;
 }

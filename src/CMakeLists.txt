@@ -13,7 +13,7 @@ basic_actions/body_dribble2008.cpp
 basic_actions/body_go_to_point.cpp
 basic_actions/body_go_to_point_dodge.cpp
 basic_actions/body_hold_ball2008.cpp
-
+basic_actions/body_turn_to_tackle.cpp
 basic_actions/body_kick_one_step.cpp
 basic_actions/body_kick_to_relative.cpp
 basic_actions/body_pass.cpp
@@ -34,6 +34,7 @@ basic_actions/neck_turn_to_goalie_or_scan.cpp
 basic_actions/neck_turn_to_player_or_scan.cpp
 basic_actions/neck_turn_to_low_conf_teammate.cpp
 basic_actions/view_synch.cpp
+basic_actions/body_intercept_plan.cpp
 lib/cyrus_say_message_builder.cpp
 lib/cyrus_say_message_parser.cpp
   strategy.cpp
