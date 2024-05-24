@@ -179,7 +179,7 @@ bool Bhv_DefensiveMove::execute(rcsc::PlayerAgent *agent) {
         return false;
 
     bool mark_or_block = true;
-    if (Strategy::i().selfLine() == PostLine::forward) {
+    if (Strategy::i().tmLine(wm.self().unum()) == PostLine::forward) {
 
         if (wm.ball().pos().x < -20) {
             if (wm.self().stamina() < 4000) {
@@ -232,10 +232,10 @@ bool Bhv_DefensiveMove::execute(rcsc::PlayerAgent *agent) {
 
     double dash_power = Strategy::getNormalDashPower(wm);
     if (wm.ball().pos().x < wm.self().pos().x
-        && Strategy::i().selfLine() == PostLine::back) {
+        && Strategy::i().tmLine(wm.self().unum()) == PostLine::back) {
         dash_power = 100;
     }
-    if (Strategy::i().selfLine() == PostLine::back || Strategy::i().selfLine() == PostLine::half) {
+    if (Strategy::i().tmLine(wm.self().unum()) == PostLine::back || Strategy::i().tmLine(wm.self().unum()) == PostLine::half) {
         if (wm.ball().inertiaPoint(opp_min).x < -20
             && (wm.self().pos().dist(target_point) > 4
                 || wm.self().pos().x > target_point.x + 2)) {
@@ -245,7 +245,7 @@ bool Bhv_DefensiveMove::execute(rcsc::PlayerAgent *agent) {
 
     if (wm.self().pos().x < min_x_strategy)
         dash_power = 100;
-    if (Strategy::i().selfLine() == PostLine::back && abs(inertia_ball_pos.x - wm.ourDefenseLineX()) < 20) {
+    if (Strategy::i().tmLine(wm.self().unum()) == PostLine::back && abs(inertia_ball_pos.x - wm.ourDefenseLineX()) < 20) {
         dash_power = 100;
     }
     double dist_thr = wm.ball().distFromSelf() * 0.1;

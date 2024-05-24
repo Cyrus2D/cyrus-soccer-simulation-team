@@ -136,10 +136,8 @@ private:
 
     FormationType M_formation_type;
     TeamTactic my_team_tactic;
-    PostLine self_line;
-    PostLine tm_line[12];
-    PlayerPost self_post;
-    PlayerPost tm_post[12];
+    std::vector<PostLine> M_tm_line;
+    std::vector<PlayerPost> M_tm_post;
 
 	int M_goalie_unum;
 
@@ -204,7 +202,7 @@ public:
 	int roleNumber( const int unum ) const
 	{
 		if ( unum < 1 || 11 < unum ) return unum;
-		return M_role_number[unum - 1];
+		return M_role_number[unum];
 	}
 
 	SoccerRole::Ptr createRole( int unum, const rcsc::WorldModel & wm );
@@ -221,6 +219,8 @@ public:
 
     void setFormation( const rcsc::Formation::Ptr & formation);
     void updateFormation( const rcsc::WorldModel & wm );
+    void updateFormationFra( const rcsc::WorldModel & wm );
+    void updateFormation433( const rcsc::WorldModel & wm );
     rcsc::Formation::Ptr getFormation( const rcsc::WorldModel & wm );
 
     static rcsc::SideID getBeforeKickOffSide(const rcsc::WorldModel &wm);
@@ -241,17 +241,11 @@ public:
         else
             return TeamTactic::Normal;
     }
-    PostLine selfLine() const{
-        return self_line;
-    }
-    PlayerPost selfPost() const{
-        return self_post;
-    }
     PostLine tmLine(size_t unum){
-        return tm_line[unum];
+        return M_tm_line[unum];
     }
     PlayerPost tmPost(size_t unum){
-        return tm_post[unum];
+        return M_tm_post[unum];
     }
 };
 

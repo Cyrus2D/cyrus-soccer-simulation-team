@@ -75,7 +75,6 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
     const int mate_min = wm.interceptTable().teammateStep();
     const int opp_min = wm.interceptTable().opponentStep();
     Vector2D ball_inertia = wm.ball().inertiaPoint(std::min(std::min(opp_min, mate_min), self_min));
-    double stamina = wm.self().stamina();
     Vector2D target_point = Strategy::i().getPosition(wm.self().unum());
     double dash_power = Strategy::getNormalDashPower(wm);
     Vector2D self_pos = wm.self().pos();
@@ -88,49 +87,19 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
         return true;
     }
 
-    bool can_5_go_forward = true;
-    if(wm.self().unum() == 5){
-        if (!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
-            if(ball_inertia.x > 0 && self_pos.x < 0){
-                if(stamina < 5500){
-                    can_5_go_forward = false;
-                    target_point.x = std::min(target_point.x, 0.0);
-                }
-            }
-        }
-    }
-    if(wm.self().unum() < 5){
-        if (!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
-            if(ball_inertia.x > 0 && self_pos.x < 0){
-                if(stamina < 6000){
-                    target_point.x = std::min(target_point.x, -1.0);
-                }
-            }
-        }
-    }
-    if(wm.self().unum() == 6){
-        if(wm.ourPlayer(5)!= nullptr && wm.ourPlayer(5)->unum() > 0){
-            if(Strategy::i().getPosition(5).dist(wm.ourPlayer(5)->pos())>10){
-                if(ball_inertia.x > 20){
-                    if(!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
-                        Strategy::i().setPosition(6, (Strategy::i().getPosition(5) + target_point) / 2.0);
-                        target_point = Strategy::i().getPosition(wm.self().unum());
-                    }
-                }
-            }
-        }
-    }
+    bool can_5_join_forward = true;
+    updateTarget(wm, target_point, can_5_join_forward);
+
     if (Strategy::i().isDefenseSituation(wm, wm.self().unum()) ||
         (Strategy::i().tmLine(wm.self().unum()) == PostLine::back && wm.ball().inertiaPoint(opp_min).x > 30)) {
         if (Bhv_DefensiveMove().execute(agent))
             return true;
     } else {
-        if(can_5_go_forward)
+        if(can_5_join_forward)
             if (cyrus_offensive_move().execute(agent, this)) {
                 return true;
             }
     }
-
 
     double dist_thr = wm.ball().distFromSelf() * 0.1;
     if (dist_thr < 1.0) dist_thr = 1.0;
@@ -157,4 +126,45 @@ Bhv_BasicMove::execute(PlayerAgent *agent) {
     }
 
     return true;
+}
+
+void Bhv_BasicMove::updateTarget(const rcsc::WorldModel & wm, rcsc::Vector2D & target_point, bool & can_5_join_offense) {
+    // chase ball
+    const int self_min = wm.interceptTable().selfStep();
+    const int mate_min = wm.interceptTable().teammateStep();
+    const int opp_min = wm.interceptTable().opponentStep();
+    Vector2D ball_inertia = wm.ball().inertiaPoint(std::min(std::min(opp_min, mate_min), self_min));
+    double stamina = wm.self().stamina();
+    Vector2D self_pos = wm.self().pos();
+    if(wm.self().unum() == 5){
+        if (!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
+            if(ball_inertia.x > 0 && self_pos.x < 0){
+                if(stamina < 5500){
+                    can_5_join_offense = false;
+                    target_point.x = std::min(target_point.x, 0.0);
+                }
+            }
+        }
+    }
+    if(wm.self().unum() < 5){
+        if (!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
+            if(ball_inertia.x > 0 && self_pos.x < 0){
+                if(stamina < 6000){
+                    target_point.x = std::min(target_point.x, -1.0);
+                }
+            }
+        }
+    }
+    if(wm.self().unum() == 6){
+        if(wm.ourPlayer(5)!= nullptr && wm.ourPlayer(5)->unum() > 0){
+            if(Strategy::i().getPosition(5).dist(wm.ourPlayer(5)->pos())>10){
+                if(ball_inertia.x > 20){
+                    if(!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
+                        Strategy::i().setPosition(6, (Strategy::i().getPosition(5) + target_point) / 2.0);
+                        target_point = Strategy::i().getPosition(wm.self().unum());
+                    }
+                }
+            }
+        }
+    }
 }

@@ -41,7 +41,7 @@ bool bhv_scape::can_scape(const WorldModel & wm){
         passer = wm.interceptTable().firstTeammate()->unum();
     if(passer < 1)
         return false;
-    if(Strategy::i().selfLine() != PostLine::forward )
+    if(Strategy::i().tmLine(wm.self().unum()) != PostLine::forward )
         return false;
     if(stamina < 5500)
         return false;
