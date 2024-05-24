@@ -219,6 +219,8 @@ public:
 
     void setFormation( const rcsc::Formation::Ptr & formation);
     void updateFormation( const rcsc::WorldModel & wm );
+    void updateFormationFra( const rcsc::WorldModel & wm );
+    void updateFormation433( const rcsc::WorldModel & wm );
     rcsc::Formation::Ptr getFormation( const rcsc::WorldModel & wm );
 
     static rcsc::SideID getBeforeKickOffSide(const rcsc::WorldModel &wm);
