@@ -71,7 +71,7 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
         #endif
         bool do_free_blocker_block = true;
         if (BhvMarkDecisionGreedy::markDecision(wm) == MarkDec::MidMark){
-            if (Strategy::i().selfLine() == PostLine::back){
+            if (Strategy::i().tmLine(wm.self().unum()) == PostLine::back){
                 if (ball_inertia.x > Setting::i()->mDefenseMove->mStartMidMark + 10.0){
                     auto block_eval_target = bhv_block::blocker_eval_mark_decision(wm);
                     vector<double> block_eval = block_eval_target.first;
@@ -91,7 +91,7 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
         }
         if (do_free_blocker_block){
             if (!blocked &&
-                !(ball_inertia.x > -20 && Strategy::i().selfLine() == PostLine::back)) {
+                !(ball_inertia.x > -20 && Strategy::i().tmLine(wm.self().unum()) == PostLine::back)) {
                 if (bhv_block::who_is_blocker(wm) == wm.self().unum()) {
                     if (bhv_block().execute(agent)) {
                         agent->debugClient().addMessage("BlockNoDec");
@@ -105,7 +105,7 @@ bool bhv_mark_execute::execute(PlayerAgent *agent) {
     }
     if (Setting::i()->mDefenseMove->mGoToDefendX){
         vector<double> th_mark_xs;
-        if (Strategy::i().selfLine() == PostLine::back){
+        if (Strategy::i().tmLine(wm.self().unum()) == PostLine::back){
             for (int t = 1; t <= 11; t++){
                 if (t == wm.self().unum())
                     continue;
@@ -339,7 +339,7 @@ bool bhv_mark_execute::run_mark(PlayerAgent *agent, int mark_unum, MarkType mark
     agent->debugClient().addMessage("mark %d %s %d", mark_unum,
                                     markTypeString(marktype).c_str());
     if (back_to_def_flag
-        && Strategy::i().selfLine() == PostLine::back
+        && Strategy::i().tmLine(wm.self().unum()) == PostLine::back
         && marktype != MarkType::ThMark) {
         Vector2D blockTarget;
         int blockCycle;
@@ -544,7 +544,7 @@ void bhv_mark_execute::th_mark_move(PlayerAgent * agent, Target targ, double das
     Vector2D self_hpos = Strategy::i().getPosition(wm.self().unum());
     Vector2D opp_pos = wm.theirPlayer(opp_unum)->pos();
     if (Setting::i()->mDefenseMove->mFixThMarkY){
-        if (Strategy::i().selfLine() == PostLine::back){
+        if (Strategy::i().tmLine(wm.self().unum()) == PostLine::back){
             if (abs(self_hpos.y - target_pos.y) > 5.0 && (ball_pos - opp_pos).th().abs() > 30.0) {
                 target_pos.y = self_hpos.y;
                 targ.pos.y = self_hpos.y;
@@ -608,13 +608,13 @@ double bhv_mark_execute::lead_mark_power(PlayerAgent * agent, Vector2D opp_pos, 
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min_cycle);
     double dash_power = Strategy::getNormalDashPower(wm);
     if (opp_min_cycle < 3 && !(ball_inertia.dist(target_pos) > 15 && ball_inertia.x > -25
-                               && Strategy::i().selfLine() != PostLine::back))
+                               && Strategy::i().tmLine(wm.self().unum()) != PostLine::back))
         dash_power = 100;
     if (ball_inertia.x < wm.ourDefenseLineX() - 10) {
         dash_power = 100;
     }
     if (target_pos.dist(Vector2D(-52, 0)) < 25)
-        if ((Strategy::i().selfLine() == PostLine::back || target_pos.dist(ball_inertia) < 20))
+        if ((Strategy::i().tmLine(wm.self().unum()) == PostLine::back || target_pos.dist(ball_inertia) < 20))
             dash_power = 100;
     if (wm.interceptTable().firstOpponent())
         if (wm.interceptTable().firstOpponent()->pos().dist(target_pos) < 5)
@@ -629,7 +629,7 @@ double bhv_mark_execute::lead_mark_power(PlayerAgent * agent, Vector2D opp_pos, 
         dash_power = Strategy::getNormalDashPower(wm);
     if (wm.self().stamina() < 4500)
         dash_power = Strategy::getNormalDashPower(wm);
-    if (wm.self().stamina() < 5500 && Strategy::i().selfLine() == PostLine::forward)
+    if (wm.self().stamina() < 5500 && Strategy::i().tmLine(wm.self().unum()) == PostLine::forward)
         dash_power = Strategy::getNormalDashPower(wm);
     return dash_power;
 }
@@ -717,13 +717,13 @@ double bhv_mark_execute::other_mark_power(PlayerAgent * agent, Vector2D opp_pos,
     Vector2D ball_inertia = wm.ball().inertiaPoint(opp_min_cycle);
     double dash_power = Strategy::getNormalDashPower(wm);
     if (opp_min_cycle < 5 && !(ball_inertia.dist(target_pos) > 15 && ball_inertia.x > -25
-                               && Strategy::i().selfLine() != PostLine::back))
+                               && Strategy::i().tmLine(wm.self().unum()) != PostLine::back))
         dash_power = 100;
     if (ball_inertia.x < wm.ourDefenseLineX() - 10) {
         dash_power = 100;
     }
     if (target_pos.dist(Vector2D(-52, 0)) < 25)
-        if ((Strategy::i().selfLine() == PostLine::back || target_pos.dist(ball_inertia) < 20))
+        if ((Strategy::i().tmLine(wm.self().unum()) == PostLine::back || target_pos.dist(ball_inertia) < 20))
             dash_power = 100;
     if (wm.interceptTable().firstOpponent()->pos().dist(target_pos) < 5)
         dash_power = 100;

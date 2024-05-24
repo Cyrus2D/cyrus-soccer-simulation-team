@@ -177,7 +177,7 @@ Body_InterceptPlan::execute(PlayerAgent *agent) {
     }
     int dif = 2;
     if (opp_min < mate_min && self_min < mate_min && opp_min < self_min) {
-        if (Strategy::i().selfLine() == PostLine::forward
+        if (Strategy::i().tmLine(wm.self().unum()) == PostLine::forward
             && wm.ball().inertiaPoint(opp_min).x > 25) {
             dif = 5;
         }
