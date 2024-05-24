@@ -42,6 +42,8 @@ class Bhv_BasicMove: public rcsc::SoccerBehavior {
 public:
     Bhv_BasicMove() = default;
     bool execute(rcsc::PlayerAgent * agent) override;
+    static void updateTarget(const rcsc::WorldModel & wm, rcsc::Vector2D & target, bool & can_5_join_offense);
+
 };
 
 #endif
