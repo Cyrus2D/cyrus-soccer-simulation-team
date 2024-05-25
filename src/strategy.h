@@ -259,6 +259,8 @@ public:
             return FormationType::HeliosFra;
         else if (formation == "433")
             return FormationType::F433;
+        else if (formation == "523")
+            return FormationType::F523;
         else
             return FormationType::HeliosFra;
     }
