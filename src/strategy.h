@@ -242,10 +242,10 @@ public:
             return TeamTactic::Normal;
     }
     PostLine tmLine(size_t unum){
-        return M_tm_line[unum];
+        return M_tm_line[M_role_number[unum]];
     }
     PlayerPost tmPost(size_t unum){
-        return M_tm_post[unum];
+        return M_tm_post[M_role_number[unum]];
     }
 };
 

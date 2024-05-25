@@ -1268,7 +1268,7 @@ bool Strategy::isDefenseSituation(const rcsc::WorldModel &wm, int unum) const{
         double hafbak_line=0;
         double hafbak_number = 0;
         for(int u=2;u<=11;u++){
-            if(M_tm_line[u - 1] != PostLine::half)
+            if(i().tmLine(u) != PostLine::half)
                 continue;
             const AbstractPlayerObject * tm = wm.ourPlayer(u);
             if(tm!=NULL && tm->unum()==u){
