@@ -65,7 +65,8 @@ enum SituationType {
 
 enum class FormationType{
     F433,
-    HeliosFra
+    HeliosFra,
+    F523
 };
 enum class PostLine{
     golie,
@@ -104,6 +105,19 @@ private:
     static const std::string F433_SETPLAY_OPP_FORMATION_CONF;
     static const std::string F433_SETPLAY_OUR_FORMATION_CONF;
 
+    static const std::string F523_BEFORE_KICK_OFF_CONF;
+    static const std::string F523_BEFORE_KICK_OFF_CONF_FOR_OUR_KICK;
+    static const std::string F523_DEFENSE_FORMATION_CONF;
+    static const std::string F523_DEFENSE_FORMATION_NO5_CONF;
+    static const std::string F523_DEFENSE_FORMATION_NO6_CONF;
+    static const std::string F523_DEFENSE_FORMATION_NO56_CONF;
+    static const std::string F523_OFFENSE_FORMATION_CONF;
+    static const std::string F523_GOAL_KICK_OPP_FORMATION_CONF;
+    static const std::string F523_GOAL_KICK_OUR_FORMATION_CONF;
+    static const std::string F523_KICKIN_OUR_FORMATION_CONF;
+    static const std::string F523_SETPLAY_OPP_FORMATION_CONF;
+    static const std::string F523_SETPLAY_OUR_FORMATION_CONF;
+
     static const std::string Fhel_BEFORE_KICK_OFF_CONF;
     static const std::string Fhel_DEFENSE_FORMATION_CONF;
     static const std::string Fhel_OFFENSE_FORMATION_CONF;
@@ -124,6 +138,19 @@ private:
     rcsc::Formation::Ptr M_F433_kickin_our_formation;
     rcsc::Formation::Ptr M_F433_setplay_opp_formation;
     rcsc::Formation::Ptr M_F433_setplay_our_formation;
+
+    rcsc::Formation::Ptr M_F523_before_kick_off_formation;
+    rcsc::Formation::Ptr M_F523_before_kick_off_formation_for_our_kick;
+    rcsc::Formation::Ptr M_F523_defense_formation;
+    rcsc::Formation::Ptr M_F523_defense_formation_no5;
+    rcsc::Formation::Ptr M_F523_defense_formation_no6;
+    rcsc::Formation::Ptr M_F523_defense_formation_no56;
+    rcsc::Formation::Ptr M_F523_offense_formation;
+    rcsc::Formation::Ptr M_F523_goal_kick_opp_formation;
+    rcsc::Formation::Ptr M_F523_goal_kick_our_formation;
+    rcsc::Formation::Ptr M_F523_kickin_our_formation;
+    rcsc::Formation::Ptr M_F523_setplay_opp_formation;
+    rcsc::Formation::Ptr M_F523_setplay_our_formation;
 
     rcsc::Formation::Ptr M_Fhel_before_kick_off_formation;
     rcsc::Formation::Ptr M_Fhel_defense_formation;
@@ -221,6 +248,7 @@ public:
     void updateFormation( const rcsc::WorldModel & wm );
     void updateFormationFra( const rcsc::WorldModel & wm );
     void updateFormation433( const rcsc::WorldModel & wm );
+    void updateFormation523( const rcsc::WorldModel & wm );
     rcsc::Formation::Ptr getFormation( const rcsc::WorldModel & wm );
 
     static rcsc::SideID getBeforeKickOffSide(const rcsc::WorldModel &wm);
