@@ -98,7 +98,8 @@ Strategy::Strategy()
       M_tm_post(12),
       M_goalie_unum( Unum_Unknown ),
       M_current_situation( Normal_Situation ),
-      M_role_number( 12, 0 ),
+      M_num_to_role(12, 0 ),
+      M_role_to_num(12, 0),
       M_position_types( 12, Position_Center ),
       M_positions( 12 )
 {
@@ -114,9 +115,10 @@ Strategy::Strategy()
 
 #endif
 
-    for ( size_t i = 0; i < M_role_number.size(); ++i )
+    for (size_t i = 0; i < M_num_to_role.size(); ++i )
     {
-        M_role_number[i] = i;
+        M_num_to_role[i] = i;
+        M_role_to_num[i] = i;
     }
 
 
@@ -501,39 +503,20 @@ Strategy::exchangeRole( const int unum0,
         return;
     }
 
-    int role0 = M_role_number[unum0];
-    int role1 = M_role_number[unum1];
+    int role0 = M_num_to_role[unum0];
+    int role1 = M_num_to_role[unum1];
 
     dlog.addText( Logger::TEAM,
                   __FILE__":(exchangeRole) unum=%d(role=%d) <-> unum=%d(role=%d)",
                   unum0, role0,
                   unum1, role1 );
 
-    auto line0 = M_tm_line[unum0];
-    auto line1 = M_tm_line[unum1];
 
-    dlog.addText(Logger::TEAM,
-                 __FILE__":(exchangeRole) unum=%d(line=%d) <-> unum=%d(line=%d)",
-                 unum0, line0,
-                 unum1, line1);
+    M_num_to_role[unum0] = role1;
+    M_num_to_role[unum1] = role0;
 
-    auto post0 = M_tm_post[unum0];
-    auto post1 = M_tm_post[unum1];
-
-    dlog.addText(Logger::TEAM,
-                 __FILE__":(exchangeRole) unum=%d(post=%d) <-> unum=%d(post=%d)",
-                 unum0, post0,
-                 unum1, post1);
-
-
-    M_role_number[unum0] = role1;
-    M_role_number[unum1] = role0;
-
-    M_tm_line[unum0] = line1;
-    M_tm_line[unum1] = line0;
-
-    M_tm_post[unum0] = post1;
-    M_tm_post[unum1] = post0;
+    M_role_to_num[role0] = unum1;
+    M_role_to_num[role1] = unum0;
 }
 
 /*-------------------------------------------------------------------*/
@@ -544,7 +527,7 @@ SoccerRole::Ptr
 Strategy::createRole( const int unum,
                       const WorldModel & world )
 {
-    const int number = roleNumber( unum );
+    const int number = unumToRole(unum);
 
     SoccerRole::Ptr role;
 
@@ -759,6 +742,7 @@ Strategy::updatePosition( const WorldModel & wm )
 rcsc::Vector2D
 Strategy::getPositionWithBall( const int unum, rcsc::Vector2D ball, const WorldModel & wm ){
     try {
+        auto role = unumToRole(unum);
         updateFormation(wm);
         Formation::Ptr f = getFormation( wm );
         if ( ! f )
@@ -771,18 +755,17 @@ Strategy::getPositionWithBall( const int unum, rcsc::Vector2D ball, const WorldM
         std::vector< rcsc::Vector2D > positions(11);
         positions.clear();
         f->getPositions( ball, positions );
-        return positions.at(roleNumber( unum ) - 1);
+        return positions.at(role - 1);
     } catch (std::exception & e) {
         std::cout<<"ERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRrrrrorrr"<<std::endl;
         return Vector2D::INVALIDATED;
     }
-
 }
 
 Vector2D
 Strategy::getPosition( const int unum ) const
 {
-    int number = roleNumber( unum );
+    int number = unumToRole(unum);
 
     if ( number < 1 || 11 < number )
     {

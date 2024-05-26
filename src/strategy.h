@@ -175,7 +175,8 @@ private:
     rcsc::Formation::Ptr M_current_formation;
 
 	// role assignment
-	std::vector< int > M_role_number;
+	std::vector< int > M_num_to_role;
+    std::vector< int > M_role_to_num;
 
 	// current home positions
 	std::vector< PositionType > M_position_types;
@@ -196,7 +197,10 @@ private:
 
 public:
     void setPosition(int unum, rcsc::Vector2D tar){
-        M_positions[unum - 1] = tar;
+        M_positions[unumToRole(unum)] = tar;
+    }
+    void setPositionForRole(int role, rcsc::Vector2D tar){
+        M_positions[role] = tar;
     }
 	static
 	Strategy & instance();
@@ -226,11 +230,18 @@ public:
 
 	int goalieUnum() const { return M_goalie_unum; }
 
-	int roleNumber( const int unum ) const
+	int unumToRole(const int unum ) const
 	{
 		if ( unum < 1 || 11 < unum ) return unum;
-		return M_role_number[unum];
+		return M_num_to_role[unum];
 	}
+
+    int roleToUnum(const int role ) const
+    {
+        if ( role < 1 || 11 < role ) return role;
+        return M_role_to_num[role];
+    }
+
 
 	SoccerRole::Ptr createRole( int unum, const rcsc::WorldModel & wm );
 	rcsc::Vector2D getPosition( int unum ) const;
@@ -272,10 +283,30 @@ public:
             return TeamTactic::Normal;
     }
     PostLine tmLine(size_t unum){
-        return M_tm_line[M_role_number[unum]];
+        return M_tm_line[M_num_to_role[unum]];
     }
     PlayerPost tmPost(size_t unum){
-        return M_tm_post[M_role_number[unum]];
+        return M_tm_post[M_num_to_role[unum]];
+    }
+    PostLine tmLineForRole(size_t role){
+        return M_tm_line[role];
+    }
+    PlayerPost tmPostForRole(size_t role){
+        return M_tm_post[role];
+    }
+    void setTmRoles(std::vector<int> roles)
+    {
+        // remove first
+        if (roles.size() == 12)
+        {
+            roles.erase(roles.begin());
+        }
+
+        for (size_t i = 0; i < 11; i++)
+        {
+            M_num_to_role[i + 1] = roles.at(i);
+            M_role_to_num[roles[i]] = i + 1;
+        }
     }
 };
 
