@@ -65,7 +65,8 @@ enum SituationType {
 
 enum class FormationType{
     F433,
-    HeliosFra
+    HeliosFra,
+    F523
 };
 enum class PostLine{
     golie,
@@ -104,6 +105,19 @@ private:
     static const std::string F433_SETPLAY_OPP_FORMATION_CONF;
     static const std::string F433_SETPLAY_OUR_FORMATION_CONF;
 
+    static const std::string F523_BEFORE_KICK_OFF_CONF;
+    static const std::string F523_BEFORE_KICK_OFF_CONF_FOR_OUR_KICK;
+    static const std::string F523_DEFENSE_FORMATION_CONF;
+    static const std::string F523_DEFENSE_FORMATION_NO5_CONF;
+    static const std::string F523_DEFENSE_FORMATION_NO6_CONF;
+    static const std::string F523_DEFENSE_FORMATION_NO56_CONF;
+    static const std::string F523_OFFENSE_FORMATION_CONF;
+    static const std::string F523_GOAL_KICK_OPP_FORMATION_CONF;
+    static const std::string F523_GOAL_KICK_OUR_FORMATION_CONF;
+    static const std::string F523_KICKIN_OUR_FORMATION_CONF;
+    static const std::string F523_SETPLAY_OPP_FORMATION_CONF;
+    static const std::string F523_SETPLAY_OUR_FORMATION_CONF;
+
     static const std::string Fhel_BEFORE_KICK_OFF_CONF;
     static const std::string Fhel_DEFENSE_FORMATION_CONF;
     static const std::string Fhel_OFFENSE_FORMATION_CONF;
@@ -124,6 +138,19 @@ private:
     rcsc::Formation::Ptr M_F433_kickin_our_formation;
     rcsc::Formation::Ptr M_F433_setplay_opp_formation;
     rcsc::Formation::Ptr M_F433_setplay_our_formation;
+
+    rcsc::Formation::Ptr M_F523_before_kick_off_formation;
+    rcsc::Formation::Ptr M_F523_before_kick_off_formation_for_our_kick;
+    rcsc::Formation::Ptr M_F523_defense_formation;
+    rcsc::Formation::Ptr M_F523_defense_formation_no5;
+    rcsc::Formation::Ptr M_F523_defense_formation_no6;
+    rcsc::Formation::Ptr M_F523_defense_formation_no56;
+    rcsc::Formation::Ptr M_F523_offense_formation;
+    rcsc::Formation::Ptr M_F523_goal_kick_opp_formation;
+    rcsc::Formation::Ptr M_F523_goal_kick_our_formation;
+    rcsc::Formation::Ptr M_F523_kickin_our_formation;
+    rcsc::Formation::Ptr M_F523_setplay_opp_formation;
+    rcsc::Formation::Ptr M_F523_setplay_our_formation;
 
     rcsc::Formation::Ptr M_Fhel_before_kick_off_formation;
     rcsc::Formation::Ptr M_Fhel_defense_formation;
@@ -148,7 +175,8 @@ private:
     rcsc::Formation::Ptr M_current_formation;
 
 	// role assignment
-	std::vector< int > M_role_number;
+	std::vector< int > M_num_to_role;
+    std::vector< int > M_role_to_num;
 
 	// current home positions
 	std::vector< PositionType > M_position_types;
@@ -169,7 +197,10 @@ private:
 
 public:
     void setPosition(int unum, rcsc::Vector2D tar){
-        M_positions[unum - 1] = tar;
+        M_positions[unumToRole(unum)] = tar;
+    }
+    void setPositionForRole(int role, rcsc::Vector2D tar){
+        M_positions[role] = tar;
     }
 	static
 	Strategy & instance();
@@ -199,11 +230,18 @@ public:
 
 	int goalieUnum() const { return M_goalie_unum; }
 
-	int roleNumber( const int unum ) const
+	int unumToRole(const int unum ) const
 	{
 		if ( unum < 1 || 11 < unum ) return unum;
-		return M_role_number[unum];
+		return M_num_to_role[unum];
 	}
+
+    int roleToUnum(const int role ) const
+    {
+        if ( role < 1 || 11 < role ) return role;
+        return M_role_to_num[role];
+    }
+
 
 	SoccerRole::Ptr createRole( int unum, const rcsc::WorldModel & wm );
 	rcsc::Vector2D getPosition( int unum ) const;
@@ -221,6 +259,7 @@ public:
     void updateFormation( const rcsc::WorldModel & wm );
     void updateFormationFra( const rcsc::WorldModel & wm );
     void updateFormation433( const rcsc::WorldModel & wm );
+    void updateFormation523( const rcsc::WorldModel & wm );
     rcsc::Formation::Ptr getFormation( const rcsc::WorldModel & wm );
 
     static rcsc::SideID getBeforeKickOffSide(const rcsc::WorldModel &wm);
@@ -231,6 +270,8 @@ public:
             return FormationType::HeliosFra;
         else if (formation == "433")
             return FormationType::F433;
+        else if (formation == "523")
+            return FormationType::F523;
         else
             return FormationType::HeliosFra;
     }
@@ -242,10 +283,30 @@ public:
             return TeamTactic::Normal;
     }
     PostLine tmLine(size_t unum){
-        return M_tm_line[M_role_number[unum]];
+        return M_tm_line[M_num_to_role[unum]];
     }
     PlayerPost tmPost(size_t unum){
-        return M_tm_post[M_role_number[unum]];
+        return M_tm_post[M_num_to_role[unum]];
+    }
+    PostLine tmLineForRole(size_t role){
+        return M_tm_line[role];
+    }
+    PlayerPost tmPostForRole(size_t role){
+        return M_tm_post[role];
+    }
+    void setTmRoles(std::vector<int> roles)
+    {
+        // remove first
+        if (roles.size() == 12)
+        {
+            roles.erase(roles.begin());
+        }
+
+        for (size_t i = 0; i < 11; i++)
+        {
+            M_num_to_role[i + 1] = roles.at(i);
+            M_role_to_num[roles[i]] = i + 1;
+        }
     }
 };
 

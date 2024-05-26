@@ -136,8 +136,10 @@ void Bhv_BasicMove::updateTarget(const rcsc::WorldModel & wm, rcsc::Vector2D & t
     Vector2D ball_inertia = wm.ball().inertiaPoint(std::min(std::min(opp_min, mate_min), self_min));
     double stamina = wm.self().stamina();
     Vector2D self_pos = wm.self().pos();
-    if(wm.self().unum() == 5){
-        if (!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
+    int self_unum = wm.self().unum();
+    int self_role = Strategy::i().unumToRole(self_unum);
+    if(self_role == 5){
+        if (!Strategy::i().isDefenseSituation(wm, self_unum)){
             if(ball_inertia.x > 0 && self_pos.x < 0){
                 if(stamina < 5500){
                     can_5_join_offense = false;
@@ -146,7 +148,7 @@ void Bhv_BasicMove::updateTarget(const rcsc::WorldModel & wm, rcsc::Vector2D & t
             }
         }
     }
-    if(wm.self().unum() < 5){
+    if(self_role < 5){
         if (!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
             if(ball_inertia.x > 0 && self_pos.x < 0){
                 if(stamina < 6000){
@@ -155,12 +157,14 @@ void Bhv_BasicMove::updateTarget(const rcsc::WorldModel & wm, rcsc::Vector2D & t
             }
         }
     }
-    if(wm.self().unum() == 6){
-        if(wm.ourPlayer(5)!= nullptr && wm.ourPlayer(5)->unum() > 0){
-            if(Strategy::i().getPosition(5).dist(wm.ourPlayer(5)->pos())>10){
+    if(self_role == 6){
+        int r5_unum = Strategy::i().roleToUnum(5);
+        auto r5_player = wm.ourPlayer(r5_unum);
+        if(r5_player != nullptr && r5_player->unum() > 0){
+            if(Strategy::i().getPosition(r5_unum).dist(r5_player->pos())>10){
                 if(ball_inertia.x > 20){
                     if(!Strategy::i().isDefenseSituation(wm, wm.self().unum())){
-                        Strategy::i().setPosition(6, (Strategy::i().getPosition(5) + target_point) / 2.0);
+                        Strategy::i().setPositionForRole(self_role, (Strategy::i().getPosition(r5_unum) + target_point) / 2.0);
                         target_point = Strategy::i().getPosition(wm.self().unum());
                     }
                 }
