@@ -153,6 +153,18 @@ Body_Intercept2009::execute( PlayerAgent * agent )
                                          best_intercept.turnStep(),
                                          best_intercept.dashStep() );
 
+        if (best_intercept.dashPower() > 0){
+            if (Body_GoToPoint( target_point,
+                                0.1,
+                                ServerParam::i().maxDashPower(),
+                                -1.0, // dash speed
+                                1, // cycle
+                                false, // save recovery
+                                0.0  // dir thr
+                                ).doTurnBid( agent )){
+                return true;
+            }
+        }
         return agent->doTurn( target_angle - wm.self().body() );
     }
 
