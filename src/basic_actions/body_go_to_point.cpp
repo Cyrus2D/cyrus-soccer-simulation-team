@@ -904,8 +904,13 @@ Candidate Body_GoToPoint::getBestBidCandidate( rcsc::PlayerAgent * agent,
                                double min_left_power, double max_left_power,
                                double min_right_power, double max_right_power,
                                double power_step) const{
-    double left_power = min_left_power;
+    const ServerParam & SP = ServerParam::i();
+    const WorldModel & wm = agent->world();
+    const Vector2D inertia_pos = wm.self().inertiaPoint( M_cycle );
+    Vector2D target_rel = M_target_point - inertia_pos;
+    const double target_dist = target_rel.r();
 
+    double left_power = min_left_power;
     std::vector<Candidate> candidates;
     while (left_power <= max_left_power){
         double right_power = min_right_power;
@@ -915,13 +920,24 @@ Candidate Body_GoToPoint::getBestBidCandidate( rcsc::PlayerAgent * agent,
             auto next_body = result.second;
             auto candidate = Candidate(M_target_point, next_pos, next_body, left_power, right_power);
 
-            dlog.addText(Logger::ACTION, "--- left_power=%.3f right_power=%.3f new_pos=(%.2f %.2f) new_body=%.2f dist_to_target=%.3f body_diff_angle=%.3f",
-                         left_power, right_power, result.first.x, result.first.y, result.second.degree(), candidate.dist_to_target, candidate.body_diff_angle);
-            candidates.push_back(candidate);
+            bool does_action_pass_target = false;
+            if (candidate.pos.dist(inertia_pos) > target_dist){
+                does_action_pass_target = true;
+            }
+            dlog.addText(Logger::ACTION, "--- left_power=%.3f right_power=%.3f new_pos=(%.2f %.2f) new_body=%.2f dist_to_target=%.3f body_diff_angle=%.3f does_action_pass_target=%d",
+                         left_power, right_power, result.first.x, result.first.y, result.second.degree(), candidate.dist_to_target, candidate.body_diff_angle, does_action_pass_target);
+            if (!does_action_pass_target){
+                candidates.push_back(candidate);
+            }
             right_power += power_step;
         }
         left_power += power_step;
     }
+
+    if (candidates.empty()){
+        return {};
+    }
+
     double min_diff_angle = 1000;
     for (auto candidate : candidates){
         if (candidate.body_diff_angle < min_diff_angle){
@@ -969,6 +985,9 @@ Body_GoToPoint::doBiDash(rcsc::PlayerAgent *agent) {
                   turn_moment.degree() );
 
     auto best_candidate_l1 = getBestBidCandidate(agent, 0, 100, 0, 100, 10);
+    if (!best_candidate_l1.is_valid){
+        return false;
+    }
 
     double min_left_power = std::max(0.0, best_candidate_l1.left_power - 10);
     double max_left_power = std::min(100.0, best_candidate_l1.left_power + 10);
@@ -976,7 +995,10 @@ Body_GoToPoint::doBiDash(rcsc::PlayerAgent *agent) {
     double max_right_power = std::min(100.0, best_candidate_l1.right_power + 10);
 
     auto best_candidate = getBestBidCandidate(agent, min_left_power, max_left_power, min_right_power, max_right_power, 1);
-
+    if (!best_candidate.is_valid){
+        return false;
+    }
+    
     dlog.addText(Logger::ACTION,
                  __FILE__": (doBiDash) best_left_power=%.3f best_right_power=%.3f best_new_pos=(%.2f %.2f) best_new_body=%.3f dist_to_target=%.3f body_diff_angle=%.3f",
                     best_candidate.left_power, best_candidate.right_power, best_candidate.pos.x, best_candidate.pos.y, best_candidate.body.degree(), best_candidate.dist_to_target, best_candidate.body_diff_angle);
