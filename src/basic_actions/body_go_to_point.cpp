@@ -946,18 +946,26 @@ bool
 Body_GoToPoint::doDashBid(rcsc::PlayerAgent *agent) {
 
     auto best_candidate_layer1 = getBestBidCandidate(agent,
-                                              -100, 100,
-                                              -100, 100,
+                                              0, 100,
+                                              0, 100,
                                               10);
     if (!best_candidate_layer1.is_valid){
         return false;
     }
 
+    double min_left_power = std::max(best_candidate_layer1.left_power - 5, 0.0);
+    double max_left_power = std::min(best_candidate_layer1.left_power + 5, 100.0);
+    double min_right_power = std::max(best_candidate_layer1.right_power - 5, 0.0);
+    double max_right_power = std::min(best_candidate_layer1.right_power + 5, 100.0);
+    double power_step = 1;
+
+
     auto best_candidate = getBestBidCandidate(agent,
-                                              best_candidate_layer1.left_power - 5, best_candidate_layer1.left_power + 5,
-                                              best_candidate_layer1.right_power - 5, best_candidate_layer1.right_power + 5,
+                                                min_left_power, max_left_power,
+                                              min_right_power, max_right_power,
                                               1);
 
+//    auto best_candidate = best_candidate_layer1;
     if (!best_candidate.is_valid){
         return false;
     }
