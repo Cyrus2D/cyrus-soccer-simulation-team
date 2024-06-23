@@ -692,7 +692,7 @@ Body_GoToPoint::doTurn( PlayerAgent * agent )
     }
 
     if (!M_back_mode && turn_moment.abs() < 90.0){
-        if (doBiDash2(agent))
+        if (doBiDash(agent))
             return true;
     }
     //
@@ -795,164 +795,6 @@ Body_GoToPoint::doDash( PlayerAgent * agent )
     return agent->doDash( dash_power );
 }
 
-bool
-Body_GoToPoint::doBiDash(rcsc::PlayerAgent *agent) {
-    dlog.addText( Logger::ACTION,
-                  __FILE__": (doBiDash) start bidash target=(%.2f %.2f)",
-                M_target_point.x, M_target_point.y);
-
-    const ServerParam & SP = ServerParam::i();
-    const WorldModel & wm = agent->world();
-
-    const Vector2D inertia_pos = wm.self().inertiaPoint( M_cycle );
-    Vector2D target_rel = M_target_point - inertia_pos;
-
-    const double target_dist = target_rel.r();
-    const double max_turn = wm.self().playerType().effectiveTurn( SP.maxMoment(),
-                                                                  wm.self().vel().r() );
-
-    AngleDeg turn_moment = target_rel.th() - wm.self().body();
-    dlog.addText( Logger::ACTION,
-                  __FILE__": (doBiDash) inertia_pos=(%.1f %.1f ) target_rel=(%.1f %.1f) dist=%.3f turn_moment=%.1f",
-                  inertia_pos.x, inertia_pos.y,
-                  target_rel.x, target_rel.y,
-                  target_dist,
-                  turn_moment.degree() );
-    if (turn_moment.degree() > 0)
-    {
-        // left leg
-        dlog.addText(Logger::ACTION,
-                     __FILE__": (doBiDash) left leg");
-        double best_power = 0.0;
-        double best_diff_angle = 1000;
-        double power = 0.0;
-        while (power <= 100){
-            double dir_rate = ServerParam::i().sideDashRate() + ( ( 1.0 - ServerParam::i().sideDashRate() )
-                                                                  * ( 1.0 - std::fabs( 0.0 ) / 90.0 ) );
-            double accel_magnitude = std::fabs( wm.self().effort() * power * dir_rate * wm.self().playerType().dashPowerRate() );
-            dlog.addText(Logger::ACTION,
-                         "--- power=%.3f, accel_magnitude=%.3f",
-                         power, accel_magnitude);
-            if ( wm.self().pos().y < 0.0 )
-            {
-                accel_magnitude /= ( wm.self().side() == LEFT
-                                     ? ServerParam::i().slownessOnTopForLeft()
-                                     : ServerParam::i().slownessOnTopForRight() );
-            }
-            Vector2D accel = Vector2D::polar2vector( accel_magnitude,
-                                                     wm.self().body().degree() + 0 );
-
-            Vector2D vel_l = wm.self().vel() + accel;
-            const Vector2D body_unit = Vector2D::polar2vector( 1.0, wm.self().body() );
-            const double vel_l_body = body_unit.x * vel_l.x + body_unit.y * vel_l.y;
-            auto omega = AngleDeg::rad2deg(( vel_l_body ) / ( wm.self().playerType().playerSize() * 2.0 ));
-            AngleDeg new_body = wm.self().body() + omega;
-            dlog.addText(Logger::ACTION,
-                         "--- accel_mag=%.2f accel=(%.2f, %.2f)(%.2f, %.2f) vel_l=(%.2f %.3f) vel_l_body=%.2f omega=%.2f new_body=%.2f",
-                         accel_magnitude, accel.x, accel.y, accel.th().degree(), accel.r(), vel_l.x, vel_l.y, vel_l_body, omega, new_body.degree());
-
-            double diff_angle = (new_body - (wm.self().body() + turn_moment)).abs();
-            if (diff_angle > 180){
-                diff_angle = 360 - diff_angle;
-            }
-            dlog.addText(Logger::ACTION,
-                         __FILE__": (doBiDash) power=%.3f diff_angle=%.3f",
-                         power, diff_angle);
-            if (diff_angle < best_diff_angle){
-                best_diff_angle = diff_angle;
-                best_power = power;
-            }
-            power += 10;
-        }
-        dlog.addText(Logger::ACTION,
-                     __FILE__": (doBiDash) best_power=%.3f",
-                     best_power);
-        return agent->doDash(best_power, 0, 0, 0);
-    }
-    else
-    {
-        // right leg
-        dlog.addText(Logger::ACTION,
-                     __FILE__": (doBiDash) right leg");
-        double best_power = 0.0;
-        double best_diff_angle = 1000;
-        double power = 0.0;
-        while (power <= 100){
-            double dir_rate = ServerParam::i().sideDashRate() + ( ( 1.0 - ServerParam::i().sideDashRate() )
-                                                                  * ( 1.0 - std::fabs( 0.0 ) / 90.0 ) );
-            double accel_magnitude = std::fabs( wm.self().effort() * power * dir_rate * wm.self().playerType().dashPowerRate() );
-            dlog.addText(Logger::ACTION,
-                         "--- power=%.3f, accel_magnitude=%.3f",
-                         power, accel_magnitude);
-            if ( wm.self().pos().y < 0.0 )
-            {
-                accel_magnitude /= ( wm.self().side() == LEFT
-                                     ? ServerParam::i().slownessOnTopForLeft()
-                                     : ServerParam::i().slownessOnTopForRight() );
-            }
-            Vector2D accel = Vector2D::polar2vector( accel_magnitude,
-                                                     wm.self().body().degree() + 0 );
-
-            Vector2D vel_r = wm.self().vel() + accel;
-            const Vector2D body_unit = Vector2D::polar2vector( 1.0, wm.self().body() );
-            const double vel_r_body = body_unit.x * vel_r.x + body_unit.y * vel_r.y;
-            auto omega = AngleDeg::rad2deg(( -vel_r_body ) / ( wm.self().playerType().playerSize() * 2.0 ));
-            AngleDeg new_body = wm.self().body() + omega;
-            dlog.addText(Logger::ACTION, "--- accel_mag=%.2f accel=(%.2f, %.2f)(%.2f, %.2f) vel_r=(%.2f %.3f) vel_r_body=%.2f omega=%.2f new_body=%.2f",
-                         accel_magnitude, accel.x, accel.y, accel.th().degree(), accel.r(), vel_r.x, vel_r.y, vel_r_body, omega, new_body.degree());
-            double diff_angle = (new_body - (wm.self().body() + turn_moment)).abs();
-            if (diff_angle > 180){
-                diff_angle = 360 - diff_angle;
-            }
-            dlog.addText(Logger::ACTION,
-                         __FILE__": (doBiDash) power=%.3f diff_angle=%.3f",
-                         power, diff_angle);
-            if (diff_angle < best_diff_angle){
-                best_diff_angle = diff_angle;
-                best_power = power;
-            }
-            power += 10;
-        }
-        dlog.addText(Logger::ACTION,
-                     __FILE__": (doBiDash) best_power=%.3f",
-                     best_power);
-        return agent->doDash(0, 0, best_power, 0);
-    }
-}
-
-bool isNewBetter(Vector2D target, Vector2D pos1, AngleDeg body1, Vector2D pos2, AngleDeg body2){
-    Vector2D target_rel1 = target - pos1;
-    Vector2D target_rel2 = target - pos2;
-    double dist1 = target_rel1.r();
-    double dist2 = target_rel2.r();
-    double angle1 = (target_rel1.th() - body1).abs();
-    double angle2 = (target_rel2.th() - body2).abs();
-    if (angle1 > 180){
-        angle1 = 360 - angle1;
-    }
-    if (angle2 > 180){
-        angle2 = 360 - angle2;
-    }
-    if (angle1 < angle2 - 10){
-        dlog.addText(Logger::CROSS, "t(%.1f,%.1f) p1(%.1f,%.1f) p2(%.1f,%.1f) a1=%.1f a2=%.1f d1=%.1f d2=%.1f 1 is better for angle", target.x, target.y, pos1.x, pos1.y, pos2.x, pos2.y, angle1, angle2, dist1, dist2);
-        return false;
-    }
-    else if (angle2 < angle1 - 10){
-        dlog.addText(Logger::CROSS, "t(%.1f,%.1f) p1(%.1f,%.1f) p2(%.1f,%.1f) a1=%.1f a2=%.1f d1=%.1f d2=%.1f 2 is better for angle", target.x, target.y, pos1.x, pos1.y, pos2.x, pos2.y, angle1, angle2, dist1, dist2);
-        return true;
-    }
-    else{
-        if (dist1 < dist2){
-            dlog.addText(Logger::CROSS, "t(%.1f,%.1f) p1(%.1f,%.1f) p2(%.1f,%.1f) a1=%.1f a2=%.1f d1=%.1f d2=%.1f 1 is better for dist", target.x, target.y, pos1.x, pos1.y, pos2.x, pos2.y, angle1, angle2, dist1, dist2);
-            return false;
-        }
-        else{
-            dlog.addText(Logger::CROSS, "t(%.1f,%.1f) p1(%.1f,%.1f) p2(%.1f,%.1f) a1=%.1f a2=%.1f d1=%.1f d2=%.1f 2 is better for dist", target.x, target.y, pos1.x, pos1.y, pos2.x, pos2.y, angle1, angle2, dist1, dist2);
-            return true;
-        }
-    }
-}
-
 class Candidate{
 public:
     Vector2D pos;
@@ -978,7 +820,7 @@ public:
 };
 #include <vector>
 bool
-Body_GoToPoint::doBiDash2(rcsc::PlayerAgent *agent) {
+Body_GoToPoint::doBiDash(rcsc::PlayerAgent *agent) {
 
 
     const ServerParam & SP = ServerParam::i();
