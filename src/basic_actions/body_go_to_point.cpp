@@ -118,6 +118,14 @@ Body_GoToPoint::execute( PlayerAgent * agent )
     }
 
     //
+    // bi turn
+    //
+    if ( doBiTurn( agent ) )
+    {
+        return true;
+    }
+
+    //
     // turn
     //
     if ( doTurn( agent ) )
@@ -691,10 +699,6 @@ Body_GoToPoint::doTurn( PlayerAgent * agent )
         return false;
     }
 
-    if (!M_back_mode && turn_moment.abs() < 90.0){
-        if (doBiDash(agent))
-            return true;
-    }
     //
     // register turn command
     //
@@ -706,6 +710,92 @@ Body_GoToPoint::doTurn( PlayerAgent * agent )
     return agent->doTurn( turn_moment );
 }
 
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+bool
+Body_GoToPoint::doBiTurn( PlayerAgent * agent )
+{
+    const ServerParam & SP = ServerParam::i();
+    const WorldModel & wm = agent->world();
+
+    const Vector2D inertia_pos = wm.self().inertiaPoint( M_cycle );
+    Vector2D target_rel = M_target_point - inertia_pos;
+
+    const double target_dist = target_rel.r();
+    const double max_turn = wm.self().playerType().effectiveTurn( SP.maxMoment(),
+                                                                  wm.self().vel().r() );
+
+    AngleDeg turn_moment = target_rel.th() - wm.self().body();
+
+#ifdef DEBUG_PRINT
+    dlog.addText( Logger::ACTION,
+                  __FILE__": (doTurn) inertia_pos=(%.1f %.1f ) target_rel=(%.1f %.1f) dist=%.3f turn_moment=%.1f",
+                  inertia_pos.x, inertia_pos.y,
+                  target_rel.x, target_rel.y,
+                  target_dist,
+                  turn_moment.degree() );
+#endif
+
+    // if target is very near && turn_angle is big && agent has enough stamina,
+    // it is useful to reverse accel angle.
+    if ( M_use_back_dash
+         && turn_moment.abs() > max_turn
+         && turn_moment.abs() > 90.0
+         && target_dist < 2.0
+         && wm.self().stamina() > SP.recoverDecThrValue() + 500.0 )
+    {
+        double effective_power = SP.maxDashPower() * wm.self().dashRate();
+        double effective_back_power = SP.minDashPower() * wm.self().dashRate();
+        if ( std::fabs( effective_back_power ) > std::fabs( effective_power ) * 0.75 )
+        {
+            M_back_mode = true;
+            turn_moment += 180.0;
+#ifdef DEBUG_PRINT
+            dlog.addText( Logger::ACTION,
+                          __FILE__": (doTurn) back mode. turn_moment=%.1f",
+                          turn_moment.degree() );
+#endif
+        }
+    }
+
+    double turn_thr = 180.0;
+// #ifdef USE_ADJUST_DASH
+//     if ( M_dist_thr + adjustable_dist < target_dist )
+//     {
+//         turn_thr = AngleDeg::asin_deg( std::min( 1.0, ( M_dist_thr + adjustable_dist ) / target_dist ) );
+//     }
+// #else
+    if ( M_dist_thr < target_dist )
+    {
+        turn_thr = AngleDeg::asin_deg( M_dist_thr / target_dist );
+    }
+// #endif
+
+    turn_thr = std::max( M_dir_thr, turn_thr );
+
+#ifdef DEBUG_PRINT
+    dlog.addText( Logger::ACTION,
+                  __FILE__": (doTurn) turn_thr=%.1f",
+                  turn_thr );
+#endif
+
+    //
+    // it is not necessary to perform turn action.
+    //
+    if ( turn_moment.abs() < turn_thr )
+    {
+        return false;
+    }
+
+    if (!M_back_mode && turn_moment.abs() < 90.0){
+        if (doBiDash(agent))
+            return true;
+    }
+
+    return false;
+}
 /*-------------------------------------------------------------------*/
 /*!
 
