@@ -48,6 +48,7 @@
 #include "basic_actions/neck_turn_to_ball_or_scan.h"
 #include "basic_actions/neck_turn_to_goalie_or_scan.h"
 #include "basic_actions/view_synch.h"
+#include "basic_actions/body_go_to_point.h"
 
 #include <rcsc/player/intercept_table.h>
 #include <rcsc/player/player_agent.h>
@@ -531,14 +532,17 @@ IntentionNormalDribble::doTurn( PlayerAgent * agent )
 
     Vector2D my_inertia = wm.self().inertiaPoint( M_turn_step + M_dash_step );
     AngleDeg target_angle = ( M_target_point - my_inertia ).th();
+    bool can_do_bid_dash = true;
     if(M_desc.compare("shortBackDribble") == 0){
         target_angle += AngleDeg(180.0);
         target_angle = AngleDeg(target_angle);
+        can_do_bid_dash = false;
 //        if(target_angle.degree() > 360.0){
 //            target_angle = target_angle - AngleDeg(360.0);
 //        }
     }else if(M_desc.compare("shortDribbleAdvance") == 0){
         target_angle = M_dash_angle;
+        can_do_bid_dash = false;
     }
     AngleDeg angle_diff = target_angle - wm.self().body();
 
@@ -570,6 +574,8 @@ IntentionNormalDribble::doTurn( PlayerAgent * agent )
         /// hamintor lazem nist be andaze target turn bezane
     }
 
+    if (can_do_bid_dash && Body_GoToPoint(M_target_point, 0.0, 100).doTurnBid(agent))
+        return true;
     Body_TurnToAngle(target_angle).execute(agent);
 //    agent->doTurn( angle_diff );
 
