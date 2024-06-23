@@ -36,6 +36,35 @@
 #include <rcsc/common/player_type.h>
 #include <rcsc/geom/vector_2d.h>
 
+class Candidate{
+public:
+    rcsc::Vector2D pos;
+    rcsc::AngleDeg body;
+    double left_power;
+    double right_power;
+    double dist_to_target;
+    double body_diff_angle;
+    bool is_valid = false;
+
+    Candidate(rcsc::Vector2D target, rcsc::Vector2D pos, rcsc::AngleDeg body, double left_power, double right_power){
+        this->pos = pos;
+        this->body = body;
+        this->left_power = left_power;
+        this->right_power = right_power;
+        this->dist_to_target = (pos - target).r();
+        rcsc::Vector2D target_rel = target - pos;
+
+        this->body_diff_angle = (body - target_rel.th()).abs();
+        if (this->body_diff_angle > 180){
+            this->body_diff_angle = 360 - this->body_diff_angle;
+        }
+        this->is_valid = true;
+    }
+
+    Candidate() {
+        this->is_valid = false;
+    }
+};
 /*!
   \class Body_GoToPoint
   \brief go to point action
@@ -95,7 +124,7 @@ public:
       \return true if action is performed
     */
     bool execute( rcsc::PlayerAgent * agent );
-
+    bool doBiTurn( rcsc::PlayerAgent * agent );
 private:
 
     /*!
@@ -124,6 +153,14 @@ private:
       \return true if turn is performed
     */
     bool doDash( rcsc::PlayerAgent * agent );
+
+
+    bool doBiDash( rcsc::PlayerAgent * agent );
+    Candidate getBestBidCandidate( rcsc::PlayerAgent * agent,
+                                   double min_left_power, double max_left_power,
+                                   double min_right_power, double max_right_power,
+                                   double power_step) const;
+    std::pair<rcsc::Vector2D, rcsc::AngleDeg> calculateNextPoint( const rcsc::PlayerAgent * agent, const double left_power, const rcsc::AngleDeg left_dir, const double right_power, const rcsc::AngleDeg right_dir ) const;
 };
 
 #endif
