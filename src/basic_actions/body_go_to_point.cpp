@@ -924,8 +924,10 @@ Candidate Body_GoToPoint::getBestBidCandidate( rcsc::PlayerAgent * agent,
             if (candidate.pos.dist(inertia_pos) > target_dist){
                 does_action_pass_target = true;
             }
+#ifdef DEBUG_PRINT
             dlog.addText(Logger::ACTION, "--- left_power=%.3f right_power=%.3f new_pos=(%.2f %.2f) new_body=%.2f dist_to_target=%.3f body_diff_angle=%.3f does_action_pass_target=%d",
-                         left_power, right_power, result.first.x, result.first.y, result.second.degree(), candidate.dist_to_target, candidate.body_diff_angle, does_action_pass_target);
+                        left_power, right_power, result.first.x, result.first.y, result.second.degree(), candidate.dist_to_target, candidate.body_diff_angle, does_action_pass_target);
+#endif
             if (!does_action_pass_target){
                 candidates.push_back(candidate);
             }
@@ -944,7 +946,9 @@ Candidate Body_GoToPoint::getBestBidCandidate( rcsc::PlayerAgent * agent,
             min_diff_angle = candidate.body_diff_angle;
         }
     }
+#ifdef DEBUG_PRINT
     dlog.addText(Logger::ACTION, "--- min_diff_angle=%.3f", min_diff_angle);
+#endif
     double min_dist = 1000;
     Candidate best_candidate = candidates[0];
     for (auto candidate : candidates){
@@ -967,22 +971,26 @@ Body_GoToPoint::doBiDash(rcsc::PlayerAgent *agent) {
     const Vector2D inertia_pos = wm.self().inertiaPoint( M_cycle );
     Vector2D target_rel = M_target_point - inertia_pos;
 
+#ifdef DEBUG_PRINT
     agent->debugClient().addMessage("bidash2???");
     dlog.addText( Logger::ACTION,
                   __FILE__": (doBiDash) start bidash target=(%.2f %.2f)",
                   M_target_point.x, M_target_point.y);
+#endif
 
     const double target_dist = target_rel.r();
     const double max_turn = wm.self().playerType().effectiveTurn( SP.maxMoment(),
                                                                   wm.self().vel().r() );
 
     AngleDeg turn_moment = target_rel.th() - wm.self().body();
+#ifdef DEBUG_PRINT
     dlog.addText( Logger::ACTION,
                   __FILE__": (doBiDash) inertia_pos=(%.1f %.1f ) target_rel=(%.1f %.1f) dist=%.3f turn_moment=%.1f",
                   inertia_pos.x, inertia_pos.y,
                   target_rel.x, target_rel.y,
                   target_dist,
                   turn_moment.degree() );
+#endif
 
     auto best_candidate = getBestBidCandidate(agent, 0, 100, 0, 100, 10);
     if (!best_candidate.is_valid){
@@ -999,10 +1007,11 @@ Body_GoToPoint::doBiDash(rcsc::PlayerAgent *agent) {
         return false;
     }
 
+#ifdef DEBUG_PRINT
     dlog.addText(Logger::ACTION,
                  __FILE__": (doBiDash) best_left_power=%.3f best_right_power=%.3f best_new_pos=(%.2f %.2f) best_new_body=%.3f dist_to_target=%.3f body_diff_angle=%.3f",
                     best_candidate.left_power, best_candidate.right_power, best_candidate.pos.x, best_candidate.pos.y, best_candidate.body.degree(), best_candidate.dist_to_target, best_candidate.body_diff_angle);
-
+#endif
     return agent->doDash(best_candidate.left_power, 0, best_candidate.right_power, 0);
     return false;
 }
