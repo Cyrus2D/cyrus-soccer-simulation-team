@@ -966,7 +966,14 @@ Body_GoToPoint::doBiDash(rcsc::PlayerAgent *agent) {
                   target_dist,
                   turn_moment.degree() );
 
-    auto best_candidate = getBestBidCandidate(agent, 0, 100, 0, 100, 10);
+    auto best_candidate_l1 = getBestBidCandidate(agent, 0, 100, 0, 100, 10);
+
+    double min_left_power = std::max(0.0, best_candidate_l1.left_power - 10);
+    double max_left_power = std::min(100.0, best_candidate_l1.left_power + 10);
+    double min_right_power = std::max(0.0, best_candidate_l1.right_power - 10);
+    double max_right_power = std::min(100.0, best_candidate_l1.right_power + 10);
+
+    auto best_candidate = getBestBidCandidate(agent, min_left_power, max_left_power, min_right_power, max_right_power, 1);
 
     dlog.addText(Logger::ACTION,
                  __FILE__": (doBiDash) best_left_power=%.3f best_right_power=%.3f best_new_pos=(%.2f %.2f) best_new_body=%.3f dist_to_target=%.3f body_diff_angle=%.3f",
