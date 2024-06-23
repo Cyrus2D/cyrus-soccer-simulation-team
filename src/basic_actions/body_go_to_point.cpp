@@ -885,29 +885,6 @@ Body_GoToPoint::doDash( PlayerAgent * agent )
     return agent->doDash( dash_power );
 }
 
-class Candidate{
-public:
-    Vector2D pos;
-    AngleDeg body;
-    double left_power;
-    double right_power;
-    double dist_to_target;
-    double body_diff_angle;
-
-    Candidate(Vector2D target, Vector2D pos, AngleDeg body, double left_power, double right_power){
-        this->pos = pos;
-        this->body = body;
-        this->left_power = left_power;
-        this->right_power = right_power;
-        this->dist_to_target = (pos - target).r();
-        Vector2D target_rel = target - pos;
-
-        this->body_diff_angle = (body - target_rel.th()).abs();
-        if (this->body_diff_angle > 180){
-            this->body_diff_angle = 360 - this->body_diff_angle;
-        }
-    }
-};
 #include <vector>
 bool
 Body_GoToPoint::doBiDash(rcsc::PlayerAgent *agent) {
