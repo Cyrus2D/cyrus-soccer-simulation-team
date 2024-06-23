@@ -97,70 +97,78 @@ public:
       \param omni_dash_dist_thr additional distance threshold
       \param use_back_dash flag variable
     */
-    Body_GoToPoint( const rcsc::Vector2D & point,
-                    const double dist_thr,
-                    const double max_dash_power,
-                    const double dash_speed = -1.0,
-                    const int cycle = 100,
-                    const bool save_recovery = true,
-                    const double dir_thr = 15.0,
-                    const double omni_dash_dist_thr = 1.0,
-                    const bool use_back_dash = true )
-        : M_target_point( point ),
-          M_dist_thr( dist_thr ),
-          M_max_dash_power( std::fabs( max_dash_power ) ),
-          M_dash_speed( dash_speed ),
-          M_cycle( cycle ),
-          M_save_recovery( save_recovery ),
-          M_dir_thr( dir_thr ),
-          M_omni_dash_dist_thr( omni_dash_dist_thr ),
-          M_use_back_dash( use_back_dash ),
-          M_back_mode( false )
-      { }
+    Body_GoToPoint(const rcsc::Vector2D &point,
+                   const double dist_thr,
+                   const double max_dash_power,
+                   const double dash_speed = -1.0,
+                   const int cycle = 100,
+                   const bool save_recovery = true,
+                   const double dir_thr = 15.0,
+                   const double omni_dash_dist_thr = 1.0,
+                   const bool use_back_dash = true)
+            : M_target_point(point),
+              M_dist_thr(dist_thr),
+              M_max_dash_power(std::fabs(max_dash_power)),
+              M_dash_speed(dash_speed),
+              M_cycle(cycle),
+              M_save_recovery(save_recovery),
+              M_dir_thr(dir_thr),
+              M_omni_dash_dist_thr(omni_dash_dist_thr),
+              M_use_back_dash(use_back_dash),
+              M_back_mode(false) {}
 
     /*!
       \brief execute action
       \param agent pointer to the agent itself
       \return true if action is performed
     */
-    bool execute( rcsc::PlayerAgent * agent );
-    bool doBiTurn( rcsc::PlayerAgent * agent );
+    bool execute(rcsc::PlayerAgent *agent);
+
+    bool doBiTurn(rcsc::PlayerAgent *agent);
+
 private:
 
     /*!
       \brief if necessary, change target point to avoid goal post
       \param agent pointer to the agent instance
      */
-    void checkGoalPost( const rcsc::PlayerAgent * agent );
+    void checkGoalPost(const rcsc::PlayerAgent *agent);
 
     /*!
       \brief if possible, try omnidir dash for adjustment.
       \param agent pointer to the agent
       \return true if action is performed, otherwise false
     */
-    bool doOmniDash( rcsc::PlayerAgent * agent );
+    bool doOmniDash(rcsc::PlayerAgent *agent);
 
     /*!
       \brief if necesarry, perform turn action and return true
       \param agent pointer to the agent instance
       \return true if turn is performed
     */
-    bool doTurn( rcsc::PlayerAgent * agent );
+    bool doTurn(rcsc::PlayerAgent *agent);
 
     /*!
       \brief if necesarry, perform dash action and return true
       \param agent pointer to the agent instance
       \return true if turn is performed
     */
-    bool doDash( rcsc::PlayerAgent * agent );
+    bool doDash(rcsc::PlayerAgent *agent);
 
 
-    bool doBiDash( rcsc::PlayerAgent * agent );
-    Candidate getBestBidCandidate( rcsc::PlayerAgent * agent,
-                                   double min_left_power, double max_left_power,
-                                   double min_right_power, double max_right_power,
-                                   double power_step) const;
-    std::pair<rcsc::Vector2D, rcsc::AngleDeg> calculateNextPoint( const rcsc::PlayerAgent * agent, const double left_power, const rcsc::AngleDeg left_dir, const double right_power, const rcsc::AngleDeg right_dir ) const;
+    bool doBiDash(rcsc::PlayerAgent *agent);
+
+    Candidate getBestBidCandidate(rcsc::PlayerAgent *agent,
+                                  double min_left_power, double max_left_power,
+                                  double min_right_power, double max_right_power,
+                                  double power_step) const;
+
+    std::pair<rcsc::Vector2D, rcsc::AngleDeg>
+    calculateNextPoint(const rcsc::PlayerAgent *agent, const double left_power, const rcsc::AngleDeg left_dir,
+                       const double right_power, const rcsc::AngleDeg right_dir) const;
+
+    std::pair<double, double>
+    calculateOptimalLegPower(const rcsc::PlayerAgent *agent, const rcsc::Vector2D &target_rel) const;
 };
 
 #endif

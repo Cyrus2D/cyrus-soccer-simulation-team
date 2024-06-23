@@ -984,26 +984,30 @@ Body_GoToPoint::doBiDash(rcsc::PlayerAgent *agent) {
                   target_dist,
                   turn_moment.degree() );
 
-    auto best_candidate_l1 = getBestBidCandidate(agent, 0, 100, 0, 100, 10);
-    if (!best_candidate_l1.is_valid){
-        return false;
-    }
+//    auto best_candidate_l1 = getBestBidCandidate(agent, 0, 100, 0, 100, 10);
+//    if (!best_candidate_l1.is_valid){
+//        return false;
+//    }
+//
+//    double min_left_power = std::max(0.0, best_candidate_l1.left_power - 5);
+//    double max_left_power = std::min(100.0, best_candidate_l1.left_power + 5);
+//    double min_right_power = std::max(0.0, best_candidate_l1.right_power - 5);
+//    double max_right_power = std::min(100.0, best_candidate_l1.right_power + 5);
+//
+//    auto best_candidate = getBestBidCandidate(agent, min_left_power, max_left_power, min_right_power, max_right_power, 1);
+//    if (!best_candidate.is_valid){
+//        return false;
+//    }
 
-    double min_left_power = std::max(0.0, best_candidate_l1.left_power - 5);
-    double max_left_power = std::min(100.0, best_candidate_l1.left_power + 5);
-    double min_right_power = std::max(0.0, best_candidate_l1.right_power - 5);
-    double max_right_power = std::min(100.0, best_candidate_l1.right_power + 5);
+    auto res = calculateOptimalLegPower(agent, target_rel);
+    double left_power = res.first;
+    double right_power = res.second;
 
-    auto best_candidate = getBestBidCandidate(agent, min_left_power, max_left_power, min_right_power, max_right_power, 1);
-    if (!best_candidate.is_valid){
-        return false;
-    }
+//    dlog.addText(Logger::ACTION,
+//                 __FILE__": (doBiDash) best_left_power=%.3f best_right_power=%.3f best_new_pos=(%.2f %.2f) best_new_body=%.3f dist_to_target=%.3f body_diff_angle=%.3f",
+//                    best_candidate.left_power, best_candidate.right_power, best_candidate.pos.x, best_candidate.pos.y, best_candidate.body.degree(), best_candidate.dist_to_target, best_candidate.body_diff_angle);
 
-    dlog.addText(Logger::ACTION,
-                 __FILE__": (doBiDash) best_left_power=%.3f best_right_power=%.3f best_new_pos=(%.2f %.2f) best_new_body=%.3f dist_to_target=%.3f body_diff_angle=%.3f",
-                    best_candidate.left_power, best_candidate.right_power, best_candidate.pos.x, best_candidate.pos.y, best_candidate.body.degree(), best_candidate.dist_to_target, best_candidate.body_diff_angle);
-
-    return agent->doDash(best_candidate.left_power, 0, best_candidate.right_power, 0);
+    return agent->doDash(left_power, 0, right_power, 0);
     return false;
 }
 
@@ -1137,4 +1141,40 @@ std::pair<rcsc::Vector2D, rcsc::AngleDeg> Body_GoToPoint::calculateNextPoint( co
     Vector2D next_pos = wm.self().pos() + new_vel;
 
     return std::make_pair(next_pos, next_body);
+}
+
+std::pair<double, double>  Body_GoToPoint::calculateOptimalLegPower(const rcsc::PlayerAgent * agent, const Vector2D & target_rel) const {
+    const WorldModel & wm = agent->world();
+    const double max_power = ServerParam::i().maxDashPower();
+    const double player_size = wm.self().playerType().playerSize();
+    const double dash_rate = wm.self().dashRate();
+
+    // Desired angle to turn
+    double desired_turn_angle = (target_rel.th() - wm.self().body()).degree();
+
+    // Normalize the angle to be within -180 to 180 degrees
+    while (desired_turn_angle > 180.0) desired_turn_angle -= 360.0;
+    while (desired_turn_angle < -180.0) desired_turn_angle += 360.0;
+
+    // Calculate the required angular velocity
+    double angular_velocity = desired_turn_angle / player_size;
+
+    // Calculate the linear velocity required to reach the target
+    double linear_velocity = target_rel.r();
+
+    // Convert angular velocity to required differential power
+    double differential_power = angular_velocity * player_size / dash_rate;
+
+    // Average power required for the forward movement
+    double average_power = linear_velocity / dash_rate;
+
+    // Calculate individual leg powers
+    double left_leg_power = average_power - differential_power / 2;
+    double right_leg_power = average_power + differential_power / 2;
+
+    // Normalize leg powers to ensure they are within valid range
+    left_leg_power = std::min(std::max(left_leg_power, -max_power), max_power);
+    right_leg_power = std::min(std::max(right_leg_power, -max_power), max_power);
+
+    return {left_leg_power, right_leg_power};
 }
