@@ -886,6 +886,48 @@ Body_GoToPoint::doDash( PlayerAgent * agent )
 }
 
 #include <vector>
+
+Candidate Body_GoToPoint::getBestBidCandidate( rcsc::PlayerAgent * agent,
+                               double min_left_power, double max_left_power,
+                               double min_right_power, double max_right_power,
+                               double power_step) const{
+    double left_power = min_left_power;
+
+    std::vector<Candidate> candidates;
+    while (left_power <= max_left_power){
+        double right_power = min_right_power;
+        while (right_power <= max_right_power){
+            auto result = calculateNextPoint(agent, left_power, 0, right_power, 0);
+            auto next_pos = result.first;
+            auto next_body = result.second;
+            auto candidate = Candidate(M_target_point, next_pos, next_body, left_power, right_power);
+
+            dlog.addText(Logger::ACTION, "--- left_power=%.3f right_power=%.3f new_pos=(%.2f %.2f) new_body=%.2f dist_to_target=%.3f body_diff_angle=%.3f",
+                         left_power, right_power, result.first.x, result.first.y, result.second.degree(), candidate.dist_to_target, candidate.body_diff_angle);
+            candidates.push_back(candidate);
+            right_power += power_step;
+        }
+        left_power += power_step;
+    }
+    double min_diff_angle = 1000;
+    for (auto candidate : candidates){
+        if (candidate.body_diff_angle < min_diff_angle){
+            min_diff_angle = candidate.body_diff_angle;
+        }
+    }
+    dlog.addText(Logger::ACTION, "--- min_diff_angle=%.3f", min_diff_angle);
+    double min_dist = 1000;
+    Candidate best_candidate = candidates[0];
+    for (auto candidate : candidates){
+        if (candidate.body_diff_angle < min_diff_angle + 10){
+            if (candidate.dist_to_target < min_dist){
+                min_dist = candidate.dist_to_target;
+                best_candidate = candidate;
+            }
+        }
+    }
+    return best_candidate;
+}
 bool
 Body_GoToPoint::doBiDash(rcsc::PlayerAgent *agent) {
 
@@ -924,42 +966,7 @@ Body_GoToPoint::doBiDash(rcsc::PlayerAgent *agent) {
                   target_dist,
                   turn_moment.degree() );
 
-    double left_power = 0.0;
-    double right_power = 0.0;
-
-    std::vector<Candidate> candidates;
-    while (left_power <= 100){
-        right_power = 0.0;
-        while (right_power <= 100){
-            auto result = calculateNextPoint(agent, left_power, 0, right_power, 0);
-            auto next_pos = result.first;
-            auto next_body = result.second;
-            auto candidate = Candidate(M_target_point, next_pos, next_body, left_power, right_power);
-
-            dlog.addText(Logger::ACTION, "--- left_power=%.3f right_power=%.3f new_pos=(%.2f %.2f) new_body=%.2f dist_to_target=%.3f body_diff_angle=%.3f",
-                         left_power, right_power, result.first.x, result.first.y, result.second.degree(), candidate.dist_to_target, candidate.body_diff_angle);
-            candidates.push_back(candidate);
-            right_power += 10;
-        }
-        left_power += 10;
-    }
-    double min_diff_angle = 1000;
-    for (auto candidate : candidates){
-        if (candidate.body_diff_angle < min_diff_angle){
-            min_diff_angle = candidate.body_diff_angle;
-        }
-    }
-    dlog.addText(Logger::ACTION, "--- min_diff_angle=%.3f", min_diff_angle);
-    double min_dist = 1000;
-    Candidate best_candidate = candidates[0];
-    for (auto candidate : candidates){
-        if (candidate.body_diff_angle < min_diff_angle + 10){
-            if (candidate.dist_to_target < min_dist){
-                min_dist = candidate.dist_to_target;
-                best_candidate = candidate;
-            }
-        }
-    }
+    auto best_candidate = getBestBidCandidate(agent, 0, 100, 0, 100, 10);
 
     dlog.addText(Logger::ACTION,
                  __FILE__": (doBiDash) best_left_power=%.3f best_right_power=%.3f best_new_pos=(%.2f %.2f) best_new_body=%.3f dist_to_target=%.3f body_diff_angle=%.3f",

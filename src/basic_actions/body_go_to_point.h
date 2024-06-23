@@ -156,6 +156,10 @@ private:
 
     bool doBiTurn( rcsc::PlayerAgent * agent );
     bool doBiDash( rcsc::PlayerAgent * agent );
+    Candidate getBestBidCandidate( rcsc::PlayerAgent * agent,
+                                   double min_left_power, double max_left_power,
+                                   double min_right_power, double max_right_power,
+                                   double power_step) const;
     std::pair<rcsc::Vector2D, rcsc::AngleDeg> calculateNextPoint( const rcsc::PlayerAgent * agent, const double left_power, const rcsc::AngleDeg left_dir, const double right_power, const rcsc::AngleDeg right_dir ) const;
 };
 
