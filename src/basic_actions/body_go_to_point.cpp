@@ -789,10 +789,23 @@ Body_GoToPoint::doBiTurn( PlayerAgent * agent )
         return false;
     }
 
-    if (!M_back_mode && turn_moment.abs() < 90.0){
-        if (doBiDash(agent))
-            return true;
+    double vel_r = wm.self().vel().r();
+    if (vel_r < 0.1){
+        return false;
     }
+
+    Vector2D vel = wm.self().vel();
+    vel.rotate(-target_rel.th());
+    if (vel.x < 0.1){
+        return false;
+    }
+
+    if (M_back_mode || turn_moment.abs() > 90.0){
+        return false;
+    }
+
+    if (doBiDash(agent))
+        return true;
 
     return false;
 }
@@ -935,19 +948,8 @@ Body_GoToPoint::doBiDash(rcsc::PlayerAgent *agent) {
     const ServerParam & SP = ServerParam::i();
     const WorldModel & wm = agent->world();
 
-    double vel_r = wm.self().vel().r();
-    if (vel_r < 0.1){
-        return false;
-    }
-
     const Vector2D inertia_pos = wm.self().inertiaPoint( M_cycle );
     Vector2D target_rel = M_target_point - inertia_pos;
-
-    Vector2D vel = wm.self().vel();
-    vel.rotate(-target_rel.th());
-    if (vel.x < 0.1){
-        return false;
-    }
 
     agent->debugClient().addMessage("bidash2???");
     dlog.addText( Logger::ACTION,
