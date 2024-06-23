@@ -989,16 +989,16 @@ Body_GoToPoint::doBiDash(rcsc::PlayerAgent *agent) {
         return false;
     }
 
-    double min_left_power = std::max(0.0, best_candidate_l1.left_power - 10);
-    double max_left_power = std::min(100.0, best_candidate_l1.left_power + 10);
-    double min_right_power = std::max(0.0, best_candidate_l1.right_power - 10);
-    double max_right_power = std::min(100.0, best_candidate_l1.right_power + 10);
+    double min_left_power = std::max(0.0, best_candidate_l1.left_power - 5);
+    double max_left_power = std::min(100.0, best_candidate_l1.left_power + 5);
+    double min_right_power = std::max(0.0, best_candidate_l1.right_power - 5);
+    double max_right_power = std::min(100.0, best_candidate_l1.right_power + 5);
 
     auto best_candidate = getBestBidCandidate(agent, min_left_power, max_left_power, min_right_power, max_right_power, 1);
     if (!best_candidate.is_valid){
         return false;
     }
-    
+
     dlog.addText(Logger::ACTION,
                  __FILE__": (doBiDash) best_left_power=%.3f best_right_power=%.3f best_new_pos=(%.2f %.2f) best_new_body=%.3f dist_to_target=%.3f body_diff_angle=%.3f",
                     best_candidate.left_power, best_candidate.right_power, best_candidate.pos.x, best_candidate.pos.y, best_candidate.body.degree(), best_candidate.dist_to_target, best_candidate.body_diff_angle);
