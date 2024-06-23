@@ -124,7 +124,7 @@ public:
       \return true if action is performed
     */
     bool execute( rcsc::PlayerAgent * agent );
-
+    bool doBiTurn( rcsc::PlayerAgent * agent );
 private:
 
     /*!
@@ -154,7 +154,7 @@ private:
     */
     bool doDash( rcsc::PlayerAgent * agent );
 
-    bool doBiTurn( rcsc::PlayerAgent * agent );
+
     bool doBiDash( rcsc::PlayerAgent * agent );
     Candidate getBestBidCandidate( rcsc::PlayerAgent * agent,
                                    double min_left_power, double max_left_power,
