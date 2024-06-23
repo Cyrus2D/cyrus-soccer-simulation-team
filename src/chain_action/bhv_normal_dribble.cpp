@@ -64,7 +64,7 @@
 #include "../neck/next_pass_predictor.h"
 #include "../neck/neck_decision.h"
 #include "../lib/cyrus_say_message_builder.h"
-
+#include "basic_actions/body_go_to_point.h"
 //#define DEBUG_PRINT
 
 using namespace rcsc;
@@ -569,7 +569,14 @@ IntentionNormalDribble::doTurn( PlayerAgent * agent )
         //////////////////////// baraye advanse bayad fekri beshe, vaghti mitoone ta toop becharkhe khob becharkhe ke noise toop tasiresh kam beshe
         /// hamintor lazem nist be andaze target turn bezane
     }
+    if(M_desc.compare("shortBackDribble") != 0){
+        if (Body_GoToPoint(M_target_point, 0.0, 100).doBiTurn(agent)){
+            agent->debugClient().addMessage("biTurn$$$");
+            return true;
+        }
 
+    }
+    agent->debugClient().addMessage("Turn$$$");
     Body_TurnToAngle(target_angle).execute(agent);
 //    agent->doTurn( angle_diff );
 
