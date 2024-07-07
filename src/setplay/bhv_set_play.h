@@ -57,6 +57,8 @@ public:
 
 private:
     void doBasicTheirSetPlayMove( rcsc::PlayerAgent * agent );
+    rcsc::Vector2D FRA_set_play( rcsc::PlayerAgent * agent );
+
 
 };
 

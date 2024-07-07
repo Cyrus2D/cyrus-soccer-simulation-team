@@ -47,6 +47,7 @@
 #include "basic_actions/body_go_to_point.h"
 #include "basic_actions/neck_scan_field.h"
 #include "basic_actions/neck_turn_to_ball_or_scan.h"
+#include "bhv_mark_decision_greedy.h"
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/debug_client.h>
@@ -64,9 +65,8 @@
 #include <cstdio>
 
 // #define DEBUG_PRINT
-
 using namespace rcsc;
-
+using namespace std;
 /*-------------------------------------------------------------------*/
 /*!
 
@@ -140,7 +140,7 @@ Bhv_SetPlay::execute( PlayerAgent * agent )
         }
         break;
     case GameMode::GoalKick_:
-        if ( wm.gameMode().side() == wm.ourSide() )
+        if ( wm.gameMode().side() == wm.ourSide() ) 
         {
             return Bhv_SetPlayGoalKick().execute( agent );
         }
@@ -619,9 +619,34 @@ Bhv_SetPlay::is_delaying_tactics_situation( const PlayerAgent * agent )
 void
 Bhv_SetPlay::doBasicTheirSetPlayMove( PlayerAgent * agent )
 {
-    const WorldModel & wm = agent->world();
 
-    Vector2D target_point = Strategy::i().getPosition( wm.self().unum() );
+    const WorldModel & wm = agent->world();
+    
+    std::string name = wm.theirTeamName();
+
+    bool isFRA = false;
+
+    if( (name.find("F") != std::string::npos || name.find("f") != std::string::npos)
+            && (name.find("R") != std::string::npos || name.find("r") != std::string::npos)
+            && (name.find("A") != std::string::npos || name.find("a") != std::string::npos)
+            && (name.find("U") != std::string::npos || name.find("u") != std::string::npos)
+            && (name.find("N") != std::string::npos || name.find("n") != std::string::npos) ){
+        isFRA = true;
+    }
+    Vector2D new_taget_point;
+    if (isFRA)
+    {
+        new_taget_point = FRA_set_play(agent);
+        if (new_taget_point != Vector2D(-100,-100))
+        {
+            dlog.addCircle(Logger::ROLE,new_taget_point,0.5 , 255,0,255,true);
+            new_taget_point = get_avoid_circle_point(wm,new_taget_point);
+            dlog.addCircle(Logger::ROLE,new_taget_point,0.5 , 0,255,255,true);
+        }
+    }
+
+    Vector2D target_point = Strategy::i().getPosition( wm.self().unum() ) ;
+
 
     dlog.addText( Logger::TEAM,
                   __FILE__": their set play. HomePosition=(%.2f, %.2f)",
@@ -710,6 +735,12 @@ Bhv_SetPlay::doBasicTheirSetPlayMove( PlayerAgent * agent )
     //agent->debugClient().addMessage( "GoTo" );
     agent->debugClient().setTarget( target_point );
     agent->debugClient().addCircle( target_point, dist_thr );
+    dlog.addCircle(Logger::ROLE,adjusted_point,0.5 , 0,0,255,true);
+
+    if (adjusted_point.dist(new_taget_point) < 6 && new_taget_point != Vector2D(-100,-100))
+    {
+        adjusted_point = new_taget_point;
+    }
 
     if ( ! Body_GoToPoint( adjusted_point,
                            dist_thr,
@@ -725,4 +756,141 @@ Bhv_SetPlay::doBasicTheirSetPlayMove( PlayerAgent * agent )
     }
 
     agent->setNeckAction( new Neck_TurnToBall() );
+}
+
+Vector2D Bhv_SetPlay::FRA_set_play( PlayerAgent * agent )
+{
+    const WorldModel & wm = agent->world();
+    
+    //=========================my find who am i near to======================
+
+    std::vector <pair<int,int>> mark_tm_unum;
+    std::vector <pair<float,int>> mark_opp_unum;
+    const AbstractPlayerObject *ball_haver = wm.interceptTable().firstOpponent();
+    //cout<<"hello"<<endl;
+    if (ball_haver != NULL && ball_haver->unum() > 0 )
+    {
+        //cout<<"hello2"<<endl;
+        for(int i = 1 ; i < 12 ; i ++)
+        {
+            const AbstractPlayerObject *opp = wm.theirPlayer(i);
+            if (i != ball_haver->unum() && opp != NULL && opp->unum() > 0)
+            {
+                pair <float,int> tmp;
+                tmp.first = opp->pos().dist(ball_haver->pos());
+                tmp.second = i;
+                mark_opp_unum.push_back(tmp);
+            }
+        }
+        sort(mark_opp_unum.begin() , mark_opp_unum.end());
+        int max_for = 3;
+        if (max_for > mark_opp_unum.size())
+        {
+            max_for = mark_opp_unum.size();
+        }
+        //cout<<"hello3"<<endl;
+        for (int i = 0 ; i < max_for ; i++)
+        {
+            int opp_unum = mark_opp_unum[i].second;
+            dlog.addText(Logger::ROLE,"i[%d] = %d",i,opp_unum);
+            const AbstractPlayerObject *opp = wm.theirPlayer(opp_unum);
+            if (opp_unum != ball_haver->unum() && opp != NULL && opp->unum() > 0)
+            {
+                float min_dist = 999;
+                int close_unum = -1;
+                for(int j = 1 ; j < 12 ; j ++)
+                {
+                    bool check = false;
+                    for (auto z : mark_tm_unum)
+                    {
+                        if (z.first == j)
+                        {
+                            check = true;
+                            break;
+                        }
+
+                    }
+
+                    if (check)
+                    {
+                        continue;
+                    }
+
+                    const AbstractPlayerObject *tm = wm.ourPlayer(j);
+
+                    if (tm != NULL && tm->unum() > 0)
+                    {
+                        if (!tm->goalie())
+                        {
+                            if (min_dist > tm->pos().dist(opp->pos()))
+                            {
+                                min_dist = tm->pos().dist(opp->pos());
+                                close_unum = j;
+                            }
+                        }
+                    }
+                }
+                if(close_unum != -1)
+                {
+                    pair <float,int> tmp;
+                    tmp.first = close_unum;
+                    tmp.second = opp_unum;
+                    dlog.addText(Logger::ROLE,"%d should get %d",close_unum,opp_unum);
+                    mark_tm_unum.push_back(tmp);
+                }
+            }
+        }
+    }
+    int mark_unum = -1;
+    for (int i = 0 ; i < mark_tm_unum.size() ; i++)
+    {
+        if (mark_tm_unum[i].first == wm.self().unum())
+        {
+            mark_unum = mark_tm_unum[i].second;
+        }
+    }
+    const AbstractPlayerObject * mark_opp = wm.theirPlayer(mark_unum);
+    Vector2D new_target_point;
+    if (mark_opp == NULL || mark_opp->unum() < 1)
+    {
+        mark_unum = -1;
+    }
+    else 
+    {
+        if (wm.self().unum() > 5)
+        {
+            new_target_point = mark_opp->pos() + Vector2D::polar2vector(0.6, (wm.ball().pos() - mark_opp->pos()).dir());
+        }
+        else 
+        {
+            new_target_point = mark_opp->pos() + Vector2D::polar2vector(0.6, (-wm.ball().pos() + mark_opp->pos()).dir());
+        }
+    }
+    
+    if (mark_unum == -1)
+    {
+        return Vector2D(-100,-100);
+    }
+    dlog.addCircle(Logger::ROLE , new_target_point , 0.5 , 255 , 0 , 0 , true);
+    const ServerParam & SP = ServerParam::i();
+
+    const double avoid_radius
+                = SP.centerCircleR()
+                + wm.self().playerType().playerSize();
+        const Circle2D ball_circle( wm.ball().pos(), avoid_radius );
+
+    dlog.addCircle(Logger::ROLE , ball_circle,255,0,0,false);
+    if ( can_go_to( -1, wm, ball_circle, new_target_point ) )
+    {
+        dlog.addText( Logger::TEAM,
+                    __FILE__": (get_avoid_circle_point) ok, first point" );
+        return new_target_point;
+    }
+    else 
+    {
+        new_target_point = new_target_point + Vector2D::polar2vector(avoid_radius - new_target_point.dist(wm.ball().pos()) + 0.1 , (new_target_point - wm.ball().pos()).dir());
+    }
+    dlog.addCircle(Logger::ROLE , new_target_point , 1 , 255 , 100 , 0 , true);
+
+    return new_target_point;
 }
