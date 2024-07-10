@@ -304,6 +304,11 @@ SamplePlayer::actionImpl()
     //
     // update strategy and analyzer
     //
+
+    if (TargetActionTable::instance()->M_initialized == false){
+        TargetActionTable::instance()->initial(world());
+    }
+
     Strategy::instance().update( world() );
     FieldAnalyzer::instance().update( world() );
     if(FieldAnalyzer::isOxsy(world()))
