@@ -1,3 +1,9 @@
+  # Include directories for ONNX Runtime
+  include_directories(${ONNXRUNTIME_INCLUDE_DIR})
+
+  # Link directories for ONNX Runtime
+  link_directories(${ONNXRUNTIME_LIB_DIR})
+  
 # player
 add_executable(sample_player
 basic_actions/basic_actions.cpp
@@ -50,6 +56,8 @@ setplay/bhv_custom_before_kick_off.cpp
 setplay/bhv_set_play_kick_in.cpp
 setplay/bhv_prepare_set_play_kick.cpp
 setplay/intention_wait_after_set_play_kick.cpp
+setplay/rl_penalty/bhv_rl_kick.cpp
+setplay/rl_penalty/ONNX_model.cpp
 intention_receive.cpp
 roles/soccer_role.cpp
 roles/role_goalie.cpp
@@ -141,6 +149,7 @@ target_include_directories(sample_player
   ${PROJECT_SOURCE_DIR}/src/move_off
   ${PROJECT_SOURCE_DIR}/src/roles
   ${PROJECT_SOURCE_DIR}/src/setplay
+  ${PROJECT_SOURCE_DIR}/src/setplay/rl_penalty
   ${PROJECT_SOURCE_DIR}/src/denoising
   ${PROJECT_BINARY_DIR}
   PUBLIC
@@ -153,6 +162,7 @@ target_link_libraries(sample_player
   ${LIBRCSC_LIB}
   Boost::system
   ZLIB::ZLIB
+  onnxruntime  # Link ONNX Runtime
   )
 
 set_target_properties(sample_player

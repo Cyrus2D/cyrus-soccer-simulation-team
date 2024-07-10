@@ -38,6 +38,7 @@
 #include "chain_action/body_force_shoot.h"
 #include "chain_action/bhv_strict_check_shoot.h"
 #include "chain_action/bhv_chain_action.h"
+#include "rl_penalty/bhv_rl_kick.h"
 
 #include "basic_actions/body_clear_ball.h"
 #include "basic_actions/body_dribble2008.h"
@@ -416,7 +417,7 @@ Bhv_PenaltyKick::doKicker( PlayerAgent * agent )
     // server allows multiple kicks
     //
 
-
+    return BhvRlKick().execute(agent);
     rcsc::Vector2D me = wm.self().pos();
     rcsc::Vector2D ball=wm.ball().pos();
     rcsc::Vector2D Next_ball=ball+wm.ball().vel();

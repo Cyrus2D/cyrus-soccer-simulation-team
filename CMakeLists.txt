@@ -15,6 +15,22 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 set(CMAKE_CXX_FLAGS "-W -Wall")
 
+# set onnx
+set(ONNXRUNTIME_ROOT "$ENV{HOME}/local/onnxruntime-linux-x64-1.18.1")
+# Include directories
+include_directories(${ONNXRUNTIME_ROOT}/include)
+message("ONNXRUNTIME_ROOT: ${ONNXRUNTIME_ROOT}")
+message("Include directories: ${ONNXRUNTIME_ROOT}/include")
+# Link directoriesONNXRUNTIME_ROOT
+link_directories(${ONNXRUNTIME_ROOT}/lib)
+message("Link directories: ${ONNXRUNTIME_ROOT}/lib")
+
+# Pass ONNX variables to the src directory
+set(ONNXRUNTIME_INCLUDE_DIR ${ONNXRUNTIME_ROOT}/include)
+set(ONNXRUNTIME_LIB_DIR ${ONNXRUNTIME_ROOT}/lib)
+
+
+
 # check librcsc
 if(NOT DEFINED TEAM_DIR_LIB)
 	set(TEAM_DIR_LIB "")
