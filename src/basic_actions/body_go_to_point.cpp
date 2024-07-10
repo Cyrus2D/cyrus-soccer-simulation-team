@@ -383,7 +383,7 @@ TargetActionTable::initial(const WorldModel& wm, bool gen) {
             dash_rate_stream << std::fixed << std::setprecision(4) << dash_rate;
             std::string dash_rate_str = dash_rate_stream.str();
 
-            std::string filename = "PT_data/PT_" + player_decay_str + "_" + dash_rate_str + ".csv";
+            std::string filename = "/data1/aref/2d/cyrus/build/src/PT_data/PT_" + player_decay_str + "_" + dash_rate_str + ".csv";
             std::cout << " Reading File: " << filename;
             std::cout << " With PlayerDecay: " << player_decay << " DashRate: " << dash_rate << std::endl;
             std::ifstream file;
