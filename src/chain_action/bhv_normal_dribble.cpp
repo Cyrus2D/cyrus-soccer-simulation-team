@@ -570,17 +570,14 @@ IntentionNormalDribble::doTurn( PlayerAgent * agent )
         /// hamintor lazem nist be andaze target turn bezane
     }
     if(M_desc.compare("shortBackDribble") != 0){
-        if (Body_GoToPoint(M_target_point, 0.0, 100).doBiTurn(agent)){
+        if (Body_GoToPoint(M_target_point, 0.0, 100).execute(agent)){
             agent->debugClient().addMessage("biTurn$$$");
             return true;
         }
 
     }
     agent->debugClient().addMessage("Turn$$$");
-    Body_TurnToAngle(target_angle).execute(agent);
-//    agent->doTurn( angle_diff );
-
-    return true;
+    return Body_GoToPoint(M_target_point, 0.0, 100).execute(agent);
 }
 
 /*-------------------------------------------------------------------*/
