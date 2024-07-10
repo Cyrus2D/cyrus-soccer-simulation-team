@@ -361,6 +361,7 @@ TargetActionTable::initial(const WorldModel& wm, bool gen) {
         M_initialized = true;
     } 
     else {
+        auto start = std::chrono::high_resolution_clock::now();
         std::cout << "My UNUM: " << wm.self().unum() << std::endl;
         std::cout << "PT data is being loaded" << std::endl;
         const ServerParam & SP = ServerParam::i();
@@ -402,6 +403,10 @@ TargetActionTable::initial(const WorldModel& wm, bool gen) {
         }
         std::cout << "PT data loaded" << std::endl;
         M_initialized = true;
+
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> elapsed = end - start;
+        std::cout << "Time taken to load PT data: " << elapsed.count() << " ms" << std::endl;
     }
 }
 
