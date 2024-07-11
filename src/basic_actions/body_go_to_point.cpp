@@ -199,17 +199,17 @@ Body_GoToPoint::a_star( PlayerAgent * agent )
     const TargetActionTable * table = TargetActionTable::instance();
     AStarAction action = table->get_action(M_target_point, agent->world().self().pos(),agent->world().self().body(), agent->world().self().playerType().id());
 
-    if (std::fabs(action.power_l - action.power_r) > THR) {
-        return agent->doDash(action.power_l, action.dir_l, action.power_r, action.dir_r);
+    if (std::fabs(action.power_l - action.power_r) < THR) {
+        return false;
     }
 
-    double max_power = std::max(std::fabs(action.power_l), std::fabs(action.power_r));
+    double max_power = ServerParam::i().maxDashPower();
     action.power_l = action.power_l / max_power * M_max_dash_power;
     action.power_r = action.power_r / max_power * M_max_dash_power;
 
     if ( M_save_recovery )
     {
-        max_power = std::max( std::fabs( action.power_l ), std::fabs( action.power_r ) );
+        max_power =ServerParam::i().maxDashPower();
         double save_power = agent->world().self().getSafetyDashPower( max_power );
         action.power_l = action.power_l / max_power * save_power;
         action.power_r = action.power_r / max_power * save_power;
