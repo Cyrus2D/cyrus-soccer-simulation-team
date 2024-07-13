@@ -49,6 +49,7 @@
 #include <rcsc/timer.h>
 #include "../strategy.h"
 #include <rcsc/player/player_agent.h>
+#include <rcsc/player/bipedal_table.h>
 
 #include <algorithm>
 #include <limits>
@@ -58,6 +59,8 @@
 #include "../setting.h"
 
 // #define CREATE_SEVERAL_CANDIDATES_ON_SAME_POINT
+
+#define DB(X) std::cout << #X << " = " << X << std::endl
 
 using namespace rcsc;
 
@@ -491,6 +494,7 @@ void StrictCheckPassGenerator::createCourses(const WorldModel & wm) {
          ++p) {
         createDirectPass(wm, *p);
     }
+    DB(wm.time().cycle());
     M_pass_type = 'L';
     M_pass_logger = Logger::L_PASS;
     M_pass_logger = Logger::PASS;
@@ -725,12 +729,14 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
     static const double ANGLE_STEP = 360.0 / ANGLE_DIVS;
     double DIST_DIVS = 7;
     static const double DIST_STEP = 1.1;
+    const double MAX_DIST = DIST_DIVS * DIST_STEP;
     if(receiver.player_!= nullptr && receiver.player_->unum() > 0){
      if(receiver.player_->seenStaminaCount() < 15 && receiver.player_->seenStamina() < 3500)
          DIST_DIVS = 1;
     }
     const ServerParam & SP = ServerParam::i();
     const PlayerType * ptype = receiver.player_->playerTypePtr();
+    const TargetActionTable *BT = TargetActionTable::instance();
 
     const double max_ball_speed = (
                 wm.gameMode().type() == GameMode::PlayOn ? SP.ballSpeedMax() :
@@ -746,32 +752,25 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
     const double min_receive_ball_speed = 0.001;
 
     const Vector2D our_goal = SP.ourTeamGoalPos();
+    
+    for (int a = 0; a < ANGLE_DIVS; a += ANGLE_STEP) {
+        const AngleDeg angle = receiver.angle_from_ball_ + ANGLE_STEP * a;
+        DB(angle);
+        const Vector2D receive_final_point = receiver.inertia_pos_
+                + Vector2D::from_polar(MAX_DIST, angle);
+        DB(receive_final_point);
+        const std::vector<Vector2D> trajectory = BT->get_trajectory(receive_final_point,
+                                                                    receiver.inertia_pos_, 
+                                                                    receiver.player_->body().degree(), 
+                                                                    receiver.player_->playerTypePtr()->id());
+        
+        for (int i = 0; i < trajectory.size(); i++) {
+            const Vector2D& receive_point = trajectory[i];
+            const double receive_dist = receive_point.dist(receiver.inertia_pos_);
+            if (receive_dist < 1.5 || receive_dist > MAX_DIST)
+                continue;
 
-    //
-    // distance loop
-    //
-    for (int d = 1; d <= DIST_DIVS; ++d) {
-        if ( !SamplePlayer::canProcessMore() )
-             return;
-        double player_move_dist = DIST_STEP * d;
-        int a_step = (
-                    player_move_dist * 2.0 * M_PI / ANGLE_DIVS < 0.6 ? 2 : 1);
-
-        if(d > 4){
-            player_move_dist = DIST_STEP * d * 2.0;
-            a_step = 4;
-        }
-        // const int move_dist_penalty_step
-        //     = static_cast< int >( std::floor( player_move_dist * 0.3 ) );
-
-        //
-        // angle loop
-        //
-        for (int a = 0; a < ANGLE_DIVS; a += a_step) {
-            const AngleDeg angle = receiver.angle_from_ball_ + ANGLE_STEP * a;
-            const Vector2D receive_point = receiver.inertia_pos_
-                    + Vector2D::from_polar(player_move_dist, angle);
-
+            DB(receive_point);
             int move_dist_penalty_step = 0;
             {
                 Line2D ball_move_line(M_first_point, receive_point);
@@ -892,8 +891,7 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
             bool used_penalty = true;
             if(!wm.self().isKickable())
                 used_penalty = false;
-            const int receiver_step = predictReceiverReachStep(receiver,
-                                                               receive_point, used_penalty) + (used_penalty?move_dist_penalty_step:0);
+            const int receiver_step = i + 2; // TODO penalty
             const AngleDeg ball_move_angle =
                     (receive_point - M_first_point).th();
 
@@ -918,7 +916,7 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
                           start_step, max_step, receiver_step, move_dist_penalty_step );
             #endif
             bool high_dist = false;
-            if(d>6)
+            if (receive_point.dist(receiver.pos_) > 6)
                 high_dist = true;
             createPassCommon(wm, receiver, receive_point, start_step, max_step,
                              min_ball_speed, max_ball_speed, min_receive_ball_speed,
