@@ -891,7 +891,7 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
             bool used_penalty = true;
             if(!wm.self().isKickable())
                 used_penalty = false;
-            const int receiver_step = i + 2; // TODO penalty
+            const int receiver_step = i+1; // TODO penalty
             const AngleDeg ball_move_angle =
                     (receive_point - M_first_point).th();
 
