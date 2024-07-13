@@ -765,7 +765,7 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
                                                                     receiver.player_->playerTypePtr()->id());
         
         for (int i = 0; i < trajectory.size(); i++) {
-            const Vector2D& receive_point = trajectory[i];
+            const Vector2D& receive_point = trajectory[i] + receiver.inertia_pos_;
             const double receive_dist = receive_point.dist(receiver.inertia_pos_);
             if (receive_dist < 1.5 || receive_dist > MAX_DIST)
                 continue;
