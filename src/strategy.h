@@ -245,6 +245,7 @@ public:
 
 	SoccerRole::Ptr createRole( int unum, const rcsc::WorldModel & wm );
 	rcsc::Vector2D getPosition( int unum ) const;
+    rcsc::Vector2D getPreSetPlayPosition( const rcsc::WorldModel & wm ) const;
     rcsc::Vector2D getPositionWithBall( int unum, rcsc::Vector2D ball, const rcsc::WorldModel & wm );
     static std::vector<const rcsc::AbstractPlayerObject*> getTeammatesInPostLine(const rcsc::WorldModel &wm, PostLine tm_line);
 	bool isDefenseSituation(const rcsc::WorldModel &wm, int unum) const;
