@@ -47,7 +47,7 @@
 //h PassRequestMessageParser
 //i InterceptMessageParser
 //j
-//k
+//k StartSetPlayKickMessageParser
 //l
 //m ThreePlayerMessageParser122
 //n ThreePlayerMessageParser222
@@ -1047,6 +1047,59 @@ namespace rcsc {
         */
         static
         int slength() { return 10; }
+
+        /*!
+          \brief virtual method which analyzes audio messages.
+          \param sender sender's uniform number
+          \param dir sender's direction
+          \param msg raw audio message
+          \param current current game time
+          \retval bytes read if success
+          \retval 0 message ID is not match. other parser should be tried.
+          \retval -1 failed to parse
+        */
+        int parse( const int sender,
+                   const double & dir,
+                   const char * msg,
+                   const GameTime & current );
+
+    };
+
+    class StartSetPlayKickMessageParser
+            : public SayMessageParser {
+    private:
+
+        //! pointer to the audio memory
+        std::shared_ptr< AudioMemory > M_memory;
+
+    public:
+
+        /*!
+          \brief construct with audio memory
+          \param memory pointer to the memory
+         */
+        explicit
+        StartSetPlayKickMessageParser( std::shared_ptr< AudioMemory > memory );
+
+        /*!
+          \brief get the header character.
+          \return header character.
+         */
+        static
+        char sheader() { return 'k'; }
+
+        /*!
+          \brief get the header character.
+          \return header character.
+         */
+        char header() const { return sheader(); }
+
+        /*!
+          \brief get the length of this message.
+          \return the length of encoded message
+        */
+        static
+        int slength() { return 1; }
 
         /*!
           \brief virtual method which analyzes audio messages.
