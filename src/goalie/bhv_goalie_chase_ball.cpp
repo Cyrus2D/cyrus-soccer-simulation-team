@@ -317,7 +317,8 @@ Bhv_GoalieChaseBall::doGoToCatchPoint( PlayerAgent * agent,
                       __FILE__": turn %.1f for forward dash",
                       rel_angle.degree() );
         agent->debugClient().addMessage( "GoToCatch:F-Turn" );
-        agent->doTurn( rel_angle );
+        if (!Body_GoToPoint(target_point, 0.1, 100).doBiTurn(agent))
+            agent->doTurn( rel_angle );
     }
     else
     {

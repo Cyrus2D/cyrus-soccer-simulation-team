@@ -523,7 +523,8 @@ Bhv_ChainAction::doTurnToForward( PlayerAgent * agent )
 	if(dif_next > 180)dif_next = 360 - dif_next;
 	if ( self_next.dist2( ball_next ) < kickable2 && self_next.dist2( ball_next ) < self_pos.dist2(ball_pos) + 0.2 && dif_next < dif + 10.0)
 	{
-		Body_TurnToPoint( face_point ).execute( agent );
+        if (!Body_GoToPoint(face_point, 1.0, ServerParam::i().maxDashPower()).doBiTurn(agent))
+		    Body_TurnToPoint( face_point ).execute( agent );
 		agent->setNeckAction( new Neck_ScanField() );
 		return true;
 	}
