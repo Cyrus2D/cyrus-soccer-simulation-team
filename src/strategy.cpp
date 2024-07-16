@@ -793,7 +793,9 @@ Strategy::getPosition( const int unum ) const
 
  */
 
-Vector2D Strategy::getPreSetPlayPosition(const rcsc::WorldModel &wm) const {
+Vector2D Strategy::getPreSetPlayPosition(const rcsc::WorldModel &wm , double cycle_dist) const 
+{
+
     int unum = wm.self().unum();
     auto home_pos = getPosition(unum);
     auto ball_pos = wm.ball().pos();
@@ -829,14 +831,14 @@ Vector2D Strategy::getPreSetPlayPosition(const rcsc::WorldModel &wm) const {
     auto game_mode = wm.gameMode().type();
     if (game_mode == rcsc::GameMode::CornerKick_ || game_mode == rcsc::GameMode::KickIn_)
     {
-        new_home_pos = home_pos + Vector2D(-5, 0);
+        new_home_pos = home_pos + Vector2D(-cycle_dist, 0);
     }
     else
     {
         if (home_pos.dist(ball_pos) < 15)
         {
             auto ball_to_home_dir = (home_pos - ball_pos).th();
-            new_home_pos = home_pos + Vector2D::polar2vector(5, ball_to_home_dir);
+            new_home_pos = home_pos + Vector2D::polar2vector(cycle_dist, ball_to_home_dir);
 
             dlog.addText(Logger::TEAM, "Ball Close to home: %.1f, %.1f", new_home_pos.x, new_home_pos.y);
         }
@@ -856,10 +858,11 @@ Vector2D Strategy::getPreSetPlayPosition(const rcsc::WorldModel &wm) const {
                     angle = -135.0;
                 }
             }
-            new_home_pos = home_pos + Vector2D::polar2vector(5, angle);
+            new_home_pos = home_pos + Vector2D::polar2vector(cycle_dist, angle);
             dlog.addText(Logger::TEAM, "Ball Far from home: %.1f, %.1f, angle: %.1f", new_home_pos.x, new_home_pos.y, angle);
         }
     }
+    
     if (new_home_pos.x < -52.0)
         new_home_pos.x = -52.0;
     if (new_home_pos.x > 52.0)
@@ -868,6 +871,8 @@ Vector2D Strategy::getPreSetPlayPosition(const rcsc::WorldModel &wm) const {
         new_home_pos.y = -33.0;
     if (new_home_pos.y > 33.0)
         new_home_pos.y = 33.0;
+    if(new_home_pos.x > wm.offsideLineX())
+        new_home_pos.x = wm.offsideLineX() - 0.5;
     return new_home_pos;
 }
 
@@ -883,7 +888,7 @@ Strategy::getTeammatesInPostLine(const rcsc::WorldModel &wm, PostLine tm_line) {
 
         if (Strategy::i().tmLine(p->unum()) == tm_line)
             results.push_back(p);
-    }
+    } 
     return results;
 }
 

@@ -45,6 +45,8 @@
 #include "basic_actions/body_pass.h"
 #include "basic_actions/neck_scan_field.h"
 #include "basic_actions/neck_turn_to_ball_or_scan.h"
+#include <lib/cyrus_say_message_builder.h>
+#include <lib/cyrus_audio_memory.h>
 
 #include <rcsc/player/player_agent.h>
 #include <rcsc/player/debug_client.h>
@@ -59,16 +61,41 @@
 #include <limits>
 
 using namespace rcsc;
+bool Bhv_SetPlayKickIn::kick_waiting_finish_check;
+int Bhv_SetPlayKickIn::kick_waiting_finish_cycle;
+int Bhv_SetPlayKickIn::waiting_before_kick_cycle;
 
-/*-------------------------------------------------------------------*/
 /*!
   execute action
 */
 bool
 Bhv_SetPlayKickIn::execute( PlayerAgent * agent )
 {
+    const WorldModel &wm = agent->world();
+
     dlog.addText( Logger::TEAM,
                   __FILE__": Bhv_SetPlayKickIn" );
+
+    dlog.addText( Logger::TEAM,
+                  __FILE__": Bhv_SetPlayKickIn cycle %d lastsetplay %d", wm.time().cycle(), wm.lastSetPlayStartTime().cycle() );
+                  
+    if (wm.time().cycle() == wm.lastSetPlayStartTime().cycle() + 1)
+    {
+        kick_waiting_finish_check = false;
+        kick_waiting_finish_cycle = wm.time().cycle();
+        waiting_before_kick_cycle = 5;
+    }
+
+    const int real_set_play_count
+            = static_cast< int >( wm.time().cycle() - wm.lastSetPlayStartTime().cycle() );
+
+    if ( real_set_play_count >= ServerParam::i().dropBallTime() - waiting_before_kick_cycle )
+    {
+        waiting_before_kick_cycle = ServerParam::i().dropBallTime() - real_set_play_count - 1;
+        dlog.addText( Logger::ROLE,
+                    __FILE__"can not wait more than %d cycle",
+                    waiting_before_kick_cycle );
+    } 
 
     if ( Bhv_SetPlay::is_kicker( agent ) )
     {
@@ -106,9 +133,33 @@ Bhv_SetPlayKickIn::doKick( PlayerAgent * agent )
     // wait
     //
 
-    if ( doKickWait( agent ) )
+    if(!kick_waiting_finish_check)
     {
+        if ( doKickWait( agent ) )
+        {
+            return;
+        }
+        else if (wm.ball().pos().x > 25)
+        {
+            kick_waiting_finish_check = true;
+            kick_waiting_finish_cycle = wm.time().cycle();
+            agent->addSayMessage(new StartSetPlayKickMessage());
+        }
+    }
+
+
+
+    if(kick_waiting_finish_check && wm.time().cycle() - kick_waiting_finish_cycle < waiting_before_kick_cycle)
+    {
+        const Vector2D face_point( 40.0, 0.0 );
+        const AngleDeg face_angle = ( face_point - wm.self().pos() ).th();
+
+        Body_TurnToPoint( face_point ).execute( agent );
+        dlog.addText( Logger::ROLE,
+                    __FILE__"Waiting for %d from %d cycle before kick " , wm.time().cycle() - kick_waiting_finish_cycle , waiting_before_kick_cycle);
+        agent->setNeckAction( new Neck_ScanField() );
         return;
+        
     }
 
     //
@@ -350,6 +401,62 @@ Bhv_SetPlayKickIn::doMove( PlayerAgent * agent )
         if(wm.self().stamina() < ServerParam::i().staminaMax() * 0.9)
             agent->addSayMessage( new WaitRequestMessage() );
     }
+    
+    bool can_shoot_pass = false;
+
+    if ( wm.ball().pos().x > 40 && wm.ball().pos().absY() < 11){
+        Sector2D shoot_pass_sector = Sector2D(wm.ball().pos(),
+                                         1,
+                                         15,
+                                         (Vector2D(52,-9) - wm.ball().pos()).th(),
+                                         (Vector2D(52,+9) - wm.ball().pos()).th());
+        if(wm.existTeammateIn(shoot_pass_sector,2,false)){
+            can_shoot_pass = true;
+        }
+    }
+    
+    auto cyrus_memory = std::static_pointer_cast< CyrusAudioMemory >( agent->world().audioMemoryPtr() );
+
+    if(cyrus_memory->startSetPlayKickTime().cycle() == wm.time().cycle())
+    {
+        kick_waiting_finish_check = true;
+    }
+
+    if (!kick_waiting_finish_check && !can_shoot_pass && wm.ball().pos().x > 25)
+    {
+        dlog.addText(Logger::ROLE , "kick waiting check = %d / --- / can shoot pass = %d / --- / waiting_cycle = %d / --- / recieved message time = %d"
+        ,kick_waiting_finish_check,can_shoot_pass,waiting_before_kick_cycle,cyrus_memory->startSetPlayKickTime().cycle());
+
+        dlog.addCircle(Logger::ROLE , target_point ,1,0,0,0,true);
+        agent->debugClient().addCircle(Circle2D(target_point, 0.5));
+        auto old_target_point = target_point;
+        target_point = Strategy::i().getPreSetPlayPosition(wm , waiting_before_kick_cycle);
+        agent->debugClient().addCircle(Circle2D(target_point, 0.5));
+        agent->debugClient().addLine(old_target_point, target_point);
+
+        double dash_power
+                = Bhv_SetPlay::get_set_play_dash_power( agent );
+        double dist_thr = wm.ball().distFromSelf() * 0.07;
+        if ( dist_thr < 1.0 ) dist_thr = 1.0;
+
+        if ( ! Body_GoToPoint( target_point,
+                               dist_thr,
+                               dash_power
+        ).execute( agent ) )
+        {
+            // already there
+            Body_TurnToAngle((old_target_point - target_point).th()).execute(agent);
+//        Body_TurnToBall().execute( agent );
+        }
+        return;
+    }
+
+    dlog.addText(Logger::ROLE , "kick waiting check = %d / --- / can shoot pass = %d / --- / waiting_cycle = %d / --- / recieved message time = %d"
+    ,kick_waiting_finish_check,can_shoot_pass,waiting_before_kick_cycle,cyrus_memory->startSetPlayKickTime().cycle());
+
+    dlog.addCircle(Logger::ROLE , target_point ,1,0,0,0,true);
+
+
 
 
     bool avoid_opponent = false;
