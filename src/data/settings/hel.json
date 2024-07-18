@@ -1,7 +1,8 @@
 {
 	"Strategy":	{
 				"Formation": "433",
-				"TeamTactic":"Normal"
+				"TeamTactic":"Normal",
+				"MoveBeforeSetPlay": false
 			},
 	"ChainAction":	{
 				"ChainNodeNumber":750,

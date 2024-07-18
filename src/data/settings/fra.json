@@ -1,7 +1,8 @@
 {
 	"Strategy":	{
 				"Formation": "HeliosFra",
-				"TeamTactic":"Normal"
+				"TeamTactic":"Normal",
+				"MoveBeforeSetPlay": true
 			},
 	"ChainAction":	{
 				"ChainNodeNumber":750,
