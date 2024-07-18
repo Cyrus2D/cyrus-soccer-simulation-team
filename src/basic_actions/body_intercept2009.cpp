@@ -152,7 +152,7 @@ Body_Intercept2009::execute( PlayerAgent * agent )
                                          best_intercept.reachStep(),
                                          best_intercept.turnStep(),
                                          best_intercept.dashStep() );
-        if ( best_intercept.dashPower() > 0.0 ){
+        if ( best_intercept.dashPower() > 0.0 )
             if (Body_GoToPoint(target_point, 0.1, 100).doBiTurn(agent))
                 return true;
 
