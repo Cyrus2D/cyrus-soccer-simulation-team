@@ -1266,6 +1266,61 @@ namespace rcsc {
 
     };
 
+    class StartSetPlayKickMessage
+            : public SayMessage {
+    private:
+
+    public:
+
+        /*!
+          \brief construct with raw information
+        */
+        StartSetPlayKickMessage()
+        { }
+
+        /*!
+          \brief get the header character of this message
+          \return header character of this message
+         */
+        char header() const
+        {
+            return StartSetPlayKickMessageParser::sheader();
+        }
+
+        /*!
+          \brief get the length of this message.
+          \return the length of encoded message
+        */
+        static
+        int slength()
+        {
+            return StartSetPlayKickMessageParser::slength();
+        }
+
+        /*!
+          \brief get the length of this message
+          \return the length of encoded message
+        */
+        int length() const
+        {
+            return slength();
+        }
+
+        /*!
+          \brief append this info to the audio message
+          \param to reference to the message string instance
+          \return result status of encoding
+        */
+        bool appendTo( std::string & to ) const;
+
+        /*!
+          \brief append the debug message
+          \param os reference to the output stream
+          \return reference to the output stream
+         */
+        std::ostream & printDebug( std::ostream & os ) const;
+
+    };
 }
 
 #endif

@@ -42,10 +42,11 @@ public:
     bool execute( rcsc::PlayerAgent * agent );
 
 private:
-
+    static bool kick_waiting_finish_check;
+    static int kick_waiting_finish_cycle;
+    static int waiting_before_kick_cycle;
     void doKick( rcsc::PlayerAgent * agent );
     bool doKickWait( rcsc::PlayerAgent * agent );
-
     void doMove( rcsc::PlayerAgent * agent );
 };
 

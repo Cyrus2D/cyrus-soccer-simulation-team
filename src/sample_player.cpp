@@ -78,6 +78,8 @@
 #include <rcsc/common/server_param.h>
 #include <rcsc/common/player_param.h>
 #include <rcsc/common/audio_memory.h>
+#include "lib/cyrus_audio_memory.h"
+#include "lib/cyrus_say_message_builder.h"
 #include <rcsc/common/say_message_parser.h>
 #include "lib/cyrus_say_message_parser.h"
 #include "move_off/bhv_unmark.h"
@@ -110,7 +112,8 @@ SamplePlayer::SamplePlayer()
     M_field_evaluator = createFieldEvaluator();
     M_action_generator = createActionGenerator();
 
-    std::shared_ptr< AudioMemory > audio_memory( new AudioMemory );
+    auto cyrus_memory = new CyrusAudioMemory();
+    std::shared_ptr< AudioMemory > audio_memory(cyrus_memory);
 
     M_worldmodel.setAudioMemory( audio_memory );
 
@@ -152,6 +155,7 @@ SamplePlayer::SamplePlayer()
     addSayMessageParser( new ThreePlayerMessageParser112( audio_memory ) );
     addSayMessageParser( new ThreePlayerMessageParser122( audio_memory ) );
     addSayMessageParser( new ThreePlayerMessageParser222( audio_memory ) );
+    addSayMessageParser( new StartSetPlayKickMessageParser( audio_memory ) );
     //
     // set communication message parser
     //

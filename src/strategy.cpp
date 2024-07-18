@@ -788,6 +788,94 @@ Strategy::getPosition( const int unum ) const
     }
 }
 
+/*-------------------------------------------------------------------*/
+/*!
+
+ */
+
+Vector2D Strategy::getPreSetPlayPosition(const rcsc::WorldModel &wm , double cycle_dist) const 
+{
+
+    int unum = wm.self().unum();
+    auto home_pos = getPosition(unum);
+    auto ball_pos = wm.ball().pos();
+
+    Vector2D closest_opponent = Vector2D::INVALIDATED;
+    double min_dist = 1000;
+    for (const auto &op : wm.theirPlayers()) {
+        if (op == nullptr)
+            continue;
+        if (op->unum() <= 0)
+            continue;
+        if (!op->pos().isValid())
+            continue;
+        double dist = (op->pos() - home_pos).r();
+        if (dist < min_dist) {
+            min_dist = dist;
+            closest_opponent = op->pos();
+        }
+    }
+
+    if (!closest_opponent.isValid())
+    {
+        dlog.addText(Logger::TEAM, "No opponent found");
+        return home_pos;
+    }
+
+    dlog.addText(Logger::TEAM, "Closest opponent: %.1f, %.1f mindist: $.1f", closest_opponent.x, closest_opponent.y, min_dist);
+
+    if (min_dist > 10)
+        return home_pos;
+
+    Vector2D new_home_pos = home_pos;
+    auto game_mode = wm.gameMode().type();
+//    if (game_mode == rcsc::GameMode::CornerKick_ || game_mode == rcsc::GameMode::KickIn_)
+//    {
+//        new_home_pos = home_pos + Vector2D(-cycle_dist, 0);
+//    }
+//    else
+    {
+        if (home_pos.dist(ball_pos) < 15)
+        {
+            auto ball_to_home_dir = (home_pos - ball_pos).th();
+            new_home_pos = home_pos + Vector2D::polar2vector(cycle_dist, ball_to_home_dir);
+
+            dlog.addText(Logger::TEAM, "Ball Close to home: %.1f, %.1f", new_home_pos.x, new_home_pos.y);
+        }
+        else
+        {
+            auto angle = 135.0;
+            if (ball_pos.y > 0)
+            {
+                if (home_pos.y < ball_pos.y)
+                {
+                    angle = -135.0;
+                }
+            }
+            else
+            {
+                if (home_pos.y < ball_pos.y){
+                    angle = -135.0;
+                }
+            }
+            new_home_pos = home_pos + Vector2D::polar2vector(cycle_dist, angle);
+            dlog.addText(Logger::TEAM, "Ball Far from home: %.1f, %.1f, angle: %.1f", new_home_pos.x, new_home_pos.y, angle);
+        }
+    }
+    
+    if (new_home_pos.x < -52.0)
+        new_home_pos.x = -52.0;
+    if (new_home_pos.x > 52.0)
+        new_home_pos.x = 52.0;
+    if (new_home_pos.y < -33.0)
+        new_home_pos.y = -33.0;
+    if (new_home_pos.y > 33.0)
+        new_home_pos.y = 33.0;
+    if(new_home_pos.x > wm.offsideLineX())
+        new_home_pos.x = wm.offsideLineX() - 0.5;
+    return new_home_pos;
+}
+
 
 std::vector<const AbstractPlayerObject *>
 Strategy::getTeammatesInPostLine(const rcsc::WorldModel &wm, PostLine tm_line) {
@@ -800,7 +888,7 @@ Strategy::getTeammatesInPostLine(const rcsc::WorldModel &wm, PostLine tm_line) {
 
         if (Strategy::i().tmLine(p->unum()) == tm_line)
             results.push_back(p);
-    }
+    } 
     return results;
 }
 
