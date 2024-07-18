@@ -10,6 +10,7 @@
 				"DribblePosCountLow":0.7,
 				"DribblePosCountHigh":0.7,
 				"DribbleAlwaysDanger":true,
+				"DribbleAlwaysDangerExceptPrioritiseDribble": false,
 				"DribbleBallCollisionNoise":0.1,
 				"DribbleUseDoubleKick": false,
 				"DribblePosCountMaxFrontOpp":8,
