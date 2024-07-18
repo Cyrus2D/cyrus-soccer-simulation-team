@@ -61,6 +61,7 @@ public:
     StrategySetting(Value & value);
     string mFormation = "433";
     string mTeamTactic = "Normal";
+    bool mMoveBeforeSetPlay = false;
 };
 
 class NeckSetting{

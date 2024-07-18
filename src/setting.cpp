@@ -102,6 +102,9 @@ StrategySetting::StrategySetting(Value & value){
     if(value.HasMember("TeamTactic")){
         mTeamTactic = value["TeamTactic"].GetString();
     }
+    if(value.HasMember("MoveBeforeSetPlay")){
+        mMoveBeforeSetPlay = value["MoveBeforeSetPlay"].GetBool();
+    }
 }
 
 NeckSetting::NeckSetting(Value &value)
