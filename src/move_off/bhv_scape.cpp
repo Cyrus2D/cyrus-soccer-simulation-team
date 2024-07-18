@@ -276,7 +276,8 @@ bool bhv_scape::run_last_scape(PlayerAgent * agent){
 			agent->debugClient().addMessage("SCAPETURNING");
 
 			//			agent->debugClient().addMessage("scape to (%.1f,%.1f)",last_new_scape.M_first_target.x,last_new_scape.M_first_target.y);
-			Body_TurnToAngle((best_target - self_pos).th()).execute(agent);
+            if (!Body_GoToPoint(best_target, 0.1, 100).execute(agent))
+			    Body_TurnToAngle((best_target - self_pos).th()).execute(agent);
 			agent->setNeckAction( new Neck_TurnToBallOrScan(0) );
 			return true;
 		}
