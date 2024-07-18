@@ -829,11 +829,11 @@ Vector2D Strategy::getPreSetPlayPosition(const rcsc::WorldModel &wm , double cyc
 
     Vector2D new_home_pos = home_pos;
     auto game_mode = wm.gameMode().type();
-    if (game_mode == rcsc::GameMode::CornerKick_ || game_mode == rcsc::GameMode::KickIn_)
-    {
-        new_home_pos = home_pos + Vector2D(-cycle_dist, 0);
-    }
-    else
+//    if (game_mode == rcsc::GameMode::CornerKick_ || game_mode == rcsc::GameMode::KickIn_)
+//    {
+//        new_home_pos = home_pos + Vector2D(-cycle_dist, 0);
+//    }
+//    else
     {
         if (home_pos.dist(ball_pos) < 15)
         {
