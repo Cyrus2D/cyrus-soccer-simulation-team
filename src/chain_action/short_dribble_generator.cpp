@@ -1205,7 +1205,7 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
             if (danger > worst_danger){
                 worst_danger = danger;
             }
-            
+            dlog.addText(Logger::DRIBBLE, "-----danger %d wdanger %d", danger, worst_danger);
             if (opp_reach_cycle <= c){
                 if (isDribbleDangerous(wm, start_ball, ball_trap_pos))
                     worst_danger = 1;
@@ -1222,8 +1222,13 @@ bool ShortDribbleGenerator::can_opp_reach(const WorldModel & wm, const Vector2D 
         }
     }
 
-    if (isDribbleDangerous(wm, start_ball, ball_trap_pos))
+    if (isDribbleDangerous(wm, start_ball, ball_trap_pos)) {
+        dlog.addText(Logger::DRIBBLE, "---is dangerous");
         worst_danger = 1;
+    }
+    else{
+        dlog.addText(Logger::DRIBBLE, "---is NOT dangerous %d", worst_danger);
+    }
     return false;
 }
 
