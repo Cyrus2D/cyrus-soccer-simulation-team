@@ -43,6 +43,7 @@ public:
     double mDribblePosCountLow = 0.8;
     double mDribblePosCountHigh = 0.8;
     bool mDribbleAlwaysDanger = true;
+    bool mDribbleAlwaysDangerExceptPrioritiseDribble = true;
     double mDribbleBallCollisionNoise = 0.1;
     bool mDribbleUseDoubleKick = false;
     int mDribblePosCountMaxFrontOpp = 8;
