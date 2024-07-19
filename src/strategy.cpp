@@ -62,6 +62,7 @@ const std::string Strategy::F433_DEFENSE_FORMATION_CONF = "F433_defense-formatio
 const std::string Strategy::F433_OFFENSE_FORMATION_CONF = "F433_offense-formation.conf";
 const std::string Strategy::F433_OFFENSE_FORMATION_CONF_FOR_OXSY = "F433_offense-formation_for_oxsy.conf";
 const std::string Strategy::F433_OFFENSE_FORMATION_CONF_FOR_MT = "F433_offense-formation_for_mt.conf";
+const std::string Strategy::F433_OFFENSE_FORMATION_CONF_FOR_YUSH = "F433_offense-formation_for_yush.conf";
 const std::string Strategy::F433_GOAL_KICK_OPP_FORMATION_CONF = "F433_goal-kick-opp.conf";
 const std::string Strategy::F433_GOAL_KICK_OUR_FORMATION_CONF = "F433_goal-kick-our.conf";
 const std::string Strategy::F433_KICKIN_OUR_FORMATION_CONF = "F433_kickin-our-formation.conf";
@@ -229,6 +230,12 @@ Strategy::read( const std::string & formation_dir )
     }
     M_F433_offense_formation_for_mt = readFormation( configpath + F433_OFFENSE_FORMATION_CONF_FOR_MT );
     if ( ! M_F433_offense_formation_for_mt )
+    {
+        std::cerr << "Failed to read offense formation" << std::endl;
+        return false;
+    }
+    M_F433_offense_formation_for_yush = readFormation( configpath + F433_OFFENSE_FORMATION_CONF_FOR_YUSH );
+    if ( ! M_F433_offense_formation_for_yush )
     {
         std::cerr << "Failed to read offense formation" << std::endl;
         return false;
@@ -1107,7 +1114,10 @@ void Strategy::updateFormation433( const WorldModel & wm ){
         if (M_current_situation == Defense_Situation)
             M_current_formation = M_F433_defense_formation;
         else if (M_current_situation == Offense_Situation)
-            if(FieldAnalyzer::isMT(wm)){
+            if(FieldAnalyzer::isYushan(wm)){
+                M_current_formation = M_F433_offense_formation_for_yush;
+            }
+            else if(FieldAnalyzer::isMT(wm)){
                 M_current_formation = M_F433_offense_formation_for_mt;
             }else if(doesOpponentDefenseDense(wm)){
                 M_current_formation = M_F433_offense_formation_for_oxsy;
