@@ -87,11 +87,11 @@ bool cyrus_offensive_move::execute(rcsc::PlayerAgent *agent, Bhv_BasicMove *bhv_
     //Broker Offside
     if ( Setting::i()->mOffensiveMove->mIs9BrokeOffside
          && Strategy::i().tmPost(wm.self().unum()) == PlayerPost::pp_lf
-         && Strategy::i().get_formation_type() == FormationType::F433)
+         && Strategy::i().get_formation_type() == FormationType::HeliosFra)
     {
         if ( wm.ball().inertiaPoint(mate_min).x > -25
              && target_point.x < 40 ){
-            target_point.x = wm.offsideLineX() + 10;
+            target_point.x = wm.offsideLineX() + 5;
             Body_GoToPoint(target_point, 3, 100).execute(agent);
             NeckDecisionWithBall().setNeck(agent, NeckDecisionType::offensive_move);
             dlog.addText(Logger::ACTION, "Go to offside to Broke it");
@@ -294,6 +294,7 @@ bool cyrus_offensive_move::pers_scap(PlayerAgent *agent) {
             mate_min < opp_min && self_min > mate_min && wm.self().stamina() > 5000 && me.absY() < 33) {
         agent->doDash(100, 0.0);
         agent->setNeckAction(new Neck_TurnToBallOrScan(0));
+        agent->debugClient().addMessage("pers scape dash");
         return true;
     }
 
@@ -307,12 +308,16 @@ bool cyrus_offensive_move::pers_scap(PlayerAgent *agent) {
     else minYdiff = 10;
 
 
+    Vector2D new_target = me + Vector2D(10.0, 0.0);
+    if (mate_min >= 1){
+        new_target.x = std::min(new_target.x, max_x - 0.3);
+    }
     if (num > 8 && mate_min < opp_min && ball.x > -30.0 && ball.x + 33 > max_x &&
             homePos.x < 36.0 && wm.self().stamina() > minStamina && homePos.x > -10 &&
             fabs(me.y - homePos.y) < minYdiff &&
             me.x < max_x - 1.3 && me.absY() < 33) {
 
-        if (!Body_GoToPoint(rcsc::Vector2D(me.x + 10, me.y),
+        if (!Body_GoToPoint(new_target,
                             0.5, ServerParam::i().maxDashPower()).execute(agent))
             Body_TurnToPoint(Vector2D(me.x + 10.0, me.y)).execute(agent);
 
@@ -321,6 +326,7 @@ bool cyrus_offensive_move::pers_scap(PlayerAgent *agent) {
             agent->setNeckAction(new Neck_TurnToBall());
         else
             agent->setNeckAction(new Neck_TurnToBallOrScan(0));
+        agent->debugClient().addMessage("pers scape goto");
         return true;
 
     }
@@ -342,6 +348,7 @@ bool cyrus_offensive_move::BackFromOffside(PlayerAgent *agent) {
 
     Vector2D ball = wm.ball().inertiaPoint(
                 std::min(self_min, std::min(mate_min, opp_min)));
+    agent->debugClient().addMessage("check GBO o%.1fspx%.1fhpx%.1fb%.1f", max_x, self_pos.x, homePos.x, wm.self().body().abs());
     if ((Strategy::i().tmLine(wm.self().unum()) == PostLine::forward)
             && wm.self().pos().x > max_x - 0.6
             && wm.self().pos().x < max_x + 3.0
@@ -357,7 +364,7 @@ bool cyrus_offensive_move::BackFromOffside(PlayerAgent *agent) {
         return true;
     }
 
-    if (self_pos.x > max_x - 1.0
+    if (self_pos.x > max_x - 0.6
             && (wm.self().stamina() > 4000 || (mate_min < opp_min))) {
         if (off_gotopoint(agent, Vector2D(self_pos.x - 10.0, self_pos.y), 0.5, ServerParam::i().maxDashPower())) {
 

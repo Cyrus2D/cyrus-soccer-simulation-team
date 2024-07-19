@@ -30,7 +30,7 @@
 		"IgnoreChainPassByDist" : false
 	},
 	"OffensiveMove":{
-				"Is9BrokeOffside":false,
+				"Is9BrokeOffside":true,
 				"UnmarkingAlgorithms": ["2019", "voronoi"],
 				"MainUnmarkPassPredictionDNN": "",
 				"UseUnmarkPassPredictionDNN": false,

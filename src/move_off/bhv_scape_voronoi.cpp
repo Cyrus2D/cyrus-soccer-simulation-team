@@ -119,7 +119,8 @@ bool bhv_scape_voronoi::execute(PlayerAgent *agent) {
     const WorldModel &wm = agent->world();
     if(!can_scape(wm))
         return false;
-
+    int mate_min = wm.interceptTable().teammateStep();
+    double max_x = std::max(wm.offsideLineX(), wm.ball().inertiaPoint(mate_min).x);
     dlog.addText(Logger::MARK, "start bhv voronoi unmark");
     vector<Vector2D> voronoiPoints = voronoi_points(agent);
     std::sort(voronoiPoints.begin(), voronoiPoints.end(), compair_vec_y);
@@ -159,6 +160,9 @@ bool bhv_scape_voronoi::execute(PlayerAgent *agent) {
     double t4 = timer4.elapsedReal();
     dlog.addText(Logger::MARK,"timer %f %f %f %f",t1,t2,t3,t4);
     if (best.isValid()) {
+        if (mate_min >= 1){
+            best.x = std::min(best.x, max_x - 0.3);
+        }
         dlog.addCircle(Logger::MARK, best, 0.5, 0, 0, 0, true);
         int now_passer = 0;
         if(wm.interceptTable().firstTeammate() != NULL)
