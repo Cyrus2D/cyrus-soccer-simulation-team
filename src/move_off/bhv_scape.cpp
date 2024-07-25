@@ -51,27 +51,35 @@ bool bhv_scape::can_scape(const WorldModel & wm){
         return false;
     if(target_point.x < offside - 8)
         return false;
-    if(self_pos.dist(target_point) > 20)
+    Vector2D target_point_on_offside = target_point;
+    target_point_on_offside.x = std::min(offside, target_point.x);
+    if(self_pos.dist(target_point_on_offside) > 20)
         return false;
-    if(std::abs(target_point.x - self_pos.x) > 12)
+    if(std::abs(target_point_on_offside.x - self_pos.x) > 12)
         return false;
     if (self_pos.x > offside)
         return false;
-    if(ball_iner.dist(target_point) > 35
+    if(ball_iner.dist(target_point_on_offside) > 35
             || ball_iner.dist(self_pos) > 35)
         return false;
     int fastest_tm = 0;
     if (wm.interceptTable().firstTeammate() != nullptr && wm.interceptTable().firstTeammate()->unum() > 0){
         fastest_tm = wm.interceptTable().firstTeammate()->unum();
     }
-    if (fastest_tm == 9 && wm.self().unum() == 10)
-        return false;
-    if (fastest_tm == 10 && wm.self().unum() == 11)
-        return false;
+    if (ball_iner.x > offside -5){
+
+    }
+    else{
+        if (fastest_tm == 9 && wm.self().unum() == 10)
+            return false;
+        if (fastest_tm == 10 && wm.self().unum() == 11)
+            return false;
+    }
+
 //    if(ball_iner.x < target_point.x - 20)
 //        return false;
     if(Setting::i()->mOffensiveMove->mIs9BrokeOffside
-            && Strategy::i().get_formation_type() == FormationType::F433
+            && Strategy::i().get_formation_type() == FormationType::HeliosFra
             && unum == 11
             && ball_iner.y < -10
             && passer != 9 && passer != 10
@@ -276,7 +284,8 @@ bool bhv_scape::run_last_scape(PlayerAgent * agent){
 			agent->debugClient().addMessage("SCAPETURNING");
 
 			//			agent->debugClient().addMessage("scape to (%.1f,%.1f)",last_new_scape.M_first_target.x,last_new_scape.M_first_target.y);
-			Body_TurnToAngle((best_target - self_pos).th()).execute(agent);
+            if (!Body_GoToPoint(best_target, 0.1, 100).execute(agent))
+			    Body_TurnToAngle((best_target - self_pos).th()).execute(agent);
 			agent->setNeckAction( new Neck_TurnToBallOrScan(0) );
 			return true;
 		}

@@ -893,7 +893,7 @@ void StrictCheckPassGenerator::createLeadingPass(const WorldModel & wm,
             if(!wm.self().isKickable())
                 used_penalty = false;
             const int receiver_step = predictReceiverReachStep(receiver,
-                                                               receive_point, used_penalty) + (used_penalty?move_dist_penalty_step:0);
+                                                               receive_point, wm, used_penalty) + (used_penalty?move_dist_penalty_step:0);
             const AngleDeg ball_move_angle =
                     (receive_point - M_first_point).th();
 
@@ -1116,7 +1116,7 @@ void StrictCheckPassGenerator::createThroughPass(const WorldModel & wm,
             }
 
             const int receiver_step = predictReceiverReachStep(receiver,
-                                                               receive_point, false);
+                                                               receive_point, wm, false);
             const AngleDeg ball_move_angle =
                     (receive_point - M_first_point).th();
 
@@ -1604,6 +1604,7 @@ int StrictCheckPassGenerator::getNearestReceiverUnum(const Vector2D & pos) {
  */
 int StrictCheckPassGenerator::predictReceiverReachStep(
         const Receiver & receiver, const Vector2D & pos,
+        const WorldModel & wm,
         const bool use_penalty) {
     const PlayerType * ptype = receiver.player_->playerTypePtr();
     double target_dist = receiver.inertia_pos_.dist(pos);
@@ -1613,11 +1614,18 @@ int StrictCheckPassGenerator::predictReceiverReachStep(
                                              target_dist, (pos - receiver.inertia_pos_).th(),
                                              ptype->kickableArea(), false);
     int body_count_effect = bound(0,receiver.player_->bodyCount(),2);
+
+    if (M_pass_type == 'T'){
+        if (receiver.player_->pos().x > wm.offsideLineX() - 5){
+            body_count_effect = std::min(1, body_count_effect);
+        }
+    }
     int n_turn = 0;
     if (body_count_effect < n_turn_original)
         n_turn = n_turn_original;
     else
         n_turn = body_count_effect;
+
 
     int effective_pos_count_in_body_count = bound(0,body_count_effect - n_turn,2);
     int pos_count_effect = bound(0, receiver.player_->posCount() - effective_pos_count_in_body_count, receiver.player_->posCount());
@@ -1658,6 +1666,12 @@ int StrictCheckPassGenerator::predictReceiverReachStep(
         if (dash_angle.abs() > 90.0 || receiver.player_->bodyCount() > 1
                 || (dash_angle - receiver.player_->body()).abs() > 30.0) {
             n_turn += 1;
+        }
+    }
+
+    if (M_pass_type == 'T'){
+        if (n_turn == 1){
+            dash_dist -= 0.5;
         }
     }
 
@@ -1974,7 +1988,7 @@ int StrictCheckPassGenerator::predictOpponentReachStep(const WorldModel & wm,
                 dlog.addText( M_pass_logger,
                               "|      cant reach in bs:%d(%.2f,%.2f) with out noise c_step=%d, t_step=%d, d_step=%d, n_step=%d, bce=%d, pce=%d, scs=%d, odc:%d, pc:%d, bc:%d",cycle,ball_pos.x,ball_pos.y,c_step,turn_step,dash_step,n_step,body_count_effect,pos_count_effect,view_step,opp_dif_cycle,pos_count,body_count );
                 #endif
-                if(wm.self().isKickable())
+                if(wm.self().isKickable() && !(M_pass_type == 'T' && receive_point.x > wm.offsideLineX() + 5))
                     safe_with_pos_count = false;
             }
         }

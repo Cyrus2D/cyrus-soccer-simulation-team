@@ -1,7 +1,8 @@
 {
 	"Strategy":	{
 		"Formation": "433",
-		"TeamTactic":"Normal"
+		"TeamTactic":"Normal",
+		"MoveBeforeSetPlay": false
 	},
 	"ChainAction":	{
 		"ChainNodeNumber":750,
@@ -10,6 +11,7 @@
 		"DribblePosCountLow":0.8,
 		"DribblePosCountHigh":0.8,
 		"DribbleAlwaysDanger":true,
+		"DribbleAlwaysDangerExceptPrioritiseDribble": true,
 		"DribbleBallCollisionNoise":0.1,
 		"DribbleUseDoubleKick": false,
 		"DribblePosCountMaxFrontOpp":8,
@@ -41,7 +43,7 @@
 		"GoToDefendX": true,
 		"FixThMarkY": false,
 		"MidTh_PosFinderHPosXNegativeTerm": 0.0,
-		"MidTh_PosFinderBackDistXPlusTerm": 0.0,
+		"MidTh_PosFinderBackDistXPlusTerm": 1.0,
 		"BlockZ_CB_Next" : 3.0,
 		"BlockZ_CB_Forward" : 3.0,
 		"BlockZ_LB_RB_Forward" : 2.0,

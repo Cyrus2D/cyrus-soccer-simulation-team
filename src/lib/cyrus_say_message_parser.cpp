@@ -1,12 +1,11 @@
-#include "cyrus_say_message_parser.h"
 #include <rcsc/common/audio_codec.h>
 #include <rcsc/common/audio_memory.h>
-
 #include <rcsc/common/logger.h>
-#include <rcsc/common/server_param.h>
 #include <rcsc/game_time.h>
-
 #include <cstring>
+
+#include "cyrus_say_message_parser.h"
+#include "cyrus_audio_memory.h"
 
 namespace rcsc {
 
@@ -1837,4 +1836,31 @@ namespace rcsc {
 
         return slength();
     }
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+    StartSetPlayKickMessageParser::StartSetPlayKickMessageParser( std::shared_ptr< AudioMemory > memory )
+            : M_memory( memory )
+    {
+
+    }
+
+    int
+    StartSetPlayKickMessageParser::parse( const int sender,
+                                          const double & ,
+                                          const char * msg,
+                                          const GameTime & current )
+    {
+        if ( *msg != sheader() )
+        {
+            return 0;
+        }
+
+        std::shared_ptr< CyrusAudioMemory > cyrus_memory = std::static_pointer_cast< CyrusAudioMemory >( M_memory );
+        cyrus_memory->setStartSetPlayKick(sender, current);
+        return slength();
+    }
 }
+

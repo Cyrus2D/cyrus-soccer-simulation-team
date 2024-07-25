@@ -1,7 +1,8 @@
 {
 	"Strategy":	{
 				"Formation": "HeliosFra",
-				"TeamTactic":"Normal"
+				"TeamTactic":"Normal",
+				"MoveBeforeSetPlay": true
 			},
 	"ChainAction":	{
 				"ChainNodeNumber":750,
@@ -10,6 +11,7 @@
 				"DribblePosCountLow":0.8,
 				"DribblePosCountHigh":0.8,
 				"DribbleAlwaysDanger":true,
+				"DribbleAlwaysDangerExceptPrioritiseDribble": false,
 				"DribbleBallCollisionNoise":0.1,
 				"DribbleUseDoubleKick": false,
 				"DribblePosCountMaxFrontOpp":8,
@@ -29,7 +31,7 @@
 		"IgnoreChainPassByDist" : false
 	},
 	"OffensiveMove":{
-				"Is9BrokeOffside":false,
+				"Is9BrokeOffside":true,
 				"UnmarkingAlgorithms": ["2019", "voronoi"],
 				"MainUnmarkPassPredictionDNN": "",
 				"UseUnmarkPassPredictionDNN": false,

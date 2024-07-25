@@ -78,7 +78,7 @@ private:
 
     void doSubstitute();
 
-    void doFirstSubstitute();
+    bool doFirstSubstitute();
     void doSubstituteTiredPlayers();
 
     void substituteTo( const int unum,

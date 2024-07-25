@@ -28,6 +28,10 @@ ChainActionSetting::ChainActionSetting(Value & value){
     {
         mDribbleAlwaysDanger = value["DribbleAlwaysDanger"].GetBool();
     }
+    if(value.HasMember("DribbleAlwaysDangerExceptPrioritiseDribble"))
+    {
+        mDribbleAlwaysDangerExceptPrioritiseDribble = value["DribbleAlwaysDangerExceptPrioritiseDribble"].GetBool();
+    }
     if(value.HasMember("DribbleBallCollisionNoise"))
     {
         mDribbleBallCollisionNoise = value["DribbleBallCollisionNoise"].GetFloat();
@@ -101,6 +105,9 @@ StrategySetting::StrategySetting(Value & value){
     }
     if(value.HasMember("TeamTactic")){
         mTeamTactic = value["TeamTactic"].GetString();
+    }
+    if(value.HasMember("MoveBeforeSetPlay")){
+        mMoveBeforeSetPlay = value["MoveBeforeSetPlay"].GetBool();
     }
 }
 

@@ -98,6 +98,7 @@ private:
     static const std::string F433_DEFENSE_FORMATION_CONF;
     static const std::string F433_OFFENSE_FORMATION_CONF_FOR_OXSY;
     static const std::string F433_OFFENSE_FORMATION_CONF_FOR_MT;
+    static const std::string F433_OFFENSE_FORMATION_CONF_FOR_YUSH;
     static const std::string F433_OFFENSE_FORMATION_CONF;
     static const std::string F433_GOAL_KICK_OPP_FORMATION_CONF;
     static const std::string F433_GOAL_KICK_OUR_FORMATION_CONF;
@@ -133,6 +134,7 @@ private:
     rcsc::Formation::Ptr M_F433_offense_formation;
     rcsc::Formation::Ptr M_F433_offense_formation_for_oxsy;
     rcsc::Formation::Ptr M_F433_offense_formation_for_mt;
+    rcsc::Formation::Ptr M_F433_offense_formation_for_yush;
     rcsc::Formation::Ptr M_F433_goal_kick_opp_formation;
     rcsc::Formation::Ptr M_F433_goal_kick_our_formation;
     rcsc::Formation::Ptr M_F433_kickin_our_formation;
@@ -245,6 +247,7 @@ public:
 
 	SoccerRole::Ptr createRole( int unum, const rcsc::WorldModel & wm );
 	rcsc::Vector2D getPosition( int unum ) const;
+    rcsc::Vector2D getPreSetPlayPosition( const rcsc::WorldModel & wm , double cycle_dist ) const;
     rcsc::Vector2D getPositionWithBall( int unum, rcsc::Vector2D ball, const rcsc::WorldModel & wm );
     static std::vector<const rcsc::AbstractPlayerObject*> getTeammatesInPostLine(const rcsc::WorldModel &wm, PostLine tm_line);
 	bool isDefenseSituation(const rcsc::WorldModel &wm, int unum) const;

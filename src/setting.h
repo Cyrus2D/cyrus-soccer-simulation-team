@@ -43,6 +43,7 @@ public:
     double mDribblePosCountLow = 0.8;
     double mDribblePosCountHigh = 0.8;
     bool mDribbleAlwaysDanger = true;
+    bool mDribbleAlwaysDangerExceptPrioritiseDribble = true;
     double mDribbleBallCollisionNoise = 0.1;
     bool mDribbleUseDoubleKick = false;
     int mDribblePosCountMaxFrontOpp = 8;
@@ -61,6 +62,7 @@ public:
     StrategySetting(Value & value);
     string mFormation = "433";
     string mTeamTactic = "Normal";
+    bool mMoveBeforeSetPlay = false;
 };
 
 class NeckSetting{

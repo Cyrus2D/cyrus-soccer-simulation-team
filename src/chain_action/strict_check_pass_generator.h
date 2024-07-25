@@ -172,6 +172,7 @@ private:
 
     int predictReceiverReachStep( const Receiver & receiver,
                                   const rcsc::Vector2D & pos,
+                                  const rcsc::WorldModel & wm,
                                   const bool use_penalty );
 
     int predictOpponentsReachStep( const rcsc::WorldModel & wm,

@@ -1930,4 +1930,34 @@ namespace rcsc {
 
         return os;
     }
+
+    bool
+    StartSetPlayKickMessage::appendTo( std::string & to ) const
+    {
+        if ( (int)to.length() + slength() > ServerParam::i().playerSayMsgSize() )
+        {
+            dlog.addText( Logger::SENSOR,
+                          "StartSetPlayKickMessage. over the message size : buf = %d, this = %d",
+                          to.length(), slength() );
+            return false;
+        }
+
+        dlog.addText( Logger::SENSOR,
+                      "StartSetPlayKickMessage. success! [w]" );
+
+        to += header();
+
+        return true;
+    }
+
+/*-------------------------------------------------------------------*/
+/*!
+
+*/
+    std::ostream &
+    StartSetPlayKickMessage::printDebug( std::ostream & os ) const
+    {
+        os << "[SSPK]";
+        return os;
+    }
 }

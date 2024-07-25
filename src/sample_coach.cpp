@@ -1229,8 +1229,8 @@ SampleCoach::doSubstitute()
          && world().time().cycle() == 0
          && world().time().stopped() > 10 )
     {
-        doFirstSubstitute();
-        S_first_substituted = true;
+        if (doFirstSubstitute())
+            S_first_substituted = true;
 
         return;
     }
@@ -1249,9 +1249,19 @@ SampleCoach::doSubstitute()
 /*!
 
 */
-void
+bool
 SampleCoach::doFirstSubstitute()
 {
+    std::string name;
+    if(world().ourSide() == SideID::LEFT){
+        name = world().teamNameRight();
+    }else{
+        name = world().teamNameLeft();
+    }
+
+    if (world().time().cycle() == 0 && name.length() == 0) {
+        return false;
+    }
     PlayerTypePtrCont candidates;
 
     std::fprintf( stderr,
@@ -1342,14 +1352,10 @@ SampleCoach::doFirstSubstitute()
 //    ordered_unum.push_back( 8 );  // defensive half
 //#endif
 
-    std::string name;
-    if(world().ourSide() == SideID::LEFT){
-        name = world().teamNameRight();
-    }else{
-        name = world().teamNameLeft();
-    }
+
     bool isHelios = false;
     bool isFRA = false;
+    bool isYushan = false;
 
     if( (name.find("F") != std::string::npos || name.find("f") != std::string::npos)
             && (name.find("R") != std::string::npos || name.find("r") != std::string::npos)
@@ -1357,6 +1363,13 @@ SampleCoach::doFirstSubstitute()
             && (name.find("U") != std::string::npos || name.find("u") != std::string::npos)
             && (name.find("N") != std::string::npos || name.find("n") != std::string::npos) ){
         isFRA = true;
+    }
+    if( (name.find("Y") != std::string::npos || name.find("y") != std::string::npos)
+        && (name.find("U") != std::string::npos || name.find("u") != std::string::npos)
+        && (name.find("S") != std::string::npos || name.find("s") != std::string::npos)
+        && (name.find("H") != std::string::npos || name.find("h") != std::string::npos)
+        && (name.find("A") != std::string::npos || name.find("a") != std::string::npos) ){
+        isYushan = true;
     }
     if( (name.find("H") != std::string::npos || name.find("h") != std::string::npos)
             && (name.find("L") != std::string::npos || name.find("l") != std::string::npos)
@@ -1366,38 +1379,42 @@ SampleCoach::doFirstSubstitute()
         isHelios = true;
     }
     if( isFRA){
-        ordered_unum.push_back( 9 );  // side half
+        std::cout<<"$$$$$$$$$$$$$$$$$$$$$$$$isfra"<<std::endl;
+        ordered_unum.push_back( 10 );  // side back
         ordered_unum.push_back( 8 );  // center back
         ordered_unum.push_back( 11 ); // side half
-        ordered_unum.push_back( 10 );  // side back
-        ordered_unum.push_back( 5 ); // center forward
         ordered_unum.push_back( 7 );  // center back
+        ordered_unum.push_back( 5 ); // center forward
         ordered_unum.push_back( 6 );  // side back
         ordered_unum.push_back( 3 );  // defensive half
         ordered_unum.push_back( 2 );  // defensive half
         ordered_unum.push_back( 4 );  // center half
-    }else if(isHelios)
+        ordered_unum.push_back( 9 );  // side half
+    }
+    else if (isYushan)
     {
-        ordered_unum.push_back( 10 );  // side half
+        std::cout<<"$$$$$$$$$$$$$$$$$$$$$$$$isyushan"<<std::endl;
+        ordered_unum.push_back( 9 );  // side half
+        ordered_unum.push_back( 4 );  // side back
         ordered_unum.push_back( 2 );  // center back
         ordered_unum.push_back( 11 ); // side half
-        ordered_unum.push_back( 5 );  // side back
-        ordered_unum.push_back( 3 );  // center back
-        ordered_unum.push_back( 4 );  // side back
+        ordered_unum.push_back( 3 );  // side back
+        ordered_unum.push_back( 10 ); // center forward
+        ordered_unum.push_back( 5 );  // center back
         ordered_unum.push_back( 7 );  // defensive half
         ordered_unum.push_back( 8 );  // defensive half
         ordered_unum.push_back( 6 );  // center half
-        ordered_unum.push_back( 9 ); // center forward
     }
     else
     {
+        std::cout<<"$$$$$$$$$$$$$$$$$$$$$$$$isother"<<std::endl;
         ordered_unum.push_back( 9 );  // side half
         ordered_unum.push_back( 2 );  // center back
         ordered_unum.push_back( 11 ); // side half
-        ordered_unum.push_back( 5 );  // side back
+        ordered_unum.push_back( 4 );  // side back
         ordered_unum.push_back( 10 ); // center forward
         ordered_unum.push_back( 3 );  // center back
-        ordered_unum.push_back( 4 );  // side back
+        ordered_unum.push_back( 5 );  // side back
         ordered_unum.push_back( 7 );  // defensive half
         ordered_unum.push_back( 8 );  // defensive half
         ordered_unum.push_back( 6 );  // center half
@@ -1454,6 +1471,7 @@ SampleCoach::doFirstSubstitute()
             substituteTo( *unum, type );
         }
     }
+    return true;
 }
 
 /*-------------------------------------------------------------------*/

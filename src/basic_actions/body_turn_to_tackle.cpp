@@ -51,7 +51,8 @@ Body_TurnToTackle::execute(PlayerAgent *agent) {
     }
     Vector2D next_ball = wm.ball().inertiaPoint(1);
     if (next_ball.dist(wm.self().inertiaPoint(1)) < 1.7) {
-        Body_TurnToPoint(next_ball).execute(agent);
+        if (!Body_GoToPoint(next_ball, 0.1, 100).doBiTurn(agent))
+            Body_TurnToPoint(next_ball).execute(agent);
         agent->setNeckAction(new Neck_TurnToBall());
         agent->debugClient().addMessage("turn to tackle");
         return true;
