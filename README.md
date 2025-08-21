@@ -57,7 +57,7 @@ This repository contains the team (player) and coach binaries, tactics, roles, a
 
 The latest helios-base depends on the following libraries:
  - Boost 1.38 or later https://www.boost.org/
- - The latest librcsc https://github.com/naderzare/cyrus-soccer-simulation-lib
+ - The latest librcsc https://github.com/Cyrus2D/cyrus-soccer-simulation-lib
 
 In the case of Ubuntu 16.04 or later, execute the following commands for installing a basic development environment:
 ```
