@@ -1,11 +1,57 @@
-# HELIOS Base
-[![GitHub license](https://img.shields.io/github/license/helios-base/helios-base)](https://github.com/helios-base/helios-base/blob/master/LISENCE)
+# CYRUS Soccer Simulation 2D Team
 
-helios-base is a sample team for the RoboCup Soccer 2D Simulator.
-All programs can work with rcssserver-16.
+Open-source code for the CYRUS 2D Soccer Simulation team. CYRUS is a long-running, award-winning team in the RoboCup Soccer 2D Simulation League, including the 2021 World Championship. This codebase builds on the CYRUS base and the HELIOS base, using librcsc and Boost.
 
-- The RoboCup Soccer Simulator: http://github.com/rcsoccersim/
-- RoboCup Official Homepage: http://www.robocup.org/
+This repository contains the team (player) and coach binaries, tactics, roles, and utilities for the CYRUS 2D team. It is designed to work with the standard RoboCup Soccer Server (rcssserver) and visualizers (e.g., rcssmonitor).
+
+## Awards
+
+### RoboCup
+
+- 2024 (Netherlands): Second Place [video](https://youtu.be/UhmY-Gkh2Z0?si=umGSDNmqnVxj0HpP)
+- 2023 (France): Second Place [video](https://youtu.be/oj_SdlmGt6Q?si=zxMgXrOq_FvKFjF1)
+- 2022 (Thailand): Second Place [video](https://youtu.be/DBbc-_7ptrs?si=dx_VBVXcD69CCVza)
+- 2021 (Online): Champion [video](https://youtu.be/YUmnXWTu9u0?si=gACUal0kJwuNYLod)
+- 2019 (Australia): Third Place
+- 2018 (Canada): Second Place
+- 2017 (Japan): Fourth Place
+- 2014 (Brazil): Fifth Place
+
+### IranOpen
+
+- 2025 (Iran): Champion
+- 2024 (Iran): Second Place
+- 2023 (Iran): Champion
+- 2022 (Iran): Second Place
+- 2021 (Iran): Champion
+- 2018 (Iran - AsiaPacific): Champion
+- 2018 (Iran): Champion
+- 2014 (Iran): Champion
+
+## References
+
+- Zare, N., Amini, O., Sayareh, A., Sarvmaili, M., Firouzkouhi, A., Matwin, S., Soares, A.: Improving Dribbling, Passing, and Marking Actions in Soccer Simulation 2D Games Using Machine Learning. In: RoboCup 2021: Robot World Cup XXIV, Springer (2021)
+- Zare, N., Sayareh, A., Sarvmaili, M., Amini, O., Matwin, S., Soares, A.: Engineering Features to Improve Pass Prediction in 2D Soccer Simulation Games. In: RoboCup 2021: Robot World Cup XXIV, Springer (2021)
+- Hidehisa Akiyama, Tomoharu Nakashima, HELIOS Base: An Open Source Package for the RoboCup Soccer 2D Simulation, In Sven Behnke, Manuela Veloso, Arnoud Visser, and Rong Xiong editors, RoboCup2013: Robot World XVII, Lecture Notes in Artificial Intelligence, Springer Verlag, Berlin, 2014. http://dx.doi.org/10.1007/978-3-662-44468-9_46
+
+### Related works:
+
+- Zare, N., Sayareh, A., Khanjari, S., Firouzkouhi, A., 2024. Observation Denoising in CYRUS Soccer
+- Simulation 2D Team For RoboCup 2024. In: RoboCup 2024 Symposium and Competitions, Netherlands (2024). arXiv preprint arXiv:2406.05623.
+- Zare, N., Sayareh, A., Sadraii, A., Firouzkouhi, A., Soares, A. :
+- Cross Language Soccer Framework: An Open Source Framework for the RoboCup 2D Soccer Simulation. In: RoboCup 2024 Symposium and Competitions, Netherlands (2024). arXiv preprint arXiv:2406.05621.
+- Sayareh, A., Zare, N., Amini, O., Firouzkouhi, A., Sarvmaili, M. and Matwin, S., 2023. Observation Denoising in CYRUS Soccer Simulation 2D Team For RoboCup 2023. In: RoboCup 2023 Symposium and Competitions, France (2023). arXiv preprint arXiv:2305.19283.
+- Zare, N., Amini, O., Sayareh, A., Sarvmaili, M., Firouzkouhi, A., Ramezani Rad, S., Matwin, S., Soares, A.: Cyrus2D base: Source Code Base for RoboCup 2D Soccer Simulation League. In: RoboCup 2022: Robot World Cup XXV, Springer (2022)
+- Zare, N., Firouzkouhi, A., Amini, O., Sarvmaili, M., Sayareh, A., Soares, A., Matwin, S.: CYRUS 2D Soccer Simulation Team Description Paper 2022. In: RoboCup 2022 Symposium and Competitions, Thailand (2022)
+- Zare, N., Sayareh, A., Sarvmaili, M., Amini, O., Soares, A., Matwin, S.: CYRUS 2D Soccer Simulation Team Description Paper 2021. In: RoboCup 2021 Symposium and Competitions, Worldwide (2021)
+- Zare, N., Sarvmaili, M., Mehrabian, O., Nikanjam, A., Khasteh, S.-H., Sayareh, A., Amini, O., Barahimi, B., Majidi, A., Mostajeran, A.: Cyrus 2D Simulation 2019. In: RoboCup (2019).
+- Zare, N., Sadeghipour, M., Keshavarzi, A., Sarvmaili, M., Nikanjam, A., Aghayari, R., Firouzkoohi, A., Abolnejad, M., Elahimanesh, S., Akhgari, A.: Cyrus 2D Simulation Team Description Paper 2018. In: RoboCup(2018), Montreal, Canada (2018).
+- Zare, N., Najimi, A., Sarvmaili, M., Akbarpour, A., NaghipourFar, M., Barahimi, B., Nikanjam, A.: Cyrus 2D Simulation Team Description Paper 2017, In: Robocup(2017), Hefei, China (2017).
+- Zare, N., Keshavarzi, A., Beheshtian, S. E., Mowla, H., Akbarpour, A., Jafari, H., Arab Baraghi, K., Zarifi, M. A., Javidan, R.: Cyrus 2D Simulation Team Description Paper 2016. In: RoboCup 2016. Leipzig, Germany, (2016).
+- Zare, N., Karimi, M., Keshavarzi, A., Asali, E., Ali Poor, H., Aminian, A., Beheshtian, E., Mola, H., Jafari, H. , Khademian, M. J.: Cyrus Soccer 2D Simulation Team Description Paper 2015. In: RoboCup 2015. Hefei, China, (2015).
+- Khayami, R., Zare, N., Karimi, M., Mahor, P., Afshar, A., Najafi, M. S., Asadi, M., Tekrar, F., Asali, E., Keshavarzi, A.: CYRUS 2D simulation team description paper 2014. In: RoboCup 2014. Joao Pessoa, Brazil, (2014).
+- Khayami, R., Zare, N., Zolanvar, H. M. Karimi, P., Mahor, F., Tekara, E., Asali, Fatehi, M. : Cyrus Soccer 2D Simulation Team Description Paper 2013. In The 17th annual RoboCup International Symposium, Eindhovenm, The Netherlands. (2013)
+- Zare, N., Sayareh, A., Amini, O., Sarvmaili, M., Firouzkouhi, A., Matwin, S., Soares, A.: Pyrus Base: An Open Source Python Framework for the RoboCup 2D Soccer Simulation. arXiv preprint arXiv:2307.16875.
 
 ## Quick Start
 
@@ -43,27 +89,3 @@ Usually, this value is the same as `--prefix` option of configuring librcsc.
 You may also need to set the environment variable `LD_LIBRARY_PATH`.
 
 See `./configure --help` for others options.
-
-
-## References
-
-The paper about HELIOS Base:
-- Hidehisa Akiyama, Tomoharu Nakashima, HELIOS Base: An Open Source
-Package for the RoboCup Soccer 2D Simulation, In Sven Behnke, Manuela
-Veloso, Arnoud Visser, and Rong Xiong editors, RoboCup2013: Robot
-World XVII, Lecture Notes in Artificial Intelligence, Springer Verlag,
-Berlin, 2014. http://dx.doi.org/10.1007/978-3-662-44468-9_46
-
-Related works:
-- Hidehisa Akiyama, Daisuke Katagami, Katsumi Nitta, Team Formation Construction Using a GUI Tool in the RoboCup Soccer Simulation, SCIS & ISIS, 2006, Volume 2006, SCIS & ISIS 2006, Session ID TH-D2-5, Pages 80-85, Released September 12, 2008, https://doi.org/10.14864/softscis.2006.0.80.0
-- Hidehisa Akiyama, Daisuke Katagami, Katsumi Nitta, Training of Agent Positioning using Human's Instruction, Journal of Advanced Computational Intelligence and Intelligent Informatics, Vol. 11 No.8, pp.998--1006, 2007-10-20. https://doi.org/10.20965/jaciii.2007.p0998
-- 秋山 英久, 野田 五十樹, エージェント配置問題における三角形分割を利用した近似モデル, 人工知能学会論文誌, 2008, 23 巻, 4 号, p. 255-267, 公開日 2008/04/24, Online ISSN 1346-8030, Print ISSN 1346-0714, https://doi.org/10.1527/tjsai.23.255
-- Hidehisa Akiyama, Itsuki Noda, Multi-Agent Positioning Mechanism in the Dynamic Environment, In Ubbo Visser, Fernando Ribeiro, Takeshi Ohashi, and Frank Dellaert, editors, RoboCup 2007: Robot Soccer World Cup XI Lecture Notes in Artificial Intelligence, vol. 5001, Springer, pp.377-384, July 2008. https://doi.org/10.1007/978-3-540-68847-1_38
-- Hidehisa Akiyama, Tomoharu Nakashima, Shigeto Aramaki, Online Cooperative Behavior Planning using a Tree Search Method in the RoboCup Soccer Simulation, Proc. of 4th IEEE International Conference on Intelligent Networking and Collaborative Systems (INCoS-2012), 2012 Sep. https://doi.org/10.1109/iNCoS.2012.83
-- Hidehisa Akiyama, Tomoharu Nakashima, HELIOS2012: RoboCup 2012 Soccer Simulation 2D League Champion, RoboCup 2012: Robot Soccer World Cup XVI Lecture Notes in Computer Science Volume 7500, pp.13-19, June 2013. http://dx.doi.org/10.1007/978-3-642-39250-4_2
-- Takuya Fukushima, Tomoharu Nakashima, Hidehisa Akiyama, Mimicking an Expert Team through the Learning of Evaluation Functions from Action Sequences, RoboCup 2018: Robot World Cup XXII Lecture Notes in Computer Science, Vol. 11374, Springer, Cham, pp 170-180, 04 August 2019  https://doi.org/10.1007/978-3-030-27544-0_14
-- Hidehisa Akiyama, Tomoharu Nakashima, Takuya Fukushima, Jiarun Zhong, Yudai Suzuki, An Ohori, HELIOS2018: RoboCup 2018 Soccer Simulation 2D League Champion, RoboCup 2018: Robot World Cup XXII, Lecture Notes in Computer Science, Vol.11374, Springer, Cham, pp.450-461, 04 August 2019. https://doi.org/10.1007/978-3-030-27544-0_37
-- 福島卓弥, 中島智晴, 秋山英久, RoboCupサッカーにおけるニューラルネットワークを用いた評価関数モデリング, 電気学会論文誌Ｃ（電子・情報・システム部門誌）, 2019, 139 巻, 10 号, pp. 1128-1133, 2019-10-01 https://doi.org/10.1541/ieejeiss.139.1128
-- 秋山 英久, 中島 智晴, 五十嵐 治一, RoboCup サッカーシミュレーションにおける局面評価の表現法と学習法, 知能と情報, 2020, 32 巻, 2 号, p. 691-703, 公開日 2020/04/15, Online ISSN 1881-7203, Print ISSN 1347-7986, https://doi.org/10.3156/jsoft.32.2_691
-- Takuya Fukushima, Tomoharu Nakashima, Hidehisa Akiyama, Evaluation-function modeling with multi-layered perceptron for RoboCup soccer 2D simulation, Artificial Life and Robotics, Volume 25, issue 3, pp.440-445, 2020-04-30. https://doi.org/10.1007/s10015-020-00602-w
-
