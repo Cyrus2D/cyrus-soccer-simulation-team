@@ -2,9 +2,9 @@ name: Make
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "aa" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "aa" ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
