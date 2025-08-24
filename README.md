@@ -62,30 +62,42 @@ The latest helios-base depends on the following libraries:
 In the case of Ubuntu 16.04 or later, execute the following commands for installing a basic development environment:
 ```
 sudo apt update
-sudo apt install build-essential libboost-all-dev
+sudo apt install build-essential libboost-all-dev cmake
 ```
-And, install librcsc.
+install librcsc
+```
+git clone https://github.com/Cyrus2D/cyrus-soccer-simulation-lib
+cd cyrus-soccer-simulation-lib
+mkdir build
+cd build
+cmake ..
+make -j
+make install
+```
+
+install CppDNN:
+```
+sudo apt install libeigen3-dev
+git clone https://github.com/Cyrus2D/CppDNN.git
+cd CppDNN
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+```
 
 To build binaries, execute commands from the root of source directory:
 ```
-./bootstrap
-./configure
+mkdir build
+cd build
+cmake ..
 make
 ```
 
 To start the agent2d team, invoke the start script in `src` directory.
 ```
+cd build/src
 ./start.sh
 ```
 
-## Configuring
-
-You may need to configure the build settings if you installed librcsc to an unusual location. 
-You can specify the installed location of librcsc by using `--with-librcsc` option as follows:
-```
-./configure --with-librcsc=/path/to/librcsc
-```
-Usually, this value is the same as `--prefix` option of configuring librcsc.
-You may also need to set the environment variable `LD_LIBRARY_PATH`.
-
-See `./configure --help` for others options.
